@@ -224,6 +224,7 @@ pip-log.txt
 *.nav
 *.out
 *.pdf
+*.png
 *.snm
 *.sty
 *.synctex.gz

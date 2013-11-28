@@ -1,0 +1,13 @@
+\documentclass[11pt,letterpaper,oneside]{report}
+\begin{document}
+\title{My \LaTeX document structure with table of contents}
+\author{Jerzy Pawlowski}
+\institute{NYU Polytechnic Institute}
+\maketitle
+\tableofcontents
+\section{Section1}
+Hello World!
+\section{Section2}
+Goodbye World!
+\end{document}
+

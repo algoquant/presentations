@@ -2,6 +2,7 @@
 \usepackage[latin1]{inputenc}
 \usetheme{Warsaw}
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 <<setup, include=FALSE, cache=FALSE>>=
 library(knitr)
@@ -16,6 +17,7 @@ opts_chunk$set(comment=NA, fig.width=6, fig.height=6)
 \maketitle
 
 \begin{frame}[fragile]
+\frametitle{First sample slide}
 This is a simple \textbf{knitr} demo with Brownian motion:
 
 <<Brownian_motion, eval=TRUE, dev='png'>>=
@@ -25,11 +27,12 @@ mean(x)  # mean of x
 plot(x, type='l')  # Brownian motion
 @
 
-Doesn't fit on page !
+Chart doesn't fit on page !
 
 \end{frame}
 
-\begin{frame}{A sample slide}
+\begin{frame}
+\frametitle{Second sample slide}
 A displayed formula:
 \[
 \int_{-\infty}^\infty e^{-x^2} \, dx = \sqrt{\pi}
