@@ -1,0 +1,216 @@
+% Define knitr options
+% !Rnw weave = knitr
+% Set global chunk options
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+opts_chunk$set(comment=NA, fig.width=6, fig.height=6)
+thm <- knit_theme$get("acid")
+knit_theme$set(thm)
+@
+
+
+% Define document options
+\documentclass[10pt]{beamer}
+% Uncover everything in a step-wise fashion
+% \beamerdefaultoverlayspecification{<+->}
+\usepackage[latin1]{inputenc}
+\usepackage{hyperref}
+\usepackage{url}
+% \usepackage{enumerate}
+% \let\emph\textbf
+% \let\alert\textbf
+\usetheme{AnnArbor}
+% Define colors for hyperlinks
+\definecolor{links}{HTML}{2A1B81}
+\hypersetup{colorlinks,linkcolor=,urlcolor=links}
+
+% Begin document 
+\begin{document}
+
+% Title page
+\title[FRE6811 Lecture \#1]{FRE6811 Financial Software Laboratory}
+\subtitle{Lecture \#1, Spring 2014}
+\subject{Getting Started With R}
+\author{Jerzy Pawlowski}
+\institute{NYU Polytechnic Institute}
+
+% \pgfdeclareimage[height=0.5cm]{university-logo}{C:\Users\Jerzy\Downloads\NYU_Polytechnic}
+% \logo{\pgfuseimage{university-logo}}
+
+\date{January 27, 2014}
+% \date{\today}
+\maketitle
+
+\begin{frame}[t]{Outline}
+% You might wish to add the option [pausesections]
+  \tableofcontents[pausesections]
+\end{frame}
+
+%%%%%%%%%%%%%%%
+%%% Getting Started
+\begin{frame}[t]{Getting Started With R}
+
+Download R program from CRAN (Comprehensive R Archive Network)\\
+\hskip10pt \url{http://cran.r-project.org}\\
+\vskip10pt
+Download R RStudio (IDE - Integrated Development Environment)\\
+\hskip10pt \url{http://www.rstudio.com/ide}\\
+\vskip10pt
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+%%% Tutorials
+\begin{frame}[t]{R Tutorials and Manuals}
+
+An Introduction to R\\
+\hskip10pt \url{http://cran.r-project.org/doc/manuals/r-release/R-intro.pdf}\\
+\vskip10pt
+
+R-FAQ\\
+\hskip10pt \url{http://cran.r-project.org/doc/FAQ/R-FAQ.html}\\
+\vskip10pt
+
+Stack Overflow\\
+\hskip10pt \url{http://stackoverflow.com/questions/tagged/r}\\
+\vskip10pt
+
+Google Style Guide for R\\
+\hskip10pt \url{http://google-styleguide.googlecode.com/svn/trunk/Rguide.xml}\\
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+%%% Formatting
+\begin{frame}[t]{Formatting}
+
+Boldface: \textbf{Hello World!}\pause\\
+% \textsc{Hello World!}\pause\\
+Italic: \textit{Hello World!}\pause\\
+% Red emph: \color{red}{\emph{Hello World!}}\pause\\
+Alert: \alert{Hello World!}\pause\\
+
+\end{frame}
+
+
+
+
+%%%%%%%%%%%%%%%
+%%% Block Example
+\begin{frame}[t]{Block example}
+
+Block example
+\begin{block}{My first block}
+Hello World!
+\ldots Something more \pause\\
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+%%% Block Example with uncover
+\begin{frame}[t]{Block example with uncover}
+
+Block example with uncover
+\uncover<1>{
+\begin{block}{Block 1}
+First\ldots
+\end{block}
+}
+\uncover<2>{
+\begin{block}{Block 2}
+Second\ldots
+\end{block}
+}
+\uncover<3>{
+\begin{block}{Block 3}
+Third\ldots
+\end{block}
+}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+%%% Table Example
+\begin{frame}[t]{Table Example}
+
+Table Example\\
+\begin{tabular}{c||c|c|c|}
+& \textbf{column1} & \textbf{column2} & \textbf{column4} \\
+\hline
+\hline
+\textbf{row1} & cell1 & cell2 & cell3 \\
+\hline
+\textbf{row2} & cell4 & cell5 & cell6 \\
+\end{tabular}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+%%% Plot Example
+\begin{frame}[fragile]{Plot with R code}
+
+This is a simple \textbf{knitr} demo with Brownian motion:
+
+<<Brownian_motion, eval=TRUE, echo=TRUE, dev='png'>>=
+set.seed(1213)  # for reproducibility
+v.random = cumsum(rnorm(100))
+mean(v.random)  # mean of v.random
+plot(v.random, type='l')  # Brownian motion
+@
+
+Chart doesn't fit on page !
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+%%% Formulas
+\begin{frame}{Formulas and Lists}
+
+The value of $\pi$ is \Sexpr{pi}\\
+You can also write inline expressions, e.g. $\pi=\Sexpr{pi}$, and \Sexpr{1.598673e8} is a big number.
+\vskip10pt
+
+A formula:
+\[
+\int_{-\infty}^{+\infty} e^{-x^2} \, dx = \sqrt{\pi}
+\]
+\\
+$\int_{-\infty}^{+\infty} e^{-x^2} \, dx = \sqrt{\pi}$
+\\
+Another formula:
+\[
+\sum e_{i}^{2}
+\]
+$\sum e_{i}^{2}$
+
+An itemized list with with pause, items appearing one at a time:
+\begin{itemize}[<+->]
+\item \color{blue}{item 1}
+\item item 2
+\item item 3
+\end{itemize}
+
+An enumerated list with items appearing one at a time:
+\begin{enumerate}[<+->]
+\item item 1
+\item item 2
+\item item 3
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%
+%%% Text in box
+\begin{theorem}
+In a right triangle, the square of hypotenuse equals
+the sum of squares of two other sides.
+\end{theorem}
+\end{frame}
+
+
+\end{document}

@@ -1,8 +1,14 @@
+% !Rnw weave = knitr
 \documentclass{beamer}
 \usepackage[latin1]{inputenc}
 \usetheme{Warsaw}
 \begin{document}
-\SweaveOpts{concordance=TRUE}
+
+\title[FRE6811 Financial Software Laboratory]{A Minimal Demo of knitr\\Hope this works}
+\author{Jerzy Pawlowski}
+\institute{NYU Polytechnic Institute}
+\date{\today}
+\maketitle
 
 <<setup, include=FALSE, cache=FALSE>>=
 library(knitr)
@@ -10,21 +16,15 @@ library(knitr)
 opts_chunk$set(comment=NA, fig.width=6, fig.height=6)
 @
 
-\title[NewportLabs]{A Minimal Demo of knitr\\Hope this works}
-\author{Jerzy Pawlowski}
-\institute{NYU Polytechnic Institute}
-\date{\today}
-\maketitle
-
 \begin{frame}[fragile]
 \frametitle{First sample slide}
 This is a simple \textbf{knitr} demo with Brownian motion:
 
 <<Brownian_motion, eval=TRUE, dev='png'>>=
 set.seed(1213)  # for reproducibility
-x = cumsum(rnorm(100))
-mean(x)  # mean of x
-plot(x, type='l')  # Brownian motion
+v.random = cumsum(rnorm(100))
+mean(v.random)  # mean of v.random
+plot(v.random, type='l')  # Brownian motion
 @
 
 Chart doesn't fit on page !
@@ -49,5 +49,12 @@ the sum of squares of two other sides.
 \end{theorem}
 \end{frame}
 
+\begin{frame}
+\frametitle{Some Useful R Links}
+
+Google Style Guide for R:
+http://google-styleguide.googlecode.com/svn/trunk/Rguide.xml
+
+\end{frame}
 
 \end{document}

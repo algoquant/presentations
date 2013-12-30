@@ -1,5 +1,6 @@
 \documentclass{article}
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 \usepackage[T1]{fontenc}
 
 \begin{document}

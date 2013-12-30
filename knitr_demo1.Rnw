@@ -1,0 +1,141 @@
+% Demo of printing functions and making charts with captions and subcaptions
+
+% Define knitr options
+% !Rnw weave = knitr
+<<setupglobalchunkoptions, include=FALSE, cache=FALSE>>=
+library(knitr)
+# set global chunk options
+opts_chunk$set(comment=NA, fig.width=6, fig.height=6)
+opts_knit$set(use.highlight = TRUE)
+opts_chunk$set(highlight = TRUE)
+thm <- knit_theme$get("acid")
+knit_theme$set(thm)
+# opts_knit$set(out.format = "html")
+# opts_knit$set(...., highlight=FALSE)
+# render_html()
+@
+
+
+% Define document options
+\documentclass[8pt]{article}
+% Uncover everything in a step-wise fashion
+% \beamerdefaultoverlayspecification{<+->}
+\usepackage[latin1]{inputenc}
+% \usepackage[T1]{fontenc}
+\usepackage{subcaption}
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage{url}
+% \usepackage{enumerate}
+% \let\emph\textbf
+% \let\alert\textbf
+
+% \usetheme{AnnArbor}
+
+% Define colors for hyperlinks
+% \definecolor{links}{HTML}{2A1B81}
+% \hypersetup{colorlinks,linkcolor=,urlcolor=links}
+
+% \pagestyle{fancy}
+
+
+% Define function for pretty printing R functions
+<<insert-fun, echo=FALSE>>=
+insert_fun = function(name) {
+  read_chunk(lines = capture.output(dump(name, '')), labels = paste(name, 'source', sep = '-'))
+}
+@
+
+\begin{document}
+
+% First slide
+\begin{frame}
+
+\textbf{Hello y'all!}\\
+% \textsc{Hello y'all!}\\
+\textit{Hello y'all!}\\
+\color{red}{\emph{Hello y'all!}}\\
+
+The value of $\pi$ is \Sexpr{pi}\\
+You can also write inline expressions, e.g. $\pi=\Sexpr{pi}$, and \Sexpr{1.598673e8} is a big number.
+
+Download R program from CRAN (Comprehensive R Archive Network)\\
+\url{http://cran.r-project.org}\\
+
+\end{frame}
+
+\begin{frame}[fragile]
+<<test>>=
+summary(cars)
+@
+\end{frame}
+
+
+\begin{frame}[fragile]
+This example shows you how to separate the source and output boxes by injecting
+the \texttt{kframe} environments between them.
+
+<<modifychunkhook, tidy=FALSE>>=
+# modify the default chunk hook
+hook_chunk = knit_hooks$get('chunk')
+knit_hooks$set(chunk = function(x, options) {
+  out = hook_chunk(x, options)
+  gsub('(\\\\end\\{alltt\\})\\s*(\\\\begin\\{verbatim\\})',
+       '\\1\\\\end{kframe}\\\\begin{kframe}\\2', out)
+})
+@
+
+But it's a hackish solution...
+\end{frame}
+
+This is ordinary printing:
+ 
+<<ordinary-print>>=
+fivenum
+@
+ 
+We insert the source of fivenum into knitr and print it in the chunk fivenum-source:
+ 
+<<insert-fivenum, echo=FALSE>>=
+insert_fun('fivenum')
+<<fivenum-source, eval=FALSE>>=
+@
+
+
+% \lhead{}\chead{}\rhead{By \myurlshort{http://biostat.jhsph.edu/~lcollado/}{Jerzy Pawlowski}}\lfoot{}\cfoot{\thepage}\rfoot{\today}
+
+Here is a code chunk.
+
+<<foo, fig.height=12>>=
+1+1
+letters
+chartr('xie', 'XIE', c('xie yihui', 'Yihui Xie'))
+par(mar=c(4, 4, .2, .2)); plot(rnorm(100))
+@
+
+You can also write inline expressions, e.g. $\pi=\Sexpr{pi}$, and \Sexpr{1.598673e8} is a big number.
+
+You can include sub-figures using the \textbf{subcaption} package. For example,
+Figure \ref{fig:test} contains \ref{fig:test-a} and \ref{fig:test-b}.
+
+\begin{figure}
+% Chart1
+  \begin{subfigure}{.5\textwidth}
+  <<test-a, echo=FALSE, results='asis', fig.width=5, fig.height=5>>=
+  plot(1:10)
+  @
+  \caption{This is Figure a. \label{fig:test-a}}
+  \end{subfigure}
+% Chart2
+  \begin{subfigure}{.5\textwidth}
+  <<test-b, echo=FALSE, results='asis', fig.width=5, fig.height=5>>=
+  plot(rnorm(100))
+  @
+  \caption{This is Figure b. \label{fig:test-b}}
+  \end{subfigure}
+\caption{This figure contains two subfigures. \label{fig:test}}
+
+\end{figure}
+
+
+\end{document}

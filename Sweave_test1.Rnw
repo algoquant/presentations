@@ -1,5 +1,6 @@
 \documentclass[11pt,letterpaper,oneside]{report}
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 \title{My \LaTeX document structure with table of contents}
 \author{Jerzy Pawlowski}
 \institute{NYU Polytechnic Institute}

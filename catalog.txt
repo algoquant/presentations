@@ -1,0 +1,2 @@
+knitr_demo1: Demo of printing functions and making charts with captions and subcaptions
+
