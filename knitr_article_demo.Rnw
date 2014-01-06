@@ -1,8 +1,9 @@
-% Demo of printing functions and making charts with captions and subcaptions
+% knitr demo of article document
+% Includes printing functions and making charts with captions and subcaptions
 
 % Define knitr options
 % !Rnw weave = knitr
-<<setupglobalchunkoptions, include=FALSE, cache=FALSE>>=
+<<knitr_setup, include=FALSE, cache=FALSE>>=
 library(knitr)
 # set global chunk options
 opts_chunk$set(comment=NA, fig.width=6, fig.height=6)
@@ -51,10 +52,10 @@ insert_fun = function(name) {
 % First slide
 \begin{frame}
 
-\textbf{Hello y'all!}\\
-% \textsc{Hello y'all!}\\
-\textit{Hello y'all!}\\
-\color{red}{\emph{Hello y'all!}}\\
+\textbf{Hello World!}\\
+% \textsc{Hello World!}\\
+\textit{Hello World!}\\
+\color{red}{\emph{Hello World!}}\\
 
 The value of $\pi$ is \Sexpr{pi}\\
 You can also write inline expressions, e.g. $\pi=\Sexpr{pi}$, and \Sexpr{1.598673e8} is a big number.

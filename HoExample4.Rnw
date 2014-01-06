@@ -1,0 +1,457 @@
+\documentclass{beamer}
+\usepackage{beamerthemeshadow}
+\usepackage{url,graphics,amsmath,pstricks,hyperref,times,color}
+\usepackage{graphicx}
+\usepackage{Sweave}
+\usepackage{amscd}
+\usepackage[tableposition=top]{caption}
+\usepackage{ifthen}
+\usepackage[utf8]{inputenc}
+
+\newcommand{\R}{\textsf{R}}
+\def\be{\begin{scriptsize}}
+\def\ee{\end{scriptsize}}
+\def\bi{\begin{itemize}}
+\def\ei{\end{itemize}}  
+\def\bv{\begin{verbatim}}
+\def\ev{\end{verbatim}}
+\setbeamertemplate{footline}{\insertpagenumber/\insertpresentationendpage} 
+
+%%%%%%%%% heart shape
+\usepackage{shapepar}
+
+
+\renewcommand{\topfraction}{.85} 
+\renewcommand{\bottomfraction}{.7}
+\renewcommand{\textfraction}{.15} 
+\renewcommand{\floatpagefraction}{.66}
+\renewcommand{\dbltopfraction}{.66} 
+\renewcommand{\dblfloatpagefraction}{.66}
+
+\sloppy
+\raggedbottom
+\addtolength{\topskip}{0pt plus 8pt}
+
+\newcommand\configpar[6]{\par\penalty-50
+ \vskip 0pt plus 12pt \penalty 50 \vskip 0pt plus -12pt
+ \begingroup\samepage
+ \paragraph*{\textbackslash #1} #2\unskip\strut\\*
+ \begin{tabular}{@{}p{.15\linewidth}@{}p{.85\linewidth}@{}}
+ Type: \ & \rightskip\fill #3\\
+ Default: \ & \rightskip\fill #4\\
+ Set with: \ & \rightskip\fill #5\\
+ Example: \ & \rightskip\fill #6
+ \end{tabular}
+ \par \endgroup
+}
+
+% Code from: underscore.sty     12-Oct-2001   Donald Arseneau   asnd@triumf.ca
+% Make the "_" character print as "\textunderscore" in text.
+
+\makeatletter
+\begingroup
+ \catcode`\_=\active
+ \gdef_{% \relax % No relax gives a small vulnerability in alignments
+   \ifx\if@safe@actives\iftrue % must be outermost test!
+      \string_%
+   \else
+      \ifx\protect\@typeset@protect
+         \ifmmode \sb \else \BreakableUnderscore \fi
+      \else
+         \ifx\protect\@unexpandable@protect \noexpand_%
+         \else \protect_%
+      \fi\fi
+    \fi}
+\endgroup
+
+
+
+
+\title{Making Nice Slides using Beamer and Sweave}
+\author[Yen-Yi Ho]{Yen-Yi Ho}
+\institute[University of Minnesota]{
+  Division of Biostatistics\\
+  School of Public Health \\
+    University of Minnesota
+}
+
+\date{}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\frame{
+  \titlepage
+}
+
+<<options, echo=FALSE, results=hide>>=
+library(tools)
+options(width=55)
+@ 
+
+\section{Beamer}
+
+\begin{frame}\frametitle{Syntax in Beamer}
+$\backslash$documentclass\{beamer\} \\
+$\backslash$usepackage\{beamerthemeshadow\} \\
+$\backslash$title\{Mytitle\}\\
+\vspace{0.2in}
+$\backslash$begin\{document\} \\
+$\backslash$begin\{frame\} \\
+ $\backslash$titlepage \\
+$\backslash$end\{frame\} \\
+\vspace{0.2in}
+$\backslash$begin\{frame\} \\
+Content for Slide 1  \\
+$\backslash$end\{frame\} \\
+\vspace{0.2in}
+$\backslash$end\{document\} \\
+\end{frame}
+
+\subsection{Pause}
+\begin{frame}\frametitle{Lists with Pause}
+\begin{itemize}
+\item Introduction to  \LaTeX \pause 
+\item Course 2 \pause 
+\item Termpapers and presentations with \LaTeX \pause 
+\item Beamer class
+\end{itemize} 
+\end{frame}
+
+\subsection{Table} 
+
+\begin{frame}\frametitle{Tables}
+
+%<<analyticData, results=hide, print=FALSE>>=
+%a1<-paste(sample(LETTERS,6), collapse="")
+%a2<-paste(sample(LETTERS,6), collapse="")
+%@ 
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Date} & \textbf{Instructor} & \textbf{Title} \\
+\hline
+WS 04/05 & John Mich & First steps with  \LaTeX  \\
+\hline
+SS 05 & Yen-Yi Ho & \LaTeX \ Course serial \\
+\hline
+\end{tabular}
+\end{frame}
+
+\subsection{Splitting Screen}
+\begin{frame}\frametitle{Splitting Screen}
+\begin{columns}
+\begin{column}{5cm}
+\begin{itemize}
+\item Beamer 
+\item Beamer Class 
+\item Beamer Class Latex 
+\end{itemize}
+\end{column}
+\begin{column}{5cm}
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Instructor} & \textbf{Title} \\
+\hline
+John &  \LaTeX \ Course 1 \\
+\hline
+Anding  &  Course serial  \\
+\hline
+\end{tabular}
+\end{column}
+\end{columns}
+\end{frame}
+
+\subsection{Plain} 
+\begin{frame}[plain]
+\frametitle{Tables}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Date} & \textbf{Instructor} & \textbf{Title} \\
+\hline
+WS 04/05 & Yen-Yi Ho & First steps with  \LaTeX  \\
+\hline
+SS 05 & Mica Shen & \LaTeX \ Course serial \\
+\hline
+\end{tabular}
+\end{frame}
+
+\subsection{Animation}
+
+
+<<h1, fig=TRUE, include=FALSE, echo=FALSE, eps=true, results=hide,width=6, height=6>>=
+##I use include=FALSE and then use latex to put the figure exactly where I want
+require(affy) || {
+	message("package not available. downloading from Bioconductor")
+	source("http://www.bioconductor.org/biocLite.R")
+	biocLite("affy", type="source")
+}
+require(gplots) || {
+	message("package not available. downloading from Bioconductor")
+	source("http://www.bioconductor.org/biocLite.R")
+	biocLite("gplots", type="source")
+}
+require(SpikeIn) || {
+	message("package not available. downloading from Bioconductor")
+	source("http://www.bioconductor.org/biocLite.R")
+	biocLite("SpikeIn", type="source")
+}
+
+
+library(affy)
+library(gplots)
+library(SpikeIn)
+data(SpikeIn)
+pms <- SpikeIn@pm
+
+ # just the data, scaled across rows
+ heatmap.2(pms, col=rev(heat.colors(16)), main="SpikeIn.pm", 
+              xlab="Relative Concentration", ylab="Probeset", 
+              scale="row")
+@ 
+<<h2, fig=TRUE, include=FALSE, echo=FALSE, eps=true, width=6, height=6>>=
+ # fold change vs "12.50" sample
+ data <- pms / pms[, "12.50"]
+ data <- ifelse(data>1, data, -1/data)
+ heatmap.2(data, breaks=16, col=redgreen, tracecol="blue", 
+               main="FoldChange", 
+               xlab="Relative Concentration", ylab="Probeset")
+@ 
+
+
+\begin{frame}
+\frametitle{Animation}
+\begin{columns}
+\begin{column}{2.5cm}
+\begin{itemize}
+\item<1-> subject 1
+\item<3-> subject 2
+\end{itemize}
+\vspace{3cm} 
+\end{column}
+\vspace{-0.2in}
+\begin{column}{7.5cm}
+\begin{overprint}
+\includegraphics<2>{HoExample4-h1}
+\includegraphics<4>{HoExample4-h2}
+\end{overprint}
+\end{column}
+\end{columns}
+\end{frame}
+
+
+
+\subsection{Love Letter}
+\begin{frame}\frametitle{Love Letter Too}
+{\small $\backslash$heartpar\{\}}\\
+\vspace{0.1in}
+\def~{\,}
+\heartpar{%
+\tiny
+\mbox{}If I speak in the tongues of men or of angels, but do not have love, I am only a resounding gong or a clanging cymbal. If I have the gift of prophecy and can fathom all mysteries and all knowledge, and if I have a faith that can move mountains, but do not have love, I am nothing.  If I give all I possess to the poor and give over my body to hardship that I may boast, but do not have love, I gain nothing. Love is patient, love is kind. It does not envy, it does not boast, it is not proud.  It does not dishonor others, it is not self-seeking, it is not easily angered, it keeps no record of wrongs.  Love does not delight in evil but rejoices with the truth. It always protects, always trusts, always hopes, always perseveres.} 
+\vspace{0.1in}
+{\scriptsize More Beamer TeX examples and templates : \url{http://www.informatik.uni-freiburg.de/~frank/ENG/latex-course/latex-course-3/latex-course-3_en.html}}
+\end{frame}
+
+
+
+\section{Adding Sweave} 
+\subsection{Literate Programming}
+\begin{frame}
+  Literate programming means that text, data, and computer code are
+  interwoven in a single self-contained document.
+\end{frame}
+
+\begin{frame}
+  \frametitle{This Is Not Literate Programming}
+  
+  A research document involving multiple files with figures and tables
+  cut and paste from various places.  For instance,
+  
+  \begin{itemize}
+  \item a stata do-file
+    
+  \item an excel spreadsheet with results
+    
+  \item an excel spreadsheet with data
+    
+  \item a directory with filenames like ``old.doc'' and ``new.doc''
+    
+  \item a word document with tables and figures cut and paste from
+    various places
+      
+  \end{itemize}
+  
+  *Changes to the stata do-file are not automatically propogated to
+  the excel spread-sheet or to the Word document.
+  
+\end{frame}    
+
+\subsection{Why Sweave}
+\begin{frame}
+  \frametitle{Why You Should Use Literate Programming}
+  
+  \begin{itemize}
+    
+  \item Reproducible research
+    
+  \item Dynamic reports
+    
+  \item \textsf{R} Package vignettes: R vignettes are usually developed using Sweave    
+  \end{itemize}
+  
+\end{frame}
+  
+ \subsection{How Sweave Works} 
+\begin{frame}[containsverbatim]
+  \frametitle{Literate programming for \R{} uses Sweave}
+  \begin{small}
+    Essentially requires a single source document -- a '.Rnw' file.
+  \end{small}
+
+$$
+\begin{CD}
+   \texttt{*.Rnw}
+   @>\texttt{Sweave}>>
+   \texttt{*.tex}
+   @>\texttt{latex}>>
+   \texttt{*.dvi}
+   @>\texttt{xdvi}>>
+   \text{view of document}
+\end{CD}
+$$
+
+% \begin{center}
+% \includegraphics[scale=0.5]{processingNoWeb.pdf}
+ %\end{center}
+  \be
+  see \url{http://www.bias-project.org.uk/Rpackages_course/intro_Sweave.pdf}
+  \ee
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{This Presentation}
+  
+  If you have beamer and tex installed, try reproducing this talk:
+\be  
+<<sweaveThisTalk, eval=FALSE>>=
+Sweave("HoExample4.Rnw")
+Sys.setenv(PATH=paste(Sys.getenv("PATH"),"/usr/texbin",sep=":"))
+texi2dvi("HoExample4.tex", pdf=T, quiet=F)
+@ %def 
+\ee
+Tricks for compiling Rnw file:
+\begin{itemize}
+\item If using older versions of R,\\
+{\tt >Sweave("HoExample4.Rnw")} sometimes gives error messages saying some packages do not exist. Type \\
+{\tt > biocLite("TheMissingPackage")} to solve the problem.  
+\item If having no luck in \\
+{\tt >texi2dvi("HoExample4.tex", pdf=T, quiet=F)}, then open your favorite TeX editor and run TeX and Dvi to compile ``HoExample4.tex"
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Syntax using Beamer and Sweave}
+\small
+$\backslash$documentclass\{beamer\} \\
+$\backslash$usepackage\{beamerthemeshadow\} \\
+$\backslash$usepackage\{Sweave\} \\
+$\backslash$begin\{document\} \\
+$\backslash$begin\{frame\} \\
+\ \ \ \ \ Content for Slide 1  \\
+$\backslash$end\{frame\} \\
+\textcolor{blue}{$\ll$ \ \ \ \ \ $\gg$=} \\
+\textcolor{blue}{my R code chunk} \\
+\textcolor{blue}{$@$} \\
+$\backslash$begin\{frame\} \\
+\ \ \ \ \ \ Content for Slide 2  \\
+$\backslash$end\{frame\} \\
+\vspace{0.2in}
+$\backslash$end\{document\} \\
+\end{frame}
+
+\begin{frame}
+  \frametitle{Code Chunk Options}
+
+  \begin{itemize}
+  \item \texttt{eval(TRUE, or FALSE)} \\
+   Whether the R chunk is run
+  \item \texttt{echo(TRUE, FALSE)}  \\
+  Whether the R chunk is shown in the \LaTeX\ file
+  \item \texttt{results(verbatim, hide, tex)} \\
+  Type of output used to show the printed results produced by the R code. 
+ \item  \texttt{fig(TRUE, FALSE)} \\
+  Whether the output is a figure. By default, PDF files are produced. 
+  \item $\ll$\texttt{figname, fig=TRUE, include=FALSE}$\gg$ \\
+  \end{itemize}
+  
+  See the \texttt{HoExample4.Rnw} for examples.
+
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{Extracting Code Chunks}
+  
+  To extract code chunks from a .Rnw file:
+  
+<<stangle, eval=FALSE>>=
+Stangle("HoExample4.Rnw")
+@ %def 
+
+This command generates the file \texttt{HoExample4.R} containing the
+code chunks used in this presentation.
+
+\end{frame}
+
+\subsection{Dynamic Reports}
+\begin{frame}[containsverbatim]
+  \frametitle{Dynamic Reports}
+\be  
+<<analyticData, results=hide>>=
+require(geneplotter) || {
+	message("package not available. downloading from Bioconductor")
+	source("http://www.bioconductor.org/biocLite.R")
+	biocLite("geneplotter", type="source")
+}
+x1  <- matrix(rnorm(1e4), ncol=2)
+x2  <- matrix(rnorm(1e4, mean=3, sd=1.5), ncol=2)
+x   <- rbind(x1,x2)
+@ 
+
+<<smoothScatter, fig=TRUE, include=FALSE, echo=TRUE, eps=true, width=7, height=7>>=
+##I use include=FALSE and then use latex to put the figure exactly where I want
+par(mfrow=c(2,2), las=1)
+par(mar=c(2,2,2,1))
+smoothScatter(x, nrpoints=0)
+smoothScatter(x)
+smoothScatter(x,nrpoints=Inf,colramp=colorRampPalette(RColorBrewer::brewer.pal(9, "YlOrRd")),bandwidth=1)  
+colors  <- densCols(x)
+plot(x, col=colors, pch=20)
+@ 
+\ee
+  
+\end{frame}
+
+\begin{frame}[plain]
+  \frametitle{Interweaving text, \R{} code, and figures}
+  \begin{small}
+    Any changes to the preceding code will be propagated to this
+    figure automatically.
+  \end{small}
+ \vspace{-0.2in}
+\begin{center}
+\includegraphics[width=0.6\textwidth]{HoExample4-smoothScatter}
+\end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Many public resources }
+  
+  Key words for google: reproducible research, Sweave
+  
+\end{frame}
+
+
+
+
+\end{document}
+
+

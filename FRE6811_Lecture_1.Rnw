@@ -1,9 +1,10 @@
 % Define knitr options
 % !Rnw weave = knitr
 % Set global chunk options
-<<setup, include=FALSE, cache=FALSE>>=
+<<knitr_setup, include=FALSE, cache=FALSE>>=
 library(knitr)
-opts_chunk$set(comment=NA, fig.width=6, fig.height=6)
+opts_chunk$set(comment=NA, size='footnotesize', fig.width=4, fig.height=4)
+options(width=60, dev='pdf')
 thm <- knit_theme$get("acid")
 knit_theme$set(thm)
 @
@@ -15,11 +16,13 @@ knit_theme$set(thm)
 % \beamerdefaultoverlayspecification{<+->}
 \usepackage[latin1]{inputenc}
 \usepackage{hyperref}
+\usepackage{fancybox}
 \usepackage{url}
 % \usepackage{enumerate}
 % \let\emph\textbf
 % \let\alert\textbf
 \usetheme{AnnArbor}
+% \usecolortheme{whale}
 % Define colors for hyperlinks
 \definecolor{links}{HTML}{2A1B81}
 \hypersetup{colorlinks,linkcolor=,urlcolor=links}
@@ -27,7 +30,9 @@ knit_theme$set(thm)
 % Begin document 
 \begin{document}
 
-% Title page
+
+%%%%%%%%%%%%%%%
+%%% Title page
 \title[FRE6811 Lecture \#1]{FRE6811 Financial Software Laboratory}
 \subtitle{Lecture \#1, Spring 2014}
 \subject{Getting Started With R}
@@ -41,13 +46,18 @@ knit_theme$set(thm)
 % \date{\today}
 \maketitle
 
-\begin{frame}[t]{Outline}
-% You might wish to add the option [pausesections]
-  \tableofcontents[pausesections]
-\end{frame}
 
 %%%%%%%%%%%%%%%
+%%% Outline
+\begin{frame}[t]{Outline}
+% You might wish to add the option [pausesections]
+  \tableofcontents
+\end{frame}
+
+\section{Lecture \#1}
+%%%%%%%%%%%%%%%
 %%% Getting Started
+\subsection{Getting Started With R}
 \begin{frame}[t]{Getting Started With R}
 
 Download R program from CRAN (Comprehensive R Archive Network)\\
@@ -62,6 +72,7 @@ Download R RStudio (IDE - Integrated Development Environment)\\
 
 %%%%%%%%%%%%%%%
 %%% Tutorials
+\subsection{R Tutorials and Manuals}
 \begin{frame}[t]{R Tutorials and Manuals}
 
 An Introduction to R\\
@@ -82,36 +93,68 @@ Google Style Guide for R\\
 \end{frame}
 
 
+\section{Beamer and knitr features}
 %%%%%%%%%%%%%%%
 %%% Formatting
+\subsection{Formatting}
 \begin{frame}[t]{Formatting}
 
+Text formatting:\\
+Keyword: Introduction to {\LaTeX}\pause\\
 Boldface: \textbf{Hello World!}\pause\\
 % \textsc{Hello World!}\pause\\
 Italic: \textit{Hello World!}\pause\\
 % Red emph: \color{red}{\emph{Hello World!}}\pause\\
 Alert: \alert{Hello World!}\pause\\
+\ovalbox{Text in ovalbox}\pause\\
+
+\vskip10pt
+Text in two columns:
+% \vskip10pt
+\begin{columns}[T]
+  \column{0.4\textwidth}
+    \begin{block}{Column head 1}
+      First column text
+    \end{block}
+  \column{0.4\textwidth}
+    \begin{block}{Column head 2}
+      This is a tree frog:\\
+      \includegraphics[height=3cm]{frog.jpg}
+    \end{block}
+\end{columns}
 
 \end{frame}
 
 
-
-
 %%%%%%%%%%%%%%%
 %%% Block Example
+\subsection{Block example}
 \begin{frame}[t]{Block example}
 
-Block example
-\begin{block}{My first block}
-Hello World!
-\ldots Something more \pause\\
+\begin{block}{Simple block}
+  Hello World! \ldots Something more \pause\\
 \end{block}
+% \vskip10pt
+
+\begin{exampleblock}{Example block}
+  This is an example \pause\\
+\end{exampleblock}
+% \vskip10pt
+
+\begin{theorem}{Theorem block}
+  In a right triangle, the square of hypotenuse equals the sum of squares of two other sides \ldots  \pause\\
+\end{theorem}
+
+\begin{alertblock}{Alert block}
+  Pants on fire!
+\end{alertblock}
 
 \end{frame}
 
 
 %%%%%%%%%%%%%%%
 %%% Block Example with uncover
+\subsection{Block example with uncover}
 \begin{frame}[t]{Block example with uncover}
 
 Block example with uncover
@@ -136,6 +179,7 @@ Third\ldots
 
 %%%%%%%%%%%%%%%
 %%% Table Example
+\subsection{Table Example}
 \begin{frame}[t]{Table Example}
 
 Table Example\\
@@ -152,31 +196,110 @@ Table Example\\
 
 
 %%%%%%%%%%%%%%%
-%%% Plot Example
-\begin{frame}[fragile]{Plot with R code}
-
-This is a simple \textbf{knitr} demo with Brownian motion:
-
-<<Brownian_motion, eval=TRUE, echo=TRUE, dev='png'>>=
-set.seed(1213)  # for reproducibility
-v.random = cumsum(rnorm(100))
-mean(v.random)  # mean of v.random
-plot(v.random, type='l')  # Brownian motion
+%%% knitr tidy test
+\subsection{knitr tidy test}
+\begin{frame}[fragile,t]{knitr tidy test}
+If tidy=FALSE then knitr echoes the R code just as you formatted it yourself:
+<<tidy-test, tidy=FALSE>>=
+1 + 1 +
+  1+1+
+  1
+f = function() {
+  paste('I want to break the line',
+        'here!')
+}
 @
 
-Chart doesn't fit on page !
+If tidy=TRUE (default) then knitr formats the R code for you:
+<<tidy-test, tidy=TRUE, tidy.opts=list(width.cutoff=5), out.width='7cm'>>=
+@
+
 \end{frame}
 
 
 %%%%%%%%%%%%%%%
+%%% text and plot in two columns
+\subsection{text and plot in two columns}
+\begin{frame}[fragile,t]{text and plot in two columns}
+  \begin{columns}[T]
+% Place text in first column
+	\begin{column}{0.5\textwidth}
+		Plot is on the right:
+	\end{column}
+% Now create plot in second column
+	\begin{column}{0.5\textwidth}
+    \begin{figure}
+	  	<<echo=FALSE,eval=TRUE,out.width='4cm',out.height='4cm'>>=
+		  plot(1:10, xlab='', ylab='', main=paste("R caption: straight line"))
+		  @
+      \caption{This is a straight line}
+    \end{figure}
+	\end{column}
+	\end{columns}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+%%% Two knitr Plots side by side
+\subsection{Two R Plots side by side}
+\begin{frame}[fragile,t]{Two \emph{R} Plots side by side}
+
+<<Two_Plots_side_by_side, eval=TRUE, echo=TRUE, size='footnotesize', tidy=FALSE, tidy.opts=list(width.cutoff=40), out.width='5cm', out.height='5cm', fig.show='hold'>>=
+set.seed(1213)  # for reproducibility
+v.random = cumsum(rnorm(100))
+# mean(v.random)  # mean of v.random
+# Two plots side by side
+plot(1:10, xlab='', ylab='', main=paste("First plot")) # Simple line
+plot(v.random, type='l', xlab='', ylab='', main=paste("Second plot")) # Brownian motion
+@
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+%%% R code and plot side by side
+\subsection{R code and plot side by side}
+\begin{frame}[fragile,t]{\emph{R} code and plot side by side}
+
+\begin{columns}[T]
+  \begin{column}{0.5\textwidth}
+    <<R_code_plot, eval=TRUE, echo=TRUE, tidy=TRUE, tidy.opts=list(width.cutoff=25), fig.show='hide'>>=
+# getOption('width')
+# citation('knitr')
+    set.seed(1213)  # for reproducibility
+    v.random = cumsum(rnorm(100))
+    plot(v.random, type='l', xlab='', ylab='', main=paste("Brownian motion"))
+    @
+	\end{column}
+  \begin{column}{0.5\textwidth}
+    \includegraphics[width=0.5\paperwidth,valign=t]{figure/R_code_plot}
+% Alternative way
+% Call dummy plot chunk to reset queue, but hide plot
+%     <<eval=TRUE, echo=FALSE, out.width='1cm', out.height='1cm', fig.show='hide'>>=
+% 		plot(1:10)
+% 		@
+% Call plot chunk
+%     <<R_code_plot, eval=TRUE, echo=FALSE, out.width='1.0\\linewidth', out.height='1.0\\linewidth', fig.show='asis', fig.cap='Brownian motion'>>=
+%     @
+  \end{column}
+\end{columns}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%
 %%% Formulas
-\begin{frame}{Formulas and Lists}
+\subsection{Formulas}
+\begin{frame}[t]{Formulas}
 
 The value of $\pi$ is \Sexpr{pi}\\
 You can also write inline expressions, e.g. $\pi=\Sexpr{pi}$, and \Sexpr{1.598673e8} is a big number.
 \vskip10pt
 
-A formula:
+Very simple formulas:\\
+\(a=b\)\\
+$a=b$\\
+
+An interesting formula:
 \[
 \int_{-\infty}^{+\infty} e^{-x^2} \, dx = \sqrt{\pi}
 \]
@@ -189,27 +312,28 @@ Another formula:
 \]
 $\sum e_{i}^{2}$
 
-An itemized list with with pause, items appearing one at a time:
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+%%% Lists
+\subsection{Lists}
+\begin{frame}[t]{Lists}
+
+An itemized list with pause (items appearing one at a time):
 \begin{itemize}[<+->]
 \item \color{blue}{item 1}
 \item item 2
 \item item 3
 \end{itemize}
 
-An enumerated list with items appearing one at a time:
+An enumerated list with pause:
 \begin{enumerate}[<+->]
 \item item 1
 \item item 2
 \item item 3
 \end{enumerate}
 
-
-%%%%%%%%%%%%%%%
-%%% Text in box
-\begin{theorem}
-In a right triangle, the square of hypotenuse equals
-the sum of squares of two other sides.
-\end{theorem}
 \end{frame}
 
 
