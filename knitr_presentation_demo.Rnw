@@ -1,4 +1,4 @@
-% FRE6811_Lecture_1
+% knitr demo of generic presentation (slideshow) document
 
 % Define knitr options
 % !Rnw weave = knitr
@@ -17,8 +17,6 @@ knit_theme$set(thm)
 \mode<presentation>
 % Uncover everything in a step-wise fashion
 % \beamerdefaultoverlayspecification{<+->}
-% amsmath package for math symbols
-% \usepackage{amsmath}
 \usepackage[latin1]{inputenc}
 \usepackage{hyperref}
 \usepackage{fancybox}
@@ -30,32 +28,31 @@ knit_theme$set(thm)
 % \usecolortheme{whale}
 % Define colors for hyperlinks
 \definecolor{links}{HTML}{2A1B81}
-\hypersetup{colorlinks=true,linkcolor=,urlcolor=links}
-% Make url text footnotesize
-\renewcommand\UrlFont{\footnotesize}
+\hypersetup{colorlinks,linkcolor=,urlcolor=links}
+% Make urls italic, red, and footnotesize
+\renewcommand\UrlFont{\color{red}\rmfamily\itshape\footnotesize}
 % Make institute text italic and small
-\setbeamerfont{institute}{size=\small,shape=\itshape,bg=red,fg=red}
+\setbeamerfont{institute}{size=\small,shape=\itshape,color=\blue}
 \setbeamerfont{date}{size=\small}
+% \setbeamerfont{institute}{size=\scriptsize,series=\bfseries,parent=structure}
 
-
-% Title page setup
-\title[FRE6811 Lecture \#1]{FRE6811 Financial Software Laboratory}
-\subtitle{Lecture \#1, Spring 2014}
-% \subject{Getting Started With R}
-\institute[NYU Polytechnic]{NYU Polytechnic School of Engineering}
-\titlegraphic{\includegraphics[scale=0.5]{engineering_long_color}}
-\author{Jerzy Pawlowski}
-\date{January 27, 2014}
-% \date{\today}
-% \pgfdeclareimage[height=0.5cm]{university-logo}{engineering_long_white}
-% \logo{\pgfuseimage{engineering_long_white}}
-
-
-%%%%%%%%%%%%%%%
+% Begin document 
 \begin{document}
 
 
 %%%%%%%%%%%%%%%
+%%% Title page
+\title[Generic knitr Slideshow]{Generic knitr Slideshow Presentation}
+% \subtitle{Lecture \#1, Spring 2014}
+% \subject{Getting Started With R}
+\author{Jerzy Pawlowski}
+\institute{Newport Alpha Associates}
+
+% \pgfdeclareimage[height=0.5cm]{university-logo}{C:\Users\Jerzy\Downloads\NYU_Polytechnic}
+% \logo{\pgfuseimage{university-logo}}
+
+\date{\today}
+% \date{January 27, 2014}
 \maketitle
 
 
@@ -67,59 +64,29 @@ knit_theme$set(thm)
 \end{frame}
 
 
+\section{R Programming Resources}
 %%%%%%%%%%%%%%%
-\section{Getting Started With R}
-
-
-%%%%%%%%%%%%%%%
-\subsection{Installing R}
+%%% Getting Started
+\subsection{Getting Started With R}
 \begin{frame}[t]{\subsecname}
 
-\begin{columns}[T]
-  \column{0.45\textwidth}
-    Download R program from CRAN (Comprehensive R Archive Network)\\
-    \hskip1em\url{http://cran.r-project.org}\\
-  \column{0.45\textwidth}
-    \includegraphics[height=0.2\textwidth]{Rlogo.jpg}
-\end{columns}
+% \textbf{Hello World!}\pause\\
+% \textsc{Hello World!}\pause\\
+% Red emph: \color{red}{\emph{Hello World!}}\pause\\
+% \alert{Hello World!}\pause\\
+\ovalbox{Hello World!}\pause\\
+This is a template of a generic \textit{presentation} (slideshow) document\pause\\
+
+It's also a demo of various \emph{Beamer} and \alert{knitr} features\pause\\
+
+\ovalbox{Let's start with some useful R resources}\pause\\
 \vskip4ex
-
-\begin{columns}[T]
-  \column{0.45\textwidth}
-    Download RStudio IDE (Integrated Development Environment)\\
-    \hskip1em\url{http://www.rstudio.com/ide}\\
-  \column{0.45\textwidth}
-    \includegraphics[height=0.2\textwidth]{RStudio_logo.png}
-\end{columns}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\subsection{Using RStudio}
-\begin{frame}[t]{\subsecname}
-
-RStudio has extensive online help, Q\&A database, and documentation\\
-\hskip1em\url{https://support.rstudio.com/hc/en-us}\\
-\hskip1em\url{https://support.rstudio.com/hc/en-us/sections/200107586-Using-RStudio}\\
-\hskip1em\url{https://support.rstudio.com/hc/en-us/sections/200148796-Advanced-Topics}\\
-\vskip4ex
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\subsection{Installing Packages}
-\begin{frame}[t]{\subsecname}
-
-In RStudio, go to \alert{Tools} and then \alert{Install packages}\\
-For example enter package name \alert{Ecdat}
 
 Download R program from CRAN (Comprehensive R Archive Network)\\
-\hskip1em\url{http://cran.r-project.org}\\
+\hskip1em {\normalsize \url{http://cran.r-project.org}}\\ % Make url normalsize
 \vskip4ex
-Download RStudio IDE (Integrated Development Environment)\\
-\hskip1em\url{http://www.rstudio.com/ide}\\
+Download R RStudio (IDE - Integrated Development Environment)\\
+\hskip1em \url{http://www.rstudio.com/ide}\\
 \vskip4ex
 
 \end{frame}
@@ -130,45 +97,30 @@ Download RStudio IDE (Integrated Development Environment)\\
 \begin{frame}[t]{\subsecname}
 
 An Introduction to R\\
-\hskip1em\url{http://cran.r-project.org/doc/manuals/r-release/R-intro.pdf}\\
+\hskip1em \url{http://cran.r-project.org/doc/manuals/r-release/R-intro.pdf}\\
 \vskip4ex
 
 R-FAQ\\
-\hskip1em\url{http://cran.r-project.org/doc/FAQ/R-FAQ.html}\\
+\hskip1em \url{http://cran.r-project.org/doc/FAQ/R-FAQ.html}\\
 \vskip4ex
 
-Stack Exchange is a web of Q\&A resources for a variety of fields\\
-\hskip1em\url{http://stackexchange.com}\\
-\hskip1em\url{http://stackexchange.com/sites\#technology}\\
-\vskip4ex
-Stack Overflow are excellent Q\&A resources for R and programming\\
-\hskip1em\url{http://stackexchange.com}\\
-\hskip1em\url{http://stackoverflow.com}\\
-\vskip4ex
-Stack Overflow are excellent Q\&A resources for R and programming\\
-\hskip1em\url{http://stats.stackexchange.com}\\
+Stack Overflow\\
+\hskip1em \url{http://stackoverflow.com/questions/tagged/r}\\
 \vskip4ex
 
 Google Style Guide for R\\
-\hskip1em\url{http://google-styleguide.googlecode.com/svn/trunk/Rguide.xml}\\
+\hskip1em \url{http://google-styleguide.googlecode.com/svn/trunk/Rguide.xml}\\
 
 \end{frame}
 
 
-\section{Beamer and knitr features}
+\section{Beamer and knitr}
+
 %%%%%%%%%%%%%%%
-%%% Formatting
-\subsection{Formatting}
+\subsection{Introduction to {\LaTeX} and Beamer}
 \begin{frame}[t]{\subsecname}
 
-Text formatting:\\
-Keyword: Introduction to {\LaTeX}\pause\\
-Boldface: \textbf{Hello World!}\pause\\
-% \textsc{Hello World!}\pause\\
-Italic: \textit{Hello World!}\pause\\
-% Red emph: \color{red}{\emph{Hello World!}}\pause\\
-Alert: \alert{Hello World!}\pause\\
-\ovalbox{Text in ovalbox}\pause\\
+Introduction to {\LaTeX} and Beamer\pause\\
 
 \vskip4ex
 Text in two columns:
@@ -189,7 +141,6 @@ Text in two columns:
 
 
 %%%%%%%%%%%%%%%
-%%% Block Example
 \subsection{Block example}
 \begin{frame}[t]{\subsecname}
 
@@ -215,7 +166,6 @@ Text in two columns:
 
 
 %%%%%%%%%%%%%%%
-%%% Block Example with uncover
 \subsection{Block example with uncover}
 \begin{frame}[t]{\subsecname}
 
@@ -240,7 +190,6 @@ Third\ldots
 
 
 %%%%%%%%%%%%%%%
-%%% Table Example
 \subsection{Table Example}
 \begin{frame}[t]{\subsecname}
 
@@ -258,7 +207,6 @@ Table Example\\
 
 
 %%%%%%%%%%%%%%%
-%%% knitr tidy test
 \subsection{knitr tidy test}
 \begin{frame}[fragile,t]{\subsecname}
 If tidy=FALSE then knitr echoes the R code just as you formatted it yourself:
@@ -280,13 +228,12 @@ If tidy=TRUE (default) then knitr formats the R code for you:
 
 
 %%%%%%%%%%%%%%%
-%%% text and plot in two columns
 \subsection{text and plot in two columns}
 \begin{frame}[fragile,t]{\subsecname}
 
   \begin{columns}[T]
 % Place text in first column
-  \begin{column}{0.5\textwidth}
+	\begin{column}{0.5\textwidth}
 		Plot is on the right:
 	\end{column}
 % Now create plot in second column
@@ -304,9 +251,8 @@ If tidy=TRUE (default) then knitr formats the R code for you:
 
 
 %%%%%%%%%%%%%%%
-%%% Two knitr Plots side by side
 \subsection{Two R Plots side by side}
-\begin{frame}[fragile,t]{\subsecname}
+\begin{frame}[fragile,t]{Two \emph{R} Plots side by side}
 
 <<Two_Plots_side_by_side, eval=TRUE, echo=TRUE, size='footnotesize', tidy=FALSE, tidy.opts=list(width.cutoff=40), out.width='5cm', out.height='5cm', fig.show='hold'>>=
 set.seed(1213)  # for reproducibility
@@ -321,7 +267,6 @@ plot(v.random, type='l', xlab='', ylab='', main=paste("Second plot")) # Brownian
 
 
 %%%%%%%%%%%%%%%
-%%% R code and plot side by side
 \subsection{R code and plot side by side}
 \begin{frame}[fragile,t]{\emph{R} code and plot side by side}
 
@@ -352,7 +297,6 @@ plot(v.random, type='l', xlab='', ylab='', main=paste("Second plot")) # Brownian
 
 
 %%%%%%%%%%%%%%%
-%%% Formulas
 \subsection{Formulas}
 \begin{frame}[t]{\subsecname}
 
@@ -381,7 +325,6 @@ $\sum e_{i}^{2}$
 
 
 %%%%%%%%%%%%%%%
-%%% Lists
 \subsection{Lists}
 \begin{frame}[t]{\subsecname}
 
@@ -398,20 +341,6 @@ An enumerated list with pause:
 \item item 2
 \item item 3
 \end{enumerate}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\subsection{Additional Reading}
-\begin{frame}[t]{\subsecname}
-
-Download R program from CRAN (Comprehensive R Archive Network)\\
-\hskip1em\url{http://cran.r-project.org}\\
-\vskip4ex
-Download RStudio IDE (Integrated Development Environment)\\
-\hskip1em\url{http://www.rstudio.com/ide}\\
-\vskip4ex
 
 \end{frame}
 

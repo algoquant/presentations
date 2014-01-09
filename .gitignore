@@ -219,12 +219,12 @@ pip-log.txt
 *.RData
 
 # knitr and LaTEX files
+figure/
 *.aux
 *.log
 *.nav
 *.out
 *.pdf
-*.png
 *.snm
 *.sty
 *.synctex.gz

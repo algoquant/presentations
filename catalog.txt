@@ -1,2 +1,6 @@
-knitr_demo1: Demo of printing functions and making charts with captions and subcaptions
+knitr_article_demo: knitr demo of generic article document
+
+knitr_presentation_demo: knitr demo of generic presentation (slideshow) document
+
+FRE6811_Lecture_1: First lecture in Beamer/knitr format
 
