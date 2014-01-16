@@ -3,9 +3,9 @@
 % Define knitr options
 % !Rnw weave = knitr
 % Set global chunk options
-<<knitr_setup, include=FALSE, cache=FALSE>>=
+<<knitr_setup,include=FALSE,cache=FALSE>>=
 library(knitr)
-opts_chunk$set(comment=NA, size='footnotesize', fig.width=4, fig.height=4)
+opts_chunk$set(comment=NA, size='scriptsize', fig.width=4, fig.height=4)
 options(width=60, dev='pdf')
 thm <- knit_theme$get("acid")
 knit_theme$set(thm)
@@ -15,6 +15,8 @@ knit_theme$set(thm)
 % Define document options
 \documentclass[10pt]{beamer}
 \mode<presentation>
+\usetheme{AnnArbor}
+% \usecolortheme{whale}
 % Uncover everything in a step-wise fashion
 % \beamerdefaultoverlayspecification{<+->}
 % amsmath package for math symbols
@@ -26,8 +28,6 @@ knit_theme$set(thm)
 % \usepackage{enumerate}
 % \let\emph\textbf
 % \let\alert\textbf
-\usetheme{AnnArbor}
-% \usecolortheme{whale}
 % Define colors for hyperlinks
 \definecolor{links}{HTML}{2A1B81}
 \hypersetup{colorlinks=true,linkcolor=,urlcolor=links}
@@ -43,8 +43,9 @@ knit_theme$set(thm)
 \subtitle{Lecture \#1, Spring 2014}
 % \subject{Getting Started With R}
 \institute[NYU Polytechnic]{NYU Polytechnic School of Engineering}
-\titlegraphic{\includegraphics[scale=0.5]{engineering_long_color}}
+\titlegraphic{\includegraphics[scale=0.8]{engineering_long_color}}
 \author{Jerzy Pawlowski}
+% \email{jp3900@poly.edu}
 \date{January 27, 2014}
 % \date{\today}
 % \pgfdeclareimage[height=0.5cm]{university-logo}{engineering_long_white}
@@ -60,10 +61,56 @@ knit_theme$set(thm)
 
 
 %%%%%%%%%%%%%%%
-%%% Outline
 \begin{frame}[t]{Outline}
 % You might wish to add the option [pausesections]
   \tableofcontents
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\section{Introduction}
+
+
+%%%%%%%%%%%%%%%
+\subsection{About FRE6811 Financial Software Laboratory}
+\begin{frame}[t]{\subsecname}
+
+\begin{block}{Course Description}
+\footnotesize{The course will teach the R statistical language through practical applications to time series analysis, regression, estimation, and forecasting.}
+\end{block}
+\pause
+
+\begin{block}{Exams}
+\footnotesize{There will be no exams.}
+\end{block}
+\pause
+
+\begin{block}{Grading}
+\footnotesize{Grading will be based on homework assignments.}
+\end{block}
+\pause
+
+\begin{block}{Course Prerequisites}
+\footnotesize{No prior knowledge of the R language is required.  But students should have a familiarity with basic statistics, time series analysis, and with a procedural programming language.}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{FRE6811 Required Texts and Materials}
+\begin{frame}[t]{\subsecname}
+
+\begin{block}{Required Texts and Materials}
+\footnotesize{The course will be mostly self-contained, using detailed course slides.  The course will also utilize data and tutorials which are freely available on the internet.  There will be no required textbook, but a recommended textbook is:\\
+\emph{David Ruppert, Statistics and Data Analysis for Financial Engineering (Springer Texts in Statistics)}}
+\end{block}
+\pause
+
+\begin{block}{Other Required Course Materials}
+\footnotesize{Students will be required to install and use the R interpreter and the \emph{RStudio} integrated development environment (\emph{IDE}) on their computers.  Students will be encouraged to bring their laptop computers to class and run the R program during the lecture.  Students will be required to become proficient with the \emph{RStudio IDE}.}
+\end{block}
+
 \end{frame}
 
 
@@ -99,28 +146,121 @@ knit_theme$set(thm)
 \subsection{Using RStudio}
 \begin{frame}[t]{\subsecname}
 
-RStudio has extensive online help, Q\&A database, and documentation\\
-\hskip1em\url{https://support.rstudio.com/hc/en-us}\\
-\hskip1em\url{https://support.rstudio.com/hc/en-us/sections/200107586-Using-RStudio}\\
-\hskip1em\url{https://support.rstudio.com/hc/en-us/sections/200148796-Advanced-Topics}\\
-\vskip4ex
+\includegraphics[height=0.6\textwidth]{Capture2.png}
 
 \end{frame}
 
 
 %%%%%%%%%%%%%%%
-\subsection{Installing Packages}
-\begin{frame}[t]{\subsecname}
+\subsection{Exploring an R Session}
+\begin{frame}[fragile,t]{\subsecname}
 
-In RStudio, go to \alert{Tools} and then \alert{Install packages}\\
-For example enter package name \alert{Ecdat}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Get default (working) directory
+    \column{0.5\textwidth}
+      \vspace{-0.3cm}
+      <<out.width='0.3\textwidth'>>=
+        getwd()
+      @
+  \end{columns}
+\end{block}
+\pause
 
-Download R program from CRAN (Comprehensive R Archive Network)\\
-\hskip1em\url{http://cran.r-project.org}\\
-\vskip4ex
-Download RStudio IDE (Integrated Development Environment)\\
-\hskip1em\url{http://www.rstudio.com/ide}\\
-\vskip4ex
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Set working directory
+    \column{0.5\textwidth}
+      \vspace{-0.3cm}
+      <<out.width='0.3\textwidth'>>=
+        setwd("C:/Develop/R/Presentations")
+      @
+  \end{columns}
+\end{block}
+\pause
+
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Get system date and time\\
+      \vskip4ex
+      Just the date
+    \column{0.5\textwidth}
+      \vspace{-0.3cm}
+      <<out.width='0.3\textwidth',tidy=TRUE,tidy.opts=list(width.cutoff=20)>>=
+        paste("Today is",Sys.time())
+        paste("Today is",format(Sys.time(),"%B-%d-%Y"))
+      @
+  \end{columns}
+\end{block}
+\pause
+
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Get help on a function
+    \column{0.5\textwidth}
+      \vspace{-0.3cm}
+% tidy=FALSE prevents translation of '?getwd' into '`?`(getwd)'
+      <<tidy=FALSE,highlight=FALSE,eval=FALSE,out.width='0.3\textwidth'>>=
+        ?getwd or help(getwd)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Normal Probability Distribution}
+\begin{frame}[fragile,t]{\subsecname}
+
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The Gaussian probability density function is defined as:\\
+      \hskip1em$P(x)={\frac{1}{{\sigma\sqrt{2\pi}}}}{e^{{{-\left({x-\mu}\right)^2}\mathord{\left/{\vphantom{{-\left({x-\mu}\right)^2}{2\sigma^2}}}\right.\kern-\nulldelimiterspace}{2\sigma^2}}}}$
+      \vskip4ex
+      The Normal distribution is a special case of the Gaussian with $\mu=0$ and $\sigma=1$\\
+
+        <<norm_dist,eval=TRUE,echo=TRUE,tidy=TRUE,tidy.opts=list(width.cutoff=40),size='scriptsize',fig.show='hide'>>=
+        v.xval <- seq(-4,4,length=100)
+        v.yval <- dnorm(v.xval,sd=1.0)
+        plot(v.xval,v.yval,type="l",lty=1,xlab="",ylab="",cex.lab=0.5,cex.axis=0.5,cex.main=0.8,cex.sub=0.5,main="Normal Density Function")
+      @
+    \column{0.5\textwidth}
+    \includegraphics[width=0.5\paperwidth,valign=t]{figure/norm_dist}
+  \end{columns}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Gaussian Probability Distributions}
+\begin{frame}[fragile,t]{\subsecname}
+
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+    Plots of several Gaussian distributions with different values of $\sigma$
+        <<gauss_dist,eval=TRUE,echo=4:20,tidy=TRUE,tidy.opts=list(width.cutoff=40),size='scriptsize',fig.show='hide'>>=
+        v.xval <- seq(-4,4,length=100)
+        v.yval <- dnorm(v.xval,sd=0.5)
+        plot(v.xval,v.yval,type="l",lty=1,xlab="",ylab="",cex.lab=0.5,cex.axis=0.5,cex.main=0.8,cex.sub=0.5,main="Gaussian Distributions")
+
+        v.sigma <- c(0.5,1,1.5,2)
+        v.colors <- c("red","black","blue","green")
+        v.labels <- paste("sigma",v.sigma,sep='=')
+
+        for (i.gauss in 1:4){
+          lines(v.xval,dnorm(v.xval,sd=v.sigma[i.gauss]),lwd=1,col=v.colors[i.gauss])
+        }
+
+        legend("topright",inset=0.05,title="Distributions",v.labels,lwd=2,cex=0.5,lty=c(1,1,1,1),col=v.colors)
+      @
+    \column{0.5\textwidth}
+    \includegraphics[width=0.5\paperwidth,valign=t]{figure/gauss_dist}
+  \end{columns}
 
 \end{frame}
 
@@ -137,20 +277,68 @@ R-FAQ\\
 \hskip1em\url{http://cran.r-project.org/doc/FAQ/R-FAQ.html}\\
 \vskip4ex
 
-Stack Exchange is a web of Q\&A resources for a variety of fields\\
-\hskip1em\url{http://stackexchange.com}\\
-\hskip1em\url{http://stackexchange.com/sites\#technology}\\
-\vskip4ex
-Stack Overflow are excellent Q\&A resources for R and programming\\
-\hskip1em\url{http://stackexchange.com}\\
-\hskip1em\url{http://stackoverflow.com}\\
-\vskip4ex
-Stack Overflow are excellent Q\&A resources for R and programming\\
-\hskip1em\url{http://stats.stackexchange.com}\\
+Website related to \emph{R in Action} book\\
+\hskip1em\url{http://www.statmethods.net}\\
 \vskip4ex
 
 Google Style Guide for R\\
 \hskip1em\url{http://google-styleguide.googlecode.com/svn/trunk/Rguide.xml}\\
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{RStudio Support}
+\begin{frame}[t]{\subsecname}
+
+RStudio has extensive online help, Q\&A database, and documentation\\
+\hskip1em\url{https://support.rstudio.com/hc/en-us}\\
+\hskip1em\url{https://support.rstudio.com/hc/en-us/sections/200107586-Using-RStudio}\\
+\hskip1em\url{https://support.rstudio.com/hc/en-us/sections/200148796-Advanced-Topics}\\
+\vskip4ex
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Stack Exchange}
+\begin{frame}[t]{\subsecname}
+
+\begin{columns}[T]
+  \column{0.5\textwidth}
+    Stack Exchange is a web of Q\&A resources for a variety of fields\\
+    \hskip1em\url{http://stackexchange.com}\\
+    \hskip1em\url{http://stackexchange.com/sites\#technology}\\
+    \vskip4ex
+    Stack Overflow are excellent Q\&A resources for R and programming\\
+    \hskip1em\url{http://stackoverflow.com}\\
+  \column{0.5\textwidth}
+    \includegraphics[height=0.9\textwidth]{stack_exchange2.png}
+\end{columns}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Installing Packages}
+\begin{frame}[t]{\subsecname}
+
+R has the ability to run external libraries of functions called packages\\
+Packages need to be installed before they can be used\\
+
+Installing packages\\
+In RStudio, go to \alert{Tools} and then \alert{Install packages}\\
+Enter package name \alert{Ecdat} (for example)
+
+Packages need to be loaded into an R session
+
+
+Download R program from CRAN (Comprehensive R Archive Network)\\
+\hskip1em\url{http://cran.r-project.org}\\
+\vskip4ex
+Download RStudio IDE (Integrated Development Environment)\\
+\hskip1em\url{http://www.rstudio.com/ide}\\
+\vskip4ex
 
 \end{frame}
 
@@ -219,20 +407,23 @@ Text in two columns:
 \subsection{Block example with uncover}
 \begin{frame}[t]{\subsecname}
 
-Block example with uncover
-\uncover<1>{
+% Make covered items semi-transparent
+% \setbeamercovered{transparent}
+
+Uncover blocks one by one
+\uncover<1->{
 \begin{block}{Block 1}
-First\ldots
+  First block\ldots
 \end{block}
 }
-\uncover<2>{
+\uncover<2->{
 \begin{block}{Block 2}
-Second\ldots
+  Second block\ldots
 \end{block}
 }
-\uncover<3>{
+\uncover<3->{
 \begin{block}{Block 3}
-Third\ldots
+  Third block\ldots
 \end{block}
 }
 
@@ -262,7 +453,7 @@ Table Example\\
 \subsection{knitr tidy test}
 \begin{frame}[fragile,t]{\subsecname}
 If tidy=FALSE then knitr echoes the R code just as you formatted it yourself:
-<<tidy-test, tidy=FALSE>>=
+<<tidy-test,tidy=FALSE>>=
 1 + 1 +
   1+1+
   1
@@ -273,7 +464,7 @@ f = function() {
 @
 
 If tidy=TRUE (default) then knitr formats the R code for you:
-<<tidy-test, tidy=TRUE, tidy.opts=list(width.cutoff=5), out.width='7cm'>>=
+<<tidy-test,tidy=TRUE,tidy.opts=list(width.cutoff=5),out.width='7cm'>>=
 @
 
 \end{frame}
@@ -308,7 +499,7 @@ If tidy=TRUE (default) then knitr formats the R code for you:
 \subsection{Two R Plots side by side}
 \begin{frame}[fragile,t]{\subsecname}
 
-<<Two_Plots_side_by_side, eval=TRUE, echo=TRUE, size='footnotesize', tidy=FALSE, tidy.opts=list(width.cutoff=40), out.width='5cm', out.height='5cm', fig.show='hold'>>=
+<<Two_Plots_side_by_side,eval=TRUE,echo=TRUE,size='footnotesize',tidy=FALSE,tidy.opts=list(width.cutoff=40),out.width='5cm',out.height='5cm',fig.show='hold'>>=
 set.seed(1213)  # for reproducibility
 v.random = cumsum(rnorm(100))
 # mean(v.random)  # mean of v.random
@@ -327,7 +518,7 @@ plot(v.random, type='l', xlab='', ylab='', main=paste("Second plot")) # Brownian
 
 \begin{columns}[T]
   \begin{column}{0.5\textwidth}
-    <<R_code_plot, eval=TRUE, echo=TRUE, tidy=TRUE, tidy.opts=list(width.cutoff=25), fig.show='hide'>>=
+    <<R_code_plot,eval=TRUE,echo=TRUE,tidy=TRUE,tidy.opts=list(width.cutoff=25),fig.show='hide'>>=
 # getOption('width')
 # citation('knitr')
     set.seed(1213)  # for reproducibility
@@ -339,11 +530,11 @@ plot(v.random, type='l', xlab='', ylab='', main=paste("Second plot")) # Brownian
     \includegraphics[width=0.5\paperwidth,valign=t]{figure/R_code_plot}
 % Alternative way
 % Call dummy plot chunk to reset queue, but hide plot
-%     <<eval=TRUE, echo=FALSE, out.width='1cm', out.height='1cm', fig.show='hide'>>=
+%     <<eval=TRUE, echo=FALSE,out.width='1cm',out.height='1cm',fig.show='hide'>>=
 % 		plot(1:10)
 % 		@
 % Call plot chunk
-%     <<R_code_plot, eval=TRUE, echo=FALSE, out.width='1.0\\linewidth', out.height='1.0\\linewidth', fig.show='asis', fig.cap='Brownian motion'>>=
+%     <<R_code_plot,eval=TRUE, echo=FALSE,out.width='1.0\\linewidth',out.height='1.0\\linewidth',fig.show='asis',fig.cap='Brownian motion'>>=
 %     @
   \end{column}
 \end{columns}

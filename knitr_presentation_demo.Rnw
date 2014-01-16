@@ -17,6 +17,7 @@ knit_theme$set(thm)
 \mode<presentation>
 % Uncover everything in a step-wise fashion
 % \beamerdefaultoverlayspecification{<+->}
+\usepackage{listings}
 \usepackage[latin1]{inputenc}
 \usepackage{hyperref}
 \usepackage{fancybox}
@@ -71,6 +72,7 @@ knit_theme$set(thm)
 \begin{frame}[t]{\subsecname}
 
 % \textbf{Hello World!}\pause\\
+% \textcolor{blue}{Hello World!}\pause\\
 % \textsc{Hello World!}\pause\\
 % Red emph: \color{red}{\emph{Hello World!}}\pause\\
 % \alert{Hello World!}\pause\\
@@ -80,6 +82,7 @@ This is a template of a generic \textit{presentation} (slideshow) document\pause
 It's also a demo of various \emph{Beamer} and \alert{knitr} features\pause\\
 
 \ovalbox{Let's start with some useful R resources}\pause\\
+\hspace*\fill{\small --- Text to the right}
 \vskip4ex
 
 Download R program from CRAN (Comprehensive R Archive Network)\\
@@ -169,20 +172,23 @@ Text in two columns:
 \subsection{Block example with uncover}
 \begin{frame}[t]{\subsecname}
 
-Block example with uncover
-\uncover<1>{
+% Make covered items semi-transparent
+\setbeamercovered{transparent}
+
+Uncover blocks one by one
+\uncover<1->{
 \begin{block}{Block 1}
-First\ldots
+  First block\ldots
 \end{block}
 }
-\uncover<2>{
+\uncover<2->{
 \begin{block}{Block 2}
-Second\ldots
+  Second block\ldots
 \end{block}
 }
-\uncover<3>{
+\uncover<3->{
 \begin{block}{Block 3}
-Third\ldots
+  Third block\ldots
 \end{block}
 }
 
@@ -229,7 +235,7 @@ If tidy=TRUE (default) then knitr formats the R code for you:
 
 %%%%%%%%%%%%%%%
 \subsection{text and plot in two columns}
-\begin{frame}[fragile,t]{\subsecname}
+\begin{frame}[t]{\subsecname}
 
   \begin{columns}[T]
 % Place text in first column
@@ -297,16 +303,28 @@ plot(v.random, type='l', xlab='', ylab='', main=paste("Second plot")) # Brownian
 
 
 %%%%%%%%%%%%%%%
-\subsection{Formulas}
+\subsection{Symbols}
 \begin{frame}[t]{\subsecname}
 
 The value of $\pi$ is \Sexpr{pi}\\
 You can also write inline expressions, e.g. $\pi=\Sexpr{pi}$, and \Sexpr{1.598673e8} is a big number.
 \vskip4ex
 
+Alpha letter symbol: $\alpha$\\
+Triangle symbol: $\triangle$\\
+\vskip4ex
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Formulas}
+\begin{frame}[t]{\subsecname}
+
 Very simple formulas:\\
 \(a=b\)\\
 $a=b$\\
+\vskip4ex
 
 An interesting formula:
 \[
@@ -325,14 +343,60 @@ $\sum e_{i}^{2}$
 
 
 %%%%%%%%%%%%%%%
+\begin{frame}[t]{More \subsecname}
+
+A fraction formula: $\frac{x^2-y^2}{x-y}=x+y$\\
+A matrix formula: $$I=\begin{pmatrix}1 & 0 \\ 0 & 1\end{pmatrix}$$\\
+
+A complicated formula with a label to the right: % because of 'equation' tag instead of '$$' tag
+% $$
+\begin{equation}
+\left\{
+\begin{array}{rlll}
+-\Delta v&=\chi_{\overline B} && \forall x \in \Omega\\
+v&=0 && \forall x \in \partial\Omega.
+\end{array}
+\right.
+\end{equation}
+% $$
+
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Verbatim code}
+\begin{frame}[t,fragile]{\subsecname}
+
+Code printed as verbatim (frame must be \alert{\itshape{fragile}}):
+\begin{Verbatim}[commandchars=\\\{\}]
+  set.seed(1213)  # for reproducibility
+  v.random = cumsum(rnorm(100))
+  # Two plots side by side
+  plot(1:10, xlab='', ylab='', main=paste("First plot")) # Simple line
+\end{Verbatim}
+\vskip4ex
+
+Code printed as listing (frame must be \alert{\itshape{fragile}}):
+\begin{lstlisting}
+  set.seed(1213)  # for reproducibility
+  v.random = cumsum(rnorm(100))
+  # Two plots side by side
+  plot(1:10, xlab='', ylab='', main=paste("First plot")) # Simple line
+\end{lstlisting}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
 \subsection{Lists}
 \begin{frame}[t]{\subsecname}
 
 An itemized list with pause (items appearing one at a time):
 \begin{itemize}[<+->]
-\item \color{blue}{item 1}
-\item item 2
-\item item 3
+\item \color{blue}{item 1 with blue bullet}
+\item[+]{item 2 with '+' bullet}
+\item[$-$]{item 3 with '$-$' bullet}
 \end{itemize}
 
 An enumerated list with pause:

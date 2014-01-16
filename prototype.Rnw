@@ -1,0 +1,174 @@
+% Define knitr options
+% !Rnw weave = knitr
+% Set global chunk options
+<<knitr_setup,include=FALSE,cache=FALSE>>=
+library(knitr)
+opts_chunk$set(comment=NA, size='scriptsize', fig.width=4, fig.height=4)
+options(width=60, dev='pdf')
+thm <- knit_theme$get("acid")
+knit_theme$set(thm)
+@
+
+
+% Define document options
+\documentclass[10pt]{beamer}
+\mode<presentation>
+\usetheme{AnnArbor}
+% \usecolortheme{whale}
+% Uncover everything in a step-wise fashion
+% \beamerdefaultoverlayspecification{<+->}
+% amsmath package for math symbols
+% \usepackage{amsmath}
+\usepackage[latin1]{inputenc}
+\usepackage{hyperref}
+\usepackage{fancybox}
+\usepackage{url}
+% \usepackage{enumerate}
+% \let\emph\textbf
+% \let\alert\textbf
+% Define colors for hyperlinks
+\definecolor{links}{HTML}{2A1B81}
+\hypersetup{colorlinks=true,linkcolor=,urlcolor=links}
+% Make url text footnotesize
+\renewcommand\UrlFont{\footnotesize}
+% Make institute text italic and small
+\setbeamerfont{institute}{size=\small,shape=\itshape,bg=red,fg=red}
+\setbeamerfont{date}{size=\small}
+
+
+% Title page setup
+\title[FRE6811 Lecture \#1]{FRE6811 Financial Software Laboratory}
+\subtitle{Lecture \#1, Spring 2014}
+% \subject{Getting Started With R}
+\institute[NYU Polytechnic]{NYU Polytechnic School of Engineering}
+\titlegraphic{\includegraphics[scale=0.8]{engineering_long_color}}
+\author{Jerzy Pawlowski}
+% \email{jp3900@poly.edu}
+\date{January 27, 2014}
+% \date{\today}
+% \pgfdeclareimage[height=0.5cm]{university-logo}{engineering_long_white}
+% \logo{\pgfuseimage{engineering_long_white}}
+
+
+%%%%%%%%%%%%%%%
+\begin{document}
+
+
+%%%%%%%%%%%%%%%
+\maketitle
+
+
+%%%%%%%%%%%%%%%
+\section{Introduction}
+
+
+%%%%%%%%%%%%%%%
+\subsection{About FRE6811 Financial Software Laboratory}
+\begin{frame}[t]{\subsecname}
+
+\begin{block}{Course Description}
+\footnotesize{The course will teach the R statistical language through practical applications to time series analysis, regression, estimation, and forecasting.}
+\end{block}
+\pause
+
+\begin{block}{Exams}
+\footnotesize{There will be no exams.}
+\end{block}
+\pause
+
+\begin{block}{Grading}
+\footnotesize{Grading will be based on homework assignments.}
+\end{block}
+\pause
+
+\begin{block}{Course Prerequisites}
+\footnotesize{No prior knowledge of the R language is required.  But students should have a familiarity with basic statistics, time series analysis, and with a procedural programming language.}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{FRE6811 Required Texts and Materials}
+\begin{frame}[t]{\subsecname}
+
+\begin{block}{Required Texts and Materials}
+\footnotesize{The course will be mostly self-contained, using detailed course slides.  The course will also utilize data and tutorials which are freely available on the internet.  There will be no required textbook, but a recommended textbook is:\\
+\emph{David Ruppert, Statistics and Data Analysis for Financial Engineering (Springer Texts in Statistics)}}
+\end{block}
+\pause
+
+\begin{block}{Other Required Course Materials}
+\footnotesize{Students will be required to install and use the R interpreter and the \emph{RStudio} integrated development environment (\emph{IDE}) on their computers.  Students will be encouraged to bring their laptop computers to class and run the R program during the lecture.  Students will be required to become proficient with the \emph{RStudio IDE}.}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\section{Getting Started With R}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Exploring an R Session}
+\begin{frame}[fragile,t]{\subsecname}
+
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Get default (working) directory
+    \column{0.5\textwidth}
+      \vspace{-0.3cm}
+      <<out.width='0.3\textwidth'>>=
+        getwd()
+      @
+  \end{columns}
+\end{block}
+\pause
+
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Set working directory
+    \column{0.5\textwidth}
+      \vspace{-0.3cm}
+      <<out.width='0.3\textwidth'>>=
+        setwd("C:/Develop/R/Presentations")
+      @
+  \end{columns}
+\end{block}
+\pause
+
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Get system date and time
+    \column{0.5\textwidth}
+      \vspace{-0.3cm}
+      <<out.width='0.3\textwidth',tidy=TRUE,tidy.opts=list(width.cutoff=20)>>=
+# Date and time:
+        paste("Today is",Sys.time())
+# Just the date:
+        paste("Today is",format(Sys.time(),"%B-%d-%Y"))
+      @
+  \end{columns}
+\end{block}
+\pause
+
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Get help on a function
+    \column{0.5\textwidth}
+      \vspace{-0.3cm}
+% tidy=FALSE prevents translation of '?getwd' into '`?`(getwd)'
+      <<tidy=FALSE,highlight=FALSE,eval=FALSE,out.width='0.3\textwidth'>>=
+        ?getwd or help(getwd)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+\end{document}
+
