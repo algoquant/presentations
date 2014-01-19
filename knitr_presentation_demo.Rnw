@@ -15,6 +15,7 @@ knit_theme$set(thm)
 % Define document options
 \documentclass[10pt]{beamer}
 \mode<presentation>
+\usetheme{AnnArbor}
 % Uncover everything in a step-wise fashion
 % \beamerdefaultoverlayspecification{<+->}
 \usepackage{listings}
@@ -22,19 +23,53 @@ knit_theme$set(thm)
 \usepackage{hyperref}
 \usepackage{fancybox}
 \usepackage{url}
+
+\usepackage[backend=bibtex,style=alphabetic]{biblatex} % bibstyle=numeric
+% \bibliographystyle{amsalpha} % doesn't work
+\addbibresource{FRE6811_bib.bib}
+% \addbibresource[location=remote]{http://www.citeulike.org/user/jerzyp}
+\renewcommand\bibfont{\footnotesize}
+\renewcommand{\pgfuseimage}[1]{\scalebox{0.75}{\includegraphics{#1}}} % scale bib icons
+\setbeamertemplate{bibliography item}[text] % set bib icons
+% \setbeamertemplate{bibliography item}{} % remove bib icons
+
+% Define conditional bib icons
+% http://tex.stackexchange.com/questions/68080/beamer-bibliography-icon
+\setbeamertemplate{bibliography item}{%
+  \ifboolexpr{ test {\ifentrytype{book}} or test {\ifentrytype{mvbook}}
+    or test {\ifentrytype{collection}} or test {\ifentrytype{mvcollection}}
+    or test {\ifentrytype{reference}} or test {\ifentrytype{mvreference}} }
+    {\setbeamertemplate{bibliography item}[book]}
+    {\ifentrytype{online}
+       {\setbeamertemplate{bibliography item}[online]}
+       {\setbeamertemplate{bibliography item}[article]}}%
+  \usebeamertemplate{bibliography item}}
+
+% Define bib format
+\defbibenvironment{bibliography}
+  {\list{}
+     {\settowidth{\labelwidth}{\usebeamertemplate{bibliography item}}%
+      \setlength{\leftmargin}{\labelwidth}%
+      \setlength{\labelsep}{\biblabelsep}%
+      \addtolength{\leftmargin}{\labelsep}%
+      \setlength{\itemsep}{\bibitemsep}%
+      \setlength{\parsep}{\bibparsep}}}
+  {\endlist}
+  {\item}
+
 % \usepackage{enumerate}
 % \let\emph\textbf
 % \let\alert\textbf
-\usetheme{AnnArbor}
 % \usecolortheme{whale}
 % Define colors for hyperlinks
 \definecolor{links}{HTML}{2A1B81}
-\hypersetup{colorlinks,linkcolor=,urlcolor=links}
+\hypersetup{colorlinks=true,linkcolor=,urlcolor=links}
 % Make urls italic, red, and footnotesize
 \renewcommand\UrlFont{\color{red}\rmfamily\itshape\footnotesize}
 % Make institute text italic and small
 \setbeamerfont{institute}{size=\small,shape=\itshape,color=\blue}
 \setbeamerfont{date}{size=\small}
+
 % \setbeamerfont{institute}{size=\scriptsize,series=\bfseries,parent=structure}
 
 % Begin document 
@@ -117,15 +152,23 @@ Google Style Guide for R\\
 \end{frame}
 
 
-\section{Beamer and knitr}
+\section{Beamer and knitr features}
 
 %%%%%%%%%%%%%%%
-\subsection{Introduction to {\LaTeX} and Beamer}
+\subsection{Formatting}
 \begin{frame}[t]{\subsecname}
 
 Introduction to {\LaTeX} and Beamer\pause\\
+Text formatting:\\
+Keyword: Introduction to {\LaTeX}\pause\\
+Boldface: \textbf{Hello World!}\pause\\
+% \textsc{Hello World!}\pause\\
+Italic: \textit{Hello World!}\pause\\
+% Red emph: \color{red}{\emph{Hello World!}}\pause\\
+Alert: \alert{Hello World!}\pause\\
+\ovalbox{Text in ovalbox}\pause\\
 
-\vskip4ex
+% \vskip4ex
 Text in two columns:
 % \vskip4ex
 \begin{columns}[T]
@@ -235,7 +278,7 @@ If tidy=TRUE (default) then knitr formats the R code for you:
 
 %%%%%%%%%%%%%%%
 \subsection{text and plot in two columns}
-\begin{frame}[t]{\subsecname}
+\begin{frame}[fragile,t]{\subsecname}
 
   \begin{columns}[T]
 % Place text in first column
@@ -405,6 +448,39 @@ An enumerated list with pause:
 \item item 2
 \item item 3
 \end{enumerate}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{References}
+\begin{frame}[fragile,t]{\subsecname}
+
+There will be no required textbook, but a recommended textbook is:\\
+{\small{\fullcite{rupperttexbook}}}\\
+
+RStudio:\\
+{\small{\fullcite{website:rstudioide}}}\\
+
+An R resource:\\
+{\small{\fullcite{website:cran}}}\\
+
+Google Style Guide for R:\\
+{\small{\fullcite{website:googlestyler}}}\\
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Bibliography}
+\begin{frame}[fragile,t,allowframebreaks]{\subsecname}
+
+\nocite{*} % print all bib file entries
+{\tiny{\printbibliography}}
+
+% doesn't work as expected - prints only books
+% \printbibliography[type=book,title={Books}] % print books
+% \printbibliography[type=online,title={Websites}] % print Websites
 
 \end{frame}
 

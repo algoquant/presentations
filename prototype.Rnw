@@ -23,6 +23,40 @@ knit_theme$set(thm)
 \usepackage{hyperref}
 \usepackage{fancybox}
 \usepackage{url}
+\usepackage[backend=bibtex,style=alphabetic]{biblatex} % bibstyle=numeric
+% \bibliographystyle{amsalpha} % doesn't work
+\addbibresource{FRE6811_bib.bib}
+% \addbibresource[location=remote]{http://www.citeulike.org/user/jerzyp}
+\renewcommand\bibfont{\footnotesize}
+\renewcommand{\pgfuseimage}[1]{\scalebox{0.75}{\includegraphics{#1}}} % scale bib icons
+\setbeamertemplate{bibliography item}[text] % set bib icons
+% \setbeamertemplate{bibliography item}{} % remove bib icons
+
+% Define conditional bib icons
+% http://tex.stackexchange.com/questions/68080/beamer-bibliography-icon
+\setbeamertemplate{bibliography item}{%
+  \ifboolexpr{ test {\ifentrytype{book}} or test {\ifentrytype{mvbook}}
+    or test {\ifentrytype{collection}} or test {\ifentrytype{mvcollection}}
+    or test {\ifentrytype{reference}} or test {\ifentrytype{mvreference}} }
+    {\setbeamertemplate{bibliography item}[book]}
+    {\ifentrytype{online}
+       {\setbeamertemplate{bibliography item}[online]}
+       {\setbeamertemplate{bibliography item}[article]}}%
+  \usebeamertemplate{bibliography item}}
+
+% Define bib format
+\defbibenvironment{bibliography}
+  {\list{}
+     {\settowidth{\labelwidth}{\usebeamertemplate{bibliography item}}%
+      \setlength{\leftmargin}{\labelwidth}%
+      \setlength{\labelsep}{\biblabelsep}%
+      \addtolength{\leftmargin}{\labelsep}%
+      \setlength{\itemsep}{\bibitemsep}%
+      \setlength{\parsep}{\bibparsep}}}
+  {\endlist}
+  {\item}
+
+
 % \usepackage{enumerate}
 % \let\emph\textbf
 % \let\alert\textbf
@@ -63,112 +97,82 @@ knit_theme$set(thm)
 
 
 %%%%%%%%%%%%%%%
-\subsection{About FRE6811 Financial Software Laboratory}
-\begin{frame}[t]{\subsecname}
-
-\begin{block}{Course Description}
-\footnotesize{The course will teach the R statistical language through practical applications to time series analysis, regression, estimation, and forecasting.}
-\end{block}
-\pause
-
-\begin{block}{Exams}
-\footnotesize{There will be no exams.}
-\end{block}
-\pause
-
-\begin{block}{Grading}
-\footnotesize{Grading will be based on homework assignments.}
-\end{block}
-\pause
-
-\begin{block}{Course Prerequisites}
-\footnotesize{No prior knowledge of the R language is required.  But students should have a familiarity with basic statistics, time series analysis, and with a procedural programming language.}
-\end{block}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
 \subsection{FRE6811 Required Texts and Materials}
 \begin{frame}[t]{\subsecname}
 
 \begin{block}{Required Texts and Materials}
 \footnotesize{The course will be mostly self-contained, using detailed course slides.  The course will also utilize data and tutorials which are freely available on the internet.  There will be no required textbook, but a recommended textbook is:\\
-\emph{David Ruppert, Statistics and Data Analysis for Financial Engineering (Springer Texts in Statistics)}}
+\hskip1em\fullcite{rupperttexbook}
+% \emph{David Ruppert, Statistics and Data Analysis for Financial Engineering (Springer Texts in Statistics)}
+}
 \end{block}
 \pause
 
 \begin{block}{Other Required Course Materials}
-\footnotesize{Students will be required to install and use the R interpreter and the \emph{RStudio} integrated development environment (\emph{IDE}) on their computers.  Students will be encouraged to bring their laptop computers to class and run the R program during the lecture.  Students will be required to become proficient with the \emph{RStudio IDE}.}
+\footnotesize{Students will be required to install and use the R interpreter and the \emph{RStudio} integrated development environment (\emph{IDE}) on their computers.  Students will be encouraged to bring their laptop computers to class and run the R Interpreter during the lecture.  Students will be required to become proficient with the \emph{RStudio IDE}.}
 \end{block}
 
 \end{frame}
 
 
 %%%%%%%%%%%%%%%
-\section{Getting Started With R}
+\subsection{Homework Assignment}
+\begin{frame}[t]{\subsecname}
+
+\begin{block}{}
+Install: \fullcite{website:rstudioide}\\
+\end{block}
+\pause
+
+\begin{block}{}
+Install R Interpreter: \fullcite{website:cran}\\
+\end{block}
+\pause
+
+\begin{block}{}
+Read chapters 1-3: \fullcite{website:rintro}\\
+\end{block}
+\pause
+
+\begin{block}{}
+Read: \fullcite{website:googlestyler}\\
+\end{block}
+
+\end{frame}
 
 
 %%%%%%%%%%%%%%%
-\subsection{Exploring an R Session}
+\subsection{References}
 \begin{frame}[fragile,t]{\subsecname}
 
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.5\textwidth}
-      Get default (working) directory
-    \column{0.5\textwidth}
-      \vspace{-0.3cm}
-      <<out.width='0.3\textwidth'>>=
-        getwd()
-      @
-  \end{columns}
-\end{block}
-\pause
+There will be no required textbook, but a recommended textbook is:\\
+{\small{\fullcite{rupperttexbook}}}\\
 
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.5\textwidth}
-      Set working directory
-    \column{0.5\textwidth}
-      \vspace{-0.3cm}
-      <<out.width='0.3\textwidth'>>=
-        setwd("C:/Develop/R/Presentations")
-      @
-  \end{columns}
-\end{block}
-\pause
+RStudio:\\
+{\small{\fullcite{website:rstudioide}}}\\
 
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.5\textwidth}
-      Get system date and time
-    \column{0.5\textwidth}
-      \vspace{-0.3cm}
-      <<out.width='0.3\textwidth',tidy=TRUE,tidy.opts=list(width.cutoff=20)>>=
-# Date and time:
-        paste("Today is",Sys.time())
-# Just the date:
-        paste("Today is",format(Sys.time(),"%B-%d-%Y"))
-      @
-  \end{columns}
-\end{block}
-\pause
+An R resource:\\
+{\small{\fullcite{website:cran}}}\\
 
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.5\textwidth}
-      Get help on a function
-    \column{0.5\textwidth}
-      \vspace{-0.3cm}
-% tidy=FALSE prevents translation of '?getwd' into '`?`(getwd)'
-      <<tidy=FALSE,highlight=FALSE,eval=FALSE,out.width='0.3\textwidth'>>=
-        ?getwd or help(getwd)
-      @
-  \end{columns}
-\end{block}
+Google Style Guide for R:\\
+{\small{\fullcite{website:googlestyler}}}\\
 
 \end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Bibliography}
+\begin{frame}[fragile,t,allowframebreaks]{\subsecname}
+
+\nocite{*} % print all bib file entries
+{\tiny{\printbibliography}}
+
+% doesn't work as expected - prints only books
+% \printbibliography[type=book,title={Books}] % print books
+% \printbibliography[type=online,title={Websites}] % print Websites
+
+\end{frame}
+
 
 \end{document}
 

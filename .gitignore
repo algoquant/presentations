@@ -231,3 +231,8 @@ figure/
 *.tex
 *.toc
 *.vrb
+*.bbl
+*-blx.bib
+*.bbl.txt
+*.bcf
+*.run.xml

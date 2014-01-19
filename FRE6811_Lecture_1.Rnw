@@ -25,6 +25,10 @@ knit_theme$set(thm)
 \usepackage{hyperref}
 \usepackage{fancybox}
 \usepackage{url}
+\usepackage[backend=bibtex,style=alphabetic]{biblatex}
+\addbibresource{FRE6811_bib.bib}
+\renewcommand\bibfont{\small}
+% \addbibresource[location=remote]{http://www.citeulike.org/user/jerzyp}
 % \usepackage{enumerate}
 % \let\emph\textbf
 % \let\alert\textbf
@@ -103,12 +107,14 @@ knit_theme$set(thm)
 
 \begin{block}{Required Texts and Materials}
 \footnotesize{The course will be mostly self-contained, using detailed course slides.  The course will also utilize data and tutorials which are freely available on the internet.  There will be no required textbook, but a recommended textbook is:\\
-\emph{David Ruppert, Statistics and Data Analysis for Financial Engineering (Springer Texts in Statistics)}}
+\hskip1em\fullcite{rupperttexbook}
+% \emph{David Ruppert, Statistics and Data Analysis for Financial Engineering (Springer Texts in Statistics)}
+}
 \end{block}
 \pause
 
 \begin{block}{Other Required Course Materials}
-\footnotesize{Students will be required to install and use the R interpreter and the \emph{RStudio} integrated development environment (\emph{IDE}) on their computers.  Students will be encouraged to bring their laptop computers to class and run the R program during the lecture.  Students will be required to become proficient with the \emph{RStudio IDE}.}
+\footnotesize{Students will be required to install and use the R Interpreter and the \emph{RStudio} integrated development environment (\emph{IDE}) on their computers.  Students will be encouraged to bring their laptop computers to class and run the R Interpreter during the lecture.  Students will be required to become proficient with the \emph{RStudio IDE}.}
 \end{block}
 
 \end{frame}
@@ -122,15 +128,18 @@ knit_theme$set(thm)
 \subsection{Installing R}
 \begin{frame}[t]{\subsecname}
 
+\begin{block}{}
 \begin{columns}[T]
   \column{0.45\textwidth}
-    Download R program from CRAN (Comprehensive R Archive Network)\\
+    Download R Interpreter from CRAN (Comprehensive R Archive Network)\\
     \hskip1em\url{http://cran.r-project.org}\\
   \column{0.45\textwidth}
     \includegraphics[height=0.2\textwidth]{Rlogo.jpg}
 \end{columns}
-\vskip4ex
+\end{block}
+\pause
 
+\begin{block}{}
 \begin{columns}[T]
   \column{0.45\textwidth}
     Download RStudio IDE (Integrated Development Environment)\\
@@ -138,6 +147,7 @@ knit_theme$set(thm)
   \column{0.45\textwidth}
     \includegraphics[height=0.2\textwidth]{RStudio_logo.png}
 \end{columns}
+\end{block}
 
 \end{frame}
 
@@ -190,8 +200,8 @@ knit_theme$set(thm)
     \column{0.5\textwidth}
       \vspace{-0.3cm}
       <<out.width='0.3\textwidth',tidy=TRUE,tidy.opts=list(width.cutoff=20)>>=
-        paste("Today is",Sys.time())
-        paste("Today is",format(Sys.time(),"%B-%d-%Y"))
+        paste("Today is", Sys.time())
+        paste("Today is", format(Sys.time(), "%B-%d-%Y"))
       @
   \end{columns}
 \end{block}
@@ -225,9 +235,9 @@ knit_theme$set(thm)
       The Normal distribution is a special case of the Gaussian with $\mu=0$ and $\sigma=1$\\
 
         <<norm_dist,eval=TRUE,echo=TRUE,tidy=TRUE,tidy.opts=list(width.cutoff=40),size='scriptsize',fig.show='hide'>>=
-        v.xval <- seq(-4,4,length=100)
-        v.yval <- dnorm(v.xval,sd=1.0)
-        plot(v.xval,v.yval,type="l",lty=1,xlab="",ylab="",cex.lab=0.5,cex.axis=0.5,cex.main=0.8,cex.sub=0.5,main="Normal Density Function")
+        v.xval <- seq(-4, 4, length=100)
+        v.yval <- dnorm(v.xval, sd=1.0)
+        plot(v.xval, v.yval, type="l", lty=1, xlab="", ylab="", cex.lab=0.5, cex.axis=0.5, cex.main=0.8, cex.sub=0.5, main="Normal Density Function")
       @
     \column{0.5\textwidth}
     \includegraphics[width=0.5\paperwidth,valign=t]{figure/norm_dist}
@@ -244,19 +254,19 @@ knit_theme$set(thm)
     \column{0.5\textwidth}
     Plots of several Gaussian distributions with different values of $\sigma$
         <<gauss_dist,eval=TRUE,echo=4:20,tidy=TRUE,tidy.opts=list(width.cutoff=40),size='scriptsize',fig.show='hide'>>=
-        v.xval <- seq(-4,4,length=100)
-        v.yval <- dnorm(v.xval,sd=0.5)
-        plot(v.xval,v.yval,type="l",lty=1,xlab="",ylab="",cex.lab=0.5,cex.axis=0.5,cex.main=0.8,cex.sub=0.5,main="Gaussian Distributions")
+        v.xval <- seq(-4, 4, length=100)
+        v.yval <- dnorm(v.xval, sd=0.5)
+        plot(v.xval, v.yval, type="l", lty=1, xlab="", ylab="", cex.lab=0.5, cex.axis=0.5, cex.main=0.8, cex.sub=0.5, main="Gaussian Distributions")
 
-        v.sigma <- c(0.5,1,1.5,2)
-        v.colors <- c("red","black","blue","green")
-        v.labels <- paste("sigma",v.sigma,sep='=')
+        v.sigma <- c(0.5, 1, 1.5, 2)
+        v.colors <- c("red", "black", "blue", "green")
+        v.labels <- paste("sigma", v.sigma, sep='=')
 
         for (i.gauss in 1:4){
-          lines(v.xval,dnorm(v.xval,sd=v.sigma[i.gauss]),lwd=1,col=v.colors[i.gauss])
+          lines(v.xval, dnorm(v.xval, sd=v.sigma[i.gauss]), lwd=1, col=v.colors[i.gauss])
         }
 
-        legend("topright",inset=0.05,title="Distributions",v.labels,lwd=2,cex=0.5,lty=c(1,1,1,1),col=v.colors)
+        legend("topright", inset=0.05, title="Distributions", v.labels, lwd=2, cex=0.5, lty=c(1, 1, 1, 1), col=v.colors)
       @
     \column{0.5\textwidth}
     \includegraphics[width=0.5\paperwidth,valign=t]{figure/gauss_dist}
@@ -277,7 +287,7 @@ R-FAQ\\
 \hskip1em\url{http://cran.r-project.org/doc/FAQ/R-FAQ.html}\\
 \vskip4ex
 
-Website related to \emph{R in Action} book\\
+Quick-R website (related to \emph{R in Action} book)\\
 \hskip1em\url{http://www.statmethods.net}\\
 \vskip4ex
 
@@ -333,7 +343,7 @@ Enter package name \alert{Ecdat} (for example)
 Packages need to be loaded into an R session
 
 
-Download R program from CRAN (Comprehensive R Archive Network)\\
+Download R Interpreter from CRAN (Comprehensive R Archive Network)\\
 \hskip1em\url{http://cran.r-project.org}\\
 \vskip4ex
 Download RStudio IDE (Integrated Development Environment)\\
@@ -343,252 +353,28 @@ Download RStudio IDE (Integrated Development Environment)\\
 \end{frame}
 
 
-\section{Beamer and knitr features}
 %%%%%%%%%%%%%%%
-%%% Formatting
-\subsection{Formatting}
+\subsection{Homework Assignment}
 \begin{frame}[t]{\subsecname}
 
-Text formatting:\\
-Keyword: Introduction to {\LaTeX}\pause\\
-Boldface: \textbf{Hello World!}\pause\\
-% \textsc{Hello World!}\pause\\
-Italic: \textit{Hello World!}\pause\\
-% Red emph: \color{red}{\emph{Hello World!}}\pause\\
-Alert: \alert{Hello World!}\pause\\
-\ovalbox{Text in ovalbox}\pause\\
-
-\vskip4ex
-Text in two columns:
-% \vskip4ex
-\begin{columns}[T]
-  \column{0.4\textwidth}
-    \begin{block}{Column head 1}
-      First column text
-    \end{block}
-  \column{0.4\textwidth}
-    \begin{block}{Column head 2}
-      This is a tree frog:\\
-      \includegraphics[height=3cm]{frog.jpg}
-    \end{block}
-\end{columns}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-%%% Block Example
-\subsection{Block example}
-\begin{frame}[t]{\subsecname}
-
-\begin{block}{Simple block}
-  Hello World! \ldots Something more \pause\\
+\begin{block}{}
+Install: \fullcite{website:rstudioide}\\
 \end{block}
-% \vskip4ex
+\pause
 
-\begin{exampleblock}{Example block}
-  This is an example \pause\\
-\end{exampleblock}
-% \vskip4ex
-
-\begin{theorem}{Theorem block}
-  In a right triangle, the square of hypotenuse equals the sum of squares of two other sides \ldots  \pause\\
-\end{theorem}
-
-\begin{alertblock}{Alert block}
-  Pants on fire!
-\end{alertblock}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-%%% Block Example with uncover
-\subsection{Block example with uncover}
-\begin{frame}[t]{\subsecname}
-
-% Make covered items semi-transparent
-% \setbeamercovered{transparent}
-
-Uncover blocks one by one
-\uncover<1->{
-\begin{block}{Block 1}
-  First block\ldots
+\begin{block}{}
+Install R Interpreter: \fullcite{website:cran}\\
 \end{block}
-}
-\uncover<2->{
-\begin{block}{Block 2}
-  Second block\ldots
+\pause
+
+\begin{block}{}
+Read chapters 1-3: \fullcite{website:rintro}\\
 \end{block}
-}
-\uncover<3->{
-\begin{block}{Block 3}
-  Third block\ldots
+\pause
+
+\begin{block}{}
+Read: \fullcite{website:googlestyler}\\
 \end{block}
-}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-%%% Table Example
-\subsection{Table Example}
-\begin{frame}[t]{\subsecname}
-
-Table Example\\
-\begin{tabular}{c||c|c|c|}
-& \textbf{column1} & \textbf{column2} & \textbf{column4} \\
-\hline
-\hline
-\textbf{row1} & cell1 & cell2 & cell3 \\
-\hline
-\textbf{row2} & cell4 & cell5 & cell6 \\
-\end{tabular}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-%%% knitr tidy test
-\subsection{knitr tidy test}
-\begin{frame}[fragile,t]{\subsecname}
-If tidy=FALSE then knitr echoes the R code just as you formatted it yourself:
-<<tidy-test,tidy=FALSE>>=
-1 + 1 +
-  1+1+
-  1
-f = function() {
-  paste('I want to break the line',
-        'here!')
-}
-@
-
-If tidy=TRUE (default) then knitr formats the R code for you:
-<<tidy-test,tidy=TRUE,tidy.opts=list(width.cutoff=5),out.width='7cm'>>=
-@
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-%%% text and plot in two columns
-\subsection{text and plot in two columns}
-\begin{frame}[fragile,t]{\subsecname}
-
-  \begin{columns}[T]
-% Place text in first column
-  \begin{column}{0.5\textwidth}
-		Plot is on the right:
-	\end{column}
-% Now create plot in second column
-	\begin{column}{0.5\textwidth}
-    \begin{figure}
-	  	<<echo=FALSE,eval=TRUE,out.width='4cm',out.height='4cm'>>=
-		  plot(1:10, xlab='', ylab='', main=paste("R caption: straight line"))
-		  @
-      \caption{This is a straight line}
-    \end{figure}
-	\end{column}
-	\end{columns}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-%%% Two knitr Plots side by side
-\subsection{Two R Plots side by side}
-\begin{frame}[fragile,t]{\subsecname}
-
-<<Two_Plots_side_by_side,eval=TRUE,echo=TRUE,size='footnotesize',tidy=FALSE,tidy.opts=list(width.cutoff=40),out.width='5cm',out.height='5cm',fig.show='hold'>>=
-set.seed(1213)  # for reproducibility
-v.random = cumsum(rnorm(100))
-# mean(v.random)  # mean of v.random
-# Two plots side by side
-plot(1:10, xlab='', ylab='', main=paste("First plot")) # Simple line
-plot(v.random, type='l', xlab='', ylab='', main=paste("Second plot")) # Brownian motion
-@
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-%%% R code and plot side by side
-\subsection{R code and plot side by side}
-\begin{frame}[fragile,t]{\emph{R} code and plot side by side}
-
-\begin{columns}[T]
-  \begin{column}{0.5\textwidth}
-    <<R_code_plot,eval=TRUE,echo=TRUE,tidy=TRUE,tidy.opts=list(width.cutoff=25),fig.show='hide'>>=
-# getOption('width')
-# citation('knitr')
-    set.seed(1213)  # for reproducibility
-    v.random = cumsum(rnorm(100))
-    plot(v.random, type='l', xlab='', ylab='', main=paste("Brownian motion"))
-    @
-	\end{column}
-  \begin{column}{0.5\textwidth}
-    \includegraphics[width=0.5\paperwidth,valign=t]{figure/R_code_plot}
-% Alternative way
-% Call dummy plot chunk to reset queue, but hide plot
-%     <<eval=TRUE, echo=FALSE,out.width='1cm',out.height='1cm',fig.show='hide'>>=
-% 		plot(1:10)
-% 		@
-% Call plot chunk
-%     <<R_code_plot,eval=TRUE, echo=FALSE,out.width='1.0\\linewidth',out.height='1.0\\linewidth',fig.show='asis',fig.cap='Brownian motion'>>=
-%     @
-  \end{column}
-\end{columns}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-%%% Formulas
-\subsection{Formulas}
-\begin{frame}[t]{\subsecname}
-
-The value of $\pi$ is \Sexpr{pi}\\
-You can also write inline expressions, e.g. $\pi=\Sexpr{pi}$, and \Sexpr{1.598673e8} is a big number.
-\vskip4ex
-
-Very simple formulas:\\
-\(a=b\)\\
-$a=b$\\
-
-An interesting formula:
-\[
-\int_{-\infty}^{+\infty} e^{-x^2} \, dx = \sqrt{\pi}
-\]
-\\
-$\int_{-\infty}^{+\infty} e^{-x^2} \, dx = \sqrt{\pi}$
-\\
-Another formula:
-\[
-\sum e_{i}^{2}
-\]
-$\sum e_{i}^{2}$
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-%%% Lists
-\subsection{Lists}
-\begin{frame}[t]{\subsecname}
-
-An itemized list with pause (items appearing one at a time):
-\begin{itemize}[<+->]
-\item \color{blue}{item 1}
-\item item 2
-\item item 3
-\end{itemize}
-
-An enumerated list with pause:
-\begin{enumerate}[<+->]
-\item item 1
-\item item 2
-\item item 3
-\end{enumerate}
 
 \end{frame}
 
@@ -597,12 +383,32 @@ An enumerated list with pause:
 \subsection{Additional Reading}
 \begin{frame}[t]{\subsecname}
 
-Download R program from CRAN (Comprehensive R Archive Network)\\
+Download R Interpreter from CRAN (Comprehensive R Archive Network)\\
 \hskip1em\url{http://cran.r-project.org}\\
 \vskip4ex
 Download RStudio IDE (Integrated Development Environment)\\
 \hskip1em\url{http://www.rstudio.com/ide}\\
 \vskip4ex
+
+\end{frame}
+
+
+
+%%%%%%%%%%%%%%%
+\subsection{References}
+\begin{frame}[fragile,t]{\subsecname}
+
+There will be no required textbook, but a recommended textbook is:\\
+{\small{\fullcite{rupperttexbook}}}\\
+
+RStudio:\\
+{\small{\fullcite{website:rstudioide}}}\\
+
+An R resource:\\
+{\small{\fullcite{website:cran}}}\\
+
+Google Style Guide for R:\\
+{\small{\fullcite{website:googlestyler}}}\\
 
 \end{frame}
 
