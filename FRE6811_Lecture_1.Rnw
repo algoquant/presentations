@@ -40,7 +40,8 @@ knit_theme$set(thm)
 % Make institute text italic and small
 \setbeamerfont{institute}{size=\small,shape=\itshape,bg=red,fg=red}
 \setbeamerfont{date}{size=\small}
-
+\setbeamerfont{block title}{shape=\itshape}
+\setbeamerfont{block body}{size=\small}
 
 % Title page setup
 \title[FRE6811 Lecture \#1]{FRE6811 Financial Software Laboratory}
@@ -80,7 +81,10 @@ knit_theme$set(thm)
 \begin{frame}[t]{\subsecname}
 
 \begin{block}{Course Description}
-\footnotesize{The course will teach the R statistical language through practical applications to time series analysis, regression, estimation, and forecasting.}
+\footnotesize{The course will teach the R statistical language through practical applications to time series analysis, regression, estimation, and forecasting.
+learn by doing
+learn through examples
+}
 \end{block}
 \pause
 
@@ -102,19 +106,42 @@ knit_theme$set(thm)
 
 
 %%%%%%%%%%%%%%%
-\subsection{FRE6811 Required Texts and Materials}
+\subsection{FRE6811 Textbook}
 \begin{frame}[t]{\subsecname}
 
-\begin{block}{Required Texts and Materials}
-\footnotesize{The course will be mostly self-contained, using detailed course slides.  The course will also utilize data and tutorials which are freely available on the internet.  There will be no required textbook, but a recommended textbook is:\\
+\begin{block}{Course Slides}
+\footnotesize{The course will be mostly self-contained, using detailed course slides.  The course will also utilize data and tutorials which are freely available on the internet.}
+\end{block}
+\pause
+
+\begin{block}{Textbook}
+\footnotesize{There will be no required textbook, but a recommended textbook is:\\
 \hskip1em\fullcite{rupperttexbook}
 % \emph{David Ruppert, Statistics and Data Analysis for Financial Engineering (Springer Texts in Statistics)}
 }
 \end{block}
 \pause
 
+\begin{block}{Textbook Website Contains R Programs and Data Sets}
+\footnotesize{\fullcite{website:ruppert}\\
+}
+\end{block}
+\pause
+
+\begin{block}{Supplementary Textbook}
+\footnotesize{Another excellent textbook is:\\
+\hskip1em\fullcite{kleibertexbook}
+}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Other Required Course Materials}
+\begin{frame}[t]{\subsecname}
 \begin{block}{Other Required Course Materials}
-\footnotesize{Students will be required to install and use the R Interpreter and the \emph{RStudio} integrated development environment (\emph{IDE}) on their computers.  Students will be encouraged to bring their laptop computers to class and run the R Interpreter during the lecture.  Students will be required to become proficient with the \emph{RStudio IDE}.}
+\footnotesize{Students will be required to install and use the $R$ Interpreter and the $RStudio$ integrated development environment (\emph{IDE}) on their computers.  Students will be encouraged to bring their laptop computers to class and run the R Interpreter during the lecture.  Students will be required to become proficient with the \emph{RStudio IDE}.}
 \end{block}
 
 \end{frame}
@@ -125,15 +152,15 @@ knit_theme$set(thm)
 
 
 %%%%%%%%%%%%%%%
-\subsection{Installing R}
+\subsection{What is R?}
 \begin{frame}[t]{\subsecname}
 
 \begin{block}{}
 \begin{columns}[T]
-  \column{0.45\textwidth}
-    Download R Interpreter from CRAN (Comprehensive R Archive Network)\\
+  \column{0.7\textwidth}
+    $R$ is a free software environment for statistical computing and graphics\\
     \hskip1em\url{http://cran.r-project.org}\\
-  \column{0.45\textwidth}
+  \column{0.3\textwidth}
     \includegraphics[height=0.2\textwidth]{Rlogo.jpg}
 \end{columns}
 \end{block}
@@ -141,10 +168,49 @@ knit_theme$set(thm)
 
 \begin{block}{}
 \begin{columns}[T]
-  \column{0.45\textwidth}
+  \column{0.7\textwidth}
+    The $R$ software and its libraries are released under the GNU General Public License\\
+    \hskip1em\url{http://www.r-project.org/Licenses}\\
+  \column{0.3\textwidth}
+    \includegraphics[height=0.2\textwidth]{GPLv3_Logo.png}
+\end{columns}
+\end{block}
+\pause
+
+\begin{block}{}
+\begin{columns}[T]
+  \column{0.7\textwidth}
+    Many other $R$ software are released under the Creative Commons Attribution-ShareAlike License\\
+    \hskip1em\url{http://creativecommons.org}\\
+  \column{0.3\textwidth}
+    \includegraphics[height=0.1\textwidth]{CC_License.png}
+\end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Installing R}
+\begin{frame}[t]{\subsecname}
+
+\begin{block}{}
+\begin{columns}[T]
+  \column{0.7\textwidth}
+    Download R Interpreter from CRAN (Comprehensive R Archive Network)\\
+    \hskip1em\url{http://cran.r-project.org}\\
+  \column{0.3\textwidth}
+    \includegraphics[height=0.2\textwidth]{Rlogo.jpg}
+\end{columns}
+\end{block}
+\pause
+
+\begin{block}{}
+\begin{columns}[T]
+  \column{0.7\textwidth}
     Download RStudio IDE (Integrated Development Environment)\\
     \hskip1em\url{http://www.rstudio.com/ide}\\
-  \column{0.45\textwidth}
+  \column{0.3\textwidth}
     \includegraphics[height=0.2\textwidth]{RStudio_logo.png}
 \end{columns}
 \end{block}
@@ -156,6 +222,7 @@ knit_theme$set(thm)
 \subsection{Using RStudio}
 \begin{frame}[t]{\subsecname}
 
+% Snapshot of RStudio GUI
 \includegraphics[height=0.6\textwidth]{Capture2.png}
 
 \end{frame}
@@ -170,7 +237,7 @@ knit_theme$set(thm)
     \column{0.5\textwidth}
       Get default (working) directory
     \column{0.5\textwidth}
-      \vspace{-0.3cm}
+      \vspace{-0.8em}
       <<out.width='0.3\textwidth'>>=
         getwd()
       @
@@ -183,7 +250,7 @@ knit_theme$set(thm)
     \column{0.5\textwidth}
       Set working directory
     \column{0.5\textwidth}
-      \vspace{-0.3cm}
+      \vspace{-0.8em}
       <<out.width='0.3\textwidth'>>=
         setwd("C:/Develop/R/Presentations")
       @
@@ -198,7 +265,7 @@ knit_theme$set(thm)
       \vskip4ex
       Just the date
     \column{0.5\textwidth}
-      \vspace{-0.3cm}
+      \vspace{-0.8em}
       <<out.width='0.3\textwidth',tidy=TRUE,tidy.opts=list(width.cutoff=20)>>=
         paste("Today is", Sys.time())
         paste("Today is", format(Sys.time(), "%B-%d-%Y"))
@@ -212,7 +279,7 @@ knit_theme$set(thm)
     \column{0.5\textwidth}
       Get help on a function
     \column{0.5\textwidth}
-      \vspace{-0.3cm}
+      \vspace{-0.8em}
 % tidy=FALSE prevents translation of '?getwd' into '`?`(getwd)'
       <<tidy=FALSE,highlight=FALSE,eval=FALSE,out.width='0.3\textwidth'>>=
         ?getwd or help(getwd)
@@ -331,7 +398,7 @@ RStudio has extensive online help, Q\&A database, and documentation\\
 
 %%%%%%%%%%%%%%%
 \subsection{Installing Packages}
-\begin{frame}[t]{\subsecname}
+\begin{frame}[fragile,t]{\subsecname}
 
 R has the ability to run external libraries of functions called packages\\
 Packages need to be installed before they can be used\\
@@ -341,14 +408,24 @@ In RStudio, go to \alert{Tools} and then \alert{Install packages}\\
 Enter package name \alert{Ecdat} (for example)
 
 Packages need to be loaded into an R session
+\hskip1em\url{http://cran.r-project.org/web/packages/AER/index.html}\\
 
+\pause
 
-Download R Interpreter from CRAN (Comprehensive R Archive Network)\\
-\hskip1em\url{http://cran.r-project.org}\\
-\vskip4ex
-Download RStudio IDE (Integrated Development Environment)\\
-\hskip1em\url{http://www.rstudio.com/ide}\\
-\vskip4ex
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Get help on a function
+    \column{0.5\textwidth}
+      \vspace{-0.8em}
+% tidy=FALSE prevents translation of '?getwd' into '`?`(getwd)'
+      <<tidy=FALSE,highlight=FALSE,eval=FALSE,out.width='0.3\textwidth'>>=
+        install.packages("AER")
+        library("AER")
+        data("Journals")
+      @
+  \end{columns}
+\end{block}
 
 \end{frame}
 
@@ -357,23 +434,17 @@ Download RStudio IDE (Integrated Development Environment)\\
 \subsection{Homework Assignment}
 \begin{frame}[t]{\subsecname}
 
-\begin{block}{}
-Install: \fullcite{website:rstudioide}\\
-\end{block}
-\pause
-
-\begin{block}{}
+\begin{block}{Required}
 Install R Interpreter: \fullcite{website:cran}\\
-\end{block}
-\pause
-
-\begin{block}{}
+Install: \fullcite{website:rstudioide}\\
 Read chapters 1-3: \fullcite{website:rintro}\\
 \end{block}
+\vskip4ex
 \pause
 
-\begin{block}{}
+\begin{block}{Recommended}
 Read: \fullcite{website:googlestyler}\\
+Read chapters 1-3: \citetitle{rupperttexbook}\\
 \end{block}
 
 \end{frame}

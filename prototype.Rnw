@@ -68,6 +68,8 @@ knit_theme$set(thm)
 % Make institute text italic and small
 \setbeamerfont{institute}{size=\small,shape=\itshape,bg=red,fg=red}
 \setbeamerfont{date}{size=\small}
+\setbeamerfont{block title}{shape=\itshape}
+\setbeamerfont{block body}{size=\small}
 
 
 % Title page setup
@@ -97,6 +99,30 @@ knit_theme$set(thm)
 
 
 %%%%%%%%%%%%%%%
+\subsection{Creative Commons Attribution-ShareAlike License}
+\begin{frame}[t]{\subsecname}
+\small{
+\begin{columns}[T]
+  \column[T]{0.5\textwidth}
+    You are free to:
+    \vspace{0.6em}
+    \begin{itemize}[<+->]
+      \item Share - copy and redistribute the material in any medium or format.
+      \item Adapt - remix, transform, and build upon the material for any purpose, even commercially.
+    \end{itemize}
+    \pause
+  \column[T]{0.5\textwidth}
+    Under the following terms:
+    \begin{itemize}[<+->]
+      \item Attribution - You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+      \item ShareAlike - If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.
+    \end{itemize}
+\end{columns}
+}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
 \subsection{FRE6811 Required Texts and Materials}
 \begin{frame}[t]{\subsecname}
 
@@ -116,26 +142,31 @@ knit_theme$set(thm)
 
 
 %%%%%%%%%%%%%%%
-\subsection{Homework Assignment}
-\begin{frame}[t]{\subsecname}
+\subsection{Installing Packages}
+\begin{frame}[fragile,t]{\subsecname}
 
-\begin{block}{}
-Install: \fullcite{website:rstudioide}\\
-\end{block}
+R has the ability to run external libraries of functions called packages\\
+Packages need to be installed before they can be used\\
+
+Installing packages\\
+In RStudio, go to \alert{Tools} and then \alert{Install packages}\\
+Enter package name \alert{Ecdat} (for example)
+
+Packages need to be loaded into an R session
+
 \pause
 
 \begin{block}{}
-Install R Interpreter: \fullcite{website:cran}\\
-\end{block}
-\pause
-
-\begin{block}{}
-Read chapters 1-3: \fullcite{website:rintro}\\
-\end{block}
-\pause
-
-\begin{block}{}
-Read: \fullcite{website:googlestyler}\\
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Get help on a function
+    \column{0.5\textwidth}
+      \vspace{-0.8em}
+% tidy=FALSE prevents translation of '?getwd' into '`?`(getwd)'
+      <<tidy=FALSE,highlight=FALSE,eval=FALSE,out.width='0.3\textwidth'>>=
+        install.packages("AER")
+      @
+  \end{columns}
 \end{block}
 
 \end{frame}
