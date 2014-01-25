@@ -5,7 +5,7 @@
 % Set global chunk options
 <<knitr_setup,include=FALSE,cache=FALSE>>=
 library(knitr)
-opts_chunk$set(comment=NA, size='scriptsize', fig.width=4, fig.height=4)
+opts_chunk$set(comment=NA, highlight=FALSE, size='scriptsize', fig.width=4, fig.height=4)
 options(width=60, dev='pdf')
 thm <- knit_theme$get("acid")
 knit_theme$set(thm)
@@ -40,13 +40,13 @@ knit_theme$set(thm)
 % Make institute text italic and small
 \setbeamerfont{institute}{size=\small,shape=\itshape,bg=red,fg=red}
 \setbeamerfont{date}{size=\small}
-\setbeamerfont{block title}{shape=\itshape}
-\setbeamerfont{block body}{size=\small}
+\setbeamerfont{block title}{size=\normalsize} % shape=\itshape
+\setbeamerfont{block body}{size=\footnotesize}
 
 % Title page setup
 \title[FRE6811 Lecture \#1]{FRE6811 Financial Software Laboratory}
 \subtitle{Lecture \#1, Spring 2014}
-% \subject{Getting Started With R}
+% \subject{Getting Started With $R$}
 \institute[NYU Polytechnic]{NYU Polytechnic School of Engineering}
 \titlegraphic{\includegraphics[scale=0.8]{engineering_long_color}}
 \author{Jerzy Pawlowski}
@@ -81,25 +81,23 @@ knit_theme$set(thm)
 \begin{frame}[t]{\subsecname}
 
 \begin{block}{Course Description}
-\footnotesize{The course will teach the R statistical language through practical applications to time series analysis, regression, estimation, and forecasting.
-learn by doing
-learn through examples
-}
+The course will teach the $R$ statistical language through practical applications to time series analysis, regression, estimation, and forecasting.\\
+The aim will be to learn by doing and to learn through examples.
 \end{block}
 \pause
 
 \begin{block}{Exams}
-\footnotesize{There will be no exams.}
+There will be no exams.
 \end{block}
 \pause
 
 \begin{block}{Grading}
-\footnotesize{Grading will be based on homework assignments.}
+Grading will be based on homework assignments.
 \end{block}
 \pause
 
 \begin{block}{Course Prerequisites}
-\footnotesize{No prior knowledge of the R language is required.  But students should have a familiarity with basic statistics, time series analysis, and with a procedural programming language.}
+No prior knowledge of the $R$ language is required.  But students should have a familiarity with basic statistics, time series analysis, and with a procedural programming language.
 \end{block}
 
 \end{frame}
@@ -122,7 +120,7 @@ learn through examples
 \end{block}
 \pause
 
-\begin{block}{Textbook Website Contains R Programs and Data Sets}
+\begin{block}{Textbook Website Contains $R$ Programs and Data Sets}
 \footnotesize{\fullcite{website:ruppert}\\
 }
 \end{block}
@@ -141,25 +139,35 @@ learn through examples
 \subsection{Other Required Course Materials}
 \begin{frame}[t]{\subsecname}
 \begin{block}{Other Required Course Materials}
-\footnotesize{Students will be required to install and use the $R$ Interpreter and the $RStudio$ integrated development environment (\emph{IDE}) on their computers.  Students will be encouraged to bring their laptop computers to class and run the R Interpreter during the lecture.  Students will be required to become proficient with the \emph{RStudio IDE}.}
+Students will be required to install and use the $R$ Interpreter and the $RStudio$ Integrated Development Environment (\emph{IDE}) on their computers.\\
+Students will be required to become proficient with the $RStudio$ IDE.\\
+Students are encouraged to bring their laptop computers to class and run the $R$ Interpreter during the lecture.
 \end{block}
 
 \end{frame}
 
 
 %%%%%%%%%%%%%%%
-\section{Getting Started With R}
+\section{Getting Started With $R$}
 
 
 %%%%%%%%%%%%%%%
-\subsection{What is R?}
+\subsection{What is $R$?}
 \begin{frame}[t]{\subsecname}
 
 \begin{block}{}
 \begin{columns}[T]
   \column{0.7\textwidth}
-    $R$ is a free software environment for statistical computing and graphics\\
-    \hskip1em\url{http://cran.r-project.org}\\
+    \begin{itemize}[]
+      \item Is a free software environment for statistical computing and graphics,
+      \item Is an interpreted language,
+      \item Supports object-oriented programming with generic functions,
+      \item Capabilities are extended through user-created packages,
+      \item Is written in $R$ itself and in $C$/$C++$.
+    \end{itemize}
+    \hskip1em\url{http://www.r-project.org/}\\
+    \hskip1em\url{http://en.wikipedia.org/wiki/R_(programming_language)}\\
+%    \hskip1em\url{http://blog.revolutionanalytics.com/2011/08/what-language-is-r-written-in.html}\\
   \column{0.3\textwidth}
     \includegraphics[height=0.2\textwidth]{Rlogo.jpg}
 \end{columns}
@@ -191,14 +199,14 @@ learn through examples
 
 
 %%%%%%%%%%%%%%%
-\subsection{Installing R}
+\subsection{Installing $R$ and $RStudio$}
 \begin{frame}[t]{\subsecname}
 
 \begin{block}{}
 \begin{columns}[T]
   \column{0.7\textwidth}
-    Download R Interpreter from CRAN (Comprehensive R Archive Network)\\
-    \hskip1em\url{http://cran.r-project.org}\\
+    Download $R$ Interpreter from $CRAN$ (Comprehensive $R$ Archive Network)\\
+    \hskip1em\url{http://cran.us.r-project.org}\\
   \column{0.3\textwidth}
     \includegraphics[height=0.2\textwidth]{Rlogo.jpg}
 \end{columns}
@@ -208,7 +216,7 @@ learn through examples
 \begin{block}{}
 \begin{columns}[T]
   \column{0.7\textwidth}
-    Download RStudio IDE (Integrated Development Environment)\\
+    Download $RStudio$ IDE (Integrated Development Environment)\\
     \hskip1em\url{http://www.rstudio.com/ide}\\
   \column{0.3\textwidth}
     \includegraphics[height=0.2\textwidth]{RStudio_logo.png}
@@ -219,27 +227,45 @@ learn through examples
 
 
 %%%%%%%%%%%%%%%
-\subsection{Using RStudio}
+\subsection{Using $RStudio$}
 \begin{frame}[t]{\subsecname}
 
-% Snapshot of RStudio GUI
-\includegraphics[height=0.6\textwidth]{Capture2.png}
+% Snapshot of $RStudio$ GUI
+\includegraphics[height=0.6\textwidth]{RStudio.png}
 
 \end{frame}
 
 
 %%%%%%%%%%%%%%%
-\subsection{Exploring an R Session}
+\subsection{$RStudio$ Support}
+\begin{frame}[t]{\subsecname}
+
+\begin{block}{}
+$RStudio$ has extensive online help, Q\&A database, and documentation\\
+\hskip1em\url{https://support.rstudio.com/hc/en-us}\\
+\hskip1em\url{https://support.rstudio.com/hc/en-us/sections/200107586-Using-RStudio}\\
+\hskip1em\url{https://support.rstudio.com/hc/en-us/sections/200148796-Advanced-Topics}\\
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\section{Basic Operations in $R$}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Exploring an $R$ Session}
 \begin{frame}[fragile,t]{\subsecname}
 
 \begin{block}{}
   \begin{columns}[T]
-    \column{0.5\textwidth}
-      Get default (working) directory
-    \column{0.5\textwidth}
-      \vspace{-0.8em}
-      <<out.width='0.3\textwidth'>>=
-        getwd()
+    \column{0.3\textwidth}
+      Get (default) current working directory (cwd)
+    \column{0.7\textwidth}
+      \vspace{-1em}
+      <<prompt=TRUE>>=
+        getwd()  # get cwd
       @
   \end{columns}
 \end{block}
@@ -247,12 +273,12 @@ learn through examples
 
 \begin{block}{}
   \begin{columns}[T]
-    \column{0.5\textwidth}
+    \column{0.3\textwidth}
       Set working directory
-    \column{0.5\textwidth}
-      \vspace{-0.8em}
-      <<out.width='0.3\textwidth'>>=
-        setwd("C:/Develop/R/Presentations")
+    \column{0.7\textwidth}
+      \vspace{-1em}
+      <<prompt=TRUE>>=
+        setwd("C:/Develop/R/Presentations")  # set cwd
       @
   \end{columns}
 \end{block}
@@ -260,13 +286,15 @@ learn through examples
 
 \begin{block}{}
   \begin{columns}[T]
-    \column{0.5\textwidth}
+    \column{0.3\textwidth}
       Get system date and time\\
       \vskip4ex
       Just the date
-    \column{0.5\textwidth}
-      \vspace{-0.8em}
-      <<out.width='0.3\textwidth',tidy=TRUE,tidy.opts=list(width.cutoff=20)>>=
+    \column{0.7\textwidth}
+      \vspace{-1em}
+      <<prompt=TRUE>>=
+        Sys.time()
+        format(Sys.time(), "%B-%d-%Y")
         paste("Today is", Sys.time())
         paste("Today is", format(Sys.time(), "%B-%d-%Y"))
       @
@@ -276,12 +304,12 @@ learn through examples
 
 \begin{block}{}
   \begin{columns}[T]
-    \column{0.5\textwidth}
+    \column{0.3\textwidth}
       Get help on a function
-    \column{0.5\textwidth}
-      \vspace{-0.8em}
+    \column{0.7\textwidth}
+      \vspace{-1em}
 % tidy=FALSE prevents translation of '?getwd' into '`?`(getwd)'
-      <<tidy=FALSE,highlight=FALSE,eval=FALSE,out.width='0.3\textwidth'>>=
+      <<tidy=FALSE,eval=FALSE,out.width='0.3\textwidth'>>=
         ?getwd or help(getwd)
       @
   \end{columns}
@@ -291,17 +319,24 @@ learn through examples
 
 
 %%%%%%%%%%%%%%%
+\section{Plotting}
+
+
+%%%%%%%%%%%%%%%
 \subsection{Normal Probability Distribution}
 \begin{frame}[fragile,t]{\subsecname}
 
   \begin{columns}[T]
     \column{0.5\textwidth}
+\small
       The Gaussian probability density function is defined as:\\
+\normalsize
       \hskip1em$P(x)={\frac{1}{{\sigma\sqrt{2\pi}}}}{e^{{{-\left({x-\mu}\right)^2}\mathord{\left/{\vphantom{{-\left({x-\mu}\right)^2}{2\sigma^2}}}\right.\kern-\nulldelimiterspace}{2\sigma^2}}}}$
       \vskip4ex
+\small
       The Normal distribution is a special case of the Gaussian with $\mu=0$ and $\sigma=1$\\
 
-        <<norm_dist,eval=TRUE,echo=TRUE,tidy=TRUE,tidy.opts=list(width.cutoff=40),size='scriptsize',fig.show='hide'>>=
+        <<norm_dist,eval=TRUE,echo=TRUE,tidy=TRUE,tidy.opts=list(width.cutoff=30),size='scriptsize',fig.show='hide',prompt=TRUE>>=
         v.xval <- seq(-4, 4, length=100)
         v.yval <- dnorm(v.xval, sd=1.0)
         plot(v.xval, v.yval, type="l", lty=1, xlab="", ylab="", cex.lab=0.5, cex.axis=0.5, cex.main=0.8, cex.sub=0.5, main="Normal Density Function")
@@ -319,8 +354,9 @@ learn through examples
 
   \begin{columns}[T]
     \column{0.5\textwidth}
+\small
     Plots of several Gaussian distributions with different values of $\sigma$
-        <<gauss_dist,eval=TRUE,echo=4:20,tidy=TRUE,tidy.opts=list(width.cutoff=40),size='scriptsize',fig.show='hide'>>=
+        <<gauss_dist,eval=TRUE,echo=5:20,tidy=TRUE,tidy.opts=list(width.cutoff=30),size='scriptsize',fig.show='hide',prompt=TRUE>>=
         v.xval <- seq(-4, 4, length=100)
         v.yval <- dnorm(v.xval, sd=0.5)
         plot(v.xval, v.yval, type="l", lty=1, xlab="", ylab="", cex.lab=0.5, cex.axis=0.5, cex.main=0.8, cex.sub=0.5, main="Gaussian Distributions")
@@ -343,36 +379,112 @@ learn through examples
 
 
 %%%%%%%%%%%%%%%
-\subsection{R Tutorials and Manuals}
+\section{$R$ Support Materials}
+
+
+%%%%%%%%%%%%%%%
+\subsection{$R$ Tutorials and Manuals}
 \begin{frame}[t]{\subsecname}
 
-An Introduction to R\\
-\hskip1em\url{http://cran.r-project.org/doc/manuals/r-release/R-intro.pdf}\\
-\vskip4ex
+\begin{block}{An Introduction to $R$}
+The original standard intro by Venables \& Smith\\
+\hskip1em\url{http://cran.us.r-project.org/doc/manuals/r-release/R-intro.pdf}\\
+\end{block}
+\pause
 
-R-FAQ\\
-\hskip1em\url{http://cran.r-project.org/doc/FAQ/R-FAQ.html}\\
-\vskip4ex
+\begin{block}{$R$-FAQ}
+A massive list of Q\&A, straight from the experts\\
+\hskip1em\url{http://CRAN.R-project.org/doc/FAQ/R-FAQ.html}\\
+\end{block}
+\pause
 
-Quick-R website (related to \emph{R in Action} book)\\
-\hskip1em\url{http://www.statmethods.net}\\
-\vskip4ex
+\begin{block}{$R$ programming Wikibook}
+A book about how to implement statistical methods using $R$\\
+\hskip1em\url{http://en.wikibooks.org/wiki/R_Programming}\\
+\end{block}
+\pause
 
-Google Style Guide for R\\
+\begin{block}{Google Style Guide for $R$}
+Useful tips to make your $R$ code easier to read, share, and verify\\
 \hskip1em\url{http://google-styleguide.googlecode.com/svn/trunk/Rguide.xml}\\
+\end{block}
 
 \end{frame}
 
 
 %%%%%%%%%%%%%%%
-\subsection{RStudio Support}
+\begin{frame}[t]{More \subsecname}
+
+\begin{block}{Advanced $R$ Programming by Hadley Wickham (draft book)}
+Advanced topics, such as functional programming, metaprogramming, and performant code\\
+\hskip1em\url{http://adv-r.had.co.nz/}\\
+\end{block}
+\pause
+
+\begin{block}{UCLA Resources for $R$}
+Resources to help you learn and use $R$\\
+\hskip1em\url{http://www.ats.ucla.edu/stat/r/}\\
+\end{block}
+\pause
+
+\begin{block}{Vincent Zoonekynd's Huge Collection of $R$ Code and Tips}
+Home page\\
+\hskip1em\url{http://zoonek2.free.fr/UNIX/48_R/all.html}\\
+Introduction to $R$\\
+\hskip1em\url{http://zoonek2.free.fr/UNIX/48_R/01.html}\\
+Programming in $R$\\
+\hskip1em\url{http://zoonek2.free.fr/UNIX/48_R/02.html}\\
+Vincent Zoonekynd's blog\\
+\hskip1em\url{http://zoonek.free.fr/blosxom/}\\
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{$R$ Blogs and Experts}
 \begin{frame}[t]{\subsecname}
 
-RStudio has extensive online help, Q\&A database, and documentation\\
-\hskip1em\url{https://support.rstudio.com/hc/en-us}\\
-\hskip1em\url{https://support.rstudio.com/hc/en-us/sections/200107586-Using-RStudio}\\
-\hskip1em\url{https://support.rstudio.com/hc/en-us/sections/200148796-Advanced-Topics}\\
-\vskip4ex
+\begin{block}{R-Bloggers}
+R-Bloggers is an aggregator of blogs dedicated to $R$\\
+\hskip1em\url{http://www.r-bloggers.com/}\\
+Tal Galili is the author of R-Bloggers and has his own excellent blog\\
+\hskip1em\url{http://www.r-statistics.com/}\\
+\end{block}
+\pause
+
+\begin{block}{Dirk Eddelbuettel}
+Dirk is a $Top Answerer$ for $R$ questions on Stackoverflow, the author of the $Rcpp$ package, and the CRAN Finance View\\
+\hskip1em\url{http://dirk.eddelbuettel.com/}\\
+\hskip1em\url{http://dirk.eddelbuettel.com/code/}\\
+\hskip1em\url{http://dirk.eddelbuettel.com/blog/}\\
+\hskip1em\url{http://www.rinfinance.com/}\\
+\end{block}
+\pause
+
+\begin{block}{Romain François}
+Romain is an $R$ Enthusiast and $Rcpp$ Hero\\
+\hskip1em\url{http://romainfrancois.blog.free.fr/}\\
+\hskip1em\url{http://romainfrancois.blog.free.fr/index.php?tag/graphgallery}\\
+\hskip1em\url{http://blog.r-enthusiasts.com/}\\
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\begin{frame}[t]{More \subsecname}
+
+\begin{block}{Revolution Analytics Blog}
+$R$ blog by Revolution Analytics software vendor\\
+\hskip1em\url{http://blog.revolutionanalytics.com/}\\
+\end{block}
+\pause
+
+\begin{block}{$RStudio$ Blog}
+$R$ blog by $RStudio$\\
+\hskip1em\url{http://blog.rstudio.org/}\\
+\end{block}
 
 \end{frame}
 
@@ -383,12 +495,19 @@ RStudio has extensive online help, Q\&A database, and documentation\\
 
 \begin{columns}[T]
   \column{0.5\textwidth}
-    Stack Exchange is a web of Q\&A resources for a variety of fields\\
-    \hskip1em\url{http://stackexchange.com}\\
-    \hskip1em\url{http://stackexchange.com/sites\#technology}\\
-    \vskip4ex
-    Stack Overflow are excellent Q\&A resources for R and programming\\
-    \hskip1em\url{http://stackoverflow.com}\\
+    \begin{block}{Stack Exchange}
+      Stack Exchange is a family of Q\&A forums in a variety of fields\\
+      \hskip1em\url{http://stackexchange.com/}\\
+      \hskip1em\url{http://stackexchange.com/sites\#technology}\\
+      \hskip1em\url{http://quant.stackexchange.com/}\\
+    \end{block}
+    \begin{block}{Stack Overflow}
+      Stack Overflow is a Q\&A forum for computer programming, and is part of Stack Exchange\\
+%  Stack Overflow is a Q\&A forum for programmers (covers many different languages)\\
+      \hskip1em\url{http://stackoverflow.com}\\
+      \hskip1em\url{http://stackoverflow.com/questions/tagged/r}\\
+      \hskip1em\url{http://stackoverflow.com/tags/r/info}\\
+    \end{block}
   \column{0.5\textwidth}
     \includegraphics[height=0.9\textwidth]{stack_exchange2.png}
 \end{columns}
@@ -397,18 +516,34 @@ RStudio has extensive online help, Q\&A database, and documentation\\
 
 
 %%%%%%%%%%%%%%%
+\subsection{Other $R$ Online Help}
+\begin{frame}[t]{\subsecname}
+
+\begin{block}{$R$-help Mailing List}
+  $R$-help is a very comprehensive Q\&A mailing list\\
+  \hskip1em\url{https://stat.ethz.ch/mailman/listinfo/r-help}\\
+  $R$-help has archives of past Q\&A - search it before you ask\\
+  \hskip1em\url{https://stat.ethz.ch/pipermail/r-help/}\\
+  GMANE allows searching the $R$-help archives using a usenet newsgroup style GUI\\
+  \hskip1em\url{http://news.gmane.org/gmane.comp.lang.r.general}\\
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
 \subsection{Installing Packages}
 \begin{frame}[fragile,t]{\subsecname}
 
-R has the ability to run external libraries of functions called packages\\
+$R$ has the ability to run external libraries of functions called packages\\
 Packages need to be installed before they can be used\\
 
 Installing packages\\
-In RStudio, go to \alert{Tools} and then \alert{Install packages}\\
+In $RStudio$, go to \alert{Tools} and then \alert{Install packages}\\
 Enter package name \alert{Ecdat} (for example)
 
-Packages need to be loaded into an R session
-\hskip1em\url{http://cran.r-project.org/web/packages/AER/index.html}\\
+Packages need to be loaded into an $R$ session
+\hskip1em\url{http://cran.us.r-project.org/web/packages/AER/index.html}\\
 
 \pause
 
@@ -417,9 +552,9 @@ Packages need to be loaded into an R session
     \column{0.5\textwidth}
       Get help on a function
     \column{0.5\textwidth}
-      \vspace{-0.8em}
+      \vspace{-1em}
 % tidy=FALSE prevents translation of '?getwd' into '`?`(getwd)'
-      <<tidy=FALSE,highlight=FALSE,eval=FALSE,out.width='0.3\textwidth'>>=
+      <<tidy=FALSE,eval=FALSE,out.width='0.3\textwidth',prompt=TRUE>>=
         install.packages("AER")
         library("AER")
         data("Journals")
@@ -435,16 +570,20 @@ Packages need to be loaded into an R session
 \begin{frame}[t]{\subsecname}
 
 \begin{block}{Required}
-Install R Interpreter: \fullcite{website:cran}\\
-Install: \fullcite{website:rstudioide}\\
-Read chapters 1-3: \fullcite{website:rintro}\\
+  \begin{itemize}[]
+    \item Install $R$ Interpreter: \fullcite{website:cran}
+    \item Install: \fullcite{website:rstudioide}
+    \item Read chapters 1-3: \fullcite{website:rintro}
+  \end{itemize}
 \end{block}
 \vskip4ex
 \pause
 
 \begin{block}{Recommended}
-Read: \fullcite{website:googlestyler}\\
-Read chapters 1-3: \citetitle{rupperttexbook}\\
+  \begin{itemize}[]
+    \item Read chapters 1-3: \citetitle{rupperttexbook}
+    \item Read: \fullcite{website:googlestyler}
+  \end{itemize}
 \end{block}
 
 \end{frame}
@@ -454,15 +593,14 @@ Read chapters 1-3: \citetitle{rupperttexbook}\\
 \subsection{Additional Reading}
 \begin{frame}[t]{\subsecname}
 
-Download R Interpreter from CRAN (Comprehensive R Archive Network)\\
-\hskip1em\url{http://cran.r-project.org}\\
+Download $R$ Interpreter from $CRAN$ (Comprehensive $R$ Archive Network)\\
+\hskip1em\url{http://cran.us.r-project.org}\\
 \vskip4ex
-Download RStudio IDE (Integrated Development Environment)\\
+Download $RStudio$ IDE (Integrated Development Environment)\\
 \hskip1em\url{http://www.rstudio.com/ide}\\
 \vskip4ex
 
 \end{frame}
-
 
 
 %%%%%%%%%%%%%%%
@@ -472,13 +610,13 @@ Download RStudio IDE (Integrated Development Environment)\\
 There will be no required textbook, but a recommended textbook is:\\
 {\small{\fullcite{rupperttexbook}}}\\
 
-RStudio:\\
+$RStudio$:\\
 {\small{\fullcite{website:rstudioide}}}\\
 
-An R resource:\\
+An $R$ resource:\\
 {\small{\fullcite{website:cran}}}\\
 
-Google Style Guide for R:\\
+Google Style Guide for $R$:\\
 {\small{\fullcite{website:googlestyler}}}\\
 
 \end{frame}

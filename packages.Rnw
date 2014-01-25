@@ -48,8 +48,8 @@ knit_theme$set(thm)
 
 
 % Title page setup
-\title[FRE6811 Lecture\#1]{FRE6811 Financial Software Laboratory}
-\subtitle{Lecture\#1, Spring 2014}
+\title[FRE6811 Lecture \#1]{FRE6811 Financial Software Laboratory}
+\subtitle{Lecture \#1, Spring 2014}
 % \subject{Getting Started With R}
 \institute[NYU Polytechnic]{NYU Polytechnic School of Engineering}
 \titlegraphic{\includegraphics[scale=0.8]{engineering_long_color}}
@@ -78,12 +78,12 @@ knit_theme$set(thm)
 \begin{frame}[fragile,t]{\subsecname}
 \begin{block}{}
   \begin{columns}[T]
-    \column{0.5\textwidth}
+    \column{0.6\textwidth}
       The standard assignment operator in $R$ is \verb|"<-"|,\\
       The \verb|"="| operator is used for named arguments in function calls,\\
       Both \verb|"<-"| and \verb|"="| are valid assignment operators in $R$,\\
       But they differ in \emph{scope} and  \emph{precedence} (\verb|"<-"| has higher precedence than \verb|"="|),\\
-    \column{0.5\textwidth}
+    \column{0.4\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
         n.var1 <- 3 - 1
@@ -109,58 +109,12 @@ Use \verb|"="| in function calls.\\
 
 \begin{block}{}
   \begin{columns}[T]
-    \column{0.4\textwidth}
-      The workspace is the current $R$ working environment, which includes all user-defined objects and the command history,\\
-      \vskip1ex
-      The function \verb|ls()| returns names of objects in the $R$ workspace,\\
-      \vskip1ex
-      The function \verb|rm()| removes objects from the $R$ workspace,\\
-      \vskip1ex
-      The workspace can be saved into and loaded back from an $*.RData$ file (binary file format),\\
-      \vskip1ex
-      The function \verb|save.image()| saves the whole workspace,\\
-      \vskip1ex
-      The function \verb|save()| saves just the selected objects,\\
-    \column{0.6\textwidth}
+    \column{0.3\textwidth}
+      Get default (working) directory
+    \column{0.7\textwidth}
       \vspace{-1em}
-      <<tidy=FALSE,prompt=TRUE>>=
-        n.var1 <- 3  # define new variable
-        ls()  # list objects
-        save.image()  # save workspace to file .RData in cwd
-        rm(n.var1)  # remove new variable
-        ls()  # list objects
-        load(".RData")
-        ls()  # list objects
-        n.var2 <- 5  # define another variable
-        save(n.var1, n.var2,  # save selected objects
-             file = "C:/jerzy/temp/my_data.RData")
-        rm(n.var1, n.var2)  # remove new variable
-        ls()  # list objects
-        load(file = "C:/jerzy/temp/my_data.RData")
-        ls()  # list objects
-      @
-  \end{columns}
-\end{block}
-\pause
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\begin{frame}[fragile,t]{\subsecname \hskip0.5em Cont.}
-
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.4\textwidth}
-      When you quit $R$ you'll be prompted "Save workspace image?"\\
-      \vskip1ex
-      If you answer $Y$ then the workspace will be saved into the $.RData$ file in the cwd,\\
-      \vskip1ex
-      When you start $R$ again, the workspace will be loaded from the existing $.RData$ file,\\
-    \column{0.6\textwidth}
-      \vspace{-1em}
-      <<eval=FALSE,prompt=TRUE>>=
-        q()  # quit R session
+      <<prompt=TRUE>>=
+        getwd()
       @
   \end{columns}
 \end{block}
@@ -168,20 +122,16 @@ Use \verb|"="| in function calls.\\
 
 \begin{block}{}
   \begin{columns}[T]
-    \column{0.4\textwidth}
-      You can display recent commands using the function \verb|history()|,\\
-      \vskip1ex
-      You can also save and load the command history from a file,\\
-    \column{0.6\textwidth}
+    \column{0.3\textwidth}
+      Get help on a function
+    \column{0.7\textwidth}
       \vspace{-1em}
-      <<eval=FALSE,prompt=TRUE>>=
-        history(5)  # display last 5 commands
-        savehistory(file="myfile")  # default is ".Rhistory" 
-        loadhistory(file="myfile")  # default is ".Rhistory"
+% tidy=FALSE prevents translation of '?getwd' into '`?`(getwd)'
+      <<tidy=FALSE,eval=FALSE,out.width='0.3\textwidth'>>=
+        ?getwd or help(getwd)
       @
   \end{columns}
 \end{block}
-\pause
 
 \end{frame}
 
@@ -203,9 +153,9 @@ Use \verb|"="| in function calls.\\
       \vspace{-1em}
       <<prompt=TRUE>>=
         v.var <- c(pi, exp(1), sqrt(2))
-        v.var[2]  # get second element
-        2*v.var  # multiply all elements by 2
-        v.var^2  # square all elements
+        v.var[2] # get second element
+        2*v.var # multiply all elements by 2
+        v.var^2 # square all elements
       @
   \end{columns}
 \end{block}
@@ -230,7 +180,7 @@ Use \verb|"="| in function calls.\\
 
 
 %%%%%%%%%%%%%%%
-\subsection{Class and Type}
+\subsection{Variable Class and Type}
 \begin{frame}[fragile,t]{\subsecname}
 
 \begin{block}{}
@@ -242,9 +192,9 @@ Use \verb|"="| in function calls.\\
       \vspace{-1em}
       <<prompt=TRUE>>=
         v.var <- c(pi, exp(1), sqrt(2))
-        v.var[2]  # get second element
-        2*v.var  # multiply all elements by 2
-        v.var^2  # square all elements
+        v.var[2] # get second element
+        2*v.var # multiply all elements by 2
+        v.var^2 # square all elements
       @
   \end{columns}
 \end{block}
@@ -291,7 +241,6 @@ Use \verb|"="| in function calls.\\
         v.var
         names(v.var) <- c("pie","eulery","sqrt2y")
         v.var
-        is.vector(names(v.var))
         class(v.var)
         typeof(v.var)
       @
@@ -345,4 +294,232 @@ Use \verb|"="| in function calls.\\
 \end{frame}
 
 
+%%%%%%%%%%%%%%%
+\section{$R$ Packages}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Loading Packages}
+\begin{frame}[fragile,t]{\subsecname}
+
+\begin{block}{Loading Packages}
+$R$ can run external libraries of functions called packages,\\
+Packages need to be loaded before they can be used,\\
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      There are two ways of loading package 'MASS'
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      <<tidy=FALSE,eval=FALSE>>=
+        library("MASS") or require("MASS")
+      @
+  \end{columns}
+\end{block}
+%\vskip1ex
+\pause
+
+\begin{block}{Difference between library() and require()}
+\verb|library()| halts execution if the package can't be loaded,\\
+\verb|require()| returns a logical value, TRUE if the package is loaded, FALSE if it isn't.\\
+\end{block}
+\pause
+
+\begin{block}{\color{red}{Rule of Thumb}}
+Use \verb|library()| in script files that might be sourced,\\
+Use \verb|require()| inside other functions.\\
+\end{block}
+\pause
+
+\begin{block}{Installing Packages}
+Some packages like $MASS$ are part of the $R$ distribution,\\
+But most packages need to be $installed$ before they can be loaded,\\
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Installing Packages}
+\begin{frame}[fragile,t]{\subsecname}
+
+\begin{block}{Installing Packages from $CRAN$}
+Most of the widely used packages are available on $CRAN$,\\
+For example package $AER$:\\
+\hskip1em\url{http://cran.us.r-project.org/web/packages/AER/}\\
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Install and load package $AER$ in $R$ Session:
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      <<tidy=FALSE,eval=FALSE,prompt=TRUE>>=
+        install.packages("AER")
+        library("AER")
+      @
+  \end{columns}
+\end{block}
+\pause
+
+\begin{block}{Installing packages in $RStudio$}
+Go to \alert{Tools} and then \alert{Install packages}\\
+Then enter package name, for example $AER$
+\end{block}
+\pause
+
+\begin{block}{Packages on $R-Forge$}
+Many other packages are available on $R-Forge$:\\
+\hskip1em\url{https://r-forge.r-project.org/}\\
+For example packages which are part of the $ReturnAnalytics$ project,\\
+\hskip1em\url{https://r-forge.r-project.org/projects/returnanalytics/}\\
+\hskip1em\url{https://r-forge.r-project.org/R/?group_id=579}\\
+  \begin{columns}[T]
+    \column{0.3\textwidth}
+      Install package $PerformanceAnalytics$
+    \column{0.7\textwidth}
+      \vspace{-1em}
+      <<tidy=FALSE,eval=FALSE,prompt=TRUE>>=
+        install.packages("PerformanceAnalytics", 
+                         repos="http://R-Forge.R-project.org")
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{$CRAN$ Package Views}
+\begin{frame}[fragile,t]{\subsecname}
+
+\begin{columns}[T]
+  \column{0.4\textwidth}
+    \begin{block}{}
+      $CRAN$ view for package $AER$:\\
+      \hskip1em\url{http://cran.us.r-project.org/web/packages/AER/}\\
+    \end{block}
+    \begin{block}{}
+      Note:
+      \begin{itemize}[]
+        \item Authors,
+        \item Version number,
+        \item Reference manual,
+        \item Vignettes,
+        \item Dependencies on other packages.
+      \end{itemize}
+    \end{block}
+  \column{0.6\textwidth}
+    \vspace{-1em}
+    \includegraphics[height=1.0\textwidth]{CRAN_Package.png}
+\end{columns}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{$CRAN$ Task Views}
+\begin{frame}[fragile,t]{\subsecname}
+
+\begin{columns}[T]
+  \column{0.4\textwidth}
+    \begin{block}{}
+      $CRAN$ Finance Task View\\
+      \hskip1em\url{http://cran.us.r-project.org/}\\
+    \end{block}
+    \begin{block}{}
+      Note:
+      \begin{itemize}[]
+        \item Maintainer,
+        \item Topics,
+        \item List of packages.
+      \end{itemize}
+    \end{block}
+  \column{0.6\textwidth}
+    \vspace{-1em}
+    \includegraphics[height=1.0\textwidth]{CRAN_Views.png}
+\end{columns}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Exploring Packages}
+\begin{frame}[fragile,t]{\subsecname}
+
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Install package $AER$
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      <<tidy=FALSE,eval=FALSE,prompt=TRUE>>=
+        packageDescription("MASS") # short description
+        help(package="MASS") # full documentation
+        ls("package:MASS") # list functions
+        search() # show all loaded packages
+        data("Journals", package = "AER")
+        detach("package:AER") # remove package from list
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{References}
+\begin{frame}[fragile,t]{\subsecname}
+
+There will be no required textbook, but a recommended textbook is:\\
+{\small{\fullcite{rupperttexbook}}}\\
+
+$RStudio$:\\
+{\small{\fullcite{website:rstudioide}}}\\
+
+An R resource:\\
+{\small{\fullcite{website:cran}}}\\
+
+Google Style Guide for R:\\
+{\small{\fullcite{website:googlestyler}}}\\
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Bibliography}
+\begin{frame}[fragile,t,allowframebreaks]{\subsecname}
+
+\nocite{*} % print all bib file entries
+{\tiny{\printbibliography}}
+
+% doesn't work as expected - prints only books
+% \printbibliography[type=book,title={Books}] % print books
+% \printbibliography[type=online,title={Websites}] % print Websites
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Creative Commons Attribution-ShareAlike License}
+\begin{frame}[t]{\subsecname}
+\small{
+\begin{columns}[T]
+  \column[T]{0.5\textwidth}
+    You are free to:
+    \vspace{0.6em}
+    \begin{itemize}[<+->]
+      \item Share - copy and redistribute the material in any medium or format.
+      \item Adapt - remix, transform, and build upon the material for any purpose, even commercially.
+    \end{itemize}
+    \pause
+  \column[T]{0.5\textwidth}
+    Under the following terms:
+    \begin{itemize}[<+->]
+      \item Attribution - You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+      \item ShareAlike - If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.
+    \end{itemize}
+\end{columns}
+}
+\end{frame}
+
+
 \end{document}
+
