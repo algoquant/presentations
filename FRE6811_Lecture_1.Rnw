@@ -5,7 +5,7 @@
 % Set global chunk options
 <<knitr_setup,include=FALSE,cache=FALSE>>=
 library(knitr)
-opts_chunk$set(comment=NA, highlight=FALSE, size='scriptsize', fig.width=4, fig.height=4)
+opts_chunk$set(comment=NA, highlight=FALSE, warning=FALSE, size='scriptsize', fig.width=4, fig.height=4)
 options(width=60, dev='pdf')
 thm <- knit_theme$get("acid")
 knit_theme$set(thm)
@@ -138,10 +138,12 @@ No prior knowledge of the $R$ language is required.  But students should have a 
 %%%%%%%%%%%%%%%
 \subsection{Other Required Course Materials}
 \begin{frame}[t]{\subsecname}
-\begin{block}{Other Required Course Materials}
-Students will be required to install and use the $R$ Interpreter and the $RStudio$ Integrated Development Environment (\emph{IDE}) on their computers.\\
-Students will be required to become proficient with the $RStudio$ IDE.\\
-Students are encouraged to bring their laptop computers to class and run the $R$ Interpreter during the lecture.
+\begin{block}{}
+  \begin{itemize}[]
+    \item Students will be required to install and use the $R$ Interpreter and the $RStudio$ Integrated Development Environment (\emph{IDE}) on their computers,
+    \item Students will be required to become proficient with the $RStudio$ IDE,
+    \item Students are encouraged to bring their laptop computers to class and run the $R$ Interpreter during the lecture,
+  \end{itemize}
 \end{block}
 
 \end{frame}
@@ -243,7 +245,9 @@ Students are encouraged to bring their laptop computers to class and run the $R$
 \begin{block}{}
 $RStudio$ has extensive online help, Q\&A database, and documentation\\
 \hskip1em\url{https://support.rstudio.com/hc/en-us}\\
+\vskip1ex
 \hskip1em\url{https://support.rstudio.com/hc/en-us/sections/200107586-Using-RStudio}\\
+\vskip1ex
 \hskip1em\url{https://support.rstudio.com/hc/en-us/sections/200148796-Advanced-Topics}\\
 \end{block}
 
@@ -293,9 +297,9 @@ $RStudio$ has extensive online help, Q\&A database, and documentation\\
     \column{0.7\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
-        Sys.time()
-        format(Sys.time(), "%B-%d-%Y")
-        paste("Today is", Sys.time())
+        Sys.time()  # returns a character string
+        format(Sys.time(), "%B-%d-%Y")  # format the string
+        paste("Today is", Sys.time())  # concatenate strings
         paste("Today is", format(Sys.time(), "%B-%d-%Y"))
       @
   \end{columns}

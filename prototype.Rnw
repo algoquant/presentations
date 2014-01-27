@@ -3,7 +3,7 @@
 % Set global chunk options
 <<knitr_setup,include=FALSE,cache=FALSE>>=
 library(knitr)
-opts_chunk$set(comment=NA, highlight=FALSE, size='scriptsize', fig.width=4, fig.height=4)
+opts_chunk$set(comment=NA, highlight=FALSE, warning=FALSE, size='scriptsize', fig.width=4, fig.height=4)
 options(width=60, dev='pdf')
 thm <- knit_theme$get("acid")
 knit_theme$set(thm)
@@ -80,9 +80,12 @@ knit_theme$set(thm)
   \begin{columns}[T]
     \column{0.5\textwidth}
       The standard assignment operator in $R$ is \verb|"<-"|,\\
-      The \verb|"="| operator is used for named arguments in function calls,\\
+      \vskip1ex
       Both \verb|"<-"| and \verb|"="| are valid assignment operators in $R$,\\
+      \vskip1ex
       But they differ in \emph{scope} and  \emph{precedence} (\verb|"<-"| has higher precedence than \verb|"="|),\\
+      \vskip1ex
+      The \verb|"="| operator is used for named arguments in function calls,\\
     \column{0.5\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
@@ -96,8 +99,9 @@ knit_theme$set(thm)
 \pause
 
 \begin{block}{\color{red}{Rule of Thumb}}
-Use \verb|"<-"| in $R$ scripts,\\
-Use \verb|"="| in function calls.\\
+  Use \verb|"<-"| in $R$ scripts,\\
+  \vskip1ex
+  Use \verb|"="| in function calls.\\
 \end{block}
 
 \end{frame}
@@ -124,24 +128,24 @@ Use \verb|"="| in function calls.\\
     \column{0.6\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,prompt=TRUE>>=
-        n.var1 <- 3  # define new variable
+        n.var1 <- 3  # define new object
         ls()  # list objects
         save.image()  # save workspace to file .RData in cwd
-        rm(n.var1)  # remove new variable
+        rm(n.var1)  # remove object
         ls()  # list objects
         load(".RData")
         ls()  # list objects
-        n.var2 <- 5  # define another variable
+        n.var2 <- 5  # define another object
         save(n.var1, n.var2,  # save selected objects
-             file = "C:/jerzy/temp/my_data.RData")
-        rm(n.var1, n.var2)  # remove new variable
+             file="C:/jerzy/temp/my_data.RData")
+        rm(n.var1, n.var2)  # remove objects
         ls()  # list objects
-        load(file = "C:/jerzy/temp/my_data.RData")
+        load(file="C:/jerzy/temp/my_data.RData")
         ls()  # list objects
       @
   \end{columns}
 \end{block}
-\pause
+% \pause
 
 \end{frame}
 
@@ -154,9 +158,9 @@ Use \verb|"="| in function calls.\\
     \column{0.4\textwidth}
       When you quit $R$ you'll be prompted "Save workspace image?"\\
       \vskip1ex
-      If you answer $Y$ then the workspace will be saved into the $.RData$ file in the cwd,\\
+      If you answer $YES$ then the workspace will be saved into the $.RData$ file in the $cwd$,\\
       \vskip1ex
-      When you start $R$ again, the workspace will be loaded from the existing $.RData$ file,\\
+      When you start $R$ again, the workspace will be automatically loaded from the existing $.RData$ file,\\
     \column{0.6\textwidth}
       \vspace{-1em}
       <<eval=FALSE,prompt=TRUE>>=
@@ -169,7 +173,7 @@ Use \verb|"="| in function calls.\\
 \begin{block}{}
   \begin{columns}[T]
     \column{0.4\textwidth}
-      You can display recent commands using the function \verb|history()|,\\
+      The function \verb|history()| displays recent commands,\\
       \vskip1ex
       You can also save and load the command history from a file,\\
     \column{0.6\textwidth}
@@ -181,13 +185,73 @@ Use \verb|"="| in function calls.\\
       @
   \end{columns}
 \end{block}
-\pause
+% \pause
 
 \end{frame}
 
 
 %%%%%%%%%%%%%%%
 \section{Data Structures}
+
+
+%%%%%%%%%%%%%%%
+\subsection{\secname\hskip0.5em in $R$}
+\begin{frame}[fragile,t]{\subsecname}
+
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Homogeneous data structures contain objects of the same class,\\
+      \vskip1ex
+      Heterogeneous structures can contain objects of different classes,\\
+    \column{0.5\textwidth}
+%      \vspace{-1em}
+      \renewcommand\arraystretch{1.5} % scale table rows
+      \renewcommand\tabcolsep{8pt} % set table column width - 6pt is default
+      \centering{{\color{blue}{$R$ Data Structures}}}\\[1ex]
+      \begin{tabular}{c||c|c|}
+        & \text{Homogeneous} & \text{Heterogeneous} \\
+        \hline
+        \hline
+        \text{1-dim} & Vectors & Lists \\
+        \hline
+        \text{2-dim} & Matrices & Data frames \\
+        \hline
+        \text{n-dim} & Arrays & NA \\
+      \end{tabular}
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Character Strings}
+\begin{frame}[fragile,t]{\subsecname}
+
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.4\textwidth}
+      Strings are character objects of length one,\\
+      \vskip1ex
+      The function \verb|paste()| converts elements to characters and concatenates them into a string,\\
+      \vskip1ex
+      The function \verb|cat()| concatenates and writes to output,\\
+      The function \verb|cat()| cat is useful in user-defined functions,\\
+    \column{0.6\textwidth}
+      \vspace{-1em}
+      <<prompt=TRUE>>=
+        s.var1 <- "Hello"  # define a character string
+        s.var2 <- "World!"  # define a character string
+        paste(s.var1, s.var2, sep='/')  # convert to character and then concatenate
+        paste(1:3, 4, sep='/')  # recycling rule applied
+        cat(s.var1, s.var2)  # concatenate and write to output
+        strsplit("Hello World", split='r')  # split string
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
 
 
 %%%%%%%%%%%%%%%
@@ -198,17 +262,50 @@ Use \verb|"="| in function calls.\\
   \begin{columns}[T]
     \column{0.4\textwidth}
       The function \verb|c()| combines values into a vector or a list,\\
-      Vectors can be multiplied and squared,\\
+      \vskip1ex
+      Vectors can be indexed (subset) using vectors of:
+      \begin{itemize}[]
+        \item positive integers,
+        \item negative integers,
+        \item characters,
+        \item logical vectors,
+      \end{itemize}
     \column{0.6\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
-        v.var <- c(pi, exp(1), sqrt(2))
+        v.var <- c(pi, exp(1), -digamma(1))  # define a vector
+        v.var
         v.var[2]  # get second element
+        v.var[-2]  # get all elements, except the second element
+        v.var[c(F, T, T)]  # get second and third elements
+        v.var == v.var[2]  # logical vector of elements equal to the second one
+        v.var < 1  # logical vector of elements less than one
+        v.var[v.var > 1]  # get all elements greater than one
+      @
+  \end{columns}
+\end{block}
+\pause
+
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.4\textwidth}
+      Vectors can be multiplied and squared element by element,\\
+    \column{0.6\textwidth}
+      \vspace{-1em}
+      <<echo=2:20,prompt=TRUE>>=
+        v.var <- c(pi, exp(1), -digamma(1))
+        v.var
         2*v.var  # multiply all elements by 2
         v.var^2  # square all elements
       @
   \end{columns}
 \end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\begin{frame}[fragile,t]{\subsecname \hskip0.5em Cont.}
 
 \begin{block}{}
   \begin{columns}[T]
@@ -217,10 +314,11 @@ Use \verb|"="| in function calls.\\
     \column{0.6\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
-        v.var <- c(pi=pi, e=exp(1), sqrt2=sqrt(2))
+        v.var <- c(pi=pi, euler=exp(1), gamma=-digamma(1))
         v.var
-        names(v.var)
-        names(v.var) <- c("pie","eulery","sqrt2y")
+        names(v.var)  # get names of elements
+        v.var['euler']  # get element named 'euler'
+        names(v.var) <- c("pie","eulery","gammy")  # rename elements
         v.var
       @
   \end{columns}
@@ -230,21 +328,24 @@ Use \verb|"="| in function calls.\\
 
 
 %%%%%%%%%%%%%%%
-\subsection{Class and Type}
-\begin{frame}[fragile,t]{\subsecname}
+\begin{frame}[fragile,t]{\subsecname \hskip0.5em of Numbers}
 
 \begin{block}{}
   \begin{columns}[T]
     \column{0.4\textwidth}
-      The function \verb|c()| combines values into a vector or a list,\\
-      Vectors can be multiplied and squared,\\
+      The function \verb|seq()| returns a vector of numbers,\\
+      \vskip1ex
+      Another way of producing a vector of numbers is by using the "\verb|:|" operator,\\
+      \vskip1ex
+      \verb|letters| is a constant and a vector,\\
     \column{0.6\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
-        v.var <- c(pi, exp(1), sqrt(2))
-        v.var[2]  # get second element
-        2*v.var  # multiply all elements by 2
-        v.var^2  # square all elements
+        seq(from=0, to=1, len=11)  # vector of decimals from 0 to 1.0
+        seq(from=0, to=1, by=0.1)  # vector of decimals from 0 to 1.0
+        0:10  # vector of integers from 0 to 10
+        (0:10)/10  # vector of decimals from 0 to 1.0
+        letters[5:10]  # vector of letters
       @
   \end{columns}
 \end{block}
@@ -252,15 +353,18 @@ Use \verb|"="| in function calls.\\
 \begin{block}{}
   \begin{columns}[T]
     \column{0.4\textwidth}
-      Vector elements can be assigned $names$,\\
+      Appending vectors,\\
+      \vskip1ex
+      The function \verb|vector()| returns an empty vector,\\
     \column{0.6\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
-        v.var <- c(pi=pi, e=exp(1), sqrt2=sqrt(2))
-        v.var
-        names(v.var)
-        names(v.var) <- c("pie","eulery","sqrt2y")
-        v.var
+        c(11, 5:10)  # append to vector
+        c(20:25, 5:10)  # append to vector
+        v.var <- vector()  # create empty vector
+        v.var <- vector("numeric", length=10)  # create numeric vector of zeros
+        c(v.var, 2.0)  # append to vector
+        c('a', letters[5:10])  # vector of letters
       @
   \end{columns}
 \end{block}
@@ -269,12 +373,244 @@ Use \verb|"="| in function calls.\\
 
 
 %%%%%%%%%%%%%%%
-\subsection{Matrices}
+\subsection{Lists}
 \begin{frame}[fragile,t]{\subsecname}
 \begin{block}{}
   \begin{columns}[T]
     \column{0.4\textwidth}
-    Subsetting Vectors, Matrices and Data Frames
+      Lists are a type of vector that contain elements of different classes,\\
+      \vskip1ex
+      Lists are recursive object types,\\
+      \vskip1ex
+      Lists can be indexed (subset) using:
+      \begin{itemize}[]
+        \item the '\verb|[[|' operator,
+        \item the '\verb|$|' operator (for named lists only),
+      \end{itemize}
+    \column{0.6\textwidth}
+      \vspace{-1em}
+      <<prompt=TRUE>>=
+        l.var <- list(c('a','b'), 1:4)  # create a list
+        l.var
+        typeof(l.var)
+        l.var[[2]]  # get second element
+        l.var[[2]][3]  # get third element of second element
+        l.var <- list(first=c('a','b'), second=1:4)  # create a named list
+        names(l.var)
+        l.var$second  # get third element of second element
+        l.var$second[3]  # get second element
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{$R$ Object Attributes}
+\begin{frame}[fragile,t]{\subsecname}
+
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.4\textwidth}
+      $R$ objects can have the following attributes:
+      \begin{itemize}[]
+        \item length,
+        \item names,
+        \item dimnames,
+        \item dimensions,
+        \item class,
+        \item Other user-defined attributes/metadata,
+      \end{itemize}
+      \vskip1ex
+      The function \verb|attributes()| returns the attributes of an object,\\
+    \column{0.6\textwidth}
+      \vspace{-1em}
+      <<prompt=TRUE>>=
+        attributes(5:10)  # a simple vector has no attributes
+        v.var <- c(pi=pi, euler=exp(1), gamma=-digamma(1))
+        attributes(v.var)  # a named vector has 'names' attribute
+        class(attributes(v.var))  # the attribute is a list object 
+        length(v.var)
+        is.vector(v.var)  # is the object a vector?
+        is.vector(names(v.var))  # names are character vectors
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Type and Class of Objects}
+\begin{frame}[fragile,t]{\subsecname}
+
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.4\textwidth}
+      The \verb|type| of an  $R$ object represents how it's stored in memory,\\
+      $R$ \verb|types| are for example \verb|double|, \verb|character|, \verb|list|, \verb|list|, etc.\\
+      \vskip1ex
+      The \verb|class| of an  $R$ object is an attribute used for function dispatching in S3 classes,\\
+      $R$ \verb|classes| are for example \verb|numeric|, \verb|character|, \verb|data.frame|, \verb|matrix|, etc.\\
+    \column{0.6\textwidth}
+      \vspace{-1em}
+      <<prompt=TRUE>>=
+        v.var <- c(pi=pi, euler=exp(1), gamma=-digamma(1))
+        typeof(v.var)  # get object type
+        class(v.var)  # get object class
+        typeof(names(v.var))
+        class(names(v.var))
+        v.var <- c(1:5, 'a')  # append to vector
+        v.var  # type coercion
+        class(v.var)  # get object class
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Type Coercion}
+\begin{frame}[fragile,t]{\subsecname}
+
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.4\textwidth}
+      When different objects are mixed in a vector, implicit coercion occurs so that every element in the vector is of the same class,\\
+      \vskip1ex
+      The rule is that coercion is into larger types (numeric values are coerced into character strings),\\
+      \vskip1ex
+      Objects can be explicitly coerced from one class to another using the \verb|as.*| functions,\\
+    \column{0.6\textwidth}
+      \vspace{-1em}
+      <<prompt=TRUE>>=
+        c(1:3, 'a')  # implicit coercion
+        as.numeric(c(1:3, 'a'))  # bad coercion
+        as.logical(0:3)
+        as.character(0:3)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Arrays and Matrices}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.3\textwidth}
+      Arrays are vectors with a dimension attribute,\\
+      \vskip1ex
+      Matrices are two-dimensional arrays,\\
+      \vskip1ex
+      The dimension attribute of a matrix is an integer vector of length 2 (nrow, ncol),\\
+    \column{0.7\textwidth}
+      \vspace{-1em}
+      <<prompt=TRUE>>=
+        m.var <- matrix(1:6, nrow=2, ncol=3)  # create a matrix
+        m.var  # by default matrices are constructed column-wise
+        is.vector(m.var)  # matrices are vectors
+        dim(m.var)  # get dimension attribute
+        rownames(m.var) <- c("row1", "row2")  # set the rownames attribute
+        colnames(m.var) <- c("col1", "col2", "col3")  # set the colnames attribute
+        m.var
+        names(m.var)  # get the names attribute
+        dimnames(m.var)  # get the dimnames attribute
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\begin{frame}[fragile,t]{\subsecname \hskip0.5em Cont.}
+
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.3\textwidth}
+      Vectors can be converted into matrices by adding a dimension attribute,\\
+      \vskip1ex
+      The attribute \verb|dimnames| can be assigned a named list to convert into a named matrix,\\
+    \column{0.7\textwidth}
+      \vspace{-1em}
+      <<tidy=FALSE,prompt=TRUE>>=
+        m.var <- 1:6
+        dim(m.var) <- c(2, 3)  # convert into matrix by adding dimension attribute
+        dimnames(m.var) <- list('rows'=c('row1', 'row2'),  # set the dimnames attribute
+                                'columns'=c('col1', 'col2', 'col3'))
+        m.var
+      @
+  \end{columns}
+\end{block}
+\pause
+
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.3\textwidth}
+      Indexing (subsetting) matrices,\\
+    \column{0.7\textwidth}
+      \vspace{-1em}
+      <<prompt=TRUE>>=
+        m.var <- matrix(1:6, nrow=2, ncol=3)  # create a matrix
+        m.var
+        m.var[2,]  # get second row
+        m.var[,3]  # get third column
+        m.var[,-2]  # remove second column
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Binding Vectors}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.3\textwidth}
+      Vectors can be bound into matrices using the functions \verb|cbind()| and \verb|rbind()|,\\
+    \column{0.7\textwidth}
+      \vspace{-1em}
+      <<prompt=TRUE>>=
+        v.var1 <- c(1, 2, 3)
+        v.var2 <- c(4, 5, 6)
+        m.var <- cbind(v.var1, v.var2)  # bind into columns
+        m.var
+        m.var <- rbind(v.var1, v.var2)  # bind into rows
+        m.var
+        v.var2 <- c(4, 5, 6, 7)
+        m.var <- cbind(v.var1, v.var2)  # recycling rule applied
+        m.var
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Data Frames}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.3\textwidth}
+      Data frames are 2-D objects like matrices, but the columns can be of different classes,\\
+      \vskip1ex
+      Data frames share properties of lists and matrices,\\
+      \vskip1ex
+      Data frames are a list in which all the elements are vectors of the same length,\\
+      \vskip1ex
+      Each element of the list is a column of elements of the same class,\\
+      \vskip1ex
+
+Subsetting Vectors, Matrices and Data Frames,\\
+    Matrices can only contain objects of the same class,\\
       The function \verb|c()| combines values into a vector or a list,\\
       The \verb|"="| operator is used for named arguments in function calls,\\
       Both \verb|"<-"| and \verb|"="| are valid assignment operators in $R$,\\
@@ -282,18 +618,7 @@ Use \verb|"="| in function calls.\\
     \column{0.6\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
-        v.var <- c(pi, exp(1), sqrt(2))
-        v.var
-        2*v.var
-        v.var^2
-        names(v.var)
-        v.var <- c(pi=pi, e=exp(1), sqrt2=sqrt(2))
-        v.var
-        names(v.var) <- c("pie","eulery","sqrt2y")
-        v.var
-        is.vector(names(v.var))
-        class(v.var)
-        typeof(v.var)
+        v.var <- c(pi, exp(1), -digamma(1))
       @
   \end{columns}
 \end{block}
@@ -308,30 +633,30 @@ Use \verb|"="| in function calls.\\
 
 
 %%%%%%%%%%%%%%%
-\subsection{Lists}
+\section{Functions}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Calling Functions}
 \begin{frame}[fragile,t]{\subsecname}
 \begin{block}{}
   \begin{columns}[T]
     \column{0.4\textwidth}
-    Subsetting Vectors, Matrices and Data Frames
-      The function \verb|c()| combine values into a vector or a list,\\
-      The \verb|"="| operator is used for named arguments in function calls,\\
-      Both \verb|"<-"| and \verb|"="| are valid assignment operators in $R$,\\
-      But they differ in \emph{scope} and  \emph{precedence} (\verb|"<-"| has higher precedence than \verb|"="|),\\
+      The function \verb|save()| combine values into a vector or a list,\\
+      Reading the help file,\\
+      default argument values,\\
+      elipsis argument,\\
     \column{0.6\textwidth}
       \vspace{-1em}
-      <<prompt=TRUE>>=
-        v.var <- c(pi, exp(1), sqrt(2))
-        v.var
-        2*v.var
-        v.var^2
-        names(v.var)
-        v.var <- c(pi=pi, e=exp(1), sqrt2=sqrt(2))
-        v.var
-        names(v.var) <- c("pie","eulery","sqrt2y")
-        v.var
-        class(v.var)
-        typeof(v.var)
+      <<eval=FALSE,prompt=TRUE>>=
+        save(n.var1, n.var2,  # save selected objects
+             file="C:/jerzy/temp/my_data.RData")
+
+        save(..., list=character(),
+             file=stop("'file' must be specified"),
+             ascii=FALSE, version=NULL, envir=parent.frame(),
+             compress=!ascii, compression_level,
+             eval.promises=TRUE, precheck=TRUE)
       @
   \end{columns}
 \end{block}
