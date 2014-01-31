@@ -5,7 +5,7 @@
 % Set global chunk options
 <<knitr_setup, include=FALSE, cache=FALSE>>=
 library(knitr)
-opts_chunk$set(comment=NA, size='footnotesize', fig.width=4, fig.height=4)
+opts_chunk$set(comment=NA, highlight=FALSE, message=FALSE, warning=FALSE, size='scriptsize', fig.width=4, fig.height=4)
 options(width=60, dev='pdf')
 thm <- knit_theme$get("acid")
 knit_theme$set(thm)

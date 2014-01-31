@@ -3,7 +3,7 @@
 % Set global chunk options
 <<knitr_setup,include=FALSE,cache=FALSE>>=
 library(knitr)
-opts_chunk$set(comment=NA, highlight=FALSE, size='scriptsize', fig.width=4, fig.height=4)
+opts_chunk$set(comment=NA, highlight=FALSE, message=FALSE, warning=FALSE, size='scriptsize', fig.width=4, fig.height=4)
 options(width=60, dev='pdf')
 thm <- knit_theme$get("acid")
 knit_theme$set(thm)
@@ -70,231 +70,6 @@ knit_theme$set(thm)
 
 
 %%%%%%%%%%%%%%%
-\section{Basic Operations in $R$}
-
-
-%%%%%%%%%%%%%%%
-\subsection{Assignment Operators}
-\begin{frame}[fragile,t]{\subsecname}
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.6\textwidth}
-      The standard assignment operator in $R$ is \verb|"<-"|,\\
-      The \verb|"="| operator is used for named arguments in function calls,\\
-      Both \verb|"<-"| and \verb|"="| are valid assignment operators in $R$,\\
-      But they differ in \emph{scope} and  \emph{precedence} (\verb|"<-"| has higher precedence than \verb|"="|),\\
-    \column{0.4\textwidth}
-      \vspace{-1em}
-      <<prompt=TRUE>>=
-        n.var1 <- 3 - 1
-        n.var1
-        n.var1 = 3 - 1
-        n.var1
-      @
-  \end{columns}
-\end{block}
-\pause
-
-\begin{block}{\color{red}{Rule of Thumb}}
-Use \verb|"<-"| in $R$ scripts,\\
-Use \verb|"="| in function calls.\\
-\end{block}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\subsection{The $R$ Workspace}
-\begin{frame}[fragile,t]{\subsecname}
-
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.3\textwidth}
-      Get default (working) directory
-    \column{0.7\textwidth}
-      \vspace{-1em}
-      <<prompt=TRUE>>=
-        getwd()
-      @
-  \end{columns}
-\end{block}
-\pause
-
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.3\textwidth}
-      Get help on a function
-    \column{0.7\textwidth}
-      \vspace{-1em}
-% tidy=FALSE prevents translation of '?getwd' into '`?`(getwd)'
-      <<tidy=FALSE,eval=FALSE,out.width='0.3\textwidth'>>=
-        ?getwd or help(getwd)
-      @
-  \end{columns}
-\end{block}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\section{Data Structures}
-
-
-%%%%%%%%%%%%%%%
-\subsection{Vectors}
-\begin{frame}[fragile,t]{\subsecname}
-
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.4\textwidth}
-      The function \verb|c()| combines values into a vector or a list,\\
-      Vectors can be multiplied and squared,\\
-    \column{0.6\textwidth}
-      \vspace{-1em}
-      <<prompt=TRUE>>=
-        v.var <- c(pi, exp(1), sqrt(2))
-        v.var[2] # get second element
-        2*v.var # multiply all elements by 2
-        v.var^2 # square all elements
-      @
-  \end{columns}
-\end{block}
-
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.4\textwidth}
-      Vector elements can be assigned $names$,\\
-    \column{0.6\textwidth}
-      \vspace{-1em}
-      <<prompt=TRUE>>=
-        v.var <- c(pi=pi, e=exp(1), sqrt2=sqrt(2))
-        v.var
-        names(v.var)
-        names(v.var) <- c("pie","eulery","sqrt2y")
-        v.var
-      @
-  \end{columns}
-\end{block}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\subsection{Variable Class and Type}
-\begin{frame}[fragile,t]{\subsecname}
-
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.4\textwidth}
-      The function \verb|c()| combines values into a vector or a list,\\
-      Vectors can be multiplied and squared,\\
-    \column{0.6\textwidth}
-      \vspace{-1em}
-      <<prompt=TRUE>>=
-        v.var <- c(pi, exp(1), sqrt(2))
-        v.var[2] # get second element
-        2*v.var # multiply all elements by 2
-        v.var^2 # square all elements
-      @
-  \end{columns}
-\end{block}
-
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.4\textwidth}
-      Vector elements can be assigned $names$,\\
-    \column{0.6\textwidth}
-      \vspace{-1em}
-      <<prompt=TRUE>>=
-        v.var <- c(pi=pi, e=exp(1), sqrt2=sqrt(2))
-        v.var
-        names(v.var)
-        names(v.var) <- c("pie","eulery","sqrt2y")
-        v.var
-      @
-  \end{columns}
-\end{block}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\subsection{Matrices}
-\begin{frame}[fragile,t]{\subsecname}
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.4\textwidth}
-    Subsetting Vectors, Matrices and Data Frames
-      The function \verb|c()| combines values into a vector or a list,\\
-      The \verb|"="| operator is used for named arguments in function calls,\\
-      Both \verb|"<-"| and \verb|"="| are valid assignment operators in $R$,\\
-      But they differ in \emph{scope} and  \emph{precedence} (\verb|"<-"| has higher precedence than \verb|"="|),\\
-    \column{0.6\textwidth}
-      \vspace{-1em}
-      <<prompt=TRUE>>=
-        v.var <- c(pi, exp(1), sqrt(2))
-        v.var
-        2*v.var
-        v.var^2
-        names(v.var)
-        v.var <- c(pi=pi, e=exp(1), sqrt2=sqrt(2))
-        v.var
-        names(v.var) <- c("pie","eulery","sqrt2y")
-        v.var
-        class(v.var)
-        typeof(v.var)
-      @
-  \end{columns}
-\end{block}
-\pause
-
-\begin{block}{\color{red}{Rule of Thumb}}
-Use \verb|"<-"| in $R$ scripts,\\
-Use \verb|"="| in function calls.\\
-\end{block}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\subsection{Lists}
-\begin{frame}[fragile,t]{\subsecname}
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.4\textwidth}
-    Subsetting Vectors, Matrices and Data Frames
-      The function \verb|c()| combine values into a vector or a list,\\
-      The \verb|"="| operator is used for named arguments in function calls,\\
-      Both \verb|"<-"| and \verb|"="| are valid assignment operators in $R$,\\
-      But they differ in \emph{scope} and  \emph{precedence} (\verb|"<-"| has higher precedence than \verb|"="|),\\
-    \column{0.6\textwidth}
-      \vspace{-1em}
-      <<prompt=TRUE>>=
-        v.var <- c(pi, exp(1), sqrt(2))
-        v.var
-        2*v.var
-        v.var^2
-        names(v.var)
-        v.var <- c(pi=pi, e=exp(1), sqrt2=sqrt(2))
-        v.var
-        names(v.var) <- c("pie","eulery","sqrt2y")
-        v.var
-        class(v.var)
-        typeof(v.var)
-      @
-  \end{columns}
-\end{block}
-\pause
-
-\begin{block}{\color{red}{Rule of Thumb}}
-Use \verb|"<-"| in $R$ scripts,\\
-Use \verb|"="| in function calls.\\
-\end{block}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
 \section{$R$ Packages}
 
 
@@ -307,7 +82,7 @@ $R$ can run external libraries of functions called packages,\\
 Packages need to be loaded before they can be used,\\
   \begin{columns}[T]
     \column{0.5\textwidth}
-      There are two ways of loading package 'MASS'
+      There are two ways of loading package \verb|MASS|
     \column{0.5\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,eval=FALSE>>=
@@ -331,7 +106,7 @@ Use \verb|require()| inside other functions.\\
 \pause
 
 \begin{block}{Installing Packages}
-Some packages like $MASS$ are part of the $R$ distribution,\\
+Some packages like \verb|MASS| are part of the $R$ distribution,\\
 But most packages need to be $installed$ before they can be loaded,\\
 \end{block}
 
@@ -344,11 +119,11 @@ But most packages need to be $installed$ before they can be loaded,\\
 
 \begin{block}{Installing Packages from $CRAN$}
 Most of the widely used packages are available on $CRAN$,\\
-For example package $AER$:\\
+For example package \verb|AER|:\\
 \hskip1em\url{http://cran.us.r-project.org/web/packages/AER/}\\
   \begin{columns}[T]
     \column{0.5\textwidth}
-      Install and load package $AER$ in $R$ Session:
+      Install and load package \verb|AER| in $R$ Session:
     \column{0.5\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,eval=FALSE,prompt=TRUE>>=
@@ -361,7 +136,7 @@ For example package $AER$:\\
 
 \begin{block}{Installing packages in $RStudio$}
 Go to \alert{Tools} and then \alert{Install packages}\\
-Then enter package name, for example $AER$
+Then enter package name, for example \verb|AER|
 \end{block}
 \pause
 
@@ -393,7 +168,7 @@ For example packages which are part of the $ReturnAnalytics$ project,\\
 \begin{columns}[T]
   \column{0.4\textwidth}
     \begin{block}{}
-      $CRAN$ view for package $AER$:\\
+      $CRAN$ view for package \verb|AER|:\\
       \hskip1em\url{http://cran.us.r-project.org/web/packages/AER/}\\
     \end{block}
     \begin{block}{}
@@ -446,17 +221,17 @@ For example packages which are part of the $ReturnAnalytics$ project,\\
 
 \begin{block}{}
   \begin{columns}[T]
-    \column{0.5\textwidth}
-      Install package $AER$
-    \column{0.5\textwidth}
+    \column{0.3\textwidth}
+      Install package \verb|AER|
+    \column{0.7\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,eval=FALSE,prompt=TRUE>>=
-        packageDescription("MASS") # short description
-        help(package="MASS") # full documentation
-        ls("package:MASS") # list functions
-        search() # show all loaded packages
-        data("Journals", package = "AER")
-        detach("package:AER") # remove package from list
+        search()  # show all loaded packages
+        packageDescription("MASS")  # get short description
+        help(package="MASS")  # get full documentation for package "MASS"
+        ls("package:MASS")  # list all functions in package "MASS"
+        data(package="AER")  # show all datasets in package "AER"
+        detach("package:AER")  # remove package from list
       @
   \end{columns}
 \end{block}

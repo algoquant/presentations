@@ -236,3 +236,4 @@ figure/
 *.bbl.txt
 *.bcf
 *.run.xml
+*.csv

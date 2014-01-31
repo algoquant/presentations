@@ -5,7 +5,7 @@
 % Set global chunk options
 <<knitr_setup,include=FALSE,cache=FALSE>>=
 library(knitr)
-opts_chunk$set(comment=NA, highlight=FALSE, warning=FALSE, size='scriptsize', fig.width=4, fig.height=4)
+opts_chunk$set(comment=NA, highlight=FALSE, message=FALSE, warning=FALSE, size='scriptsize', fig.width=4, fig.height=4)
 options(width=60, dev='pdf')
 thm <- knit_theme$get("acid")
 knit_theme$set(thm)
@@ -108,28 +108,25 @@ No prior knowledge of the $R$ language is required.  But students should have a 
 \begin{frame}[t]{\subsecname}
 
 \begin{block}{Course Slides}
-\footnotesize{The course will be mostly self-contained, using detailed course slides.  The course will also utilize data and tutorials which are freely available on the internet.}
+The course will be mostly self-contained, using detailed course slides.\\
+The course will also utilize data and tutorials which are freely available on the internet.
 \end{block}
 \pause
 
 \begin{block}{Textbook}
-\footnotesize{There will be no required textbook, but a recommended textbook is:\\
-\hskip1em\fullcite{rupperttexbook}
+  There will be no required textbook, but a recommended textbook is:\\
+  \hskip1em\fullcite{rupperttexbook}\\
+  Textbook website contains $R$ programs and data sets:\\
+  \hskip1em\fullcite{website:ruppert}
 % \emph{David Ruppert, Statistics and Data Analysis for Financial Engineering (Springer Texts in Statistics)}
-}
 \end{block}
 \pause
 
-\begin{block}{Textbook Website Contains $R$ Programs and Data Sets}
-\footnotesize{\fullcite{website:ruppert}\\
-}
-\end{block}
-\pause
-
-\begin{block}{Supplementary Textbook}
-\footnotesize{Another excellent textbook is:\\
-\hskip1em\fullcite{kleibertexbook}
-}
+\begin{block}{Supplementary Textbooks}
+  \hskip1em\fullcite{kleibertexbook}\\
+  \hskip1em\fullcite{website:kleiber}\\
+  \hskip1em\fullcite{isltexbook}\\
+  \hskip1em\fullcite{website:isl}
 \end{block}
 
 \end{frame}
@@ -396,21 +393,21 @@ The original standard intro by Venables \& Smith\\
 \end{block}
 \pause
 
-\begin{block}{$R$-FAQ}
-A massive list of Q\&A, straight from the experts\\
-\hskip1em\url{http://CRAN.R-project.org/doc/FAQ/R-FAQ.html}\\
-\end{block}
-\pause
-
-\begin{block}{$R$ programming Wikibook}
-A book about how to implement statistical methods using $R$\\
-\hskip1em\url{http://en.wikibooks.org/wiki/R_Programming}\\
+\begin{block}{UCLA Resources for $R$}
+Resources to help you learn and use $R$\\
+\hskip1em\url{http://www.ats.ucla.edu/stat/r/}\\
 \end{block}
 \pause
 
 \begin{block}{Google Style Guide for $R$}
 Useful tips to make your $R$ code easier to read, share, and verify\\
 \hskip1em\url{http://google-styleguide.googlecode.com/svn/trunk/Rguide.xml}\\
+\end{block}
+\pause
+
+\begin{block}{$R$-FAQ}
+A massive list of Q\&A, straight from the experts\\
+\hskip1em\url{http://CRAN.R-project.org/doc/FAQ/R-FAQ.html}\\
 \end{block}
 
 \end{frame}
@@ -425,9 +422,9 @@ Advanced topics, such as functional programming, metaprogramming, and performant
 \end{block}
 \pause
 
-\begin{block}{UCLA Resources for $R$}
-Resources to help you learn and use $R$\\
-\hskip1em\url{http://www.ats.ucla.edu/stat/r/}\\
+\begin{block}{$R$ programming Wikibook}
+A book about how to implement statistical methods using $R$\\
+\hskip1em\url{http://en.wikibooks.org/wiki/R_Programming}\\
 \end{block}
 \pause
 
@@ -458,7 +455,7 @@ Tal Galili is the author of R-Bloggers and has his own excellent blog\\
 \pause
 
 \begin{block}{Dirk Eddelbuettel}
-Dirk is a $Top Answerer$ for $R$ questions on Stackoverflow, the author of the $Rcpp$ package, and the CRAN Finance View\\
+Dirk is a $Top Answerer$ for $R$ questions on Stackoverflow, the author of the \verb|Rcpp| package, and the CRAN Finance View\\
 \hskip1em\url{http://dirk.eddelbuettel.com/}\\
 \hskip1em\url{http://dirk.eddelbuettel.com/code/}\\
 \hskip1em\url{http://dirk.eddelbuettel.com/blog/}\\
@@ -467,7 +464,7 @@ Dirk is a $Top Answerer$ for $R$ questions on Stackoverflow, the author of the $
 \pause
 
 \begin{block}{Romain François}
-Romain is an $R$ Enthusiast and $Rcpp$ Hero\\
+Romain is an $R$ Enthusiast and \verb|Rcpp| Hero\\
 \hskip1em\url{http://romainfrancois.blog.free.fr/}\\
 \hskip1em\url{http://romainfrancois.blog.free.fr/index.php?tag/graphgallery}\\
 \hskip1em\url{http://blog.r-enthusiasts.com/}\\
