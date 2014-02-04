@@ -1,5 +1,3 @@
-% FRE6811_Lecture_1
-
 % Define knitr options
 % !Rnw weave = knitr
 % Set global chunk options
@@ -72,347 +70,7 @@ knit_theme$set(thm)
 
 
 %%%%%%%%%%%%%%%
-% \begin{frame}[t]{Outline}
-% You might wish to add the option [pausesections]
-%   \tableofcontents
-% \end{frame}
-
-
-%%%%%%%%%%%%%%%
-\section{Introduction}
-
-
-%%%%%%%%%%%%%%%
-\subsection{About FRE6811 Financial Software Laboratory}
-\begin{frame}[t]{\subsecname}
-
-\begin{block}{Course Description}
-The course will teach the $R$ statistical language through practical applications to time series analysis, regression, estimation, and forecasting.\\
-The aim will be to learn by doing and to learn through examples.
-\end{block}
-\pause
-
-\begin{block}{Exams}
-There will be no exams.
-\end{block}
-\pause
-
-\begin{block}{Grading}
-Grading will be based on homework assignments.
-\end{block}
-\pause
-
-\begin{block}{Course Prerequisites}
-No prior knowledge of the $R$ language is required.  But students should have a familiarity with basic statistics, time series analysis, and with a procedural programming language.
-\end{block}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\subsection{FRE6811 Textbook}
-\begin{frame}[t]{\subsecname}
-
-\begin{block}{Course Slides}
-The course will be mostly self-contained, using detailed course slides.\\
-The course will also utilize data and tutorials which are freely available on the internet.
-\end{block}
-\pause
-
-\begin{block}{Textbook}
-  There will be no required textbook, but a recommended textbook is:\\
-  \hskip1em\fullcite{rupperttexbook}\\
-  Textbook website contains $R$ programs and data sets:\\
-  \hskip1em\fullcite{website:ruppert}
-% \emph{David Ruppert, Statistics and Data Analysis for Financial Engineering (Springer Texts in Statistics)}
-\end{block}
-\pause
-
-\begin{block}{Supplementary Textbooks}
-  \hskip1em\fullcite{kleibertexbook}\\
-  \hskip1em\fullcite{website:kleiber}\\
-  \hskip1em\fullcite{isltexbook}\\
-  \hskip1em\fullcite{website:isl}
-\end{block}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\subsection{Other Required Course Materials}
-\begin{frame}[t]{\subsecname}
-\begin{block}{}
-  \begin{itemize}[]
-    \item Students will be required to install and use the $R$ Interpreter and the $RStudio$ Integrated Development Environment (\emph{IDE}) on their computers,
-    \item Students will be required to become proficient with the $RStudio$ IDE,
-    \item Students are encouraged to bring their laptop computers to class and run the $R$ Interpreter during the lecture,
-  \end{itemize}
-\end{block}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\section{Getting Started With $R$}
-
-
-%%%%%%%%%%%%%%%
-\subsection{What is $R$?}
-\begin{frame}[t]{\subsecname}
-
-\begin{block}{}
-\begin{columns}[T]
-  \column{0.7\textwidth}
-    \begin{itemize}[]
-      \item Is an open-source software environment for statistical computing and graphics,
-      \item Is an interpreted language,
-      \item Supports object-oriented programming with generic functions,
-      \item Capabilities are extended through user-created packages,
-      \item Is written in $R$ itself and in $C$/$C++$.
-    \end{itemize}
-    \hskip1em\url{http://www.r-project.org/}\\
-    \hskip1em\url{http://en.wikipedia.org/wiki/R_(programming_language)}\\
-%    \hskip1em\url{http://blog.revolutionanalytics.com/2011/08/what-language-is-r-written-in.html}\\
-  \column{0.3\textwidth}
-    \includegraphics[height=0.2\textwidth]{Rlogo.jpg}
-\end{columns}
-\end{block}
-\pause
-
-\begin{block}{}
-\begin{columns}[T]
-  \column{0.7\textwidth}
-    The $R$ software and its libraries are released under the GNU General Public License\\
-    \hskip1em\url{http://www.r-project.org/Licenses}\\
-  \column{0.3\textwidth}
-    \includegraphics[height=0.2\textwidth]{GPLv3_Logo.png}
-\end{columns}
-\end{block}
-\pause
-
-\begin{block}{}
-\begin{columns}[T]
-  \column{0.7\textwidth}
-    Many other $R$ software are released under the Creative Commons Attribution-ShareAlike License\\
-    \hskip1em\url{http://creativecommons.org}\\
-  \column{0.3\textwidth}
-    \includegraphics[height=0.1\textwidth]{CC_License.png}
-\end{columns}
-\end{block}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\subsection{Installing $R$ and $RStudio$}
-\begin{frame}[t]{\subsecname}
-
-\begin{block}{}
-\begin{columns}[T]
-  \column{0.7\textwidth}
-    Download $R$ Interpreter from $CRAN$ (Comprehensive $R$ Archive Network)\\
-    \hskip1em\url{http://cran.us.r-project.org}\\
-  \column{0.3\textwidth}
-    \includegraphics[height=0.2\textwidth]{Rlogo.jpg}
-\end{columns}
-\end{block}
-\pause
-
-\begin{block}{}
-\begin{columns}[T]
-  \column{0.7\textwidth}
-    Download $RStudio$ IDE (Integrated Development Environment)\\
-    \hskip1em\url{http://www.rstudio.com/ide}\\
-  \column{0.3\textwidth}
-    \includegraphics[height=0.2\textwidth]{RStudio_logo.png}
-\end{columns}
-\end{block}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\subsection{Using $RStudio$}
-\begin{frame}[t]{\subsecname}
-
-% Snapshot of $RStudio$ GUI
-\includegraphics[height=0.6\textwidth]{RStudio.png}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\subsection{$RStudio$ Support}
-\begin{frame}[t]{\subsecname}
-
-\begin{block}{}
-$RStudio$ has extensive online help, Q\&A database, and documentation\\
-\hskip1em\url{https://support.rstudio.com/hc/en-us}\\
-\vskip1ex
-\hskip1em\url{https://support.rstudio.com/hc/en-us/sections/200107586-Using-RStudio}\\
-\vskip1ex
-\hskip1em\url{https://support.rstudio.com/hc/en-us/sections/200148796-Advanced-Topics}\\
-\end{block}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\subsection{Stack Exchange}
-\begin{frame}[t]{\subsecname}
-
-\begin{columns}[T]
-  \column{0.5\textwidth}
-    \begin{block}{Stack Exchange}
-      Stack Exchange is a family of Q\&A forums in a variety of fields\\
-      \hskip1em\url{http://stackexchange.com/}\\
-      \hskip1em\url{http://stackexchange.com/sites\#technology}\\
-      \hskip1em\url{http://quant.stackexchange.com/}\\
-    \end{block}
-    \begin{block}{Stack Overflow}
-      Stack Overflow is a Q\&A forum for computer programming, and is part of Stack Exchange\\
-%  Stack Overflow is a Q\&A forum for programmers (covers many different languages)\\
-      \hskip1em\url{http://stackoverflow.com}\\
-      \hskip1em\url{http://stackoverflow.com/questions/tagged/r}\\
-      \hskip1em\url{http://stackoverflow.com/tags/r/info}\\
-    \end{block}
-  \column{0.5\textwidth}
-    \includegraphics[height=0.9\textwidth]{stack_exchange2.png}
-\end{columns}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\subsection{Other $R$ Online Help}
-\begin{frame}[t]{\subsecname}
-
-\begin{block}{$R$-help Mailing List}
-  $R$-help is a very comprehensive Q\&A mailing list\\
-  \hskip1em\url{https://stat.ethz.ch/mailman/listinfo/r-help}\\
-  $R$-help has archives of past Q\&A - search it before you ask\\
-  \hskip1em\url{https://stat.ethz.ch/pipermail/r-help/}\\
-  GMANE allows searching the $R$-help archives using a usenet newsgroup style GUI\\
-  \hskip1em\url{http://news.gmane.org/gmane.comp.lang.r.general}\\
-\end{block}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\subsection{$R$ Blogs and Experts}
-\begin{frame}[fragile,t]{\subsecname}
-
-\begin{block}{R-Bloggers}
-R-Bloggers is an aggregator of blogs dedicated to $R$\\
-\hskip1em\url{http://www.r-bloggers.com/}\\
-Tal Galili is the author of R-Bloggers and has his own excellent blog\\
-\hskip1em\url{http://www.r-statistics.com/}\\
-\end{block}
-\pause
-
-\begin{block}{Dirk Eddelbuettel}
-Dirk is a $Top Answerer$ for $R$ questions on Stackoverflow, the author of the \verb|Rcpp| package, and the CRAN Finance View\\
-\hskip1em\url{http://dirk.eddelbuettel.com/}\\
-\hskip1em\url{http://dirk.eddelbuettel.com/code/}\\
-\hskip1em\url{http://dirk.eddelbuettel.com/blog/}\\
-\hskip1em\url{http://www.rinfinance.com/}\\
-\end{block}
-\pause
-
-\begin{block}{Romain François}
-Romain is an $R$ Enthusiast and \verb|Rcpp| Hero\\
-\hskip1em\url{http://romainfrancois.blog.free.fr/}\\
-\hskip1em\url{http://romainfrancois.blog.free.fr/index.php?tag/graphgallery}\\
-\hskip1em\url{http://blog.r-enthusiasts.com/}\\
-\end{block}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
-\begin{frame}[fragile,t]{More \subsecname}
-
-\begin{block}{Revolution Analytics Blog}
-$R$ blog by Revolution Analytics software vendor\\
-\hskip1em\url{http://blog.revolutionanalytics.com/}\\
-\end{block}
-\pause
-
-\begin{block}{$RStudio$ Blog}
-$R$ blog by $RStudio$\\
-\hskip1em\url{http://blog.rstudio.org/}\\
-\end{block}
-
-\end{frame}
-
-
-%%%%%%%%%%%%%%%
 \section{Basic Operations in $R$}
-
-
-%%%%%%%%%%%%%%%
-\subsection{Exploring an $R$ Session}
-\begin{frame}[fragile,t]{\subsecname}
-
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.3\textwidth}
-      Get (default) current working directory (cwd)
-    \column{0.7\textwidth}
-      \vspace{-1em}
-      <<>>=
-getwd()  # get cwd
-      @
-  \end{columns}
-\end{block}
-\pause
-
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.3\textwidth}
-      Set working directory
-    \column{0.7\textwidth}
-      \vspace{-1em}
-      <<>>=
-setwd("C:/Develop/R/Presentations")  # set cwd
-      @
-  \end{columns}
-\end{block}
-\pause
-
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.3\textwidth}
-      Get system date and time\\
-      \vskip4ex
-      Just the date
-    \column{0.7\textwidth}
-      \vspace{-1em}
-      <<>>=
-Sys.time()  # returns a character string
-format(Sys.time(), "%B-%d-%Y")  # format the string
-paste("Today is", Sys.time())  # concatenate strings
-paste("Today is", format(Sys.time(), "%B-%d-%Y"))
-      @
-  \end{columns}
-\end{block}
-\pause
-
-\begin{block}{}
-  \begin{columns}[T]
-    \column{0.3\textwidth}
-      Get help on a function
-    \column{0.7\textwidth}
-      \vspace{-1em}
-% tidy=FALSE prevents translation of '?getwd' into '`?`(getwd)'
-      <<prompt=FALSE,tidy=FALSE,eval=FALSE,out.width='0.3\textwidth'>>=
-?getwd or help(getwd)
-      @
-  \end{columns}
-\end{block}
-
-\end{frame}
 
 
 %%%%%%%%%%%%%%%
@@ -430,10 +88,10 @@ paste("Today is", format(Sys.time(), "%B-%d-%Y"))
       The \verb|"="| operator is used for named arguments in function calls,\\
     \column{0.5\textwidth}
       \vspace{-1em}
-      <<>>=
-n.var1 <- 3
+      <<prompt=TRUE>>=
+n.var1 <- 3 - 1
 n.var1
-n.var1 = 3
+n.var1 = 3 - 1
 n.var1
       @
   \end{columns}
@@ -469,7 +127,7 @@ n.var1
       The function \verb|save()| saves just the selected objects,\\
     \column{0.6\textwidth}
       \vspace{-1em}
-      <<tidy=FALSE>>=
+      <<tidy=FALSE,prompt=TRUE>>=
 n.var1 <- 3  # define new object
 ls()  # list objects
 save.image()  # save workspace to file .RData in cwd
@@ -505,8 +163,8 @@ ls()  # list objects
       When you start $R$ again, the workspace will be automatically loaded from the existing $.RData$ file,\\
     \column{0.6\textwidth}
       \vspace{-1em}
-      <<eval=FALSE>>=
-q()  # quit R session
+      <<eval=FALSE,prompt=TRUE>>=
+        q()  # quit R session
       @
   \end{columns}
 \end{block}
@@ -520,7 +178,7 @@ q()  # quit R session
       You can also save and load the command history from a file,\\
     \column{0.6\textwidth}
       \vspace{-1em}
-      <<eval=FALSE>>=
+      <<eval=FALSE,prompt=TRUE>>=
 history(5)  # display last 5 commands
 savehistory(file="myfile")  # default is ".Rhistory" 
 loadhistory(file="myfile")  # default is ".Rhistory"
@@ -578,22 +236,18 @@ loadhistory(file="myfile")  # default is ".Rhistory"
       \vskip1ex
       The function \verb|paste()| converts elements to characters and concatenates them into a string,\\
       \vskip1ex
-      The function \verb|cat()| concatenates strings and writes to output,\\
-      \vskip1ex
-      The function \verb|grep()| searches for matches of a pattern in a string,\\
-      \vskip1ex
-      The function \verb|gsub()| replaces all matches of a pattern in a string,\\
+      The function \verb|cat()| concatenates and writes to output,\\
+      The function \verb|cat()| is useful in user-defined functions,\\
+      The recycling rule extends the length to match the longest object,\\
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<>>=
+      <<prompt=TRUE>>=
 s.var1 <- "Hello"  # define a character string
 s.var2 <- "World!"  # define a character string
 paste(s.var1, s.var2, sep=' ')  # concatenate
 paste('a', 1:4, sep='-')  # convert, recycle and concatenate
 cat(s.var1, s.var2)  # concatenate and write to output
 strsplit("Hello World", split='r')  # split string
-grep("a+", c("abc", "def", "cba a", "aa"), value=TRUE)
-gsub("is", "XX", "is this gratis?")
       @
   \end{columns}
 \end{block}
@@ -619,7 +273,7 @@ gsub("is", "XX", "is this gratis?")
       \end{itemize}
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<>>=
+      <<prompt=TRUE>>=
 v.var <- c(pi, exp(1), -digamma(1))  # define a vector
 v.var
 v.var[2]  # get second element
@@ -639,7 +293,7 @@ v.var[v.var > 1]  # get all elements greater than one
       Vectors can be multiplied and squared element by element,\\
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<echo=2:20>>=
+      <<echo=2:20,prompt=TRUE>>=
 v.var <- c(pi, exp(1), -digamma(1))
 v.var
 2*v.var  # multiply all elements by 2
@@ -660,7 +314,7 @@ v.var^2  # square all elements
       Vector elements can be assigned $names$,\\
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<>>=
+      <<prompt=TRUE>>=
 v.var <- c(pi=pi, euler=exp(1), gamma=-digamma(1))
 v.var
 names(v.var)  # get names of elements
@@ -675,7 +329,7 @@ v.var
 
 
 %%%%%%%%%%%%%%%
-\begin{frame}[fragile,t]{\subsecname\hskip0.5em of Numbers}
+\begin{frame}[fragile,t]{\subsecname \hskip0.5em of Numbers}
 
 \begin{block}{}
   \begin{columns}[T]
@@ -687,7 +341,7 @@ v.var
       \verb|letters| is a constant and a vector,\\
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<>>=
+      <<prompt=TRUE>>=
 seq(from=0, to=1, len=11)  # vector of decimals from 0 to 1.0
 seq(from=0, to=1, by=0.1)  # vector of decimals from 0 to 1.0
 0:10  # vector of integers from 0 to 10
@@ -705,7 +359,7 @@ letters[5:10]  # vector of letters
       The function \verb|vector()| returns an empty vector,\\
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<>>=
+      <<prompt=TRUE>>=
 c(11, 5:10)  # append to vector
 c(20:25, 5:10)  # append to vector
 v.var <- vector()  # create empty vector
@@ -739,7 +393,7 @@ c('a', letters[5:10])  # vector of letters
       Partial name matching allows subsetting with partial name, as long as it can be resolved, 
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<>>=
+      <<prompt=TRUE>>=
 l.var <- list(c('a', 'b'), 1:4)  # create a list
 l.var
 typeof(l.var)
@@ -779,7 +433,7 @@ l.var$second[3]  # get third element of second element
       The function \verb|attributes()| returns the attributes of an object,\\
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<>>=
+      <<prompt=TRUE>>=
 attributes(5:10)  # a simple vector has no attributes
 v.var <- c(pi=pi, euler=exp(1), gamma=-digamma(1))
 attributes(v.var)  # a named vector has 'names' attribute
@@ -802,13 +456,13 @@ is.vector(names(v.var))  # names are character vectors
   \begin{columns}[T]
     \column{0.3\textwidth}
       The \verb|type| of an  $R$ object represents how it's stored in memory,\\
-      Examples of $R$ \verb|types| are \verb|integer|, \verb|double|, \verb|character|, \verb|list|, etc.\\
+      Examples of $R$ \verb|types| are \verb|double|, \verb|character|, \verb|list|, etc.\\
       \vskip1ex
       The \verb|class| of an  $R$ object is an attribute used for function dispatching in S3 classes,\\
       Examples of $R$ \verb|classes| are \verb|character|, \verb|numeric|, \verb|matrix|, \verb|factor|, \verb|data.frame|, etc.\\
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<>>=
+      <<prompt=TRUE>>=
 v.var <- c(pi=pi, euler=exp(1), gamma=-digamma(1))
 typeof(v.var)  # get object type
 class(v.var)  # get object class
@@ -838,7 +492,7 @@ class(v.var)  # get object class
       Objects can be explicitly coerced from one class to another using the \verb|as.*| functions,\\
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<>>=
+      <<prompt=TRUE>>=
 c(1:3, 'a')  # implicit coercion
 as.numeric(c(1:3, 'a'))  # explicit coercion
 as.logical(0:3)
@@ -863,7 +517,7 @@ as.character(0:3)
       The dimension attribute of a matrix is an integer vector of length 2 (nrow, ncol),\\
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<>>=
+      <<prompt=TRUE>>=
 m.var <- matrix(1:6, nrow=2, ncol=3)  # create a matrix
 m.var  # by default matrices are constructed column-wise
 class(m.var)  # matrix class
@@ -891,7 +545,7 @@ dimnames(m.var)  # get dimnames attribute
       The attribute \verb|dimnames| can be assigned a named list to convert into a named matrix,\\
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<tidy=FALSE>>=
+      <<tidy=FALSE,prompt=TRUE>>=
 m.var <- 1:6  # create a vector
 dim(m.var) <- c(2, 3)  # convert into matrix by adding dimension attribute
 dimnames(m.var) <- list('rows'=c('row1', 'row2'),  # set dimnames attribute
@@ -908,7 +562,7 @@ m.var
       Indexing (subsetting) matrices,\\
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<echo=2:20>>=
+      <<echo=2:20,prompt=TRUE>>=
 m.var <- matrix(1:6, nrow=2, ncol=3)  # create a matrix
 m.var
 m.var[2, ]  # get second row
@@ -937,7 +591,7 @@ m.var[ ,-2]  # remove second column
       \end{enumerate}
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<>>=
+      <<prompt=TRUE>>=
 v.var1 <- c(1, 2, 3)
 v.var2 <- c(4, 5, 6)
 cbind(v.var1, v.var2)  # bind into columns
@@ -967,7 +621,35 @@ cbind(v.var1, v.var2)  # recycling rule applied
       Factors have two attributes: \verb|class| ("\verb|factor|") and \verb|levels| (the allowed values),\\
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<tidy=FALSE>>=
+      <<tidy=FALSE,prompt=TRUE>>=
+f.var <- factor(c('b', 'c',  # create factor vector
+                        'd', 'a', 'c', 'b'))
+class(f.var)  # get object class
+levels(f.var)  # get allowed values
+table(f.var)  # get contingency (frequency) table
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Date and Time Objects}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.3\textwidth}
+      Factors are vectors whose elements can have only certain values,\\
+      \vskip1ex
+      Factors are designed to describe categorical data which can only take certain values,\\
+      \vskip1ex
+      The function \verb|factor()| converts a character vector into a factor,\\
+      \vskip1ex
+      Factors have two attributes: \verb|class| ("\verb|factor|") and \verb|levels| (the allowed values),\\
+    \column{0.7\textwidth}
+      \vspace{-1em}
+      <<tidy=FALSE,prompt=TRUE>>=
 f.var <- factor(c('b', 'c',  # create factor vector
                 'd', 'a', 'c', 'b'))
 class(f.var)  # get object class
@@ -981,42 +663,35 @@ table(f.var)  # get contingency (frequency) table
 
 
 %%%%%%%%%%%%%%%
-\section{Time Series Data}
-
-
-%%%%%%%%%%%%%%%
-\subsection{Time Series Objects}
+\subsection{Data Frames}
 \begin{frame}[fragile,t]{\subsecname}
 \begin{block}{}
   \begin{columns}[T]
-    \column{0.5\textwidth}
-      The function \verb|ts()| creates time-series objects,\\
+    \column{0.3\textwidth}
+      Data frames are 2-D objects (like matrices), but the columns can be of different classes,\\
       \vskip1ex
-      \verb|stats| is a base package and contains functions for statistical calculations and random number generation,\\
-
-        <<rand_ts,eval=TRUE,tidy=FALSE,fig.show='hide'>>=
-set.seed(1121)  # for reproducibility
-n.var <- 100
-# create monthly time series starting 1990
-ts.var <- ts(data=cumsum(rnorm(n.var)), 
-             frequency=12, start=c(1990, 1))
-class(ts.var)  # class 'ts'
-# set plot paramaters - margins and font scale
-par(oma=c(1, 1, 1, 1))  # set outer margins
-par(mgp=c(2, 1, 0))  # set axis title and labels
-par(mar=c(5, 1, 1, 1))  # set plot margins
-par(cex.lab=0.8,  # set font scales
-    cex.axis=0.8, cex.main=0.8, cex.sub=0.5)
-plot(ts.var, type="l",  # perform plot
-     col="red", lty="solid", xlab="", ylab="")
-title(main="Random Prices", line=-1)  # add title
-# window the time series
-ts.new <- window(ts.var, start=1992, end=1997)
+      Data frames can also be thought of as lists in which all the elements are vectors of the same length,\\
+      Each list element is a column of elements of the same class,\\
+      \vskip1ex
+      Data frames share properties of both lists and matrices,\\
+    \column{0.7\textwidth}
+      \vspace{-1em}
+      <<tidy=FALSE,prompt=TRUE>>=
+v.type <- c('rose', 'daisy', 'tulip')  # character vector
+v.color <- c('red', 'white', 'yellow')  # character vector
+v.price <- c(1.5, 0.5, 1.0)  # numeric vector
+df.florist <- data.frame(v.type,  # create a data frame
+                         v.color, v.price)
+rownames(df.florist) <- c('flower1',  # assign rownames
+                          'flower2', 'flower3')
+df.florist
+dim(df.florist)  # get dimension attribute
+colnames(df.florist)  # get the colnames attribute
+rownames(df.florist)  # get the rownames attribute
+class(df.florist)  # get object class
+class(df.florist$v.type)  # get column class
+class(df.florist$v.price)  # get column class
       @
-
-    \column{0.5\textwidth}
-      \vspace{-2em}
-      \includegraphics[width=0.5\paperwidth,valign=t]{figure/rand_ts}
   \end{columns}
 \end{block}
 
@@ -1024,29 +699,27 @@ ts.new <- window(ts.var, start=1992, end=1997)
 
 
 %%%%%%%%%%%%%%%
-\subsection{EuStockMarkets}
-\begin{frame}[fragile,t]{\subsecname \hskip0.5em Data}
+\begin{frame}[fragile,t]{Subsetting \subsecname}
 \begin{block}{}
   \begin{columns}[T]
-    \column{0.5\textwidth}
-      $R$ includes a number of 'base' packages that are already installed and loaded,\\
-      \vskip1ex
-      \verb|datasets| is a base package containing various datasets, for example \verb|EuStockMarkets|,\\
-      \vskip1ex
-      The \verb|EuStockMarkets| dataset contains daily closing prices of european stock indices,\\
-
-        <<eustx_ts,echo=2:30,eval=TRUE,tidy=FALSE,fig.show='hide'>>=
-par(oma=c(1, 1, 1, 1), mgp=c(2, 1, 0), mar=c(5, 1, 1, 1), cex.lab=0.8, cex.axis=1.0, cex.main=0.8, cex.sub=0.5)
-class(EuStockMarkets)  # multiple ts object
-dim(EuStockMarkets)
-head(EuStockMarkets)  # get first six rows
-plot(EuStockMarkets, main="", xlab="")  # plot all the columns
-title(main="EuStockMarkets", line=-1)  # add title
+    \column{0.3\textwidth}
+      Data frames can be subset in a similar way to lists and matrices,\\
+    \column{0.7\textwidth}
+      \vspace{-1em}
+      <<echo=6:30,tidy=FALSE,prompt=TRUE>>=
+v.type <- c('rose', 'daisy', 'tulip')  # character vector
+v.color <- c('red', 'white', 'yellow')  # character vector
+v.price <- c(1.5, 0.5, 1.0)  # numeric vector
+df.florist <- data.frame(v.type,  # create a data frame
+                         v.color, v.price)
+rownames(df.florist) <- c('flower1',  # assign rownames
+                          'flower2', 'flower3')
+df.florist
+df.florist[2, ]  # get second row
+df.florist[2, 3]  # get second row and third column
+df.florist[[3]]  # get third column
+df.florist$v.color[3]  # get third row from column 'v.color'
       @
-
-    \column{0.5\textwidth}
-      \vspace{-2em}
-      \includegraphics[width=0.5\paperwidth,valign=t]{figure/eustx_ts}
   \end{columns}
 \end{block}
 
@@ -1054,35 +727,29 @@ title(main="EuStockMarkets", line=-1)  # add title
 
 
 %%%%%%%%%%%%%%%
-\begin{frame}[fragile,t]{\subsecname \hskip0.5em Returns}
+\begin{frame}[fragile,t]{Exploring \subsecname}
 \begin{block}{}
   \begin{columns}[T]
-    \column{0.5\textwidth}
-      The function \verb|hist()| calculates and plots a histogram,\\
-      The parameter \verb|breaks| is the number of cells of the histogram,\\
+    \column{0.3\textwidth}
+      The function \verb|str()| compactly displays the structure of an $R$ object,\\
       \vskip1ex
-      The function \verb|density()| calculates a kernel estimate of the probability density,\\
-      \vskip1ex
-      The function \verb|lines()| draws a line through specified points,\\
-
-        <<eustx_rets,echo=2:30,eval=TRUE,tidy=FALSE,fig.show='hide'>>=
-par(oma=c(1, 1, 1, 1), mgp=c(2, 1, 0), mar=c(5, 1, 1, 1), cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.5)
-# calculate percentage returns
-ts.rets <- diff(log(EuStockMarkets))
-# calculate mean and standard deviation of returns
-c(mean(ts.rets[, 1]), sd(ts.rets[, 1]))
-# plot histogram
-hist(ts.rets[, 1], breaks=30, main="", xlim=c(-0.04, 0.04), 
-     ylim=c(0, 60), xlab="", ylab="", freq = FALSE)
-lines(density(ts.rets[, 1]),  # draw a line
-      col='red', lwd=2)
-ch.title <- paste(colnames(EuStockMarkets)[1], 'returns')
-title(main=ch.title, line=-1)  # add title
+      The functions \verb|head()| and \verb|tail()| display the first and last rows of an $R$ object,\\
+    \column{0.7\textwidth}
+      \vspace{-1em}
+      <<echo=6:30,tidy=FALSE,prompt=TRUE>>=
+v.type <- c('rose', 'daisy', 'tulip')  # character vector
+v.color <- c('red', 'white', 'yellow')  # character vector
+v.price <- c(1.5, 0.5, 1.0)  # numeric vector
+df.florist <- data.frame(v.type,  # create a data frame
+                         v.color, v.price)
+rownames(df.florist) <- c('flower1',  # assign rownames
+                          'flower2', 'flower3')
+df.florist
+str(df.florist)  # display the object structure
+dim(cars)  # the cars data frame has 50 rows
+head(cars, n=5)  # get first five rows
+tail(cars, n=5)  # get last five rows
       @
-
-    \column{0.5\textwidth}
-      \vspace{-2em}
-      \includegraphics[width=0.5\paperwidth,valign=t]{figure/eustx_rets}
   \end{columns}
 \end{block}
 
@@ -1090,38 +757,33 @@ title(main=ch.title, line=-1)  # add title
 
 
 %%%%%%%%%%%%%%%
-\begin{frame}[fragile,t]{\subsecname \hskip0.5em Quantile-Quantile Plot}
+\begin{frame}[fragile,t]{Sorting \subsecname}
 \begin{block}{}
   \begin{columns}[T]
-    \column{0.5\textwidth}
-      A $Q-Q$ plot is a plot of points from two probability distributions with the same quantiles,\\
+    \column{0.3\textwidth}
+      Data frames can be sorted on any column,\\
       \vskip1ex
-      The function \verb|qqnorm()| produces a normal Q-Q plot,\\
+      The function \verb|order()| returns a permutation vector,\\
       \vskip1ex
-      The function \verb|qqline()| fits a line to the normal quantiles,\\
-      \vskip1ex
-      The $DAX$ Q-Q plot shows that the $DAX$ return distribution has fat tails,\\
-
-        <<eustx_qq,echo=4:30,eval=TRUE,tidy=FALSE,fig.show='hide'>>=
-par(oma=c(1, 1, 1, 1), mgp=c(2, 1, 0), mar=c(5, 1, 1, 1), cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.5)
-# calculate percentage returns
-ts.rets <- diff(log(EuStockMarkets))
-# create normal Q-Q plot
-qqnorm(ts.rets[, 1], ylim=c(-0.04, 0.04), 
-       xlab='Normal Quantiles', main='')
-# fit a line to the normal quantiles
-qqline(ts.rets[, 1], col='red', lwd=2)
-ch.title <- paste(colnames(EuStockMarkets)[1], 
-                  'Q-Q Plot')
-title(main=ch.title, line=-1)  # add title
-shapiro.test(ts.rets[, 1])  # Shapiro-Wilk test
+      \verb|order()| can take several vectors as input, to break any ties,\\
+    \column{0.7\textwidth}
+      \vspace{-1em}
+      <<echo=6:30,tidy=FALSE,prompt=TRUE>>=
+v.type <- c('rose', 'daisy', 'tulip')  # character vector
+v.color <- c('red', 'white', 'yellow')  # character vector
+v.price <- c(1.5, 0.5, 1.0)  # numeric vector
+df.florist <- data.frame(v.type,  # create a data frame
+                         v.color, v.price)
+rownames(df.florist) <- c('flower1',  # assign rownames
+                          'flower2', 'flower3')
+df.florist
+order(df.florist$v.price)  # permute on price
+df.florist[order(df.florist$v.price), ]  # sort on price
+df.florist[order(df.florist$v.color), ]  # sort on color
+order(c(2, 1:4))  # there's a tie
+order(c(2, 1:4), 1:5)  # there's a tie
+# read sort() Examples
       @
-
-    \column{0.5\textwidth}
-      \vspace{-2em}
-      \includegraphics[width=0.5\paperwidth,valign=t]{figure/eustx_qq}
-      \vskip1ex
-      The p-value of the $Shapiro-Wilk$ test is very small, which shows that the $DAX$ returns are not normal,\\
   \end{columns}
 \end{block}
 
@@ -1129,32 +791,229 @@ shapiro.test(ts.rets[, 1])  # Shapiro-Wilk test
 
 
 %%%%%%%%%%%%%%%
-\subsection{Homework Assignment}
-\begin{frame}[t]{\subsecname}
+\begin{frame}[fragile,t]{Reading and Writing \subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.35\textwidth}
+      The functions \verb|read.table()| and \verb|write.table()| read and write data frames from files,\\
+      \vskip1ex
+      The functions \verb|read.csv()| and \verb|write.csv()| are wrappers for \verb|read.table()| and \verb|write.table()|, and read and write data frames from CSV format files,\\
+      \vskip1ex
+      \verb|read.table()| and \verb|write.table()| are inefficient for very large data sets,\\
+    \column{0.65\textwidth}
+      \vspace{-1em}
+      <<echo=6:30,tidy=FALSE,prompt=TRUE>>=
+v.type <- c('rose', 'daisy', 'tulip')  # character vector
+v.color <- c('red', 'white', 'yellow')  # character vector
+v.price <- c(1.5, 0.5, 1.0)  # numeric vector
+df.florist <- data.frame(v.type,  # create a data frame
+                         v.color, v.price)
+rownames(df.florist) <- c('flower1',  # assign rownames
+                          'flower2', 'flower3')
+write.csv(df.florist, file='florist.csv')  # write to file
+df.bad <- read.csv(file='badflorist.csv')  # read from file
+df.bad  # v.price has bad data point
+class(df.bad$v.price)  # numeric coerced to factor by bad data
+df.bad$v.price <- as.numeric(  # explicitly coerce to numeric
+                            as.character(df.bad$v.price))
+df.bad$v.price[2] <- 0.5  # fix value
+mean(df.bad$v.price)
+      @
+  \end{columns}
+\end{block}
 
-\begin{block}{Required}
-  \begin{itemize}[]
-    \item Install the $R$ Interpreter and $RStudio$,
-    \item Write R code that performs the following:
-    \begin{itemize}[]
-      \item create matrix of 30rows x 10columns with random normal variates,
-      \item calculate the mean and standard deviation of: the 5th row, the 8th column,
-      \item find all elements that are greater than 2.0,
-      \item plot the FTSE time series from EuStockMarkets data,
-      \item calculate the percentage FTSE returns, and their mean and standard deviation,
-      \item create normal Q-Q plot,
-      \item apply the Shapiro-Wilk test, what is the p-value?
-    \end{itemize}
-  \end{itemize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Bad Data}
+\begin{frame}[fragile,t]{Types of \subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.4\textwidth}
+      Possible sources of bad data are: imported data, class coercion, numeric overflow,\\
+      \vskip1ex
+      Types of bad data:
+      \begin{itemize}[]
+        \item \verb|NA| means Not Available (missing) data,
+        \item \verb|NaN| means Not a Number data,
+        \item \verb|Inf| means numeric overflow - divide by zero,
+      \end{itemize}
+      \vskip1ex
+      The functions \verb|is.na()| and \verb|is.nan()| test for NA and NaN values,\\
+      \vskip1ex
+      Many functions have a \verb|na.rm| parameter to remove NAs from input data,\\
+    \column{0.6\textwidth}
+      \vspace{-1em}
+      <<tidy=FALSE,prompt=TRUE>>=
+as.numeric(c(1:3, "a"))  # NA from coercion
+0/0  # NaN from ambiguous math
+1/0  # Inf from divide by zero
+is.na(c(NA, 0/0, 1/0))  # test for NA
+is.nan(c(NA, 0/0, 1/0))  # test for NaN
+NA*1:4  # create vector of Nas
+v.na <- c(1, 2, NA, 4, NA, 5)  # create vector with some NA values
+mean(v.na)  # returns NA, when NAs are input
+mean(v.na, na.rm=TRUE)  # remove NAs from input data
+v.na[!is.na(v.na)]  # delete the NA values
+      @
+  \end{columns}
+\end{block}
+
+\begin{block}{}
+  \verb|NULL| isn't bad data, but is a reserved word and represents a null object,\\
+  \verb|NULL| is returned by functions whose value is undefined,\\
+  Very often variables are initialized to \verb|NULL| before iteration,\\
+\end{block}
+
+\end{frame}
+
+
+\begin{frame}[fragile,t]{Scrubbing \subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.3\textwidth}
+      The function \verb|complete.cases()| returns TRUE if a row has no NA values,\\
+    \column{0.7\textwidth}
+      \vspace{-1em}
+      <<tidy=FALSE,prompt=TRUE>>=
+head(airquality)  # airquality data has some NAs
+dim(airquality)
+sum(!complete.cases(airquality))  # number of NAs
+head(airquality[!complete.cases(airquality), ])  # display some NAs
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+\begin{frame}[fragile,t]{Scrubbing \subsecname \hskip0.5em (cont.)}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.3\textwidth}
+      Rows containing bad data may be either removed or replaced with an estimated value,\\
+      \vskip1ex
+      The function \verb|na.locf()| replaces NAs with most recent non-NA prior to it,\\
+      \vskip1ex
+    \column{0.7\textwidth}
+      \vspace{-1em}
+      <<tidy=FALSE,prompt=TRUE>>=
+good.air <- airquality[complete.cases(airquality), ]  # remove NAs
+dim(good.air)
+head(good.air)  # NAs removed
+library(zoo)  # load package zoo
+good.air <- na.locf(airquality)  # replace NAs
+dim(good.air)
+head(good.air)  # NAs replaced
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Reading and Writing Matrices}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.35\textwidth}
+      The functions \verb|read.csv()| and \verb|write.csv()| allow reading and writing matrices from CSV format files,\\
+      \vskip1ex
+      Using the \verb|*.csv()| functions is very inefficient for large data sets,\\
+    \column{0.65\textwidth}
+      \vspace{-1em}
+      <<echo=2:30,tidy=FALSE,prompt=TRUE>>=
+m.var <- matrix(1:6, nrow=2, ncol=3, dimnames=list(c("row1", "row2"), c("col1", "col2", "col3")))  # create a matrix
+m.var
+write.csv(m.var, file='matrix.csv')  # write to file
+m.in <- read.csv(file='matrix.csv')  # read from file
+m.in  # this is a data frame!
+class(m.in)  # this is a data frame!
+name.rows <- as.character(m.in[, 1])  # get rownames
+m.in <- as.matrix(m.in[, -1])  # coerce to matrix
+rownames(m.in) <- name.rows  # restore rownames
+m.in
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\begin{frame}[fragile,t]{\subsecname \hskip0.5em (cont.)}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.35\textwidth}
+      There are many other ways of reading and writing matrices from files, with tradeoffs between simplicity, data size, and speed,\\
+      \vskip1ex
+      Reading and writing matrices without rownames can be simplified,\\
+      \vskip1ex
+      The function \verb|write.matrix()| is part of library \verb|MASS|,\\
+      \vskip1ex
+      The advantage of using the \verb|scan()| function is its speed, but it doesn't handle rownames,\\
+      Although aa test with 300x100 matrix showed almost same system.time(),\\
+    \column{0.65\textwidth}
+      \vspace{-1em}
+      <<echo=2:30,tidy=FALSE,prompt=TRUE>>=
+m.var <- matrix(1:6, nrow=2, ncol=3,  # create a matrix without rownames
+                dimnames=list(NULL, c("col1", "col2", "col3")))
+m.var  # matrix without rownames
+library('MASS')  # load library 'MASS'
+write.matrix(m.var, file='matrix.csv',  # write to CSV file by row - it's very SLOW!!!
+                               sep=',')
+system.time(m.in <- scan(file='matrix.csv',  # skip first line with colnames
+                                  sep=',', skip=1, what=numeric()))
+m.in  # this is a vector!
+m.in <- matrix(m.in, nrow=2, byrow=TRUE)  # coerce by row to matrix
+#        dim(m.in) <- c(2, 3)  # coerce by column to matrix!
+name.cols <- readLines(con='matrix.csv', n=1)  # read colnames
+name.cols  # this is a string!
+name.cols <- strsplit(name.cols, s=',')[[1]]  # convert to char vector
+colnames(m.in) <- name.cols  # restore colnames
+m.in
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\section{Functions}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Calling Functions}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.4\textwidth}
+      The function \verb|save()| combine values into a vector or a list,\\
+      Reading the help file,\\
+      default argument values,\\
+      elipsis argument,\\
+    \column{0.6\textwidth}
+      \vspace{-1em}
+      <<eval=FALSE,prompt=TRUE>>=
+save(n.var1, n.var2,  # save selected objects
+     file="C:/jerzy/temp/my_data.RData")
+
+save(..., list=character(),
+     file=stop("'file' must be specified"),
+     ascii=FALSE, version=NULL, envir=parent.frame(),
+     compress=!ascii, compression_level,
+     eval.promises=TRUE, precheck=TRUE)
+      @
+  \end{columns}
 \end{block}
 \pause
 
-\begin{block}{Recommended}
-  \begin{itemize}[]
-    \item Read chapters 1-3: \fullcite{website:rintro}
-    \item Read chapters 1-3: \citetitle{rupperttexbook}
-    \item Read: \fullcite{website:googlestyler}
-  \end{itemize}
+\begin{block}{\color{red}{Rule of Thumb}}
+Use \verb|"<-"| in $R$ scripts,\\
+Use \verb|"="| in function calls.\\
 \end{block}
 
 \end{frame}

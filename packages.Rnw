@@ -3,7 +3,7 @@
 % Set global chunk options
 <<knitr_setup,include=FALSE,cache=FALSE>>=
 library(knitr)
-opts_chunk$set(comment=NA, highlight=FALSE, message=FALSE, warning=FALSE, size='scriptsize', fig.width=4, fig.height=4)
+opts_chunk$set(prompt=TRUE, comment=NA, highlight=FALSE, message=FALSE, warning=FALSE, size='scriptsize', fig.width=4, fig.height=4)
 options(width=60, dev='pdf')
 thm <- knit_theme$get("acid")
 knit_theme$set(thm)
@@ -79,14 +79,14 @@ knit_theme$set(thm)
 
 \begin{block}{Loading Packages}
 $R$ can run external libraries of functions called packages,\\
-Packages need to be loaded before they can be used,\\
+Most packages need to be loaded before they can be used,\\
   \begin{columns}[T]
     \column{0.5\textwidth}
       There are two ways of loading package \verb|MASS|
     \column{0.5\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,eval=FALSE>>=
-        library("MASS") or require("MASS")
+library("MASS") or require("MASS")
       @
   \end{columns}
 \end{block}
@@ -106,7 +106,7 @@ Use \verb|require()| inside other functions.\\
 \pause
 
 \begin{block}{Installing Packages}
-Some packages like \verb|MASS| are part of the $R$ distribution,\\
+Some packages like \verb|MASS| are installed with base $R$ (but not loaded),\\
 But most packages need to be $installed$ before they can be loaded,\\
 \end{block}
 
@@ -126,9 +126,9 @@ For example package \verb|AER|:\\
       Install and load package \verb|AER| in $R$ Session:
     \column{0.5\textwidth}
       \vspace{-1em}
-      <<tidy=FALSE,eval=FALSE,prompt=TRUE>>=
-        install.packages("AER")
-        library("AER")
+      <<tidy=FALSE,eval=FALSE>>=
+install.packages("AER")
+library("AER")
       @
   \end{columns}
 \end{block}
@@ -151,9 +151,9 @@ For example packages which are part of the $ReturnAnalytics$ project,\\
       Install package $PerformanceAnalytics$
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<tidy=FALSE,eval=FALSE,prompt=TRUE>>=
-        install.packages("PerformanceAnalytics", 
-                         repos="http://R-Forge.R-project.org")
+      <<tidy=FALSE,eval=FALSE>>=
+install.packages("PerformanceAnalytics", 
+                 repos="http://R-Forge.R-project.org")
       @
   \end{columns}
 \end{block}
@@ -222,16 +222,25 @@ For example packages which are part of the $ReturnAnalytics$ project,\\
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Install package \verb|AER|
+      The package \verb|Ecdat| contains data sets for econometric analysis,\\
+      \vskip1ex
+      The data frame \verb|Garch| contains daily currency prices,\\
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<tidy=FALSE,eval=FALSE,prompt=TRUE>>=
-        search()  # show all loaded packages
-        packageDescription("MASS")  # get short description
-        help(package="MASS")  # get full documentation for package "MASS"
-        ls("package:MASS")  # list all functions in package "MASS"
-        data(package="AER")  # show all datasets in package "AER"
-        detach("package:AER")  # remove package from list
+      <<tidy=FALSE,eval=FALSE>>=
+search()  # show all loaded packages
+packageDescription("Ecdat")  # get short description
+help(package="Ecdat")  # get full documentation for package "Ecdat"
+ls("package:Ecdat")  # list all objects in package "Ecdat"
+data(package="Ecdat")  # show all datasets in package "Ecdat"
+detach("package:Ecdat")  # remove package from list
+      @
+
+      <<>>=
+library("Ecdat")  # data sets for econometric analysis
+class(Garch)
+dim(Garch)  # daily currency prices
+head(Garch[, -2])  # col 'dm' is Deutsch Mark
       @
   \end{columns}
 \end{block}
