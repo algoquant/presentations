@@ -74,12 +74,34 @@ knit_theme$set(thm)
 
 
 %%%%%%%%%%%%%%%
+\subsection{\secname}
+\begin{frame}[fragile,t]{\subsecname}
+
+\begin{block}{Types of \subsecname}
+  $R$ can run libraries of functions called packages,
+  \vskip1ex
+  $R$ packages can can also  contain data,
+  \vskip1ex
+  Most packages need to be \emph{loaded} into $R$ before they can be used,
+  \vskip1ex
+  $R$ includes a number of \emph{base} packages that are already installed and loaded,
+  \vskip1ex
+  There's also a special package called the \verb|base| package, which is responsible for all the basic $R$ functionality,
+  \vskip1ex
+  \verb|datasets| is a \emph{base} package containing various datasets, for example \verb|EuStockMarkets|,
+  \vskip1ex
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
 \subsection{Loading Packages}
 \begin{frame}[fragile,t]{\subsecname}
 
 \begin{block}{Loading Packages}
 $R$ can run external libraries of functions called packages,\\
-Most packages need to be loaded before they can be used,\\
+Most packages need to be loaded before they can be used,
   \begin{columns}[T]
     \column{0.5\textwidth}
       There are two ways of loading package \verb|MASS|
@@ -222,13 +244,12 @@ install.packages("PerformanceAnalytics",
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      The package \verb|Ecdat| contains data sets for econometric analysis,\\
+      The package \verb|Ecdat| contains data sets for econometric analysis,
       \vskip1ex
-      The data frame \verb|Garch| contains daily currency prices,\\
+      The data frame \verb|Garch| contains daily currency prices,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,eval=FALSE>>=
-search()  # show all loaded packages
 packageDescription("Ecdat")  # get short description
 help(package="Ecdat")  # get full documentation for package "Ecdat"
 ls("package:Ecdat")  # list all objects in package "Ecdat"

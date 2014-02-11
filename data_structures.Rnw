@@ -79,13 +79,13 @@ knit_theme$set(thm)
 \begin{block}{}
   \begin{columns}[T]
     \column{0.5\textwidth}
-      The standard assignment operator in $R$ is \verb|"<-"|,\\
+      The standard assignment operator in $R$ is \verb|"<-"|,
       \vskip1ex
-      Both \verb|"<-"| and \verb|"="| are valid assignment operators in $R$,\\
+      Both \verb|"<-"| and \verb|"="| are valid assignment operators in $R$,
       \vskip1ex
-      But they differ in \emph{scope} and  \emph{precedence} (\verb|"<-"| has higher precedence than \verb|"="|),\\
+      But they differ in \emph{scope} and  \emph{precedence} (\verb|"<-"| has higher precedence than \verb|"="|),
       \vskip1ex
-      The \verb|"="| operator is used for named arguments in function calls,\\
+      The \verb|"="| operator is used for named arguments in function calls,
     \column{0.5\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
@@ -99,9 +99,9 @@ n.var1
 \pause
 
 \begin{block}{\color{red}{Rule of Thumb}}
-  Use \verb|"<-"| in $R$ scripts,\\
+  Use \verb|"<-"| in $R$ scripts,
   \vskip1ex
-  Use \verb|"="| in function calls.\\
+  Use \verb|"="| in function calls.
 \end{block}
 
 \end{frame}
@@ -114,17 +114,17 @@ n.var1
 \begin{block}{}
   \begin{columns}[T]
     \column{0.4\textwidth}
-      The workspace is the current $R$ working environment, which includes all user-defined objects and the command history,\\
+      The workspace is the current $R$ working environment, which includes all user-defined objects and the command history,
       \vskip1ex
-      The function \verb|ls()| returns names of objects in the $R$ workspace,\\
+      The function \verb|ls()| returns names of objects in the $R$ workspace,
       \vskip1ex
-      The function \verb|rm()| removes objects from the $R$ workspace,\\
+      The function \verb|rm()| removes objects from the $R$ workspace,
       \vskip1ex
-      The workspace can be saved into and loaded back from an $*.RData$ file (binary file format),\\
+      The workspace can be saved into and loaded back from an $*.RData$ file (binary file format),
       \vskip1ex
-      The function \verb|save.image()| saves the whole workspace,\\
+      The function \verb|save.image()| saves the whole workspace,
       \vskip1ex
-      The function \verb|save()| saves just the selected objects,\\
+      The function \verb|save()| saves just the selected objects,
     \column{0.6\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,prompt=TRUE>>=
@@ -156,11 +156,11 @@ ls()  # list objects
 \begin{block}{}
   \begin{columns}[T]
     \column{0.4\textwidth}
-      When you quit $R$ you'll be prompted "Save workspace image?"\\
+      When you quit $R$ you'll be prompted "Save workspace image?"
       \vskip1ex
-      If you answer $YES$ then the workspace will be saved into the $.RData$ file in the $cwd$,\\
+      If you answer $YES$ then the workspace will be saved into the $.RData$ file in the $cwd$,
       \vskip1ex
-      When you start $R$ again, the workspace will be automatically loaded from the existing $.RData$ file,\\
+      When you start $R$ again, the workspace will be automatically loaded from the existing $.RData$ file,
     \column{0.6\textwidth}
       \vspace{-1em}
       <<eval=FALSE,prompt=TRUE>>=
@@ -173,9 +173,9 @@ ls()  # list objects
 \begin{block}{}
   \begin{columns}[T]
     \column{0.4\textwidth}
-      The function \verb|history()| displays recent commands,\\
+      The function \verb|history()| displays recent commands,
       \vskip1ex
-      You can also save and load the command history from a file,\\
+      You can also save and load the command history from a file,
     \column{0.6\textwidth}
       \vspace{-1em}
       <<eval=FALSE,prompt=TRUE>>=
@@ -201,9 +201,9 @@ loadhistory(file="myfile")  # default is ".Rhistory"
 \begin{block}{}
   \begin{columns}[T]
     \column{0.5\textwidth}
-      Homogeneous data structures contain objects of the same class,\\
+      Homogeneous data structures contain objects of the same class,
       \vskip1ex
-      Heterogeneous structures can contain objects of different classes,\\
+      Heterogeneous structures can contain objects of different classes,
     \column{0.5\textwidth}
 %      \vspace{-1em}
       \renewcommand\arraystretch{1.5} % scale table rows
@@ -232,13 +232,13 @@ loadhistory(file="myfile")  # default is ".Rhistory"
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Strings are character objects of length one,\\
+      Strings are character objects of length one,
       \vskip1ex
-      The function \verb|paste()| converts elements to characters and concatenates them into a string,\\
+      The function \verb|paste()| converts elements to characters and concatenates them into a string,
       \vskip1ex
       The function \verb|cat()| concatenates and writes to output,\\
       The function \verb|cat()| is useful in user-defined functions,\\
-      The recycling rule extends the length to match the longest object,\\
+      The recycling rule extends the length to match the longest object,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
@@ -262,7 +262,7 @@ strsplit("Hello World", split='r')  # split string
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      The function \verb|c()| combines values into a vector or a list,\\
+      The function \verb|c()| combines values into a vector or a list,
       \vskip1ex
       Vectors can be indexed (subset) using vectors of:
       \begin{itemize}[]
@@ -290,7 +290,7 @@ v.var[v.var > 1]  # get all elements greater than one
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Vectors can be multiplied and squared element by element,\\
+      Vectors can be multiplied and squared element by element,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<echo=2:20,prompt=TRUE>>=
@@ -311,7 +311,7 @@ v.var^2  # square all elements
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Vector elements can be assigned $names$,\\
+      Vector elements can be assigned $names$,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
@@ -334,11 +334,11 @@ v.var
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      The function \verb|seq()| returns a vector of numbers,\\
+      The function \verb|seq()| returns a vector of numbers,
       \vskip1ex
-      Another way of producing a vector of numbers is by using the "\verb|:|" operator,\\
+      Another way of producing a vector of numbers is by using the "\verb|:|" operator,
       \vskip1ex
-      \verb|letters| is a constant and a vector,\\
+      \verb|letters| is a constant and a vector,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
@@ -354,9 +354,9 @@ letters[5:10]  # vector of letters
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Appending vectors,\\
+      Appending vectors,
       \vskip1ex
-      The function \verb|vector()| returns an empty vector,\\
+      The function \verb|vector()| returns an empty vector,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
@@ -380,9 +380,9 @@ c('a', letters[5:10])  # vector of letters
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Lists are a type of vector that contain elements of different classes,\\
+      Lists are a type of vector that contain elements of different classes,
       \vskip1ex
-      Lists are recursive object types,\\
+      Lists are recursive object types,
       \vskip1ex
       Lists can be indexed (subset) using:
       \begin{itemize}[]
@@ -430,7 +430,7 @@ l.var$second[3]  # get third element of second element
         \item Other user-defined attributes/metadata,
       \end{itemize}
       \vskip1ex
-      The function \verb|attributes()| returns the attributes of an object,\\
+      The function \verb|attributes()| returns the attributes of an object,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
@@ -456,10 +456,10 @@ is.vector(names(v.var))  # names are character vectors
   \begin{columns}[T]
     \column{0.3\textwidth}
       The \verb|type| of an  $R$ object represents how it's stored in memory,\\
-      Examples of $R$ \verb|types| are \verb|double|, \verb|character|, \verb|list|, etc.\\
+      Examples of $R$ \verb|types| are \verb|double|, \verb|character|, \verb|list|, etc.
       \vskip1ex
       The \verb|class| of an  $R$ object is an attribute used for function dispatching in S3 classes,\\
-      Examples of $R$ \verb|classes| are \verb|character|, \verb|numeric|, \verb|matrix|, \verb|factor|, \verb|data.frame|, etc.\\
+      Examples of $R$ \verb|classes| are \verb|character|, \verb|numeric|, \verb|matrix|, \verb|factor|, \verb|data.frame|, etc.
     \column{0.7\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
@@ -485,11 +485,11 @@ class(v.var)  # get object class
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      When different objects are mixed in a vector, implicit coercion occurs so that every element in the vector is of the same class,\\
+      When different objects are mixed in a vector, implicit coercion occurs so that every element in the vector is of the same class,
       \vskip1ex
-      The rule is that coercion is into larger types (numeric values are coerced into character strings),\\
+      The rule is that coercion is into larger types (numeric values are coerced into character strings),
       \vskip1ex
-      Objects can be explicitly coerced from one class to another using the \verb|as.*| functions,\\
+      Objects can be explicitly coerced from one class to another using the \verb|as.*| functions,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
@@ -510,11 +510,11 @@ as.character(0:3)
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Arrays are vectors with a dimension attribute,\\
+      Arrays are vectors with a dimension attribute,
       \vskip1ex
-      Matrices are two-dimensional arrays,\\
+      Matrices are two-dimensional arrays,
       \vskip1ex
-      The dimension attribute of a matrix is an integer vector of length 2 (nrow, ncol),\\
+      The dimension attribute of a matrix is an integer vector of length 2 (nrow, ncol),
     \column{0.7\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
@@ -540,9 +540,9 @@ dimnames(m.var)  # get dimnames attribute
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Vectors can be converted into matrices by adding a dimension attribute,\\
+      Vectors can be converted into matrices by adding a dimension attribute,
       \vskip1ex
-      The attribute \verb|dimnames| can be assigned a named list to convert into a named matrix,\\
+      The attribute \verb|dimnames| can be assigned a named list to convert into a named matrix,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,prompt=TRUE>>=
@@ -559,7 +559,7 @@ m.var
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Indexing (subsetting) matrices,\\
+      Indexing (subsetting) matrices,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<echo=2:20,prompt=TRUE>>=
@@ -582,7 +582,7 @@ m.var[ ,-2]  # remove second column
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Vectors can be bound into matrices using the functions \verb|cbind()| and \verb|rbind()|,\\
+      Vectors can be bound into matrices using the functions \verb|cbind()| and \verb|rbind()|,
       \vskip1ex
       The \alert{recycling rule} allows operations on vectors of different lengths:\\
       \begin{enumerate}
@@ -612,13 +612,13 @@ cbind(v.var1, v.var2)  # recycling rule applied
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Factors are vectors whose elements can have only certain values,\\
+      Factors are vectors whose elements can have only certain values,
       \vskip1ex
-      Factors are designed to describe categorical data which can only take certain values,\\
+      Factors are designed to describe categorical data which can only take certain values,
       \vskip1ex
-      The function \verb|factor()| converts a character vector into a factor,\\
+      The function \verb|factor()| converts a character vector into a factor,
       \vskip1ex
-      Factors have two attributes: \verb|class| ("\verb|factor|") and \verb|levels| (the allowed values),\\
+      Factors have two attributes: \verb|class| ("\verb|factor|") and \verb|levels| (the allowed values),
     \column{0.7\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,prompt=TRUE>>=
@@ -640,13 +640,13 @@ table(f.var)  # get contingency (frequency) table
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Factors are vectors whose elements can have only certain values,\\
+      Factors are vectors whose elements can have only certain values,
       \vskip1ex
-      Factors are designed to describe categorical data which can only take certain values,\\
+      Factors are designed to describe categorical data which can only take certain values,
       \vskip1ex
-      The function \verb|factor()| converts a character vector into a factor,\\
+      The function \verb|factor()| converts a character vector into a factor,
       \vskip1ex
-      Factors have two attributes: \verb|class| ("\verb|factor|") and \verb|levels| (the allowed values),\\
+      Factors have two attributes: \verb|class| ("\verb|factor|") and \verb|levels| (the allowed values),
     \column{0.7\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,prompt=TRUE>>=
@@ -668,12 +668,12 @@ table(f.var)  # get contingency (frequency) table
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Data frames are 2-D objects (like matrices), but the columns can be of different classes,\\
+      Data frames are 2-D objects (like matrices), but the columns can be of different classes,
       \vskip1ex
       Data frames can also be thought of as lists in which all the elements are vectors of the same length,\\
-      Each list element is a column of elements of the same class,\\
+      Each list element is a column of elements of the same class,
       \vskip1ex
-      Data frames share properties of both lists and matrices,\\
+      Data frames share properties of both lists and matrices,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,prompt=TRUE>>=
@@ -703,7 +703,7 @@ class(df.florist$v.price)  # get column class
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Data frames can be subset in a similar way to lists and matrices,\\
+      Data frames can be subset in a similar way to lists and matrices,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<echo=6:30,tidy=FALSE,prompt=TRUE>>=
@@ -731,9 +731,9 @@ df.florist$v.color[3]  # get third row from column 'v.color'
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      The function \verb|str()| compactly displays the structure of an $R$ object,\\
+      The function \verb|str()| compactly displays the structure of an $R$ object,
       \vskip1ex
-      The functions \verb|head()| and \verb|tail()| display the first and last rows of an $R$ object,\\
+      The functions \verb|head()| and \verb|tail()| display the first and last rows of an $R$ object,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<echo=6:30,tidy=FALSE,prompt=TRUE>>=
@@ -761,11 +761,11 @@ tail(cars, n=5)  # get last five rows
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Data frames can be sorted on any column,\\
+      Data frames can be sorted on any column,
       \vskip1ex
-      The function \verb|order()| returns a permutation vector,\\
+      The function \verb|order()| returns a permutation vector,
       \vskip1ex
-      \verb|order()| can take several vectors as input, to break any ties,\\
+      \verb|order()| can take several vectors as input, to break any ties,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<echo=6:30,tidy=FALSE,prompt=TRUE>>=
@@ -795,11 +795,11 @@ order(c(2, 1:4), 1:5)  # there's a tie
 \begin{block}{}
   \begin{columns}[T]
     \column{0.35\textwidth}
-      The functions \verb|read.table()| and \verb|write.table()| read and write data frames from files,\\
+      The functions \verb|read.table()| and \verb|write.table()| read and write data frames from files,
       \vskip1ex
-      The functions \verb|read.csv()| and \verb|write.csv()| are wrappers for \verb|read.table()| and \verb|write.table()|, and read and write data frames from CSV format files,\\
+      The functions \verb|read.csv()| and \verb|write.csv()| are wrappers for \verb|read.table()| and \verb|write.table()|, and read and write data frames from CSV format files,
       \vskip1ex
-      \verb|read.table()| and \verb|write.table()| are inefficient for very large data sets,\\
+      \verb|read.table()| and \verb|write.table()| are inefficient for very large data sets,
     \column{0.65\textwidth}
       \vspace{-1em}
       <<echo=6:30,tidy=FALSE,prompt=TRUE>>=
@@ -831,7 +831,7 @@ mean(df.bad$v.price)
 \begin{block}{}
   \begin{columns}[T]
     \column{0.4\textwidth}
-      Possible sources of bad data are: imported data, class coercion, numeric overflow,\\
+      Possible sources of bad data are: imported data, class coercion, numeric overflow,
       \vskip1ex
       Types of bad data:
       \begin{itemize}[]
@@ -840,9 +840,9 @@ mean(df.bad$v.price)
         \item \verb|Inf| means numeric overflow - divide by zero,
       \end{itemize}
       \vskip1ex
-      The functions \verb|is.na()| and \verb|is.nan()| test for NA and NaN values,\\
+      The functions \verb|is.na()| and \verb|is.nan()| test for NA and NaN values,
       \vskip1ex
-      Many functions have a \verb|na.rm| parameter to remove NAs from input data,\\
+      Many functions have a \verb|na.rm| parameter to remove NAs from input data,
     \column{0.6\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,prompt=TRUE>>=
@@ -873,7 +873,7 @@ v.na[!is.na(v.na)]  # delete the NA values
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      The function \verb|complete.cases()| returns TRUE if a row has no NA values,\\
+      The function \verb|complete.cases()| returns TRUE if a row has no NA values,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,prompt=TRUE>>=
@@ -892,9 +892,9 @@ head(airquality[!complete.cases(airquality), ])  # display some NAs
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Rows containing bad data may be either removed or replaced with an estimated value,\\
+      Rows containing bad data may be either removed or replaced with an estimated value,
       \vskip1ex
-      The function \verb|na.locf()| replaces NAs with most recent non-NA prior to it,\\
+      The function \verb|na.locf()| replaces NAs with most recent non-NA prior to it,
       \vskip1ex
     \column{0.7\textwidth}
       \vspace{-1em}
@@ -919,9 +919,9 @@ head(good.air)  # NAs replaced
 \begin{block}{}
   \begin{columns}[T]
     \column{0.35\textwidth}
-      The functions \verb|read.csv()| and \verb|write.csv()| allow reading and writing matrices from CSV format files,\\
+      The functions \verb|read.csv()| and \verb|write.csv()| allow reading and writing matrices from CSV format files,
       \vskip1ex
-      Using the \verb|*.csv()| functions is very inefficient for large data sets,\\
+      Using the \verb|*.csv()| functions is very inefficient for large data sets,
     \column{0.65\textwidth}
       \vspace{-1em}
       <<echo=2:30,tidy=FALSE,prompt=TRUE>>=
@@ -947,14 +947,14 @@ m.in
 \begin{block}{}
   \begin{columns}[T]
     \column{0.35\textwidth}
-      There are many other ways of reading and writing matrices from files, with tradeoffs between simplicity, data size, and speed,\\
+      There are many other ways of reading and writing matrices from files, with tradeoffs between simplicity, data size, and speed,
       \vskip1ex
-      Reading and writing matrices without rownames can be simplified,\\
+      Reading and writing matrices without rownames can be simplified,
       \vskip1ex
-      The function \verb|write.matrix()| is part of library \verb|MASS|,\\
+      The function \verb|write.matrix()| is part of library \verb|MASS|,
       \vskip1ex
       The advantage of using the \verb|scan()| function is its speed, but it doesn't handle rownames,\\
-      Although aa test with 300x100 matrix showed almost same system.time(),\\
+      Although aa test with 300x100 matrix showed almost same system.time(),
     \column{0.65\textwidth}
       \vspace{-1em}
       <<echo=2:30,tidy=FALSE,prompt=TRUE>>=
