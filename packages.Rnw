@@ -195,7 +195,7 @@ install.packages("PerformanceAnalytics",
     \end{block}
     \begin{block}{}
       Note:
-      \begin{itemize}[]
+      \begin{itemize}
         \item Authors,
         \item Version number,
         \item Reference manual,
@@ -223,7 +223,7 @@ install.packages("PerformanceAnalytics",
     \end{block}
     \begin{block}{}
       Note:
-      \begin{itemize}[]
+      \begin{itemize}
         \item Maintainer,
         \item Topics,
         \item List of packages.

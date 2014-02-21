@@ -55,8 +55,7 @@ knit_theme$set(thm)
 \titlegraphic{\includegraphics[scale=0.8]{engineering_long_color}}
 \author{Jerzy Pawlowski}
 % \email{jp3900@poly.edu}
-\date{January 27, 2014}
-% \date{\today}
+\date{\today}
 % \pgfdeclareimage[height=0.5cm]{university-logo}{engineering_long_white}
 % \logo{\pgfuseimage{engineering_long_white}}
 
@@ -79,13 +78,13 @@ knit_theme$set(thm)
 \begin{block}{}
   \begin{columns}[T]
     \column{0.5\textwidth}
-      The standard assignment operator in $R$ is \verb|"<-"|,
+      The standard assignment operator in $R$ is "\texttt{<-}",
       \vskip1ex
-      Both \verb|"<-"| and \verb|"="| are valid assignment operators in $R$,
+      Both "\texttt{<-}" and "\texttt{=}" are valid assignment operators in $R$,
       \vskip1ex
-      But they differ in \emph{scope} and  \emph{precedence} (\verb|"<-"| has higher precedence than \verb|"="|),
+      But they differ in \emph{scope} and  \emph{precedence} ("\texttt{<-}" has higher precedence than "\texttt{=}"),
       \vskip1ex
-      The \verb|"="| operator is used for named arguments in function calls,
+      The "\texttt{=}" operator is used for named arguments in function calls,
     \column{0.5\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
@@ -99,9 +98,9 @@ n.var1
 \pause
 
 \begin{block}{\color{red}{Rule of Thumb}}
-  Use \verb|"<-"| in $R$ scripts,
+  Use "\texttt{<-}" in $R$ scripts,
   \vskip1ex
-  Use \verb|"="| in function calls.
+  Use "\texttt{=}" in function calls.
 \end{block}
 
 \end{frame}
@@ -116,15 +115,15 @@ n.var1
     \column{0.4\textwidth}
       The workspace is the current $R$ working environment, which includes all user-defined objects and the command history,
       \vskip1ex
-      The function \verb|ls()| returns names of objects in the $R$ workspace,
+      The function \texttt{ls()} returns names of objects in the $R$ workspace,
       \vskip1ex
-      The function \verb|rm()| removes objects from the $R$ workspace,
+      The function \texttt{rm()} removes objects from the $R$ workspace,
       \vskip1ex
       The workspace can be saved into and loaded back from an $*.RData$ file (binary file format),
       \vskip1ex
-      The function \verb|save.image()| saves the whole workspace,
+      The function \texttt{save.image()} saves the whole workspace,
       \vskip1ex
-      The function \verb|save()| saves just the selected objects,
+      The function \texttt{save()} saves just the selected objects,
     \column{0.6\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,prompt=TRUE>>=
@@ -173,7 +172,7 @@ ls()  # list objects
 \begin{block}{}
   \begin{columns}[T]
     \column{0.4\textwidth}
-      The function \verb|history()| displays recent commands,
+      The function \texttt{history()} displays recent commands,
       \vskip1ex
       You can also save and load the command history from a file,
     \column{0.6\textwidth}
@@ -234,10 +233,10 @@ loadhistory(file="myfile")  # default is ".Rhistory"
     \column{0.3\textwidth}
       Strings are character objects of length one,
       \vskip1ex
-      The function \verb|paste()| converts elements to characters and concatenates them into a string,
+      The function \texttt{paste()} converts elements to characters and concatenates them into a string,
       \vskip1ex
-      The function \verb|cat()| concatenates and writes to output,\\
-      The function \verb|cat()| is useful in user-defined functions,\\
+      The function \texttt{cat()} concatenates and writes to output,\\
+      The function \texttt{cat()} is useful in user-defined functions,\\
       The recycling rule extends the length to match the longest object,
     \column{0.7\textwidth}
       \vspace{-1em}
@@ -262,7 +261,7 @@ strsplit("Hello World", split='r')  # split string
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      The function \verb|c()| combines values into a vector or a list,
+      The function \texttt{c()} combines values into a vector or a list,
       \vskip1ex
       Vectors can be indexed (subset) using vectors of:
       \begin{itemize}[]
@@ -334,11 +333,11 @@ v.var
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      The function \verb|seq()| returns a vector of numbers,
+      The function \texttt{seq()} returns a vector of numbers,
       \vskip1ex
-      Another way of producing a vector of numbers is by using the "\verb|:|" operator,
+      Another way of producing a vector of numbers is by using the "\texttt{:}" operator,
       \vskip1ex
-      \verb|letters| is a constant and a vector,
+      \texttt{letters} is a constant and a vector,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
@@ -356,7 +355,7 @@ letters[5:10]  # vector of letters
     \column{0.3\textwidth}
       Appending vectors,
       \vskip1ex
-      The function \verb|vector()| returns an empty vector,
+      The function \texttt{vector()} returns an empty vector,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
@@ -386,8 +385,8 @@ c('a', letters[5:10])  # vector of letters
       \vskip1ex
       Lists can be indexed (subset) using:
       \begin{itemize}[]
-        \item the '\verb|[[|' operator,
-        \item the '\verb|$|' operator (for named lists only),
+        \item the '\texttt{[[}' operator,
+        \item the '\texttt{\$}' operator (for named lists only),
       \end{itemize}
       \vskip1ex
       Partial name matching allows subsetting with partial name, as long as it can be resolved, 
@@ -430,7 +429,7 @@ l.var$second[3]  # get third element of second element
         \item Other user-defined attributes/metadata,
       \end{itemize}
       \vskip1ex
-      The function \verb|attributes()| returns the attributes of an object,
+      The function \texttt{attributes()} returns the attributes of an object,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
@@ -455,11 +454,11 @@ is.vector(names(v.var))  # names are character vectors
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      The \verb|type| of an  $R$ object represents how it's stored in memory,\\
-      Examples of $R$ \verb|types| are \verb|double|, \verb|character|, \verb|list|, etc.
+      The \texttt{type} of an  $R$ object represents how it's stored in memory,\\
+      Examples of $R$ \texttt{types} are \texttt{double}, \texttt{character}, \texttt{list}, etc.
       \vskip1ex
-      The \verb|class| of an  $R$ object is an attribute used for function dispatching in S3 classes,\\
-      Examples of $R$ \verb|classes| are \verb|character|, \verb|numeric|, \verb|matrix|, \verb|factor|, \verb|data.frame|, etc.
+      The \texttt{class} of an  $R$ object is an attribute used for function dispatching in S3 classes,\\
+      Examples of $R$ \texttt{classes} are \texttt{character}, \texttt{numeric}, \texttt{matrix}, \texttt{factor}, \texttt{data.frame}, etc.
     \column{0.7\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
@@ -489,7 +488,7 @@ class(v.var)  # get object class
       \vskip1ex
       The rule is that coercion is into larger types (numeric values are coerced into character strings),
       \vskip1ex
-      Objects can be explicitly coerced from one class to another using the \verb|as.*| functions,
+      Objects can be explicitly coerced from one class to another using the \texttt{as.*} functions,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<prompt=TRUE>>=
@@ -542,7 +541,7 @@ dimnames(m.var)  # get dimnames attribute
     \column{0.3\textwidth}
       Vectors can be converted into matrices by adding a dimension attribute,
       \vskip1ex
-      The attribute \verb|dimnames| can be assigned a named list to convert into a named matrix,
+      The attribute \texttt{dimnames} can be assigned a named list to convert into a named matrix,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,prompt=TRUE>>=
@@ -582,7 +581,7 @@ m.var[ ,-2]  # remove second column
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Vectors can be bound into matrices using the functions \verb|cbind()| and \verb|rbind()|,
+      Vectors can be bound into matrices using the functions \texttt{cbind()} and \texttt{rbind()},
       \vskip1ex
       The \alert{recycling rule} allows operations on vectors of different lengths:\\
       \begin{enumerate}
@@ -616,9 +615,9 @@ cbind(v.var1, v.var2)  # recycling rule applied
       \vskip1ex
       Factors are designed to describe categorical data which can only take certain values,
       \vskip1ex
-      The function \verb|factor()| converts a character vector into a factor,
+      The function \texttt{factor()} converts a character vector into a factor,
       \vskip1ex
-      Factors have two attributes: \verb|class| ("\verb|factor|") and \verb|levels| (the allowed values),
+      Factors have two attributes: \texttt{class} ("\texttt{factor}") and \texttt{levels} (the allowed values),
     \column{0.7\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,prompt=TRUE>>=
@@ -644,9 +643,9 @@ table(f.var)  # get contingency (frequency) table
       \vskip1ex
       Factors are designed to describe categorical data which can only take certain values,
       \vskip1ex
-      The function \verb|factor()| converts a character vector into a factor,
+      The function \texttt{factor()} converts a character vector into a factor,
       \vskip1ex
-      Factors have two attributes: \verb|class| ("\verb|factor|") and \verb|levels| (the allowed values),
+      Factors have two attributes: \texttt{class} ("\texttt{factor}") and \texttt{levels} (the allowed values),
     \column{0.7\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,prompt=TRUE>>=
@@ -731,9 +730,9 @@ df.florist$v.color[3]  # get third row from column 'v.color'
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      The function \verb|str()| compactly displays the structure of an $R$ object,
+      The function \texttt{str()} compactly displays the structure of an $R$ object,
       \vskip1ex
-      The functions \verb|head()| and \verb|tail()| display the first and last rows of an $R$ object,
+      The functions \texttt{head()} and \texttt{tail()} display the first and last rows of an $R$ object,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<echo=6:30,tidy=FALSE,prompt=TRUE>>=
@@ -763,9 +762,9 @@ tail(cars, n=5)  # get last five rows
     \column{0.3\textwidth}
       Data frames can be sorted on any column,
       \vskip1ex
-      The function \verb|order()| returns a permutation vector,
+      The function \texttt{order()} returns a permutation vector,
       \vskip1ex
-      \verb|order()| can take several vectors as input, to break any ties,
+      \texttt{order()} can take several vectors as input, to break any ties,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<echo=6:30,tidy=FALSE,prompt=TRUE>>=
@@ -795,11 +794,11 @@ order(c(2, 1:4), 1:5)  # there's a tie
 \begin{block}{}
   \begin{columns}[T]
     \column{0.35\textwidth}
-      The functions \verb|read.table()| and \verb|write.table()| read and write data frames from files,
+      The functions \texttt{read.table()} and \texttt{write.table()} read and write data frames from files,
       \vskip1ex
-      The functions \verb|read.csv()| and \verb|write.csv()| are wrappers for \verb|read.table()| and \verb|write.table()|, and read and write data frames from CSV format files,
+      The functions \texttt{read.csv()} and \texttt{write.csv()} are wrappers for \texttt{read.table()} and \texttt{write.table()}, and read and write data frames from CSV format files,
       \vskip1ex
-      \verb|read.table()| and \verb|write.table()| are inefficient for very large data sets,
+      \texttt{read.table()} and \texttt{write.table()} are inefficient for very large data sets,
     \column{0.65\textwidth}
       \vspace{-1em}
       <<echo=6:30,tidy=FALSE,prompt=TRUE>>=
@@ -835,14 +834,14 @@ mean(df.bad$v.price)
       \vskip1ex
       Types of bad data:
       \begin{itemize}[]
-        \item \verb|NA| means Not Available (missing) data,
-        \item \verb|NaN| means Not a Number data,
-        \item \verb|Inf| means numeric overflow - divide by zero,
+        \item \texttt{NA} means Not Available (missing) data,
+        \item \texttt{NaN} means Not a Number data,
+        \item \texttt{Inf} means numeric overflow - divide by zero,
       \end{itemize}
       \vskip1ex
-      The functions \verb|is.na()| and \verb|is.nan()| test for NA and NaN values,
+      The functions \texttt{is.na()} and \texttt{is.nan()} test for NA and NaN values,
       \vskip1ex
-      Many functions have a \verb|na.rm| parameter to remove NAs from input data,
+      Many functions have a \texttt{na.rm} parameter to remove NAs from input data,
     \column{0.6\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,prompt=TRUE>>=
@@ -856,14 +855,15 @@ v.na <- c(1, 2, NA, 4, NA, 5)  # create vector with some NA values
 mean(v.na)  # returns NA, when NAs are input
 mean(v.na, na.rm=TRUE)  # remove NAs from input data
 v.na[!is.na(v.na)]  # delete the NA values
+sum(!is.na(v.na))  # count non-NA values
       @
   \end{columns}
 \end{block}
 
 \begin{block}{}
-  \verb|NULL| isn't bad data, but is a reserved word and represents a null object,\\
-  \verb|NULL| is returned by functions whose value is undefined,\\
-  Very often variables are initialized to \verb|NULL| before iteration,\\
+  \texttt{NULL} isn't bad data, but is a reserved word and represents a null object,\\
+  \texttt{NULL} is returned by functions whose value is undefined,\\
+  Very often variables are initialized to \texttt{NULL} before iteration,\\
 \end{block}
 
 \end{frame}
@@ -873,7 +873,7 @@ v.na[!is.na(v.na)]  # delete the NA values
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      The function \verb|complete.cases()| returns TRUE if a row has no NA values,
+      The function \texttt{complete.cases()} returns \texttt{TRUE} if a row has no \texttt{NA} values,
     \column{0.7\textwidth}
       \vspace{-1em}
       <<tidy=FALSE,prompt=TRUE>>=
@@ -894,7 +894,9 @@ head(airquality[!complete.cases(airquality), ])  # display some NAs
     \column{0.3\textwidth}
       Rows containing bad data may be either removed or replaced with an estimated value,
       \vskip1ex
-      The function \verb|na.locf()| replaces NAs with most recent non-NA prior to it,
+      The library \texttt{zoo} is designed for managing time series and ordered objects,
+      \vskip1ex
+      The function \texttt{na.locf()} replaces NAs with most recent non-NA prior to it,
       \vskip1ex
     \column{0.7\textwidth}
       \vspace{-1em}
@@ -919,9 +921,9 @@ head(good.air)  # NAs replaced
 \begin{block}{}
   \begin{columns}[T]
     \column{0.35\textwidth}
-      The functions \verb|read.csv()| and \verb|write.csv()| allow reading and writing matrices from CSV format files,
+      The functions \texttt{read.csv()} and \texttt{write.csv()} allow reading and writing matrices from CSV format files,
       \vskip1ex
-      Using the \verb|*.csv()| functions is very inefficient for large data sets,
+      Using the \texttt{*.csv()} functions is very inefficient for large data sets,
     \column{0.65\textwidth}
       \vspace{-1em}
       <<echo=2:30,tidy=FALSE,prompt=TRUE>>=
@@ -951,9 +953,9 @@ m.in
       \vskip1ex
       Reading and writing matrices without rownames can be simplified,
       \vskip1ex
-      The function \verb|write.matrix()| is part of library \verb|MASS|,
+      The function \texttt{write.matrix()} is part of library \texttt{MASS},
       \vskip1ex
-      The advantage of using the \verb|scan()| function is its speed, but it doesn't handle rownames,\\
+      The advantage of using the \texttt{scan()} function is its speed, but it doesn't handle rownames,\\
       Although aa test with 300x100 matrix showed almost same system.time(),
     \column{0.65\textwidth}
       \vspace{-1em}
@@ -991,7 +993,7 @@ m.in
 \begin{block}{}
   \begin{columns}[T]
     \column{0.4\textwidth}
-      The function \verb|save()| combine values into a vector or a list,\\
+      The function \texttt{save()} combine values into a vector or a list,\\
       Reading the help file,\\
       default argument values,\\
       elipsis argument,\\
@@ -1012,8 +1014,8 @@ save(..., list=character(),
 \pause
 
 \begin{block}{\color{red}{Rule of Thumb}}
-Use \verb|"<-"| in $R$ scripts,\\
-Use \verb|"="| in function calls.\\
+Use "\texttt{<-}" in $R$ scripts,\\
+Use "\texttt{=}" in function calls.\\
 \end{block}
 
 \end{frame}

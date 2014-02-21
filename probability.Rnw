@@ -1,0 +1,419 @@
+% Define knitr options
+% !Rnw weave = knitr
+% Set global chunk options
+<<knitr_setup,include=FALSE,cache=FALSE>>=
+library(knitr)
+opts_chunk$set(prompt=TRUE,comment=NA, highlight=FALSE, message=FALSE, warning=FALSE, size='scriptsize', fig.width=4, fig.height=4)
+options(width=60, dev='pdf')
+thm <- knit_theme$get("acid")
+knit_theme$set(thm)
+@
+
+
+% Define document options
+\documentclass[10pt]{beamer}
+\mode<presentation>
+\usetheme{AnnArbor}
+% \usecolortheme{whale}
+% Uncover everything in a step-wise fashion
+% \beamerdefaultoverlayspecification{<+->}
+% amsmath package for math symbols
+% \usepackage{amsmath}
+\usepackage[latin1]{inputenc}
+\usepackage{hyperref}
+\usepackage{fancybox}
+\usepackage{url}
+\usepackage[backend=bibtex,style=alphabetic]{biblatex} % bibstyle=numeric
+% \bibliographystyle{amsalpha} % doesn't work
+\addbibresource{FRE6811_bib.bib}
+% \addbibresource[location=remote]{http://www.citeulike.org/user/jerzyp}
+\renewcommand\bibfont{\footnotesize}
+\renewcommand{\pgfuseimage}[1]{\scalebox{0.75}{\includegraphics{#1}}} % scale bib icons
+\setbeamertemplate{bibliography item}[text] % set bib icons
+% \setbeamertemplate{bibliography item}{} % remove bib icons
+
+% \usepackage{enumerate}
+% \let\emph\textbf
+% \let\alert\textbf
+% Define colors for hyperlinks
+\definecolor{links}{HTML}{2A1B81}
+\hypersetup{colorlinks=true,linkcolor=,urlcolor=links}
+% Make url text footnotesize
+\renewcommand\UrlFont{\footnotesize}
+% Make institute text italic and small
+\setbeamerfont{institute}{size=\small,shape=\itshape,bg=red,fg=red}
+\setbeamerfont{date}{size=\small}
+\setbeamerfont{block title}{size=\normalsize} % shape=\itshape
+\setbeamerfont{block body}{size=\footnotesize}
+
+
+% Title page setup
+\title[Probability Distributions]{Probability Distributions}
+\subtitle{FRE6811 Financial Software Laboratory, Spring 2014}
+% \subject{Getting Started With R}
+\institute[NYU Polytechnic]{NYU Polytechnic School of Engineering}
+\titlegraphic{\includegraphics[scale=0.8]{engineering_long_color}}
+\author{Jerzy Pawlowski}
+% \email{jp3900@poly.edu}
+\date{January 27, 2014}
+% \date{\today}
+% \pgfdeclareimage[height=0.5cm]{university-logo}{engineering_long_white}
+% \logo{\pgfuseimage{engineering_long_white}}
+
+
+%%%%%%%%%%%%%%%
+\begin{document}
+
+
+%%%%%%%%%%%%%%%
+\maketitle
+
+
+%%%%%%%%%%%%%%%
+% \section{Plotting}
+\section{Probability Distributions}
+
+
+%%%%%%%%%%%%%%%
+\subsection{EuStockMarkets}
+\begin{frame}[fragile,t]{\subsecname \hskip0.5em Quantile-Quantile Plot}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      A $Q-Q$ plot is a plot of points from two probability distributions with the same quantiles,\\
+      \vskip1ex
+      The function \verb|qqnorm()| produces a normal Q-Q plot,\\
+      \vskip1ex
+      The function \verb|qqline()| fits a line to the normal quantiles,\\
+      \vskip1ex
+      The $DAX$ Q-Q plot shows that the $DAX$ return distribution has fat tails,\\
+
+        <<eustx_qq,echo=4:30,eval=TRUE,tidy=FALSE,fig.show='hide'>>=
+par(oma=c(1, 1, 1, 1), mgp=c(2, 1, 0), mar=c(5, 1, 1, 1), cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.5)
+# calculate percentage returns
+ts.rets <- diff(log(EuStockMarkets))
+# create normal Q-Q plot
+qqnorm(ts.rets[, 1], ylim=c(-0.04, 0.04), 
+       xlab='Normal Quantiles', main='')
+# fit a line to the normal quantiles
+qqline(ts.rets[, 1], col='red', lwd=2)
+ch.title <- paste(colnames(EuStockMarkets)[1], 
+                  'Q-Q Plot')
+title(main=ch.title, line=-1)  # add title
+shapiro.test(ts.rets[, 1])  # Shapiro-Wilk test
+      @
+
+    \column{0.5\textwidth}
+      \vspace{-2em}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/eustx_qq}
+      \vskip1ex
+      The p-value of the $Shapiro-Wilk$ test is very small, which shows that the $DAX$ returns are not normal,\\
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Normal Probability Distribution}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The Normal probability density function is given by:
+      \begin{displaymath}
+        P(x) = \frac{e^{-(x-\mu)^2/2\sigma^2}}{\sigma\sqrt{2 \pi}}
+      \end{displaymath}
+      The Standard Normal distribution is a special case of the Normal with $\mu=0$ and $\sigma=1$,
+\vskip1ex
+      The function \verb|dnorm()| calculates the normal probability density,
+
+        <<norm_dist,echo=3:30,tidy=FALSE,fig.show='hide'>>=
+rm(list=ls())
+par(mar=c(7, 2, 1, 2), mgp=c(2, 1, 0), cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.5)
+v.xval <- seq(-5, 7, length=100)
+v.yval <- dnorm(v.xval, mean=1.0, sd=2.0)
+plot(v.xval, v.yval, type="l", lty="solid", 
+     xlab="", ylab="")
+title(main="Normal Density Function", line=0.5)
+n.low <- 3; n.up <- 5  # set lower and upper bounds
+# set polygon base
+v.reg <- ((v.xval >= n.low) & (v.xval <= n.up))
+polygon(c(n.low, v.xval[v.reg], n.up),  # draw polygon
+        c(-1, v.yval[v.reg], -1), col="red")
+      @
+    \column{0.5\textwidth}
+    \includegraphics[width=0.5\paperwidth,valign=t]{figure/norm_dist}
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Normal Probability Distributions}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Plots of several Normal distributions with different values of $\sigma,$
+        <<norm_dist_mult,echo=3:30,tidy=FALSE,fig.show='hide'>>=
+rm(list=ls())
+par(mar=c(7, 2, 1, 2), mgp=c(2, 1, 0), cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.5)
+v.xval <- seq(-4, 4, length=100)
+v.sigma <- c(0.5, 1, 1.5, 2)  # sigma values
+# create plot colors
+v.colors <- c("red", "black", "blue", "green")
+# create legend labels
+v.labels <- paste("sigma", v.sigma, sep='=')
+# plot an empty chart
+plot(v.xval, dnorm(v.xval, sd=v.sigma[1]), 
+     type="n", xlab="", ylab="", 
+     main="Normal Distributions")
+# add lines to plot
+for (i.var in 1:4) {
+  lines(v.xval, dnorm(v.xval, sd=v.sigma[i.var]), 
+        lwd=2, col=v.colors[i.var])
+}
+# add legend
+legend("topright", inset=0.05, title="Sigmas", 
+       v.labels, cex=0.8, lwd=2, lty=c(1, 1, 1, 1), 
+       col=v.colors)
+      @
+    \column{0.5\textwidth}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/norm_dist_mult}
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Chi-squared Distribution}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Let $Z_{1},\ldots ,Z_{k}$ be independent standard normal random variables,
+      \vskip1ex
+      Let $X=\sum_{i=1}^{k}Z_{i}^{2}$, \hskip1em then $X\sim \chi _{k}^{2}$,
+        <<chisq_dist_mult,echo=3:30,tidy=FALSE,fig.show='hide'>>=
+rm(list=ls())
+par(mar=c(7, 2, 1, 2), mgp=c(2, 1, 0), cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.5)
+v.xval <- seq(0, 20, length=100)
+v.df <- c(2, 5, 8, 11)  # df values
+# create plot colors
+v.colors <- c("red", "black", "blue", "green")
+# create legend labels
+v.labels <- paste("df", v.df, sep='=')
+# plot an empty chart
+plot(v.xval, dchisq(v.xval, df=v.df[1]), 
+     type="n", xlab="", ylab="", 
+     main="Chi-squared Distributions")
+# add lines to plot
+for (i.var in 1:4) {
+  lines(v.xval, dchisq(v.xval, df=v.df[i.var]), 
+        lwd=2, col=v.colors[i.var])
+}
+# add legend
+legend("topright", inset=0.05, 
+       title="Degrees of freedom", v.labels, 
+       cex=0.8, lwd=2, lty=c(1, 1, 1, 1), 
+       col=v.colors)
+      @
+    \column{0.5\textwidth}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/chis_dist_mult}
+      \vspace{-4em}
+      $X$ is distributed according to the \emph{chi-squared} distribution with $k$ degrees of freedom, given by:
+% \normalsize
+      \begin{displaymath}
+        P(x) = \frac{x^{k/2-1}\,e^{-x/2}}{2^{k/2}\, \Gamma(k/2)}
+      \end{displaymath}
+% \footnotesize
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Student's $t$-distribution}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Let $Z_{1},\ldots ,Z_{k}$ be independent standard normal random variables,
+      \vskip1ex
+      Let $s^2=\sum_{i=1}^{\nu}Z_{i}^{2}$, \hskip1em $t=\frac{\sum_{i=1}^{\nu}Z_{i}}{s}$,
+        <<t_dist_mult,echo=3:30,tidy=FALSE,fig.show='hide'>>=
+rm(list=ls())
+par(mar=c(7, 2, 1, 2), mgp=c(2, 1, 0), cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.5)
+v.xval <- seq(-5, 5, length=100)
+v.df <- c(3, 6, 9)  # df values
+# create plot colors
+v.colors <- c("black", "red", "blue", "green")
+# create legend labels
+v.labels <- c('normal', paste("df", v.df, sep='='))
+# plot chart of normal distribution
+plot(v.xval, dnorm(v.xval), type="l", 
+     lwd=2, xlab="", ylab="", 
+     main="t-distributions")
+# add lines to plot
+for (i.var in 1:3) {
+  lines(v.xval, dt(v.xval, df=v.df[i.var]), 
+        lwd=2, col=v.colors[i.var+1])
+}
+# add legend
+legend("topright", inset=0.05, 
+       title="Degrees\n of freedom", v.labels, 
+       cex=0.8, lwd=2, lty=c(1, 1, 1, 1), 
+       col=v.colors)
+      @
+    \column{0.5\textwidth}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/t_dist_mult}
+      \vspace{-4em}
+      $t$ is distributed according to the $t$-distribution with $\nu$ degrees of freedom, given by:
+      \begin{displaymath}
+        P(x) = \frac{\Gamma((\nu+1)/2)}{\sqrt{\pi \nu}\,\Gamma(\nu/2)}\, (1 + x^2/\nu)^{-(\nu+1)/2}
+      \end{displaymath}
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Pseudo-Random Numbers}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.3\textwidth}
+      The function \verb|set.seed()| initializes the random number generator by specifying the $seed$ value,
+      \vskip1ex
+      The function \verb|runif()| produces random numbers from the uniform distribution,
+      \vskip1ex
+      The function \verb|rnorm()| produces random numbers from the normal distribution,
+      \vskip1ex
+      The function \verb|pnorm()| calculates the cumulative normal distribution,
+      \vskip1ex
+      The function \verb|qnorm()| calculates the inverse cumulative normal distribution,
+    \column{0.7\textwidth}
+      \vspace{-1em}
+        <<echo=2:30,tidy=FALSE>>=
+rm(list=ls())
+set.seed(1121)  # initialize the random number generator
+runif(3)  # three random numbers from the uniform distribution
+runif(3)  # produce another three numbers
+set.seed(1121)  # re-initialize the random number generator
+runif(3)  # produce another three numbers
+# produce a random number from the standard normal distribution
+rnorm(1)
+# produce five random numbers from the standard normal distribution
+rnorm(5)
+# produce five random numbers from the normal distribution
+rnorm(n=5, mean=1, sd=2)  # match arguments by name
+# calculate cumulative standard normal distribution
+c(pnorm(-2), pnorm(2))
+# calculate inverse cumulative standard normal distribution
+c(qnorm(0.75), qnorm(0.25))
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Estimators of Moments}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.4\textwidth}
+      The estimators of moments of a probability distribution are given by:
+      \vskip1ex
+      Mean: $\bar{x}=\frac{1}{k} \sum_{i=1}^{k} x_{i}$
+      \vskip1ex
+      Variance: $\hat{\sigma}^2=\frac{1}{k-1} \sum_{i=1}^{k} (x_{i}-\bar{x})^2$
+      \vskip1ex
+      Skewness:
+      \begin{displaymath}
+        \hat{s}=\frac{k}{(k-1)(k-2)} \sum_{i=1}^{k} (\frac{x_{i}-\bar{x}}{\hat{\sigma}})^3
+      \end{displaymath}
+      Kurtosis:
+      \begin{displaymath}
+        \hat{k}=\frac{k(k+1)}{(k-1)^3} \sum_{i=1}^{k} (\frac{x_{i}-\bar{x}}{\hat{\sigma}})^4
+      \end{displaymath}
+      The normal distribution has zero skewness and kurtosis equal to 3,
+    \column{0.6\textwidth}
+      \vspace{-1em}
+        <<eustx_ts,echo=3:30,tidy=FALSE,fig.show='hide'>>=
+rm(list=ls())
+par(oma=c(1, 1, 1, 1), mgp=c(2, 1, 0), mar=c(5, 1, 1, 1), cex.lab=0.8, cex.axis=1.0, cex.main=0.8, cex.sub=0.5)
+ts.rets <- diff(log(EuStockMarkets))[, 1]  # DAX returns
+i.num <- length(ts.rets)  # number of observations
+n.mean <- mean(ts.rets); n.sd <- sd(ts.rets)
+# calculate skew
+i.num*(sum(((ts.rets - n.mean)/n.sd)^3))/
+  ((i.num-1)*(i.num-2))
+# calculate kurtosis
+i.num*(i.num+1)*(sum(((ts.rets - n.mean)/n.sd)^4))/
+  ((i.num-1)^3)
+ts.rets <- rnorm(i.num, sd=2)  # random normal returns
+n.mean <- mean(ts.rets); n.sd <- sd(ts.rets)
+# calculate skew
+i.num*(sum(((ts.rets - n.mean)/n.sd)^3))/
+  ((i.num-1)*(i.num-2))
+# calculate kurtosis
+i.num*(i.num+1)*(sum(((ts.rets - n.mean)/n.sd)^4))/
+  ((i.num-1)^3)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Function for Calculating Moments}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.3\textwidth}
+      $R$ provides an easy way to write functions,
+      \vskip1ex
+      Function arguments can be matched by position or by name,
+      \vskip1ex
+      If the function arguments are missing then the default value is used,
+      \vskip1ex
+      Functions return the value of the last expression that is evaluated,
+      \vskip1ex
+      If a function name is called alone then $R$ displays the function code,
+    \column{0.7\textwidth}
+      \vspace{-1em}
+        <<echo=4:30,tidy=FALSE>>=
+rm(list=ls())
+par(oma=c(1, 1, 1, 1), mgp=c(2, 1, 0), mar=c(5, 1, 1, 1), cex.lab=0.8, cex.axis=1.0, cex.main=0.8, cex.sub=0.5)
+set.seed(1121)  # initialize the random number generator
+ts.rets <- diff(log(EuStockMarkets))[, 1]  # DAX returns
+# define function CalcSkew to calculate the skew
+CalcSkew <- function(ts.data=rnorm(1000)) {  # default is normal
+# Calculates the skew of a time series of returns.
+  i.num <- length(ts.data)  # number of observations
+  n.mean <- mean(ts.data)
+  n.sd <- sd(ts.data)
+# the last statement is what is returned
+  i.num*sum(((ts.data - n.mean)/n.sd)^3)/((i.num-1)*(i.num-2))
+}  # end CalcSkew
+# calculate skewness of DAX returns
+CalcSkew(ts.data=ts.rets)  # match arguments by name
+CalcSkew(ts.rets)  # match arguments by position
+CalcSkew()  # use default value of arguments
+CalcSkew  # show the function code
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+\end{document}
