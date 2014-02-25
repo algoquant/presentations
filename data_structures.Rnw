@@ -126,7 +126,8 @@ n.var1
       The function \texttt{save()} saves just the selected objects,
     \column{0.6\textwidth}
       \vspace{-1em}
-      <<tidy=FALSE,prompt=TRUE>>=
+      <<echo=2:30,tidy=FALSE>>=
+rm(list=ls())
 n.var1 <- 3  # define new object
 ls()  # list objects
 save.image()  # save workspace to file .RData in cwd
@@ -292,7 +293,8 @@ v.var[v.var > 1]  # get all elements greater than one
       Vectors can be multiplied and squared element by element,
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<echo=2:20,prompt=TRUE>>=
+      <<echo=2:30,tidy=FALSE>>=
+rm(list=ls())
 v.var <- c(pi, exp(1), -digamma(1))
 v.var
 2*v.var  # multiply all elements by 2
@@ -634,27 +636,115 @@ table(f.var)  # get contingency (frequency) table
 
 
 %%%%%%%%%%%%%%%
-\subsection{Date and Time Objects}
+\subsection{Date Objects}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.4\textwidth}
+      $R$ has a \texttt{Date} class for date objects (but without time),
+      \vskip1ex
+      The function \texttt{as.Date()} converts a character string into a date object,
+      \vskip1ex
+      $R$ stores \texttt{Date} objects as the number of days since January 1, 1970,
+    \column{0.6\textwidth}
+      \vspace{-1em}
+      <<echo=2:30,tidy=FALSE>>=
+rm(list=ls())
+Sys.Date()  # get today's date
+my.date <- as.Date("2013-06-15")  # "%Y-%m-%d" or "%Y/%m/%d"
+my.date
+class(my.date)
+as.Date("06-15-2013", "%m-%d-%Y")  # specify format
+my.date + 20  # add 20 days
+unclass(my.date)  # get internal integer representation
+some.date <- as.Date("11/22/2013", "%m/%d/%Y")
+some.date
+# difference between dates
+difftime(some.date, my.date, units="weeks")
+weekdays(my.date)  # get day of the week
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{\texttt{POSIXct} Date and Time Objects}
 \begin{frame}[fragile,t]{\subsecname}
 \begin{block}{}
   \begin{columns}[T]
     \column{0.3\textwidth}
-      Factors are vectors whose elements can have only certain values,
+      $R$ has a class \texttt{POSIXct} for date and time objects,
       \vskip1ex
-      Factors are designed to describe categorical data which can only take certain values,
+      The function \texttt{as.POSIXct()} converts a character string into a \texttt{POSIXct} object,
       \vskip1ex
-      The function \texttt{factor()} converts a character vector into a factor,
+      \texttt{format.POSIXct()} converts \texttt{POSIXct} objects to character strings,
       \vskip1ex
-      Factors have two attributes: \texttt{class} ("\texttt{factor}") and \texttt{levels} (the allowed values),
+      $R$ stores \texttt{POSIXct} objects as the number of seconds since the epoch (January 1, 1970 UTC),
+      \vskip1ex
+      \texttt{UTC} is an acronym for "Universal Time Coordinated", is synonymous with \texttt{GMT}, but doesn't change with Daylight Saving Time,
+      \vskip1ex
+      \texttt{POSIX} is an acronym for "Portable Operating System Interface",
     \column{0.7\textwidth}
-      \vspace{-1em}
-      <<tidy=FALSE,prompt=TRUE>>=
-f.var <- factor(c('b', 'c',  # create factor vector
-                'd', 'a', 'c', 'b'))
-class(f.var)  # get object class
-levels(f.var)  # get allowed values
-table(f.var)  # get contingency (frequency) table
+      \vspace{-2em}
+      <<echo=2:30,tidy=FALSE>>=
+rm(list=ls())
+Sys.time()  # get today's date and time
+Sys.timezone()  # get time-zone
+Sys.setenv(tz="UTC")  # set time-zone to UTC
+# convert character string "%Y-%m-%d %H:%M:%S" to POSIXct object
+as.POSIXct("2013-06-15 18:30:10")
+Sys.setenv(tz="America/New_York")  # set time-zone to EDT
+my.date <- as.POSIXct("2013-06-15 18:30:10", tz="America/New_York")
+my.date
+class(my.date)
+my.date + 20  # add 20 seconds
+unclass(my.date)  # get internal integer representation
+format(my.date, tz="UTC")  # convert to character in different TZ
+as.POSIXct(format(my.date, tz="UTC"))  # convert back to POSIXct
+as.POSIXct(format(Sys.time(), tz="UTC")) - # difference between
+  as.POSIXct(format(Sys.time(), tz=""))  # local time and UTC
       @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{\texttt{zoo} Time Series Objects}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The library \texttt{zoo} is designed for managing \emph{time series} and ordered objects,
+      <<zoo_ts,echo=6:30,tidy=FALSE,fig.show='hide'>>=
+rm(list=ls())
+par(oma=c(1, 1, 1, 1))  # set outer margins
+par(mgp=c(2, 1, 0))  # set axis title and labels
+par(mar=c(5, 1, 1, 1))  # set plot margins
+par(cex.lab=0.8,  # set font scales
+    cex.axis=0.8, cex.main=0.8, cex.sub=0.5)
+library(zoo)  # load package zoo
+# create daily dates
+my.index <- as.Date("2010-06-15") + 1:1000
+# create zoo time series
+ts.random <- zoo(cumsum(rnorm(1000)), 
+                 order.by=my.index)
+class(ts.random)  # class 'zoo'
+tail(ts.random, 4)  # get last few elements
+write.zoo(ts.random, file="ts.random.txt")
+rm(ts.random)  # get last few elements
+ts.random <- read.zoo("ts.random.txt")
+tail(ts.random, 4)  # get last few elements
+# call plot.zoo
+plot(ts.random, xlab="", ylab="")
+title(main="Random Prices", line=-1)  # add title
+      @
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/zoo_ts}
   \end{columns}
 \end{block}
 
@@ -675,7 +765,8 @@ table(f.var)  # get contingency (frequency) table
       Data frames share properties of both lists and matrices,
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<tidy=FALSE,prompt=TRUE>>=
+      <<echo=2:30,tidy=FALSE>>=
+rm(list=ls())
 v.type <- c('rose', 'daisy', 'tulip')  # character vector
 v.color <- c('red', 'white', 'yellow')  # character vector
 v.price <- c(1.5, 0.5, 1.0)  # numeric vector
@@ -844,7 +935,8 @@ mean(df.bad$v.price)
       Many functions have a \texttt{na.rm} parameter to remove NAs from input data,
     \column{0.6\textwidth}
       \vspace{-1em}
-      <<tidy=FALSE,prompt=TRUE>>=
+      <<echo=2:30,tidy=FALSE>>=
+rm(list=ls())
 as.numeric(c(1:3, "a"))  # NA from coercion
 0/0  # NaN from ambiguous math
 1/0  # Inf from divide by zero
@@ -876,7 +968,8 @@ sum(!is.na(v.na))  # count non-NA values
       The function \texttt{complete.cases()} returns \texttt{TRUE} if a row has no \texttt{NA} values,
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<tidy=FALSE,prompt=TRUE>>=
+      <<echo=2:30,tidy=FALSE>>=
+rm(list=ls())
 head(airquality)  # airquality data has some NAs
 dim(airquality)
 sum(!complete.cases(airquality))  # number of NAs
@@ -894,13 +987,12 @@ head(airquality[!complete.cases(airquality), ])  # display some NAs
     \column{0.3\textwidth}
       Rows containing bad data may be either removed or replaced with an estimated value,
       \vskip1ex
-      The library \texttt{zoo} is designed for managing time series and ordered objects,
-      \vskip1ex
-      The function \texttt{na.locf()} replaces NAs with most recent non-NA prior to it,
+      The function \texttt{na.locf()} from library \texttt{zoo} replaces NAs with most recent non-NA prior to it,
       \vskip1ex
     \column{0.7\textwidth}
       \vspace{-1em}
-      <<tidy=FALSE,prompt=TRUE>>=
+      <<echo=2:30,tidy=FALSE>>=
+rm(list=ls())
 good.air <- airquality[complete.cases(airquality), ]  # remove NAs
 dim(good.air)
 head(good.air)  # NAs removed

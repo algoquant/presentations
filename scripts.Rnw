@@ -355,6 +355,70 @@ title(main="Random Prices", line=0)  # add title
 
 
 %%%%%%%%%%%%%%%
+\subsection{\texttt{apply()} Instead of '\texttt{for}' and '\texttt{while}' Loops}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.4\textwidth}
+      '\texttt{for}' and '\texttt{while}' loops are relatively inefficient and too slow for large computations,
+      \vskip1ex
+      '\texttt{apply()}' loops are much more efficient and preferred in practice,
+      \vskip1ex
+      The function '\texttt{system.time()}' returns the CPU time used to evaluate a given expression,
+    \column{0.6\textwidth}
+      \vspace{-1em}
+        <<echo=2:30,tidy=FALSE>>=
+rm(list=ls())
+large.matrix <- matrix(1:1000000, nrow=100000, ncol=10)
+row.sums <- c()
+
+system.time(
+  for(i in 1:nrow(large.matrix)) {
+    row.sums[i] <- sum(large.matrix[i,])
+  }  # end for
+)  # end system.time
+
+system.time(row.sums <- apply(large.matrix, 1, sum))
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Vectorized Functions for Matrix Computations}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.4\textwidth}
+      Even '\texttt{apply()}' loops are not the most efficient way to calculate statistics on rows and columns of very large matrices,
+      \vskip1ex
+      $R$ has very efficient functions for calculating sums and means of rows and columns:
+      \begin{itemize}
+        \item \texttt{rowSums()}
+        \item \texttt{colSums()}
+        \item \texttt{rowMeans()}
+        \item \texttt{colMeans()}
+      \end{itemize}
+      These functions call compiled \texttt{C} code and are therefore much faster than even the \texttt{apply()} functions,
+    \column{0.6\textwidth}
+      \vspace{-1em}
+        <<echo=1:30,tidy=FALSE>>=
+system.time(row.sums <- apply(large.matrix, 1, sum))
+
+str(rowSums)  # get list of arguments
+# sum the rows and columns
+row.sums <- c()
+system.time(row.sums <- rowSums(large.matrix))
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
 \section{Exception Handling}
 
 
@@ -364,26 +428,79 @@ title(main="Random Prices", line=0)  # add title
 \begin{block}{}
   \begin{columns}[T]
     \column{0.4\textwidth}
-      When a package is loaded then its environment is added to the search path,
+      \emph{Conditions} are $R$ objects containing information about errors, warnings etc., produced while evaluating expressions,
       \vskip1ex
-      To avoid naming conflicts, packages have \emph{namespaces},
+      The function \texttt{tryCatch()} can be used as a wrapper around functions or expressions, to handle conditions produced when they are evaluated,
       \vskip1ex
-      Package objects have different search paths than other objects,
+      If no condition is produced then \texttt{tryCatch()} just returns the value of the expression,
       \vskip1ex
-      The search path for package objects starts in the package namespace, then the global environment and then finally the regular search path,
+      If a condition is produced then \texttt{tryCatch()} invokes error and warning \emph{handlers} and executes other expressions to provide information about the condition, 
       \vskip1ex
-      This way references to objects in the package are resolved to the package, and they're not masked by objects of the same name in other environments,
-      \vskip1ex
-      If a function name is called alone then $R$ displays the function code,
-
+      If a \emph{handler} is provided to \texttt{tryCatch()} then the error is captured by the \emph{handler}, instead of being broadcast,
     \column{0.6\textwidth}
       \vspace{-1em}
         <<echo=2:30,tidy=FALSE>>=
 rm(list=ls())
-search()  # get search path for R objects
-library("MASS")  # load package 'MASS'
-search()  # get search path for R objects
-select  # look at primitive function code from package 'MASS'
+str(tryCatch)  # get arguments of tryCatch()
+tryCatch(  # without error handler
+  {  # evaluate expressions
+    n.val <- 101  # assign
+    stop('my error')  # throw error
+  }, 
+  finally=print(paste("n.val=", n.val))
+)  # end tryCatch
+
+tryCatch(  # with error handler
+  {  # evaluate expressions
+    n.val <- 101  # assign
+    stop('my error')  # throw error
+  }, 
+  error=function(e.cond)  # handler captures error condition
+    print(paste("error handler: ", e.cond)),
+  finally=print(paste("n.val=", n.val))
+)  # end tryCatch
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Exception Handling in Loops}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The function \texttt{tryCatch()} captures errors, allowing loops to continue after the error condition,
+      <<echo=2:30,tidy=FALSE>>=
+rm(list=ls())
+# apply loop without tryCatch
+apply(as.matrix(1:5), 1, function(n.val) {  # anonymous function
+    stopifnot(n.val != 3)  # check for error
+    cat("(cat) n.val=", n.val)  # broadcast
+    paste("(return) n.val=", n.val)  # return value
+  }  # end anonymous function
+)  # end apply
+      @
+      Without \texttt{tryCatch()}, the  \texttt{apply()} loop exits without returning any result,
+    \column{0.5\textwidth}
+      \vspace{-2em}
+      <<echo=1:30,tidy=FALSE>>=
+# apply loop with tryCatch
+apply(as.matrix(1:5), 1, function(n.val) {  # anonymous function
+    tryCatch(  # with error handler
+      {  # body
+        stopifnot(n.val != 3)  # check for error
+        cat("(cat) n.val=", n.val)  # broadcast
+        paste("(return) n.val=", n.val)  # return value
+      },
+      error=function(e.cond)  # handler captures error condition
+        paste("handler: ", e.cond),
+      finally=print(paste("(finally) n.val=", n.val))
+    )  # end tryCatch
+  }  # end anonymous function
+)  # end apply
       @
   \end{columns}
 \end{block}

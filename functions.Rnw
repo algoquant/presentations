@@ -388,7 +388,7 @@ MySum <- function(n.var1=2, n.var2=1, ...) {  # define function MySum
 MySum(3, 2)  # match arguments by position
 MySum(3, 2, 5, 8)  # extra arguments
 MySum()  # use default value of arguments
-args(paste)  # function 'paste' can take many arguments
+str(paste)  # function 'paste' can take many arguments
 paste('a', 'b', sep = ':')  # match arguments by name
 paste('a', 'b', se = ':')  # partial name matching fails!
       @
@@ -653,7 +653,7 @@ FuncDots(sum, 1, 2, 3)
       \vspace{-1em}
         <<echo=2:30,tidy=FALSE>>=
 rm(list=ls())
-args(apply)  # get list of arguments
+str(apply)  # get list of arguments
 m.var <- matrix(6:1, nrow=2, ncol=3)  # create a matrix
 m.var
 # sum the rows and columns
@@ -678,9 +678,9 @@ m.totals
   The '\texttt{...}' argument in \texttt{apply()} is designed to pass additional arguments to the function being called by \texttt{apply()},
   \begin{columns}[T]
     \column{0.5\textwidth}
-        <<echo=2:30,tidy=FALSE>>=
+      <<echo=2:30,tidy=FALSE>>=
 rm(list=ls())
-args(apply)  # get list of arguments
+str(apply)  # get list of arguments
 m.var <- matrix(sample(12), nrow=3, ncol=4)  # create a matrix
 m.var
 apply(m.var, 2, sort)  # sort matrix columns
@@ -745,16 +745,56 @@ FuncDots(FuncIn=function(x, y, z) {x*y*z}, 2, 3, 4)
         <<echo=2:30,tidy=FALSE>>=
 rm(list=ls())
 ts.rets <- 100*diff(log(EuStockMarkets))[, 1]  # DAX percent returns
-library("moments")
+library("moments")  # load library"moments"
+str(moment)  # get list of arguments
 moment(x=ts.rets, order=3)  # the moment function
 v.orders <- as.matrix(1:4)  # 4x1 matrix of moment orders
 # anonymous function allows looping over function parameters
 apply(X=v.orders, MARGIN=1, 
       FUN=function(n.order) {moment(x=ts.rets, order=n.order)})
 # another way of passing data into moment() function
-apply(X=v.orders, MARGIN=1, 
-      FUN=function(n.order, ...) {moment(..., order=n.order)}, 
-      x=ts.rets)
+apply(X=v.orders, MARGIN=1, FUN=moment, x=ts.rets)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{The Functions \texttt{lapply()} and  \texttt{sapply()}}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The \texttt{lapply()} and  \texttt{sapply()} functions are specialized versions of the \texttt{apply()} function,
+      \vskip1ex
+      The \texttt{lapply()} function applies a function to a list of objects and returns a list,
+      \vskip1ex
+      The \texttt{sapply()} function applies a function to a list or vector of objects and returns a vector,
+      \vspace{-1em}
+        <<echo=2:30,tidy=FALSE>>=
+rm(list=ls())
+iris.list <- as.list(iris[1:5, 1:3])  # create list
+iris.list
+lapply(iris.list, mean)  # compute list of means of list elements
+      @
+    \column{0.5\textwidth}
+      \vspace{-1em}
+        <<echo=1:30,tidy=FALSE>>=
+# compute vector of means of list elements
+sapply(iris.list, mean)
+
+# create a matrix
+m.var <- matrix(sample(12), nrow=3, ncol=4)
+# calculate row sums
+apply(m.var, 1, sum)
+
+# now the same calculation using sapply
+sapply(1:nrow(m.var), function(n.row) {  # anonymous function
+    sum(m.var[n.row, ])
+  }  # end anonymous function
+)  # end sapply
       @
   \end{columns}
 \end{block}
@@ -866,6 +906,69 @@ PseudoRandom(10)  #  calculate vector of 10 pseudo-random numbers
 ls(environment(PseudoRandom))  # list objects in scope of PseudoRandom
       @
 \end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Bank Account Using Mutable States}
+\begin{frame}[fragile,t]{\subsecname}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      \vspace{-2em}
+        <<echo=4:30,tidy=FALSE>>=
+rm(list=ls())
+# the super-assignment operator '<<-' adjusts the balance
+# 'balance' exists in OpenAccount evaluation environment
+# bank account example (from Venables) demonstrates mutable states
+# 'balance' is persistent between function calls
+OpenAccount <- function(balance) {
+# returns function list for account operations
+  list(
+    deposit = function(amount) {  # make deposit
+      if(amount > 0) {
+        balance <<- balance + amount  # '<<-' super-assignment operator
+        cat(amount, "deposited. Your balance is now:", 
+            balance, "\n")
+      } else {
+        cat("Deposits must be positive!\n")
+      }
+    },  # end deposit
+    withdraw = function(amount) {  # make withdrawal
+      if(amount <= balance) {
+        balance <<- balance - amount  # '<<-' super-assignment operator
+        cat(amount, "withdrawn. Your balance is now:", 
+            balance, "\n")
+      } else {
+        cat("You don't have that much money!\n")
+      }
+    },  # end withdraw
+    get.balance = function() {  # get balance
+      cat("Your current balance is:", balance, "\n")
+    }  # end get.balance
+  )  # end list
+}  # end OpenAccount
+@
+    \column{0.5\textwidth}
+      \vspace{-2em}
+        <<tidy=FALSE>>=
+# perform account operations
+# open an account with 100 deposit
+my.account <- OpenAccount(100)
+ls(my.account)  # my.account is a list
+# add my.account to search path
+attach(my.account)
+withdraw(30)  # withdrawal to buy groceries
+deposit(100)  # deposit paycheck to account
+withdraw(200)  # withdrawal to buy Gucci bag
+get.balance()  # get account balance
+
+# list objects in scope of get.balance
+ls(environment(get.balance))
+
+detach(my.account)  # remove my.account from search path
+@
+  \end{columns}
 
 \end{frame}
 
