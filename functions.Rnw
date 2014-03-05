@@ -3,7 +3,7 @@
 % Set global chunk options
 <<knitr_setup,include=FALSE,cache=FALSE>>=
 library(knitr)
-opts_chunk$set(prompt=TRUE,comment=NA, highlight=FALSE, message=FALSE, warning=FALSE, size='scriptsize', fig.width=4, fig.height=4)
+opts_chunk$set(prompt=TRUE,comment=NA, highlight=FALSE, message=FALSE, warning=FALSE, size='scriptsize', fig.width=6, fig.height=5)
 options(width=60, dev='pdf')
 thm <- knit_theme$get("acid")
 knit_theme$set(thm)
@@ -266,7 +266,7 @@ MyFunc(3, 2)  # now works
       \vspace{-1em}
         <<echo=4:30,tidy=FALSE>>=
 rm(list=ls())
-par(oma=c(1, 1, 1, 1), mgp=c(2, 1, 0), mar=c(5, 1, 1, 1), cex.lab=0.8, cex.axis=1.0, cex.main=0.8, cex.sub=0.5)
+par(oma=c(1, 1, 1, 1), mgp=c(2, 0.5, 0), mar=c(5, 1, 1, 1), cex.lab=0.8, cex.axis=1.0, cex.main=0.8, cex.sub=0.5)
 set.seed(1121)  # initialize the random number generator
 ts.rets <- diff(log(EuStockMarkets))[, 1]  # DAX returns
 # define function CalcSkew to calculate the skew
@@ -1058,6 +1058,89 @@ n.locvar  # local variable is gone!
 
 
 %%%%%%%%%%%%%%%
+\section{Object-Oriented Programming in $R$}
+
+
+%%%%%%%%%%%%%%%
+\subsection{The \texttt{S3} Object-Oriented Programming System in $R$}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.4\textwidth}
+      \vspace{-1em}
+      \texttt{S3} is a popular object oriented (OO) programming system in $R$, based on the $R$ class system and on \emph{generic functions},
+      \vskip1ex
+      Generic functions have different \emph{methods} that are dispatched depending on the \emph{class} of the object,
+      \vskip1ex
+      The actual function that is executed is determined by the class of the object on which the generic function is called,
+      \vskip1ex
+      The different versions of a generic function are called \emph{methods},
+      \vskip1ex
+      For example \texttt{plot()} and \texttt{cbind()} are generic functions,
+      \vskip1ex
+      Generic function methods follow the naming convention \texttt{generic.class()},
+      \vskip1ex
+      The generic function \texttt{cbind()} has many \emph{methods} with names \texttt{cbind.*()},
+      \vskip1ex
+      The \texttt{cbind()} method dispatched to \texttt{zoo} objects is called \texttt{cbind.zoo()},
+    \column{0.6\textwidth}
+      \vspace{-1em}
+      <<echo=3:30,tidy=FALSE>>=
+rm(list=ls())
+library(zoo)  # load package zoo
+# get all methods of generic function "cbind"
+tail(methods("cbind"))
+
+# show method of "cbind" applied to "zoo" objects
+cbind.zoo
+
+# get generic function methods applied to "zoo" objects
+methods(class="zoo")[5:10]
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Creating New Classes and Methods}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.4\textwidth}
+      A new $R$ class can be created by simply assigning to the \texttt{class} attribute,
+      \vskip1ex
+      Then new \emph{methods} can be defined, and $R$ will automatically dispatch them to objects of the new \emph{class},
+    \column{0.6\textwidth}
+      \vspace{-1em}
+      <<echo=2:30,tidy=FALSE>>=
+rm(list=ls())
+my.ts <- zoo(rnorm(4), order.by=(Sys.Date() + 0:3))
+class(my.ts)
+length(my.ts)
+
+# coerce "zoo" object to new class "newts"
+class(my.ts) <- "newts"
+class(my.ts)
+
+# define "length" method for class "newts"
+length.newts <- function(in.ts) {
+# "length" method for class" "newts"
+  cat("getting length of object from newts class\n")
+  length(unclass(in.ts))
+}  # end length.newts
+
+# apply new "length" method
+length(my.ts)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
 \section{Regression}
 
 
@@ -1100,7 +1183,7 @@ v.yvar <- 3 + 2*v.xvar + rnorm(30)
 lm.simp <- lm(v.yvar ~ v.xvar)  # perform regression
 # set plot paramaters - margins and font scale
 par(oma=c(1, 1, 1, 1))  # set outer margins
-par(mgp=c(2, 1, 0))  # axis title and labels
+par(mgp=c(2, 0.5, 0))  # axis title and labels
 par(mar=c(5, 3, 1, 1), cex.lab=0.8, 
     cex.axis=0.8, cex.main=0.8, cex.sub=0.5)
 plot(v.yvar ~ v.xvar)  # plot scatterplot

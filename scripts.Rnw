@@ -509,6 +509,114 @@ apply(as.matrix(1:5), 1, function(n.val) {  # anonymous function
 
 
 %%%%%%%%%%%%%%%
+\section{Data Munging}
+
+
+%%%%%%%%%%%%%%%
+\subsection{$R$ Scripts}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.4\textwidth}
+      The function \texttt{sink()} diverts output to a file, or ends the diversion,
+      \vskip1ex
+      \emph{Conditions} are $R$ objects containing information about errors, warnings etc., produced while evaluating expressions,
+      \vskip1ex
+      If no condition is produced then \texttt{tryCatch()} just returns the value of the expression,
+      \vskip1ex
+      If a condition is produced then \texttt{tryCatch()} invokes error and warning \emph{handlers} and executes other expressions to provide information about the condition, 
+      \vskip1ex
+      If a \emph{handler} is provided to \texttt{tryCatch()} then the error is captured by the \emph{handler}, instead of being broadcast,
+    \column{0.6\textwidth}
+      \vspace{-1em}
+        <<echo=2:30,tidy=FALSE>>=
+rm(list=ls())
+# sink("script.R")  # redirect to script file
+# sink()  # Turn redirect off
+# source("script.R", echo=TRUE)  # source script
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{\texttt{pdf} Files}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.4\textwidth}
+      The function \texttt{sink()} diverts output to a file, or ends the diversion,
+      \vskip1ex
+      \emph{Conditions} are $R$ objects containing information about errors, warnings etc., produced while evaluating expressions,
+      \vskip1ex
+      If no condition is produced then \texttt{tryCatch()} just returns the value of the expression,
+      \vskip1ex
+      If a condition is produced then \texttt{tryCatch()} invokes error and warning \emph{handlers} and executes other expressions to provide information about the condition, 
+      \vskip1ex
+      If a \emph{handler} is provided to \texttt{tryCatch()} then the error is captured by the \emph{handler}, instead of being broadcast,
+    \column{0.6\textwidth}
+      \vspace{-1em}
+        <<echo=2:30,tidy=FALSE>>=
+rm(list=ls())
+# pdf(file.cds.plots, width=7, height=11)
+# par(mfrow=c(2,1))
+# Plot the Variance Profile for a list of symbols, one by one
+# Turn PDF writer off
+# dev.off()
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\section{Plotting Using Package \texttt{ggplot2}}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Plotting \texttt{zoo} Time Series}
+\begin{frame}[fragile,t]{\subsecname}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      \texttt{ggplot2} is a very popular $R$ package for advanced plotting,
+      \vskip1ex
+      The function \texttt{autoplot()} creates a \texttt{ggplot2} object,
+      \vskip1ex
+      The function \texttt{theme()} allows customizing \texttt{ggplot2} objects,
+      <<quantlib,echo=3:30,tidy=FALSE,fig.width=6,fig.height=4,fig.show='hide'>>=
+rm(list=ls())
+set.seed(1121)  # initialize the random number generator
+library(zoo)  # load zoo
+library(ggplot2)  # load ggplot2
+library(scales)  # load scales
+# coerce mts object into zoo
+zoo.eustx <- as.zoo(EuStockMarkets)
+# coerce index into class 'Dates'
+index(zoo.eustx) <- as.Date(365*(index(zoo.eustx)-1970))
+# create simple ggplot2 in single pane
+gg2.zoo <- autoplot(zoo.eustx, main="Eu Stox", 
+                    facets=NULL)
+# customize ggplot2 using 'theme' function
+gg2.zoo + xlab("") + 
+  theme(legend.position=c(0.1, 0.5), 
+  plot.title=element_text(vjust=-2.0), 
+  plot.background=element_blank())
+
+      @
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      \hspace*{-3em}
+      \includegraphics[width=0.55\paperwidth,valign=t]{figure/quantlib}
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%
 \section{Regression}
 
 
