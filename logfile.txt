@@ -1,3 +1,5 @@
+all FRE6811 files moved to own directory
+
 knitr_article_demo: knitr demo of generic article document
 
 knitr_presentation_demo: knitr demo of generic presentation (slideshow) document
