@@ -1,0 +1,63 @@
+##################################################################
+##################################################################
+##################################################################
+
+---
+title: "Change size of output HTML file by reducing resolution of plot image"
+author: "My Name"
+date: "September 7, 2015"
+output: html_document
+---
+
+```{r}
+# load ggplot2 silently
+suppressWarnings(library(ggplot2))
+# chunk option dev="svg" produces very large vector graphics files
+knitr::opts_chunk$set(dev="svg")
+# chunk option dev="png" is the default raster graphics format for HTML output
+knitr::opts_chunk$set(dev="png")
+```
+
+```{r, dpi=36, out.width="600px", out.height="600px"}
+# chunk option dpi=72 is the default resolution
+set.seed(1)
+mydf <- data.frame(x=rnorm(5e4),y=rnorm(5e4))
+ggplot(mydf, aes(x,y)) + geom_point(alpha=0.6)
+```
+
+
+
+##################################################################
+##################################################################
+##################################################################
+
+---
+title: "Create Markdown Heading From R Code Using Package pander"
+author: "John Doe"
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# This is an R setup chunk, containing default options applied to all other chunks
+library(knitr)
+knitr::opts_chunk$set(echo=TRUE, prompt=TRUE)
+# This sets the chunk display theme
+knit_theme$set(knit_theme$get("acid"))
+# This sets some display options
+options(digits=3)
+options(width=80)
+```
+
+#### `r 'This is a Heading Created by Inline R Code'`
+
+```{r mt_cars, echo=(-(1:2)), results="asis"}
+# this chunk creates a dynamic markdown heading using pander
+suppressWarnings(library(pander, quietly=TRUE))
+# get number of rows to be displayed
+n_rows <- sample(x=3:7, size=1)
+# create dynamic heading using pander
+pandoc.header(paste("Here is", n_rows, "rows of the 'mtcars' data frame"), level=4)
+head(mtcars, n_rows)
+```
+

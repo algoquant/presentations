@@ -1,0 +1,179 @@
+<style>
+.midcenter {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+}
+
+
+.footer {
+    color: black; background: #E8E8E8;
+    position: fixed; top: 90%;
+    text-align:center; width:100%;
+}
+
+
+.small-code pre code {
+  font-size: 1em;
+}
+
+.reveal h1, .reveal h2, .reveal h3 {
+  word-wrap: normal;
+  -moz-hyphens: none;
+}
+
+</style>
+
+
+An Introduction to R Programming
+========================================================
+author: Jeffery Miecnikowski, Daniel Gaile, Rachael Hageman Blair
+date: March 26, 2015
+width: 1000
+height: 700
+transition: rotate
+font-import: http://fonts.googleapis.com/css?family=Roboto
+font-import: http://fonts.googleapis.com/css?family=PT_Sans
+font-family: 'Roboto'
+
+
+<small> 
+Department of Biostatistics   
+School of Public Health and Health Professions, SUNY at Buffalo
+</small>
+
+
+Preliminary Instructions
+========================================================
+type: section
+
+- <small>The Workshop Webpage (and this file) can be found here:
+[https://sphhp.buffalo.edu/biostatistics/news-events/workshops.html](https://sphhp.buffalo.edu/biostatistics/news-events/workshops.html)
+- You can opt to use a virtual machine. To do so, follow the instructions at this link:
+[http://www.cse.buffalo.edu/~chandola/workshops/cdsedays-2014/workshop-help.html](http://www.cse.buffalo.edu/~chandola/workshops/cdsedays-2014/workshop-help.html)
+  - Once you have started the virtual machine, open up a terminal and execute the following command:
+      - sudo apt-get install libcurl4-openssl-dev
+- You can opt to install R and Rstudio on your laptop (recommended):
+  - [http://www.rstudio.com/products/rstudio/download/](http://www.rstudio.com/products/rstudio/download/)
+- If help is needed, raise your hand and one of the student volunteers will assist.
+ </small>
+ 
+ 
+Jeffery Miecnikowski, PhD
+========================================================
+transition: zoom
+
+- PhD Statistics 2006 Carnegie Mellon University
+- Associate Dean for Faculty Affairs and Diversity, SPHHP
+- Associate Professor, Department of Biostatistics
+- Instructor for STA 511 and STA 521
+- Co-authored several R packages
+
+***
+ <img src="Figures/Jeff.jpg", height="600", width="900"></img>
+ 
+Daniel Gaile, PhD
+========================================================
+transition: zoom
+ - PhD Statistics 2003 Texas A\&M University
+ - Assistant Professor, Department of Biostatistics
+ - Director, Statistical Consulting Laboratory
+ - Instructor for STA 502 and STA 525
+ - Co-authored several R packages
+ - R User since ~1998
+
+ <div class="midcenter" style="margin-left:15px; margin-top:-50px;">
+<img src="Figures/ts1000.JPG" style="background-color:transparent; border:0px; box-shadow:none;"></img> 
+</div> 
+
+
+Rachael Hageman-Blair, PhD
+========================================================
+transition: zoom
+
+<img src="Figures/Rachael.png", height="600", width="900"></img>
+ 
+
+Overview of Talk
+========================================================
+This workshop is divided into three parts:
+- Part I [Miecznikowski] : An overview and introduction to basic features of R.
+- Part II [Gaile]: A very brisk overview of basic testing, visualization, dimension reduction and model building in R. Presented in the context of a STA525 (i.e.,'Bioinformatics') example.
+- Part III [Hageman Blair]: An introduction to subset selection and model building in R. Presented in the context of STA545/546 (i.e., "Data Mining") examples.
+
+.Rpres Presentations
+========================================================
+- These particular slides are admittedly plain. However, they showcase the .Rpres format available in R (and made all the more convenient in RStudio). 
+- Let's have a look at the IntroRmod0.Rpres file to see how these slides were generated. 
+- Open your own .Rpres file
+- Explore the "Authoring R Presentations" help file.
+- Bottomline: the R Markdown format provides for a convenient mechanism to quickly author presentation content. 
+
+Data Science and Statistics
+========================================================
+transition: zoom
+incremental: true
+
+- Before we begin discussing R, we would like to address the attendees that are interested in pursuing educations related to "data science". 
+- The Department of Biostatistics offers courses for undergraduate, graduate and non-matriculated students.
+- But why should a student that is interested in data science, consider taking courses in statistics?
+
+Be a Unicorn!
+========================================================
+transition: fade
+incremental: true
+
+<img src="Figures/UnicornVenn.png", height="600", width="900"></img>
+***
+Or, an Awesome Nerd!
+<img src="Figures/Nerds.png", height="425", width="600"></img>
+[Link to Source](http://www.datasciencecentral.com/profiles/blogs/data-science-the-end-of-statistics)
+
+
+Opportunities to Learn Statistics and R
+========================================================
+<div class="midcenter" style="margin-left:-500px; margin-top:-200px;">
+<img src="Figures/DeptBiostatistics.png" style="background-color:transparent; border:0px; box-shadow:none;"></img> 
+</div>
+[https://sphhp.buffalo.edu/biostatistics.html](https://sphhp.buffalo.edu/biostatistics.html)
+
+Programs / Offerings
+========================================================
+incremental: true
+
+[https://sphhp.buffalo.edu/biostatistics/education.html](https://sphhp.buffalo.edu/biostatistics/education.html)
+- For Undergraduates: minor in Statistics
+- For Graduate Students:
+  - Certificate Programs
+    - Advanced Graduate Certificate in Biostatistical Informatics
+    - Advanced Graduate Certificate in Applied Biostatistics
+  - MA and PhD in Biostatistics
+  - MA in Biostatics and Bioinformatics (moving from RPCI, June 2015)
+- Note: can enroll as non-matriculated student
+  
+STA Courses Mentioned in This Talk
+========================================================
+transition: fade
+incremental: true
+- STA 502 [Gaile]  Statistical Inference
+- STA 511 [Miecznikowski] Mathematical Analysis for Biostatisticians
+- STA 525 [Gaile] Statistics for Bioinformatics
+- STA 545-546 [Hageman Blair] Data Mining I and II
+
+Information regarding these courses can be found here:
+[https://sphhp.buffalo.edu/biostatistics/education/biostatistics-ma/course-descriptions.html](https://sphhp.buffalo.edu/biostatistics/education/biostatistics-ma/course-descriptions.html)
+
+Some Useful Links
+========================================================
+type: section
+transition: fade
+- [http://www.r-bloggers.com/how-to-learn-r-a-flow-chart/](http://www.r-bloggers.com/how-to-learn-r-a-flow-chart/)
+- Nature: Statistics for Biologists: [http://www.nature.com/collections/qghhqm](http://www.nature.com/collections/qghhqm)
+- Quick-R: [http://www.statmethods.net/](http://www.statmethods.net/)
+
+Thanks!
+========================================================
+
+<img src="Figures/Students.png", height="500", width="900"></img> 
+
+- Zhoulin He (not pictured), Biostatistics MA student. STA 545/STA 546 

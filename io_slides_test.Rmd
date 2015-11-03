@@ -1,0 +1,243 @@
+---
+title: "ioslides Presentation with Shiny"
+author: "John Doe"
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
+output: 
+  ioslides_presentation: 
+    widescreen: true
+    smaller: true
+    transition: 0.1
+    self_contained: true
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+# This is an R setup chunk, containing default options applied to all other chunks
+library(knitr)
+# This sets the chunk default options
+opts_chunk$set(cache=TRUE, collapse=TRUE, error=FALSE, prompt=TRUE)
+# This sets the chunk display theme
+knit_theme$set(knit_theme$get("acid"))
+# This sets some display options
+options(digits=3)
+options(width=80)
+```
+
+
+## Slide With a Smiling Face
+
+[comment]: <> (This is a comment, it will not be included)
+[//]: # (This is also a comment, and it may be the most platform independent comment)
+
+<!-- regular html comment -->
+<!--- special completely ignored comment -->
+
+Hello World!  
+Creating R Presentations isn't difficult at all!  
+![easy](image/easy_button.png)
+
+
+R is fun!  
+![smiling_face](image/smile_small.png)
+
+
+
+## Slide with Incremental Bullets
+
+Regular Bullets:  
+
+- Bullet 1
+- Bullet 2
+- Bullet 3
+
+
+Incremental Bullets:  
+
+> - Bullet 1
+> - Bullet 2
+> - Bullet 3
+
+
+
+## Slide with Incremental Bullets and Elements {.build}
+
+Incremental Bullets:  
+
+- Bullet 1
+- Bullet 2
+- Bullet 3
+
+Incremental Text:  
+You can build up  
+a slide from elements  
+one at a time  
+
+
+
+## Slide with Highlighting
+
+This text is 
+### <b>
+highlighted
+### </b>
+
+
+This is some other text. 
+
+
+## Slide with Multiple Columns Using CSS Code
+
+<div style="-webkit-column-count: 2; -moz-column-count: 2; column-count: 2; -webkit-column-rule: 1px dotted #e0e0e0; -moz-column-rule: 1px dotted #e0e0e0; column-rule: 1px dotted #e0e0e0;">
+    first column's content
+    
+    second column's content
+</div>
+
+
+## Slide with Multiple Columns Using alt CSS Code
+
+<style>
+  .col2 {
+    columns: 2 200px;         /* number of columns and width in pixels */
+    -webkit-columns: 2 200px; /* chrome, safari */
+    -moz-columns: 2 200px;    /* firefox */
+  }
+</style>
+
+<div class="col2">
+
+First column with head of mtcars data frame:
+
+```{r, eval=TRUE, echo=TRUE, size="tiny"}
+head(mtcars, 6)
+```
+
+
+Second column with tail of mtcars data frame:
+
+```{r, eval=TRUE, echo=TRUE, size="tiny"}
+tail(mtcars, 6)
+```
+
+</div>
+
+
+
+## Slide with Multiple Columns Using alt CSS Code
+
+<div class="col2">
+
+First column with simple R code that returns the summary of the iris data frame:
+
+```{r, summ_iris, eval=FALSE, echo=TRUE, results="hold", size="tiny"}
+summary(iris)
+```
+
+more text  
+more text  
+more text  
+more text  
+more text  
+more text  
+
+
+Second column with extra copy of R output:
+
+```{r, summ_iris, eval=TRUE, echo=TRUE, size="tiny"}
+```
+
+</div>
+
+
+
+## Slide with Multiple Columns Using alt CSS Code
+
+<div class="columns-2">
+
+**1** one  
+**2** two  
+more text  
+more text  
+more text  
+**3** three  
+**4** four  
+**5** five  
+**6** six  
+more text  
+more text  
+more text  
+**7** seven  
+**8** eight  
+more text  
+more text  
+more text  
+**9** nine  
+
+</div>
+
+
+## Slide with Two Columns
+
+<div class="columns-2">
+
+##### First column:  
+
+  ![smiling_face](image/smile_small.png)
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+##### Second column:  
+
+  - Bullet 1
+  - Bullet 2
+  - Bullet 3
+</div>
+
+
+## Slide with R Code and Output in Two Columns {.columns-2}
+
+First column contains simple R code that returns the summary of the cars data frame:
+
+```{r, summ_cars, eval=FALSE, echo=TRUE, results="hold", size="tiny"}
+summary(cars)
+```
+
+
+Second column with extra copy of R output:
+
+```{r, summ_cars, eval=TRUE, echo=FALSE, size="tiny"}
+```
+
+
+
+## Slide with Embedded External Shiny Application
+
+Below is an embedded external shiny application, using function shinyAppDir() which executes R code contained in the files ui.R and server.R, stored in the normal_dist subdirectory:  
+```{r, eval=TRUE, echo=TRUE, cache=FALSE}
+library(shiny)
+shinyAppDir(
+  appDir="shiny/normal_dist",
+  options=list(width="100%", height=400)
+  )  # end shinyAppDir
+```
+
+
+## Slide with HTML Widget
+
+Below is an HTML Widget:  
+```{r, eval=TRUE, echo=TRUE, cache=FALSE}
+library(networkD3)
+data(MisLinks, MisNodes)
+forceNetwork(Links=MisLinks, Nodes=MisNodes, Source="source",
+Target="target", Value="value", NodeID="name",
+Group="group", opacity=0.4)
+```
+

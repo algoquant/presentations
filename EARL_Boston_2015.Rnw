@@ -1,0 +1,711 @@
+% Define knitr options
+% !Rnw weave=knitr
+% Set global chunk options
+<<knitr_setup,include=FALSE,cache=FALSE>>=
+library(knitr)
+opts_chunk$set(prompt=TRUE, tidy=FALSE, strip.white=FALSE, comment=NA, highlight=FALSE, message=FALSE, warning=FALSE, size='scriptsize', fig.width=4, fig.height=4)
+options(width=60, dev='pdf')
+library(xts)
+options(xts_check_TZ=FALSE)
+thm <- knit_theme$get("acid")
+knit_theme$set(thm)
+@
+
+
+% Define document options
+\documentclass[10pt]{beamer}
+\mode<presentation>
+\usetheme{AnnArbor}
+% \usecolortheme{whale}
+% Uncover everything in a step-wise fashion
+% \beamerdefaultoverlayspecification{<+->}
+% mathtools package for math symbols
+% \usepackage{mathtools}
+\usepackage[latin1]{inputenc}
+\usepackage{hyperref}
+\usepackage{fancybox}
+\usepackage{url}
+\usepackage[backend=bibtex,style=alphabetic]{biblatex} % bibstyle=numeric
+% \bibliographystyle{amsalpha} % doesn't work
+\addbibresource{FRE_lectures.bib}
+% \addbibresource[location=remote]{http://www.citeulike.org/user/jerzyp}
+\renewcommand\bibfont{\footnotesize}
+\renewcommand{\pgfuseimage}[1]{\scalebox{0.75}{\includegraphics{#1}}} % scale bib icons
+\setbeamertemplate{bibliography item}[text] % set bib icons
+% \setbeamertemplate{bibliography item}{} % remove bib icons
+
+% \usepackage{enumerate}
+% \let\emph\textbf
+% \let\alert\textbf
+% Define colors for hyperlinks
+\definecolor{links}{HTML}{2A1B81}
+\hypersetup{colorlinks=true,linkcolor=,urlcolor=links}
+% Make url text footnotesize
+\renewcommand\UrlFont{\footnotesize}
+% Make institute text italic and small
+\setbeamerfont{institute}{size=\small,shape=\itshape,bg=red,fg=red}
+\setbeamerfont{date}{size=\small}
+\setbeamerfont{block title}{size=\normalsize} % shape=\itshape
+\setbeamerfont{block body}{size=\footnotesize}
+
+
+% Title page setup
+\title[Quantitative Portfolio Management with High Frequency Data]{Quantitative Portfolio Management with High Frequency Data}
+\subtitle{EARL Boston 2015}
+% \subject{Getting Started With R}
+\institute[NYU Polytechnic]{NYU Tandon School of Engineering}
+\titlegraphic{\includegraphics[scale=0.2]{C:/Develop/R/FRE6871/image/tandon_long_color}}
+\author[Jerzy Pawlowski]{Jerzy Pawlowski \emph{\href{mailto:jp3900@nyu.edu}{jp3900@nyu.edu}}}
+% \email{jp3900@poly.edu}
+\date{November 4, 2015}
+% \pgfdeclareimage[height=0.5cm]{university-logo}{engineering_long_white}
+% \logo{\pgfuseimage{engineering_long_white}}
+
+
+%%%%%%%%%%%%%%%
+\begin{document}
+
+
+%%%%%%%%%%%%%%%
+\maketitle
+
+
+
+%%%%%%%%%%%%%%%
+\section{Introduction}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Investor \protect\emph{Utility}, \protect\emph{Risk Aversion}, \protect\emph{Prudence} and \protect\emph{Temperance}}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The \emph{expected utility} hypothesis states that investor risk preferences are based on the expected value of the \emph{utility} of their wealth, instead of on the level of wealth, 
+      \vskip1ex
+      Investor risk and return preferences depend on the signs of the derivatives of the \emph{utility} function, 
+      \vskip1ex
+      A \emph{utility} function with a positive first derivative implies a preference for higher \emph{returns} (first moment), and a negative second derivative implies risk aversion and a preference for lower \emph{volatility} (second moment), 
+      \vskip1ex
+      A positive third derivative implies \emph{prudence}, or a preference for higher \emph{skewness} (third moment), and a negative fourth derivative implies \emph{temperance}, or a preference for lower \emph{kurtosis} (fourth moment), 
+      \vskip1ex
+      Investors with a logarithmic \emph{utility} of wealth base their preferences on the percentage change of wealth, instead of the absolute change, 
+      \vskip1ex
+      Investors may also have preferences for higher \emph{moments} - they may prefer large positive odd moments and small even moments, 
+      \vskip1ex
+      investor preferences are based on the percentage change of their wealth, instead of the absolute change of their wealth,
+    \column{0.5\textwidth}
+      Mean: $\bar{x}=\frac{1}{k} \sum_{i=1}^{k} x_i$
+      \vskip1ex
+      Variance: $\hat{\sigma}^2=\frac{1}{k-1} \sum_{i=1}^{k} (x_i-\bar{x})^2$
+      \vskip1ex
+      Skewness:
+      \begin{displaymath}
+        \hat{s}=\frac{k}{(k-1)(k-2)} \sum_{i=1}^{k} (\frac{x_i-\bar{x}}{\hat{\sigma}})^3
+      \end{displaymath}
+      Kurtosis:
+      \begin{displaymath}
+        \hat{k}=\frac{k(k+1)}{(k-1)^3} \sum_{i=1}^{k} (\frac{x_i-\bar{x}}{\hat{\sigma}})^4
+      \end{displaymath}
+      \begin{displaymath}
+        \frac{\mathrm{d}g(f)}{\mathrm{d}f}=\frac{p \cdot b}{1+fb} - \frac{q \cdot a}{1-fa} = 0
+      \end{displaymath}
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Investor Preferences and Empirical Return Distributions}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The \emph{expected utility} hypothesis states that investor risk and return preferences are based on the expected value of the \emph{utility} of their wealth, instead of on the level of wealth, 
+      \vskip1ex
+      Amaya et al., \emph{Does Realized Skewness Predict the Cross-Section of Equity Returns?} \\
+\hskip1em\url{http://papers.ssrn.com/sol3/papers.cfm?abstract_id=1898735}
+      \vskip1ex
+      This implies that \emph{expected utility} hypothesis states that investor risk and return preferences are based on the expected value of the \emph{utility} of their wealth, instead of on the level of wealth,
+      \vskip1ex
+      Investors with \emph{logarithmic utility} have preferences based on the percentage change of their wealth, instead of the absolute change of their wealth,
+      \vskip1ex
+      momentum factor of stock returns is based on the past one-year of returns
+      can momentum also work on shorter time scales?
+      do higher moments (vol, skew, kurtosis) also have predictive power?
+      \vskip1ex
+      but higher moments are hard to estimate from low frequency (daily) returns.
+      \vskip1ex
+      Asness et al., \emph{Fact, Fiction and Momentum Investing}, \\
+\hskip1em\url{http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2435323}
+      \vspace{-1em}
+      <<echo=(-(1:6)),eval=TRUE,fig.width=7,fig.height=6,fig.show='hide'>>=
+# load package "HighFreq"
+library(HighFreq)
+sym_bol <- "SPY"  # define sym_bol
+# load OHLC data
+output_dir <- "C:/Develop/data/hfreq/scrub/"
+sym_bol <- load(file.path(output_dir, paste0(sym_bol, ".RData")))
+re_turns <- calc_rets(xts_data=to.daily(get(sym_bol)))
+len_rets <- nrow(re_turns)  # number of observations
+mean_rets <- mean(re_turns[, 1])  # calculate mean
+sd_rets <- sd(re_turns[, 1])  # calculate standard deviation
+# calculate skew and kurtosis
+(sum(((re_turns[, 1] - mean_rets)/sd_rets)^3))/len_rets
+(sum(((re_turns[, 1] - mean_rets)/sd_rets)^4))/len_rets
+      @
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_ret_hist-1}
+      \vspace{-2em}
+      <<earl_ret_hist,echo=TRUE,eval=FALSE,fig.width=7,fig.height=6,fig.show='hide'>>=
+library(PerformanceAnalytics)
+chart.Histogram(re_turns[, 1], main="", 
+  xlim=c(-6e-5, 6e-5), 
+  methods = c("add.density", "add.normal"))
+# add title
+title(main=paste(sym_bol, 
+         "density"), line=-1)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Package \texttt{HighFreq} for Managing High Frequency Data}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Package \texttt{HighFreq} contains functions for managing high frequency \emph{TAQ} and \emph{OHLC} market data:
+      \begin{itemize}
+        \item reading and writing data from files, 
+        \item managing time zones and alligning indices, 
+        \item chaining and joining time series, 
+        \item scrubbing bad data points, 
+        \item converting \emph{TAQ} data to \emph{OHLC} format, 
+        \item aggregating data to lower frequency,
+      \end{itemize}
+      \texttt{HighFreq} is inspired by the package \texttt{highfrequency}, and follows many of its conventions,
+      \vskip1ex
+      \texttt{HighFreq} depends on packages \texttt{xts}, \texttt{quantmod}, \texttt{lubridate}, and \texttt{caTools},
+      \vskip1ex
+      The function \texttt{scrub\_agg()} scrubs a single day of \emph{TAQ} data, aggregates it, and converts it to \emph{OHLC} format,
+      \vskip1ex
+      The function \texttt{save\_scrub\_agg()} loads, scrubs, aggregates, and binds multiple days of \emph{TAQ} data for a single symbol, and saves the \emph{OHLC} time series to a single \texttt{*.RData} file,
+    \column{0.5\textwidth}
+      <<echo=TRUE,eval=FALSE>>=
+# install package "HighFreq" from github
+install.packages("devtools")
+library(devtools)
+install_github(repo="algoquant/HighFreq")
+# load package "HighFreq"
+library(HighFreq)
+# set data directories
+data_dir <- "C:/Develop/data/hfreq/src/"
+output_dir <- "C:/Develop/data/hfreq/scrub/"
+# define sym_bol
+sym_bol <- "SPY"
+# load a single day of TAQ data
+sym_bol <- load(
+  file.path(data_dir, 
+            paste0(sym_bol, "/2014.05.02.", 
+                   sym_bol, ".RData")))
+# scrub, aggregate single day of TAQ data to OHLC
+ohlc_data <- scrub_agg(taq_data=get(sym_bol))
+# aggregate TAQ data for symbol, save to file
+save_scrub_agg(sym_bol, 
+               data_dir=data_dir, 
+               output_dir=output_dir, 
+               period="minutes")
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{High Frequency \protect\emph{OHLC} Data}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Aggregating high frequency \emph{TAQ} data into \emph{OHLC} format with lower periodicity allows for data compression while maintaining some information about volatility,
+      <<earl_ohlc_chart,echo=TRUE,eval=FALSE,fig.width=7,fig.height=6,fig.show='hide'>>=
+# load package "HighFreq"
+library(HighFreq)
+# define sym_bol
+sym_bol <- "SPY"
+# load OHLC data
+output_dir <- "C:/Develop/data/hfreq/scrub/"
+sym_bol <- load(
+  file.path(output_dir, 
+            paste0(sym_bol, ".RData")))
+date_s <- 
+  "2013-11-11 09:30:00/2013-11-11 10:30:00"
+chart_Series(get(sym_bol)[date_s], 
+            name=sym_bol)
+      @
+    \column{0.5\textwidth}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_ohlc_chart-1}
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Estimating Volatility From \protect\emph{OHLC} Data}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Package \texttt{TTR} contains statistical estimators and technical indicators implemented in fast \texttt{C} code,
+      \vskip1ex
+      The function \texttt{volatility()} from package \texttt{TTR} estimates the volatility from \protect\emph{OHLC} data,
+      \vskip1ex
+      \texttt{volatility()} includes the \emph{Garman-Klass} estimator:\\
+\vspace{-2em}
+      \begin{displaymath}
+        {\sigma}^2=\frac{1}{n} \sum_{i=1}^{n} (0.5(H_{i}-L_{i})^2 - (2\log2-1)(C_{i}-O_{i})^2)
+      \end{displaymath}
+\vspace{-1em}
+      \vskip1ex
+      and the \emph{Rogers-Satchell} estimator:\\
+\vspace{-2em}
+      \begin{displaymath}
+        {\sigma}^2=\frac{1}{n} \sum_{i=1}^{n} ((H_{i}-O_{i})(H_{i}-C_{i}) + (L_{i}-O_{i})(L_{i}-C_{i}))
+      \end{displaymath}
+      \vspace{-1em}
+      <<earl_ttr_runvol,eval=FALSE,echo=(-(1:1)),fig.width=7,fig.height=8,fig.show='hide'>>=
+par(mfrow=c(2,1))  # set plot panels
+library(quantmod)
+library(TTR)
+date_s <- "2013-11-11/2013-11-15"
+vol_at <- volatility(OHLC=get(sym_bol), 
+                     calc="yang.zhang", n=20)
+chart_Series(vol_at[date_s], 
+            name=paste(sym_bol, "vol w/ ON spikes"))
+vol_at <- volatility(OHLC=get(sym_bol), 
+                     calc="rogers.satchell", n=20)
+chart_Series(vol_at[date_s], 
+            name=paste(sym_bol, "vol w/o ON spikes"))
+      @
+    \column{0.5\textwidth}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_ttr_runvol-1}
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Estimating Skew From \protect\emph{OHLC} Data}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The function \texttt{skew\_ohlc()} from package \texttt{HighFreq} calculates a skew-like indicator:\\
+\vspace{-2em}
+      \begin{multline*}
+        \hskip-1em {s}^3=\frac{1}{n} \sum_{i=1}^{n} ((H_{i}-O_{i})(H_{i}-C_{i})(H_{i}-0.5(O_{i}+C_{i})) +\\ (L_{i}-O_{i})(L_{i}-C_{i})(L_{i}-0.5(O_{i}+C_{i}))
+      \end{multline*}
+      The function \texttt{run\_moment\_ohlc()} calculates running, volume weighted moment estimators,
+      <<earl_highfreq_runskew,eval=FALSE,echo=(-(1:1)),fig.width=7,fig.height=8,fig.show='hide'>>=
+par(mfrow=c(2,1))  # set plot panels
+library(HighFreq)  # load package "HighFreq"
+# running volatility
+vol_at <- run_moment_ohlc(ohlc=get(sym_bol))
+# running skew
+sk_ew <- run_moment_ohlc(ohlc=get(sym_bol), 
+                         mom_fun="skew_ohlc")
+sk_ew <- sk_ew/(vol_at)^(1.5)
+sk_ew[1, ] <- 0
+sk_ew <- na.locf(sk_ew)
+date_s <- "2013-11-11/2013-11-15"
+chart_Series(vol_at[date_s], 
+            name=paste(sym_bol, "volatility"))
+chart_Series(sk_ew[date_s],
+            name=paste(sym_bol, "Skew"), 
+            ylim=c(-1, 1))
+      @
+    \column{0.5\textwidth}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_highfreq_runskew-1}
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Regression of Skews Versus Returns}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      A regression of lagged skews versus returns appears to be statistically significant, especially in periods of high volatility during the financial crisis of 2008-09, 
+      \vspace{-1em}
+      <<eval=TRUE,echo=(-(1:1))>>=
+# skew scatterplot
+re_turns <- calc_rets(xts_data=get(sym_bol))
+sk_ew <- skew_ohlc(log_ohlc=log(get(sym_bol)[, -5]))
+colnames(sk_ew) <- paste(sym_bol, "skew", sep=".")
+lag_skew <- lag(sk_ew)
+lag_skew[1, ] <- 0
+da_ta <- cbind(re_turns[, 1], sign(lag_skew))
+for_mula <- as.formula(paste(colnames(da_ta)[1], 
+          paste(paste(colnames(da_ta)[-1], 
+            collapse=" + "), "- 1"), sep="~"))
+for_mula
+l_m <- lm(for_mula, data=as.data.frame(da_ta))
+summary(l_m)$coef
+summary(lm(for_mula, 
+     data=as.data.frame(da_ta["/2011-01-01"])))$coef
+summary(lm(for_mula, 
+     data=as.data.frame(da_ta["2011-01-01/"])))$coef
+      @
+    \column{0.5\textwidth}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_skew_scatter-1}
+      <<earl_skew_scatter,eval=FALSE,echo=TRUE,fig.width=7,fig.height=6,fig.show='hide'>>=
+date_s <- "2013-12-01/"
+plot(for_mula, data=da_ta[date_s], 
+     xlim=c(-2e-09, 2e-09), 
+     cex=0.6, xlab="skew", ylab="rets")
+abline(l_m, col="blue", lwd=2)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Contrarian Strategy Using Skew Oscillator}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The contrarian skew trading strategy involves long or short positions opposite to the sign of the skew, 
+      \vskip1ex
+      Skew is calculated over one-minute bars, and trades are executed in the next period, 
+      \vskip1ex
+      The contrarian strategy shows good hypothetical performance before transaction costs, and since it's a liquidity providing strategy, should have very low transaction costs, 
+      \vskip1ex
+      The contrarian strategy is hyperactive, trading almost 46\% of the time in each period, 
+      <<eval=TRUE,echo=(-(1:1))>>=
+# contrarian skew trading strategy
+# lag the skew to get positions
+position_s <- -sign(lag_skew)
+position_s[1, ] <- 0
+# cumulative PnL
+cumu_pnl <- cumsum(position_s*re_turns[, 1])
+# calculate frequency of trades
+50*sum(abs(sign(sk_ew)-sign(lag_skew)))/nrow(sk_ew)
+# calculate transaction costs
+bid_offer <- 0.001  # 10 bps for liquid ETFs
+bid_offer*sum(abs(sign(sk_ew)-sign(lag_skew)))
+@
+    \column{0.5\textwidth}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_skew_strat-1}
+      \vspace{-1em}
+      <<earl_skew_strat,eval=FALSE,echo=TRUE,fig.width=7,fig.height=6,fig.show='hide'>>=
+chart_Series(
+  cumu_pnl[endpoints(cumu_pnl, on="hours"), ], 
+  name=paste(sym_bol, "contrarian skew strategy pnl"))
+@
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Volume-Weighted Average Price Indicator}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The Volume-Weighted Average Price (\emph{VWAP}) is an indicator used for momentum strategies, 
+      \vskip1ex
+      The momentum reverses when the fast-moving \emph{VWAP} crosses the slow-moving one, 
+      \vspace{-1em}
+      <<earl_vwap_plot,echo=(-(1:1)),eval=FALSE,fig.width=7,fig.height=6,fig.show='hide'>>=
+# vwap plot
+vwap_short <- 
+  v_wap(x_ts=get(sym_bol), win_dow=70)
+vwap_long <- 
+  v_wap(x_ts=get(sym_bol), win_dow=225)
+vwap_diff <- vwap_short - vwap_long
+colnames(vwap_diff) <- 
+  paste(sym_bol, "vwap", sep=".")
+date_s <- "2013-11-11/2013-11-13"
+invisible(
+  chart_Series(x=Cl(get(sym_bol)[date_s]), 
+               name=paste(sym_bol, "plus VWAP")))
+invisible(
+  add_TA(vwap_short[date_s], 
+         on=1, col="red", lwd=2))
+invisible(
+  add_TA(vwap_long[date_s], 
+         on=1, col="blue", lwd=2))
+invisible(
+  add_TA(vwap_diff[date_s] > 0, on=-1, 
+         col="lightgreen", border="lightgreen"))
+add_TA(vwap_diff[date_s] < 0, on=-1, 
+       col="lightgrey", border="lightgrey")
+      @
+    \column{0.5\textwidth}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_vwap_plot-1}
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Regression of \protect\emph{VWAP} Versus Returns}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      A regression of the \emph{VWAP} indicator versus returns appears to be statistically significant, 
+      \vspace{-1em}
+      <<eval=TRUE,echo=(-(1:6))>>=
+# vwap scatterplot
+re_turns <- calc_rets(xts_data=get(sym_bol))
+vwap_short <- v_wap(x_ts=get(sym_bol), win_dow=70)
+vwap_long <- v_wap(x_ts=get(sym_bol), win_dow=225)
+vwap_diff <- vwap_short - vwap_long
+colnames(vwap_diff) <- paste(sym_bol, "vwap", sep=".")
+lag_vwap <- lag(vwap_diff)
+lag_vwap[1, ] <- 0
+da_ta <- cbind(re_turns[, 1], sign(lag_vwap))
+for_mula <- as.formula(paste(colnames(da_ta)[1], 
+          paste(paste(colnames(da_ta)[-1], 
+            collapse=" + "), "- 1"), sep="~"))
+for_mula
+l_m <- lm(for_mula, data=as.data.frame(da_ta))
+summary(l_m)$coef
+summary(lm(for_mula, 
+     data=as.data.frame(da_ta["/2011-01-01"])))$coef
+summary(lm(for_mula, 
+     data=as.data.frame(da_ta["2011-01-01/"])))$coef
+      @
+    \column{0.5\textwidth}
+    \vspace{-1em}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_vwap_scatter-1}
+      <<earl_vwap_scatter,eval=FALSE,echo=TRUE,fig.width=7,fig.height=6,fig.show='hide'>>=
+date_s <- "2013-12-01/"
+plot(for_mula, data=cbind(re_turns[, 1], lag_vwap)[date_s], 
+     cex=0.6, xlab="skew", ylab="rets")
+abline(l_m, col="blue", lwd=2)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Momentum Strategy Using \protect\emph{VWAP}}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The momentum trading strategy involves long or short positions equal to the sign of the \emph{VWAP} indicator, 
+      \vskip1ex
+      The \emph{VWAP} indicator is calculated over one-minute bars, and trades are executed in the next period, 
+      \vskip1ex
+      The momentum strategy shows good hypothetical performance before transaction costs, 
+      \vskip1ex
+      The momentum strategy is infrequent, trading only 0.56\% of the time in each period, 
+      <<eval=TRUE,echo=(-(1:1))>>=
+# momentum trading strategy
+# cumulative PnL
+cumu_pnl <- cumsum(sign(lag_vwap)*re_turns[, 1])
+# calculate frequency of trades
+50*sum(abs(sign(vwap_diff)-sign(lag_vwap)))/nrow(vwap_diff)
+# calculate transaction costs
+bid_offer <- 0.001  # 10 bps for liquid ETFs
+bid_offer*sum(abs(sign(vwap_diff)-sign(lag_vwap)))
+@
+    \column{0.5\textwidth}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_vwap_strat-1}
+      \vspace{-1em}
+      <<earl_vwap_strat,eval=FALSE,echo=TRUE,fig.width=7,fig.height=6,fig.show='hide'>>=
+chart_Series(
+  cumu_pnl[endpoints(cumu_pnl, on="hours"), ], 
+  name=paste(sym_bol, "VWAP momentum strategy pnl"))
+@
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Daily Volatility and Skew From \protect\emph{OHLC} Data}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The function \texttt{moment\_ohlc()} calculates the volume weighted moment of a \emph{OHLC} time series,
+      <<rfin_dailyskew,eval=FALSE,echo=(-(1:7)),fig.width=7,fig.height=8,fig.show='hide'>>=
+par(mfrow=c(2,1))  # set plot panels
+# define sym_bol
+sym_bol <- "SPY"
+# load OHLC data
+output_dir <- "C:/Develop/data/hfreq/scrub/"
+sym_bol <- load(file.path(output_dir, paste0(sym_bol, ".RData")))
+library(quantmod)
+library(HighFreq)  # load package "HighFreq"
+# daily volatility and skew
+daily_var <- apply.daily(x=get(sym_bol), 
+                         FUN=moment_ohlc)
+colnames(daily_var) <- 
+  paste(sym_bol, "vol", sep=".")
+daily_skew <- apply.daily(x=get(sym_bol), 
+              FUN=moment_ohlc, mom_fun="skew_ohlc")
+daily_skew <- daily_skew/(daily_var)^(1.5)
+colnames(daily_skew) <- 
+  paste(sym_bol, "skew", sep=".")
+date_s <- "2013-06-01/"
+chart_Series(daily_var[date_s], 
+             name=paste(sym_bol, "volatility"))
+chart_Series(daily_skew[date_s],
+             name=paste(sym_bol, "Skew"))
+      @
+    \column{0.5\textwidth}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/rfin_dailyskew-1}
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{rework Daily Volatility and Skew From \protect\emph{OHLC} Data}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The function \texttt{moment\_ohlc()} calculates the volume weighted moment of a \emph{OHLC} time series,
+      <<earl_dailyskew,eval=FALSE,echo=(-(1:7)),fig.width=7,fig.height=8,fig.show='hide'>>=
+par(mfrow=c(2,1))  # set plot panels
+# define sym_bol
+sym_bol <- "SPY"
+# load OHLC data
+output_dir <- "C:/Develop/data/hfreq/scrub/"
+sym_bol <- load(file.path(output_dir, paste0(sym_bol, ".RData")))
+library(quantmod)
+library(HighFreq)  # load package "HighFreq"
+# daily volatility and skew
+log_ohlc <- log(get(sym_bol)[, -5])
+vari_ance <- vol_ohlc(log_ohlc=log_ohlc)
+colnames(vari_ance) <- 
+  paste(sym_bol, "var", sep=".")
+dim(vari_ance)
+tail(vari_ance)
+daily_var <- apply.daily(x=vari_ance, FUN=sum)
+colnames(daily_var) <- colnames(vari_ance)
+tail(daily_var)
+# 250*6.5*60
+sk_ew <- skew_ohlc(log_ohlc=log_ohlc)
+colnames(sk_ew) <- 
+  paste(sym_bol, "skew", sep=".")
+daily_skew <- apply.daily(x=sk_ew, FUN=sum)
+daily_skew <- daily_skew/(daily_var)^(1.5)
+colnames(daily_skew) <- colnames(sk_ew)
+dim(daily_skew)
+tail(daily_skew)
+mean(daily_skew)
+date_s <- "2013-06-01/"
+chart_Series(daily_var[date_s], 
+             name=paste(sym_bol, "volatility"))
+chart_Series(daily_skew[date_s],
+             name=paste(sym_bol, "Skew"))
+@
+    \column{0.5\textwidth}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_dailyskew-1}
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Daily Strategy Using Skew Oscillator}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      <<earl_dailystrat,eval=FALSE,echo=(-(1:2)),fig.width=7,fig.height=11,fig.show='hide'>>=
+par(oma=c(15, 1, 1, 1), mgp=c(0, 0.5, 0), mar=c(1, 1, 1, 1), cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.5)
+par(mfrow=c(2,1))  # set plot panels
+# daily contrarian trading strategy
+re_turns <- Ad(get(sym_bol)[index(sk_ew), ])
+re_turns <- diff(log(re_turns))
+colnames(re_turns) <- paste(sym_bol, "Ret", sep=".")
+position_s <- -lag(sk_ew)
+colnames(position_s) <- paste0(sym_bol, ".Position")
+position_s <- na.omit(merge(position_s, re_turns))
+# scatterplot of sk_ew and re_turns
+date_s <- "2008-09/2009-05"
+plot(coredata(position_s[date_s]))
+cor.test(coredata(position_s[date_s])[, 1], 
+         coredata(position_s[date_s])[, 2])
+position_s <- cumsum(position_s[, 1]*position_s[, 2])
+plot(position_s)
+      @
+    \column{0.5\textwidth}
+      \vspace{-2em}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_dailystrat-1}\\
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Conclusion}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+      Open questions:
+      \begin{itemize}
+        \item is there any interaction between volatility and skew? 
+        \item what is relationship between returns and cross-section of skew?
+        \item does firm size have any effect? 
+        \item persistence of anomaly over time, 
+      \end{itemize}
+      \vskip1ex
+      Acknowledgements:
+      \begin{itemize}
+        \item Brian Peterson for Thomson Reuters tick data,
+        \item Jeffrey Ryan, Joshua Ulrich, and Brian Peterson for packages \texttt{xts}, \texttt{quantmod}, \texttt{PerformanceAnalytics}, and \texttt{TTR},
+      \end{itemize}
+\end{block}
+
+\end{frame}
+
+
+
+\end{document}

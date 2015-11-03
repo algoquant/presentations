@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>My First HTML</title>
+  <meta charset="UTF-8">
+<!-- internal styling -->
+  <style>
+    body {background-color:lightgrey}
+    h1   {color:blue}
+    p    {color:grey}
+    span.note {font-size:120%;color:red;}
+    div.block {
+      background-color:yellow;
+      color:blue;
+      margin:20px;
+      padding:20px;
+    }
+  </style>
+<!-- import external style sheet -->
+  <link rel="stylesheet" href="FRE_lectures.css">
+</head>
+
+<!-- body with inline styling -->
+<body style="background-color:lightgrey">
+
+<address>
+Written by Jon Doe.<br> 
+Visit us at:<br>
+Example.com<br>
+Box 564, Disneyland<br>
+USA
+</address>
+
+<!-- headers with inline styling -->
+
+<h1 style="color:blue">This is a big blue heading</h1>
+<h2 style="color:red">This is a smaller red heading with some <span style="color:blue">blue</span> text in it</h2>
+<h3 style="background-color:lightblue">This is an even smaller heading with lightblue background</h3>
+<p>This is a paragraph.</p>
+<p><b>This is bold text.</b></p>
+<p><strong>This is strong text</strong>.</p>
+<p><i>This is italic text.</i></p>
+<p><em>This is emphasized text.</em></p>
+<p><small>This is small text.</small></p>
+<p><mark>This is marked (highlighted) text.</mark></p>
+<p>This is some <span class="note">important</span> text.</p>
+<p><q>This is quoted text.</q></p>
+
+<!-- This is a comment that's not displayed -->
+
+<p>Here is a quote:
+  <blockquote>This is quoted text</blockquote>
+</p>
+
+<p style="font-family:courier; font-size:160%">
+  This is another paragraph with courier text.
+</p>
+
+<div class="block">
+  <h4>This is a block of text</h4>
+  <p>London is the capital city of England. It is the most populous city in the United Kingdom, with a metropolitan area of over 13 million inhabitants.</p>
+</div>
+
+<p><pre>This is text in a preserved tag, 
+it displays in courier font,
+and preserves line breaks,
+  and  preserves   spacings  hey!
+</pre></p>
+
+<p>Coding Example:<br>
+<code>
+var person={
+    firstName:"John",
+    lastName:"Doe",
+    age:50,
+    eyeColor:"blue"
+}
+</p></code>
+
+
+<p title="paragraph with a web link">This is a paragraph with a web link:
+<a href="http://www.rstudio.com">
+<img src="image/RStudio_logo.png" alt="HTML tutorial"; style="width:200px;height:100px;border:0">
+</a>
+</p>
+<br>
+<p title="paragraph with an image">This is a paragraph with an image:
+<img src="C:/Develop/R/FRE6871/image/smile_small.png" alt="can't find image" width="104" height="142">
+</p>
+
+
+<p>To open a file, select:<br>
+<kbd>File | Open...</kbd></p>
+
+<p>This is some computer output:<br>
+<samp>
+demo.example.com login: Apr 12 09:10:17
+Linux 2.6.10-grsec+gg3+e+fhs6b+nfs+gr0501+++p3+c4a+gr2b-reslog-v6.189
+<br>
+R v3.1
+</samp></p>
+
+</body>
+</html>
