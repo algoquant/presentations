@@ -1,7 +1,7 @@
 ---
 title: "ioslides Presentation with Shiny"
 author: "Jerzy Pawlowski"
-affiliation: NYU Polytechnic School of Engineering
+affiliation: NYU Tandon School of Engineering
 date: '`r format(Sys.time(), "%m/%d/%Y")`'
 email: jp3900@nyu.edu
 output: 
@@ -10,7 +10,7 @@ output:
     smaller: true
     transition: 0.1
     self_contained: true
-    logo: image/engineering_long_color.png
+    logo: image//engineering_long_color.png
 runtime: shiny
 ---
 
@@ -144,7 +144,7 @@ Second column contains the output of the code in the first column:
 
 ## Slide With a Smiling Face
 
-![smiling_face](image/smile_small.png)
+![smiling_face](image//smile_small.png)
 
 
 

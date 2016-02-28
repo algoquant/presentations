@@ -42,6 +42,61 @@ R is fun!
 
 
 
+## Slide with dygraphs Plot
+
+```{r, dygraphs_simple, cache=FALSE, eval=TRUE, echo=TRUE, fig.width=5, fig.height=4}
+library(dygraphs)
+dygraph(nhtemp, main = "New Haven Temperatures") %>% 
+  dyRangeSelector(dateWindow = c("1920-01-01", "1960-01-01"))
+```
+
+
+## Slide with plotly Plot
+```{r, plotly_simple, cache=FALSE, eval=TRUE, echo=FALSE, fig.width=5, fig.height=4}
+suppressMessages(library(xts, quietly=TRUE))
+suppressMessages(library(ggplot2, quietly=TRUE))
+suppressMessages(library(plotly, quietly=TRUE))
+suppressMessages(load(file="C:/Develop/data/etf_data.Rdata"))
+# create ggplot object
+etf_gg <- qplot(x=index(etf_series_ad[, 1]), 
+                y=as.numeric(etf_series_ad[, 1]), 
+                geom="line", 
+                main=names(etf_series_ad[, 1])) + 
+  xlab("") + ylab("") + 
+  theme(
+    legend.position=c(0.1, 0.5), 
+    plot.title=element_text(vjust=-2.0), 
+    plot.background=element_blank()
+  )  # end theme
+# render ggplot object
+suppressWarnings(ggplotly(etf_gg))
+```
+
+
+## Slide with Embedded External Shiny Application
+Below is an embedded external shiny application, using function shinyAppDir() which executes R code contained in the files ui.R and server.R, stored in the normal_dist subdirectory:  
+```{r, eval=TRUE, echo=TRUE, cache=FALSE}
+library(shiny)
+shinyAppDir(
+  appDir="shiny/normal_dist",
+  options=list(width="100%", height=400)
+  )  # end shinyAppDir
+```
+
+
+
+## Slide with HTML Widget
+Below is an HTML Widget:  
+```{r, eval=TRUE, echo=TRUE, cache=FALSE}
+library(networkD3)
+data(MisLinks, MisNodes)
+forceNetwork(Links=MisLinks, Nodes=MisNodes, Source="source",
+Target="target", Value="value", NodeID="name",
+Group="group", opacity=0.4)
+```
+
+
+
 ## Slide with Incremental Bullets
 
 Regular Bullets:  
@@ -182,7 +237,7 @@ more text
 
 ##### First column:  
 
-  ![smiling_face](image/smile_small.png)
+![smiling_face](image/smile_small.png)
 <br>
 <br>
 <br>
@@ -216,28 +271,4 @@ Second column with extra copy of R output:
 ```{r, summ_cars, eval=TRUE, echo=FALSE, size="tiny"}
 ```
 
-
-
-## Slide with Embedded External Shiny Application
-
-Below is an embedded external shiny application, using function shinyAppDir() which executes R code contained in the files ui.R and server.R, stored in the normal_dist subdirectory:  
-```{r, eval=TRUE, echo=TRUE, cache=FALSE}
-library(shiny)
-shinyAppDir(
-  appDir="shiny/normal_dist",
-  options=list(width="100%", height=400)
-  )  # end shinyAppDir
-```
-
-
-## Slide with HTML Widget
-
-Below is an HTML Widget:  
-```{r, eval=TRUE, echo=TRUE, cache=FALSE}
-library(networkD3)
-data(MisLinks, MisNodes)
-forceNetwork(Links=MisLinks, Nodes=MisNodes, Source="source",
-Target="target", Value="value", NodeID="name",
-Group="group", opacity=0.4)
-```
 

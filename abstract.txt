@@ -1,0 +1,154 @@
+﻿### EARL Boston 2015 ideas
+
+rationale
+
+
+{\scriptsize{"The premier market anomaly is momentum. Stocks with low returns over the past year tend to have low returns for the next few months, and stocks with high past returns tend to have high future returns."}}\\
+
+the question then is:
+	can momentum also work on shorter time scales?
+	do higher moments (skew, kurtosis) also have predictive power?
+	but higher moments are hard to estimate from low frequency (daily) returns.
+	higher moments decay with time (term)
+	many packages aren't optimized for speed
+	how to use high frequency data to estimate higher moments
+
+estimating moments
+	Rogers-Satchell estimator eliminates ON volatility spikes
+	show daily seasonality of volatility and volume - borrow from FRE7241_homeworks_tests.R
+	correlation between volatility and volume, lead and lag
+	plots for 2010 flash crash
+	volatility estimation bias variance tradeoff
+
+perform running strategy
+	describe skew strategy - borrow from FRE7241_homeworks_tests.R
+	describe vwap strategies - borrow from FRE7241_homeworks_tests.R
+	inputs: returns, variance, pos_skew, neg_skew, volume, vwaps
+	positive convexity with respect to large skew
+	individual scatterplots
+	convert all variables to categorical
+	vwap has low t-val, but sign(vwap) has large t-val
+	optimize vwap in period up to 2011, and test it out-of-sample
+	perform lm() with zero intercept, and summarize regressions
+	perform regressions over periods of high and low volatility and volume
+	strong signal from skew in period of high vol?
+	predict and calculate table confusion matrix
+	regularize different vwaps (shrink) in-sample
+	test vwaps out-of-sample
+	apply gbm package: Generalized Boosted Regression Models?
+	volatility is proxy for volume with lag?
+	percentage of time pos_skew or neg_skew aren't zero?
+	perform regressions over different calendar periods
+		both vwap and skew more show stronger dependence during financial crisis
+		vwap has steady persistence, but not skew?
+	feature selection is most important
+	frequency of trading: contrarian skew strategy versus vwap strategy
+	add transaction costs by strategy
+	plot daily seasonality of trading rates
+	plot trading rates versus realized volatility
+	evaluate strategies individually and create shaded plots
+	evaluate strategy performance over different periods and link it to high volatility regimes
+	contrarian skew strategy worked mostly during financial crisis
+	simulate random prices and run through strategy
+	future directions, open questions
+	apply volume threshold to indicators - doesn't work because of daily seasonality?
+
+investigate if skew is just proxy for past returns, or if it adds extra information
+	start with daily aggregations
+	trade next day at OPEN
+	perform regressions in high and low volatility periods
+	skew is negative on average, but changes over time
+	cor.test()
+
+expand slide "Daily Strategy Using Skew Oscillator"
+	investigate if normalized skew is a contrarian indicator (oscillator) for future returns
+	show that relationship is stronger in high volatility periods
+
+investigate relationship between skew and returns in high vol periods
+	show that relationship is stronger in high volatility periods
+
+illustrate estimator efficiency as more data is used
+MC simu
+
+CFM anomaly 
+Donier Volatility Volume Market Liquidity Crash.pdf
+volatility divided by square root of trading volume is a measure of market illiquidity
+show that you can measure liquidity-adjusted imbalance over time
+
+Why Do Markets Crash?  Bitcoin Data Offers Unprecedented Insights
+http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2583743
+
+
+order-book liquidity and price impact
+the price impact is proportional to volatility times square root of ratio 
+of volume imbalance divided by trading volume
+
+LeBaron Stock Momentum Volume
+	Persistence is directly related to the current rate of change of volume
+
+# sources:
+
+
+
+### quote references:
+
+
+### slides
+
+# Are High Frequency Traders Prudent and Temperate?
+	explain the concepts
+
+# prudence and temperance
+
+# packages xts, quantmod and TTR
+
+# OHLC aggregations are good
+
+# moment estimators
+	volume weighted
+	with O/N jumps or not?
+
+# bias/variance tradeoff
+      \vskip1ex
+      Using high frequency data for estimation bias/variance tradeoff
+
+
+### EARL Boston 2015 official
+
+title:
+Quantitative Portfolio Management with High Frequency Data
+
+abstract:
+Studies have shown that estimating portfolio risk parameters using high frequency data significantly improves their quality, and results in better portfolio performance.
+We demonstrate elements of a computational framework in the R language that uses high frequency data for estimating risk and return parameters.
+The parameters are used as input into models based on machine learning techniques such as cross validation (backtesting) and regularization.
+The computational framework utilizes popular R packages for data scrubbing, aggregation, estimation, and machine learning.
+We apply the framework to portfolio rebalancing, and we study alternative active management strategies.
+
+
+### R Finance Chicago 2015
+
+relationship between realized daily skewness and 
+
+But skewness and kurtosis are hard to estimate from low frequency (daily) returns.
+
+There is much evidence that the third moment of returns is important for asset pricing. 
+
+Investor 
+for higher moments has also been studied, with 
+Their preference for higher moments has also been studied, with 
+the utility function
+
+We use intraday data to compute weekly realized variance, skewness, and kurtosis 
+for equity
+returns and study the realized moments time-series and cross-sectional properties. 
+We investigate if this weeks realized moments are informative for the cross-section of next weeks stock
+returns. We and a very strong negative relationship between realized skewness and next weeks
+stock returns. A trading strategy that buys stocks in the lowest realized skewness decile and
+sells stocks in the highest realized skewness decile generates an average weekly return of 24
+basis points with a t-statistic of 3:65. Our results on realized skewness are robust across a wide
+variety of implementations, sample periods, portfolio weightings, and rm characteristics, and
+are not captured by the Fama-French and Carhart factors. We nd some evidence that the re-
+lationship between realized kurtosis and next weeks stock returns is positive, but the evidence
+is not always robust and statistically signicant. We do not nd a strong relationship between
+realized volatility and next weeks stock returns.

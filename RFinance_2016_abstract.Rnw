@@ -1,0 +1,102 @@
+% Define knitr options
+% !Rnw weave=knitr
+% Set global chunk options
+<<knitr_setup,include=FALSE,cache=FALSE>>=
+library(knitr)
+opts_chunk$set(prompt=TRUE, tidy=FALSE, strip.white=FALSE, comment=NA, highlight=FALSE, message=FALSE, warning=FALSE, size='scriptsize', fig.width=4, fig.height=4)
+options(width=60, dev='pdf')
+thm <- knit_theme$get("acid")
+knit_theme$set(thm)
+@
+
+
+% Define document options
+\documentclass[10pt]{beamer}
+\mode<presentation>
+\usetheme{Madrid}
+% \usecolortheme{whale}
+% Uncover everything in a step-wise fashion
+% \beamerdefaultoverlayspecification{<+->}
+% mathtools package for math symbols
+% \usepackage{mathtools}
+\usepackage[latin1]{inputenc}
+\usepackage{hyperref}
+\usepackage{fancybox}
+\usepackage{url}
+\usepackage[backend=bibtex,style=alphabetic]{biblatex} % bibstyle=numeric
+% \bibliographystyle{amsalpha} % doesn't work
+\addbibresource{FRE_lectures.bib}
+% \addbibresource[location=remote]{http://www.citeulike.org/user/jerzyp}
+\renewcommand\bibfont{\footnotesize}
+\renewcommand{\pgfuseimage}[1]{\scalebox{0.75}{\includegraphics{#1}}} % scale bib icons
+\setbeamertemplate{bibliography item}[text] % set bib icons
+% \setbeamertemplate{bibliography item}{} % remove bib icons
+
+% \usepackage{enumerate}
+% \let\emph\textbf
+% \let\alert\textbf
+% Define colors for hyperlinks
+\definecolor{links}{HTML}{2A1B81}
+\hypersetup{colorlinks=true,linkcolor=,urlcolor=links}
+% Make url text footnotesize
+\renewcommand\UrlFont{\footnotesize}
+% Make institute text italic and small
+\setbeamerfont{institute}{size=\small,shape=\itshape,bg=red,fg=red}
+\setbeamerfont{date}{size=\small}
+\setbeamerfont{block title}{size=\normalsize} % shape=\itshape
+\setbeamerfont{block body}{size=\footnotesize}
+
+
+% Title page setup
+\title[Exloring Higher Order Risk Premia Using High Frequency Data]{Exloring Higher Order Risk Premia Using High Frequency Data}
+\subtitle{R/Finance Chicago 2016}
+% \subject{Getting Started With R}
+\institute[NYU Tandon]{NYU Tandon School of Engineering}
+\titlegraphic{\includegraphics[scale=0.2]{image/tandon_long_color}}
+\author[Jerzy Pawlowski]{Jerzy Pawlowski \emph{\href{mailto:jp3900@nyu.edu}{jp3900@nyu.edu}}}
+% \email{jp3900@nyu.edu}
+% \date{January 27, 2014}
+\date{\today}
+% \pgfdeclareimage[height=0.5cm]{university-logo}{engineering_long_white}
+% \logo{\pgfuseimage{engineering_long_white}}
+
+
+%%%%%%%%%%%%%%%
+\begin{document}
+
+
+%%%%%%%%%%%%%%%
+\maketitle
+
+
+
+%%%%%%%%%%%%%%%
+\section{Introduction}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Abstract}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  Recent academic research is suggesting the existence of risk premia associated with higher \emph{moments} of the return distribution.  
+  \vskip1ex
+  For example \emph{skewness} (third moment) is believed to predict lower future returns.  
+  \vskip1ex
+  This may be caused by investor demand for assets with positive skewness (lottery tickets), which reduces their future returns. 
+  \vskip1ex
+  We explore this phenomenon using \emph{high frequency data}, since it allows for more accurate and timely estimation of higher order moments (bias-variance tradeoff).  
+  \vskip1ex
+  Furthermore, we also explore the interaction between skewness and the \emph{momentum} factor, since some recent research is suggesting that momentum returns are enhanced by skewness.  
+  \vskip1ex
+  But using high frequency data can present a challenge, since the data size may cause \texttt{R} programs to run very slowly.  
+  \vskip1ex
+  We demonstrate how to perform the analysis using vectorized \texttt{R} code designed for \emph{speed}.  
+  \vskip1ex
+  We present our results using \emph{interactive visualizations} afforded by new \texttt{R} packages.  
+\end{block}
+
+\end{frame}
+
+
+\end{document}
