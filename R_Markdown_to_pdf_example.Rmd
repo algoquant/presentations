@@ -1,0 +1,50 @@
+---
+title: Publishing R Markdown documents as pdf documents
+author: algoquant
+date: July 2, 2016
+output: pdf_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE)
+```
+
+### *R Markdown* documents
+
+This is an *R Markdown* document. Markdown is a simple formatting syntax for publishing *HTML*, *pdf*, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+
+### Including *R* code chunks
+
+*R* code chunks can be embedded in *R Markdown* documents, and they are automatically executed and their output is embedded in the output document.
+
+```{r mtcars, echo=TRUE}
+head(mtcars)
+```
+
+
+### Including plots
+
+You can also embed plots in *pdf* files, for example:
+
+The Normal probability density function is given by:
+$$
+\displaystyle
+  P(x) = \frac{e^{-(x-\mu)^2/2\sigma^2}}{\sigma\sqrt{2 \pi}}
+$$
+
+Plot the Normal probability density function:
+
+```{r pressure, echo=TRUE}
+x_var <- seq(-5, 7, length=100)
+y_var <- dnorm(x_var, mean=1.0, sd=2.0)
+plot(x_var, y_var, type="l", lty="solid",
+     xlab="", ylab="")
+title(main="Normal Density Function", line=0.5)
+star_t <- 3; fin_ish <- 5  # set lower and upper bounds
+# set polygon base
+are_a <- ((x_var >= star_t) & (x_var <= fin_ish))
+polygon(c(star_t, x_var[are_a], fin_ish),  # draw polygon
+        c(-1, y_var[are_a], -1), col="red")
+```
+
+Note that the `echo = FALSE` parameter can be added to the code chunk to prevent printing of the *R* code that generated the plot.

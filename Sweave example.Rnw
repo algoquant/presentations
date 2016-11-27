@@ -1,0 +1,20 @@
+\documentclass{article}
+
+\begin{document}
+
+  This document is a very simple example of a Sweave document (.Rnw)
+
+  Here are some equations:\\
+  This is an in-line fraction: $\frac{2}{3}$.
+
+  \vspace{5em}
+
+  This is an in-line formula: $\hat{\lambda}=1.02$.\\
+  And another formula: $\sqrt{4}=2$.
+
+  \vspace{5em}
+
+  The binomial probability: $$f(y|N,p) = \frac{N!}{y!(N-y)!}\cdot p^y \cdot (1-p)^{N-y} = {{N}\choose{y}} \cdot p^y \cdot (1-p)^{N-y}$$
+
+
+\end{document}

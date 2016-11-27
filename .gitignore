@@ -220,6 +220,10 @@ pip-log.txt
 
 # knitr and LaTEX files
 figure/
+shiny_ioslides_cache/
+ioslides_example_cache/
+ioslides_shiny_cache/
+R_Markdown_to_ioslides_example_cache/
 *.aux
 *.log
 *.nav

@@ -1,0 +1,193 @@
+---
+title: ioslides Presentations with Shiny
+author: Jerzy Pawlowski
+affiliation: NYU Tandon School of Engineering
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
+email: jp3900@nyu.edu
+output: 
+  ioslides_presentation: 
+    widescreen: true
+    smaller: true
+    transition: 0.1
+    self_contained: true
+    logo: image/tandon_stacked_color.png
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+# This is an R setup chunk, containing default options applied to all other chunks
+library(knitr)
+# This sets the chunk default options
+opts_chunk$set(cache=TRUE, collapse=TRUE, error=FALSE, prompt=TRUE)
+# This sets the chunk display theme
+knit_theme$set(knit_theme$get("acid"))
+# This sets some display options
+options(digits=3)
+options(width=80)
+```
+
+
+## Creating slide presentations using *RStudio*
+
+*RStudio* has developed two related file formats designed for creating slide presentations: the *R Markdown* format (files with extension *.Rmd*) and the *RPresentations* format (files with extension *.Rpres*).  Both formats use the *R Markdown* flavor of the *markdown* markup language, but differ in the way they are rendered into slide presentations. 
+
+*R Markdown* files can be rendered into either one of two interactive *html* slide presentations: *ioslides* or *slidy*, or into non-interactive *pdf* slide presentations.  *R Markdown* documents can also be rendered into standard *pdf* or *html* documents that aren't slides.
+
+Both *ioslides* and *slidy* slide presentations can have embedded in them interactive plots, like *shiny*, *dygraphs*, and *plotly*.  *ioslides* and *slidy* presentations with embedded *dygraphs* or *plotly* interactive plots can be produced as single, standalone *html* files, which makes them easy to share.  But slide presentations with embedded *shiny* interactive plots contain a live *R* session, so they can't be produced as single file. 
+
+*RStudio* offers several tutorials about writing presentations in *R Markdown*:
+
+Introduction to *R Markdown*:
+[*R Markdown*](http://rmarkdown.RStudio.com/)
+
+Authoring *R Markdown* Presentations:
+[Authoring *R Markdown* Presentations](https://support.RStudio.com/hc/en-us/articles/200486468-Authoring-R-Presentations)
+
+
+
+## The *RPresentations* format
+
+The *RPresentations* document format allows embedding *R* chunks, and static visualizations of data (plots and charts), but not *shiny* applications. *RPresentations* can be saved as standalone *html* files.  One advantage of *RPresentations* is that they allow for creating slides with two columns.  The *RPresentations* document format is now deprecated in favor of the pure *R Markdown* format.  
+
+Introduction to RPresentations:
+[RPresentations](https://support.RStudio.com/hc/en-us/sections/200130218-R-Presentations)
+
+
+
+## Interactive Presentations with *ioslides* and *shiny*
+
+*Ioslides* is an interactive *html* slide presentation format developed by *RStudio*.  *Ioslides* presentations can have embedded *shiny* applications for interactive plots.  This presentation is an interactive *ioslides* presentation written in *R Markdown*, with embedded *shiny* applications written in *R* code.  
+
+*RStudio* offers tutorials about writing presentations in *R Markdown*.
+Introduction to *R Markdown*:
+[*R Markdown*](http://rmarkdown.RStudio.com/)
+
+Authoring *R Markdown* Presentations:
+[Authoring *R Markdown* Presentations](https://support.RStudio.com/hc/en-us/articles/200486468-Authoring-R-Presentations)
+
+
+*RStudio* offers several tutorials about writing interactive presentations in *R Markdown*.
+Introduction to *ioslides*:
+[*R Markdown*](http://rmarkdown.RStudio.com/ioslides_presentation_format.html)
+
+This link offers a good introduction to *R Markdown* slide presentations, explaining the difference between *ioslides* presentations versus slidy:
+[*R Markdown* slide presentation formats: *ioslides* versus *slidy*](http://data-analytics.net/cep/Schedule_files/presentations_demo.html)
+
+
+
+## Interactive plots Using *shiny*
+
+*Shiny* is an *R* package that allows creating interactive plots of *R* models.  A *shiny* visualization accepts user input of model parameters, recalculates the model, and displays an updated plot.  *Shiny* interactive plots contain a live *R* session, which allows them to recalculate an *R* model with user input model parameters. 
+
+*RStudio* offers several tutorials about *shiny*.
+*shiny* tutorial:
+[*shiny* tutorial](http://shiny.RStudio.com/tutorial/)
+
+Authoring *shiny* applications:
+[authoring *shiny*](http://rmarkdown.RStudio.com/authoring_shiny.html)
+
+Authoring embedded *shiny* applications:
+[authoring embedded *shiny*](http://rmarkdown.RStudio.com/authoring_embedded_shiny.html)
+
+Gallery of *shiny* applications:
+[*shiny* gallery](http://shiny.RStudio.com/gallery/)
+
+Hosting Interactive Presentations on shinyapps.io
+[*shiny* apps](http://shiny.RStudio.com/articles/shinyapps.html)
+
+
+
+## Slide with Embedded Inline *shiny* Application
+
+Below is an embedded inline *shiny* application:
+
+```{r, echo=FALSE, cache=FALSE}
+inputPanel(
+  selectInput("n_breaks", label = "Number of bins:",
+              choices = c(10, 20, 35, 50), selected = 20),
+  
+  sliderInput("bw_adjust", label = "Bandwidth adjustment:",
+              min = 0.2, max = 2, value = 1, step = 0.2)
+)
+
+renderPlot({
+  hist(faithful$eruptions, probability = TRUE, breaks = as.numeric(input$n_breaks),
+       xlab = "Duration (minutes)", main = "Geyser eruption duration")
+  
+  dens <- density(faithful$eruptions, adjust = input$bw_adjust)
+  lines(dens, col = "blue")
+})
+```
+
+
+
+## Slide with Embedded External *shiny* Application
+
+Below is an embedded external *shiny* application, using function shinyAppDir() which executes R code contained in the files ui.R and server.R, stored in the normal_dist subdirectory:
+
+```{r, eval=TRUE, echo=FALSE, cache=FALSE}
+library(shiny)
+shinyAppDir(
+  appDir="shiny/normal_dist",
+  options=list(width="100%", height=400)
+  )  # end shinyAppDir
+```
+
+
+
+## Slide with R Code and Plot in Two Columns {.columns-2}
+
+*Ioslides* allow for creating slides with two columns, but it's not possible to control where the second column starts.  The second column starts only after the first column is fully filled with lines of content.
+
+### First column with *R* code:  
+
+```{r, plot_cars, eval=FALSE, echo=(-(1:1)), fig.show="hide"}
+par(cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+plot(cars)
+```
+<br> empty lines to fill up the first column ...
+<br>...
+<br>...
+<br>...
+<br>...
+<br>...
+<br>...
+<br>...
+<br>...
+
+### Second column with plot:  
+
+```{r, plot_cars, eval=TRUE, echo=FALSE, fig.width=5, fig.height=4}
+```
+
+
+## Slide with R Code and Output in Two Columns {.columns-2}
+
+First column contains simple R code that returns the summary of the cars data frame:
+
+```{r, summ_cars, eval=FALSE, echo=TRUE, results="hold", size="tiny"}
+summary(cars)
+```
+
+
+Second column contains the output of the code in the first column:
+
+```{r, summ_cars, eval=TRUE, echo=FALSE, size="tiny"}
+```
+
+
+
+## Slide With a Smiling Face
+
+![smiling_face](image//smile_small.png)
+
+
+
+## Slide with dygraphs Plot
+
+```{r, dygraphs_simple, cache=FALSE, eval=TRUE, echo=TRUE, fig.width=5, fig.height=4}
+library(dygraphs)
+dygraph(nhtemp, main = "New Haven Temperatures") %>% 
+  dyRangeSelector(dateWindow = c("1920-01-01", "1960-01-01"))
+```
+

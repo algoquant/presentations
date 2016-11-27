@@ -1,0 +1,79 @@
+---
+title: ioslides Slide Presentations from R Markdown
+author: algoquant
+affiliation: NYU Tandon School of Engineering
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
+email: jp3900@nyu.edu
+output: 
+  ioslides_presentation: 
+    widescreen: true
+    smaller: true
+    transition: 0.1
+    self_contained: true
+    logo: image/tandon_stacked_color.png
+---
+
+```{r setup, include=FALSE}
+# This is an R setup chunk, containing default options applied to all other chunks
+library(knitr)
+# This sets the chunk default options
+opts_chunk$set(cache=TRUE, collapse=TRUE, error=FALSE, prompt=TRUE)
+# This sets the chunk display theme
+knit_theme$set(knit_theme$get("acid"))
+# This sets some display options
+options(digits=3)
+options(width=80)
+```
+
+## *R Markdown* documents
+
+This is an *ioslides* slide presentation rendered from an *R Markdown* document. Markdown is a simple markup language for publishing *html*, *pdf*, and MS Word documents. For more details on using *R Markdown* see <http://rmarkdown.rstudio.com>.
+
+
+## Including *R* code chunks
+
+*R* code chunks can be embedded in *R Markdown* documents, and they are automatically executed and their output is embedded in the output document.
+
+```{r mtcars, echo=TRUE}
+head(mtcars)
+```
+
+
+## Including plots {.columns-2}
+
+Example of two-column layout with a plot.
+
+The Normal probability density function is given by:
+$$
+  P(x) = \frac{e^{-(x-\mu)^2/2\sigma^2}}{\sigma\sqrt{2 \pi}}
+$$
+
+Plot the Normal probability density function:
+
+```{r normal_dist, echo=TRUE, fig.width=5, fig.height=4}
+par(mar=c(2, 1, 2, 1))  # set plot margins
+par(oma=c(1, 1, 1, 1))  # set outer margins
+x_var <- seq(-5, 7, length=100)
+y_var <- dnorm(x_var, mean=1.0, sd=2.0)
+plot(x_var, y_var, type="l", lty="solid",
+     xlab="", ylab="")
+title(main="Normal Density Function", line=0.5)
+star_t <- 3; fin_ish <- 5  # set lower and upper bounds
+# set polygon base
+are_a <- ((x_var >= star_t) & (x_var <= fin_ish))
+polygon(c(star_t, x_var[are_a], fin_ish),  # draw polygon
+        c(-1, y_var[are_a], -1), col="red")
+```
+
+Note that the `echo = FALSE` parameter can be added to the code chunk to prevent printing of the *R* code that generated the plot.
+
+
+
+## Slide with interactive *dygraphs* plot
+
+```{r, dygraphs_simple, cache=FALSE, eval=TRUE, echo=TRUE, fig.width=5, fig.height=4}
+library(dygraphs)
+dygraph(nhtemp, main = "New Haven Temperatures") %>% 
+  dyRangeSelector(dateWindow = c("1920-01-01", "1960-01-01"))
+```
+

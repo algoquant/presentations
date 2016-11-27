@@ -1,7 +1,15 @@
 ############
 # ToDo list for R presentations
 
-### R/Finance tasks
+### R/Finance 2016 tasks
+
+- [ ] regress current returns on skew
+
+- [ ] regress future returns on skew
+
+- [ ] regression of returns versus skews 
+divide time series into periods of high and low liquidity, and study if momentum or skew have more forecasting power. 
+study effect of changing the rolling window size.
 
 - [ ] remove earl_vwap_scatter?
 
@@ -9,40 +17,27 @@
 
 - [x] how do volatility, volume, illiquidity, skew, and hurst change intraday (intraday seasonality)?
 
-- [ ] is market illiquidity a proxy for volatility? 
+- [x] is market illiquidity a proxy for volatility? 
 
-- [ ] does market illiquidity create trading opportunities? 
+- [x] does market illiquidity create trading opportunities? 
 use intra-day data 
 divide time series into periods of high and low liquidity, and study if momentum or skew have more forecasting power. 
 do periods of high skew coincide with high present or future returns? 
 
-- [ ] regression of momentum (autocorrelation) versus volatility
-divide time series into periods of high and low volatility, and study if momentum is higher as well. 
-study effect of changing the rolling window size.
+- [x] regression of Hurst (autocorrelation) versus volatility
 
-- [ ] regression of returns versus skews 
-divide time series into periods of high and low liquidity, and study if momentum or skew have more forecasting power. 
-study effect of changing the rolling window size.
-
-- [ ] add slide:
+- [x] add slides:
 explain Hurst exponent
 daily seasonality of Hurst exponent
 regress daily volume versus volatility
 show that volatility and volume are proportional, so illiquidity index is just proportional to square root of volatility
 
-- [ ] add slide:
-regress daily volume versus volatility
-show that volatility and volume are proportional, so illiquidity index is just proportional to square root of volatility
-
-
-
-
-- [ ] slide High Frequency OHLC Data:
+- [x] slide High Frequency OHLC Data:
 OHLC data offers data compression
 packages xts and quantmod
 change code to lazy load
 
-- [ ] slide Estimating Skew From OHLC Data:
+- [x] slide Estimating Skew From OHLC Data:
 rename to Estimating Skew From OHLC Data
 emph skew-like
 

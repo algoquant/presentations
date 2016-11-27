@@ -1,0 +1,59 @@
+---
+title: Equation Examples in R Markdown
+author: algoquant
+date: "July 2, 2016"
+output: html_document
+---
+
+## Getting started with equations
+
+We can write fractions: $\frac{2}{3}$. We can also handle things like estimated population growth rate, e.g., $\hat{\lambda}=1.02$. And, $\sqrt{4}=2$.
+
+$$\alpha, \beta,  \gamma, \Gamma$$
+
+$$a \pm b$$
+$$x \ge 15$$
+$$a_i \ge 0~~~\forall i$$
+
+## Linear Algebra
+
+A Matrix:
+
+$$A_{m,n} =
+ \begin{pmatrix}
+  a_{1,1} & a_{1,2} & \cdots & a_{1,n} \\
+  a_{2,1} & a_{2,2} & \cdots & a_{2,n} \\
+  \vdots  & \vdots  & \ddots & \vdots  \\
+  a_{m,1} & a_{m,2} & \cdots & a_{m,n}
+ \end{pmatrix}$$
+
+
+
+The Cauchy-Schwarz Inequality:  
+
+$$
+  \left( \sum_{k=1}^n a_k b_k \right)^2 
+  \leq 
+  \left( \sum_{k=1}^n a_k^2 \right) 
+  \left( \sum_{k=1}^n b_k^2 \right) 
+$$
+
+
+## Statistics
+
+The binomial probability: $$f(y|N,p) = \frac{N!}{y!(N-y)!}\cdot p^y \cdot (1-p)^{N-y} = {{N}\choose{y}} \cdot p^y \cdot (1-p)^{N-y}$$
+
+To calculate the **mean** of \textit{n} observations of variable \textit{x}, you can use: $$\bar{x} = \frac{1}{n} \sum_{i=1}^{n}x_{i}$$ 
+
+Note that this equation looks quite nice above where it's in display math mode. It is more compact but not quite as nice looking if we present it using inline mode, e.g., $\bar{x} = \frac{1}{n} \sum_{i=1}^{n}x_{i}$.
+
+Let's do the same with the equation for **variance**. First the inline version, which is 
+$\sigma^{2} = \frac{\sum\limits_{i=1}^{n} \left(x_{i} - \bar{x}\right)^{2}} {n-1}$. And then the display mode version: 
+$$\sigma^{2} = \frac{\sum_{i=1}^{n} 
+  \left(x_{i} - \bar{x}\right)^{2}}
+  {n-1}$$
+  
+And, finally, we'll end with the **standard deviation**. Here's the inline version, $\sigma = \sqrt{\frac{\sum\limits_{i=1}^{n} \left(x_{i} - \bar{x}\right)^{2}} {n-1}}$. And here's the display version.
+$$\sigma = \sqrt{\frac{\sum\limits_{i=1}^{n} \left(x_{i} - \bar{x}\right)^{2}} {n-1}}$$
+
+There are helpful online editors - [check this one out](http://mathstat.uohyd.ernet.in/equationeditor/equationeditor.php)
