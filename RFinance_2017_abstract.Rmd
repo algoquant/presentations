@@ -1,0 +1,46 @@
+---
+title: "Can Machines Learn to Trade?"
+author: Jerzy Pawlowski, R/Finance Chicago 2017
+date: February 22, 2017
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+---
+
+## Abstract: Simulation Study of the Standard Errors of Financial Model Parameters {.smaller}  
+
+Many financial models suffer from large standard errors and wide confidence intervals of their parameters, making them difficult to apply in practice.  
+
+Machine learning have been applied successfuly 
+
+portfolio optimization
+factor models
+
+Forecasting models are useless because they can't be properly calibrated.
+
+The objective of the paper will be to use historical data and the bootstrap technique to better estimate standard errors and prediction intervals of financial models.  The project will then study how the technique of parameter shrinkage can help reduce the standard errors and prediction intervals of financial models. 
+
+
+## Overview {.smaller}  
+
+Most standard errors are estimated using the normal distribution assumption, but financial time series are strongly non-normal, leading to the underestimation of standard errors.  
+
+The bootstrap is a powerful simulation technique for estimating the standard errors of model parameters, using empirical (historical) data, without relying on the assumption of normality.  But the bootstrap is also time-consuming (compute intensive).  The paper will therefore utilize open-source *C++* libraries to perform bootstrap simulations.  The paper will also employ parallel processing on multi-core CPUs, to further accelerate the bootstrap procedure.  
+
+The paper will have several objectives.  First, to determine the practical limits of financial models, given their large standard errors.  Second, to determine the amount of historical data required to reduce the standard errors to a tolerable level.  Third, to study how the technique of parameter shrinkage (regularization) can help reduce the standard errors and prediction intervals of financial models. 
+
+The paper will study several types of financial models, including mean-variance portfolio optimization, multiple regression, and the *GARCH* volatility model.
+
+
+## Deliverables
+
+The paper will develop a software system written in *C++*, which will sample from historical data, calibrate the models, compile the parameter estimates, and return the results to the *R* environment for visualization and analysis.  The software system will be designed to allow bootstrapping of various models which are already available in open-source *C++* libraries, reducing the burden of coding them from scratch.  The *R* environment will serve as the user interface for the system.
+
+
+## Tools 
+
+The paper will use a number of open source *C++* libraries designed for high performance computing and machine learning, like for example: *QuantLib*, *Armadillo*, and *RcppParallel* (for parallel computing).  
+
+The paper will leverage existing open source *R* packages with similar functionality, including the packages *RcppRoll* and *MarkowitzR*.
+

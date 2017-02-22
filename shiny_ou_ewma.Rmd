@@ -1,0 +1,95 @@
+---
+title: "EWMA strategy under Ornstein-Uhlenbeck process"
+# author: "Jerzy Pawlowski"
+affiliation: NYU Tandon School of Engineering
+# date: '`r format(Sys.time(), "%m/%d/%Y")`'
+email: jp3900@nyu.edu
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE)
+library(quantmod)  # load package quantmod
+source("C:/Develop/R/scripts/ewma_model.R")
+```
+
+```{r ou_model, echo=FALSE}
+inputPanel(
+  # OU parameters
+  sliderInput("the_ta", label="the_ta:",
+              min=0.000, max=0.005, value=0.001, step=0.0001),
+  # EWMA parameters
+  sliderInput("lamb_da", label="lamb_da:",
+              min=0.01, max=0.1, value=0.05, step=0.01),
+  numericInput("win_dow", label="win_dow:", min=10, max=201, value=51)
+)  # end inputPanel
+
+renderPlot({
+  
+  # read parameters
+  the_ta <- input$the_ta
+  lamb_da <- input$lamb_da
+  win_dow <- input$win_dow
+  
+  # define Ornstein-Uhlenbeck parameters
+  eq_price <- 5.0; vol_at <- 0.01
+  len_gth <- 10000
+  
+  # Simulate vector of Ornstein-Uhlenbeck price_s
+  set.seed(1121)  # reset random numbers
+  re_turns <- numeric(len_gth)
+  price_s <- numeric(len_gth)
+  price_s[1] <- 5.0
+  for (i in 2:len_gth) {
+    re_turns[i] <- the_ta*(eq_price - price_s[i-1]) + 
+      vol_at*rnorm(1)
+    price_s[i] <- price_s[i-1] * exp(re_turns[i])
+  }  # end for
+  
+  # Convert the vector of OU price_s into 30 min xts series, 
+  # and then aggregate it to a daily OHLC series.
+  in_dex <- seq(from=as.POSIXct(paste(Sys.Date()-250, "09:30:00")), 
+                length.out=len_gth, by="30 min")
+  price_s <- xts::xts(price_s, order.by=in_dex)
+  price_s <- xts::to.daily(price_s)
+
+  # Simulate a mean-reverting EWMA strategy using simu_ewma().
+  ewma_strat <- -simu_ewma(oh_lc=price_s, lamb_da=lamb_da, win_dow=win_dow)
+  
+  # collect and combine simu_ewma() output.
+  po_sitions <- xts(ewma_strat[, "po_sitions"], order.by=index(price_s))
+  pn_l <- cumsum(ewma_strat[, "re_turns"])
+  cl_ose <- Cl(price_s)
+  pn_l <- cbind(cl_ose-as.numeric(cl_ose[1, ]), pn_l)
+  colnames(pn_l) <- c("OU random", "EWMA PnL")
+  
+  # calculate the number of trades and sharpe ratios
+  num_trades <- NROW(which(diff(as.numeric(po_sitions)) != 0))
+  re_turns <- rutils::diff_xts(cl_ose)
+  shar_pe <- sqrt(260)*sum(re_turns)/sd(re_turns)/NROW(re_turns)
+  re_turns <- ewma_strat[, "re_turns"]
+  sharpe_ewma <- sqrt(260)*sum(re_turns)/sd(re_turns)/NROW(re_turns)
+  
+  # plot EWMA strategy with custom line colors and position shading
+  plot_theme <- chart_theme()
+  plot_theme$col$line.col <- c("orange", "blue")
+  ch_ob <- chart_Series(pn_l, theme=plot_theme, 
+               name="Performance of EWMA Strategy")
+  add_TA(po_sitions > 0, on=-1,
+         col="lightgreen", border="lightgreen")
+  add_TA(po_sitions < 0, on=-1,
+         col="lightgrey", border="lightgrey")
+  plot(ch_ob)
+  legend("left", 
+         title=paste(c(paste0(colnames(pn_l)[1], " Sharpe ratio = ", format(shar_pe, digits=3)),
+                       paste0("strategy number of trades = ", num_trades),
+                       paste0("strategy Sharpe ratio = ", format(sharpe_ewma, digits=3))
+         ),
+         collapse="\n"),
+         legend=colnames(pn_l), 
+         inset=0.05, bg="white", lty=rep(1, 2), lwd=rep(8, 2), 
+         col=plot_theme$col$line.col, bty="n")
+
+})  # end renderPlot
+```

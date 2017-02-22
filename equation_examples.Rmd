@@ -1,7 +1,7 @@
 ---
 title: Equation Examples in R Markdown
-author: algoquant
-date: "July 2, 2016"
+author: Jerzy Pawlowski
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
 output: html_document
 ---
 
