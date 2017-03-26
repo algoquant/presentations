@@ -1,0 +1,120 @@
+---
+title: Interactive Plotly Plots for Interest Rates and Yield Curve
+author: Jerzy Pawlowski, NYU Tandon School of Engineering
+date:   '`r format(Sys.time(), "%m/%d/%Y")`'
+output: html_document
+---
+
+### Interactive *plotly* Treasury rates plot
+
+The script (not displayed) loads time series of constant maturity Treasury rates, contained in an environment called *env_rates*.  
+It then produces an interactive time series plot of the 20yr and 10yr Treasury rates, using the *plotly* package.
+
+To select a date range, left-click on the plot and drag your mouse.
+Then double-click (or click on home icon) to return to the original range.
+
+```{r eval=TRUE, echo=FALSE, fig.width=7, fig.height=4}
+# load quantmod and plotly
+suppressMessages(suppressWarnings(library(quantmod)))
+suppressMessages(suppressWarnings(library(plotly)))
+# load constant maturity Treasury rates
+load(file="C:/Develop/data/rates_data.RData")
+# create data frame of time series
+rate_s <- na.omit(do.call(merge, as.list(env_rates)[c("DGS10", "DGS20")]))
+rate_s <- data.frame(dates=index(rate_s), coredata(rate_s))
+# plotly syntax using pipes
+rate_s %>% 
+  plot_ly(x=~dates, y=~DGS10, type="scatter", mode="lines + markers", name="10yr Treasury rate") %>% 
+  add_trace(x=~dates, y=~DGS20, name="20yr Treasury rate") %>% 
+  layout(title="20yr and 10yr Treasury rates", 
+         xaxis=list(title="Time"),
+         yaxis=list(title="Rates"),
+         legend=list(x=0.1, y=0.9))
+# standard plotly syntax - for reference
+# p_lot <- plot_ly(data=rate_s, x=~dates, y=~DGS10, type="scatter", mode="lines", name="10yr Treasury rate")
+# p_lot <- add_trace(p=p_lot, x=~dates, y=~DGS20, fill="tonexty", name="20yr Treasury rate")
+# p_lot <- layout(p=p_lot, title="20yr and 10yr Treasury rates", xaxis=list(title="Time"), yaxis=list(title="Rates"), legend=list(x=0.1, y=0.9))
+# p_lot
+```
+
+
+### Please Ignore all below this line: Interactive *plotly* yield curve plot
+
+The script loads constant maturity Treasury rates time series, contained in an environment called *env_rates*.  
+It then produces a *plotly* interactive time series plot of the Treasury yield curve, to illustrate its changing shape over time.
+using the *plotly* package.
+
+```{r eval=FALSE, echo=FALSE, fig.width=7, fig.height=4}
+# this script doesn't work
+
+# load quantmod and plotly
+suppressMessages(suppressWarnings(library(quantmod)))
+suppressMessages(suppressWarnings(library(plotly)))
+
+# load constant maturity Treasury rates
+load(file="C:/Develop/data/rates_data.RData")
+# get end-of-year dates since 2006
+date_s <- endpoints(env_rates$DGS1["2006/"], on="years")
+date_s <- index(env_rates$DGS1["2006/"])[date_s]
+# create time series of end-of-year rates
+rate_s <- eapply(env_rates, function(ra_te) ra_te[date_s])
+rate_s <- do.call(merge, rate_s)
+# rename columns and rows, sort columns, and transpose into matrix
+colnames(rate_s) <- substr(colnames(rate_s), start=4, stop=11)
+rate_s <- rate_s[, order(as.numeric(colnames(rate_s)))]
+colnames(rate_s) <- paste0(colnames(rate_s), "yr")
+rate_s <- t(rate_s)
+colnames(rate_s) <- substr(colnames(rate_s), start=1, stop=4)
+# plot matrix
+color_ramp <- colorRampPalette(c("red", "blue"))(NCOL(rate_s))
+
+# plotly syntax using pipes
+
+# create yield_curves list
+yield_curves <- lapply(1:NCOL(rate_s), function (col_umn) {
+  list(visible=FALSE,
+       name=paste0('v=', col_names[col_umn]),
+       x=row_names,
+       y=rate_s[, col_umn])
+})  # end lapply
+
+yield_curves[3][[1]]$visible=TRUE
+
+# create slider list
+slide_r <- lapply(1:NCOL(rate_s), function (col_umn) {
+  ste_p <- list(args=list("visible", rep(FALSE, length(yield_curves))), method="restyle")
+  ste_p$args[[2]][col_umn] <- TRUE
+  ste_p
+})  # end lapply
+
+# plot all traces
+p_lot <- plot_ly()
+for (col_umn in 1:NCOL(rate_s)) {
+  p_lot <- add_lines(p=p_lot, x=yield_curves[col_umn][[1]]$x, 
+                     y=yield_curves[col_umn][[1]]$y, 
+                     visible=yield_curves[col_umn][[1]]$visible, 
+                     name=yield_curves[col_umn][[1]]$name, 
+                     type="scatter", mode="lines", hoverinfo="name", 
+                     line=list(color="00CED1"), showlegend=FALSE)
+
+}  
+
+# add layout with slider control
+p_lot <- layout(p=p_lot, 
+                title="20yr and 10yr Treasury rates", 
+                xaxis=list(title="Time", 
+                           rangeslider=list(list(active=3,
+                                                 currentvalue=list(prefix="Frequency: "),
+                                                 steps=slide_r))), 
+                yaxis=list(title="Rates"), 
+                legend=list(x=0.1, y=0.9))
+
+p_lot
+
+# standard plotly syntax - for reference
+# p_lot <- plot_ly(data=rate_s, x=~dates, y=~DGS10, type="scatter", mode="lines", name="10yr Treasury rate")
+# p_lot <- add_trace(p=p_lot, x=~dates, y=~DGS20, fill="tonexty", name="20yr Treasury rate")
+# p_lot <- layout(p=p_lot, title="20yr and 10yr Treasury rates", xaxis=list(title="Time"), yaxis=list(title="Rates"), legend=list(x=0.1, y=0.9))
+# p_lot
+```
+
