@@ -1,0 +1,70 @@
+---
+title: "Identify turning points from SPY_design data"
+author_no_print: "Jerzy Pawlowski"
+affiliation: NYU Tandon School of Engineering
+abstract: "Shiny app for trading rule: buy and hold for a fixed interval, and then revert to short, allows changing betas and plots cumulative PnL."
+date_no_print: '`r format(Sys.time(), "%m/%d/%Y")`'
+email: jp3900@nyu.edu
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE)
+library(HighFreq)  # load package HighFreq
+load("C:/Develop/data/SPY_design.RData")
+returns_running <- 60*HighFreq::run_returns(x_ts=HighFreq::SPY)
+# colnames(returns_running) <- "returns"
+# ran_ge <- match(index(SPY_design["2009-03-10/2009-03-13"]), index(SPY_design))
+# source("C:/Develop/R/scripts/ewma_model.R")
+```
+
+```{r ewma_model, echo=FALSE}
+inputPanel(
+  sliderInput("re_turns", label="returns:",
+              min=-2.0, max=2.0, value=-2.0, step=0.01),
+  sliderInput("vari_ance", label="variance:",
+              min=-2.0, max=2.0, value=2.0, step=0.01),
+  sliderInput("ske_w", label="skew:",
+              min=-2.0, max=2.0, value=-2.0, step=0.01),
+  sliderInput("hu_rst", label="hurst:",
+              min=-2.0, max=2.0, value=-2.0, step=0.01),
+  sliderInput("inter_val", label="interval:",
+              min=1.0, max=200.0, value=60, step=1.0)
+)  # end inputPanel
+
+renderPlot({
+
+  re_turns <- input$re_turns
+  vari_ance <- input$vari_ance
+  ske_w <- input$ske_w
+  hu_rst <- input$hu_rst
+  inter_val <- input$inter_val
+
+  beta_s <- c(re_turns, vari_ance, ske_w, hu_rst)
+  n_col <- NCOL(SPY_design)
+  position_s <- rep.int(NA, NROW(SPY_design))
+  position_s[1] <- 0
+  # buy signal
+  bu_y <- (SPY_design %*% beta_s[1:n_col] < -1)
+  position_s[bu_y] <- 1.0
+  se_ll <- as.logical(rutils::lag_it(bu_y, lag=inter_val))
+  # sell signal
+  position_s[se_ll] <- -1.0
+  position_s[bu_y] <- 1.0
+  position_s <- zoo::na.locf(position_s)
+  position_s <- c(0, position_s[-NROW(position_s)])
+  # pnl_s <- position_s*re_turns
+  # be_ta <- (sum(pnl_s * re_turns) - sum(pnl_s) * sum(re_turns)) / (sum(pnl_s * pnl_s) - sum(pnl_s)^2 )
+  # -(exp(sum(pnl_s) - be_ta * sum(re_turns)) - 1)
+  # -(exp(sum(position_s*re_turns))-1) # / (sum(abs(rutils::diff_it(position_s))) / 2/ 1e5) / abs(sum(position_s>0) - sum(position_s<0))
+  # pnl_s <- xts(exp(cumsum((position_s * returns_running)))-1, order.by=index(SPY_design))
+  chart_Series((exp(cumsum((position_s * returns_running)))-1)[endpoints(SPY_design[, 1], on="days")], name="Backtest of static beta strategy for SPY")
+
+  # plot(exp(cumsum((position_s * returns_running)))-1, t="l", xlab="", ylab="")
+  # ch_ob <- chart_Series(HighFreq::SPY[ran_ge, 4])
+  # plot(ch_ob)
+  # abline(v=which(bu_y[ran_ge] < -1), col="red", lwd=1)
+
+})  # end renderPlot
+```

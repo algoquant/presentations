@@ -1,0 +1,51 @@
+---
+title: "Identify turning points from SPY_design data"
+author_no_print: "Jerzy Pawlowski"
+affiliation: NYU Tandon School of Engineering
+abstract: "Shiny app allows changing betas for a static betas strategy, and displays the buy signals."
+date_no_print: '`r format(Sys.time(), "%m/%d/%Y")`'
+email: jp3900@nyu.edu
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE)
+library(HighFreq)  # load package HighFreq
+load("C:/Develop/data/SPY_design.RData")
+# returns_running <- 60*HighFreq::run_returns(x_ts=HighFreq::SPY)
+# colnames(returns_running) <- "returns"
+ran_ge <- match(index(SPY_design["2009-03-10/2009-03-13"]), index(SPY_design))
+# source("C:/Develop/R/scripts/ewma_model.R")
+```
+
+```{r ewma_model, echo=FALSE}
+inputPanel(
+  sliderInput("returns", label="returns:",
+              min=-1.0, max=1.0, value=0.0, step=0.01),
+  sliderInput("variance", label="variance:",
+              min=-1.0, max=1.0, value=0.0, step=0.01),
+  sliderInput("skew", label="skew:",
+              min=-1.0, max=1.0, value=0.25, step=0.01),
+  sliderInput("hurst", label="hurst:",
+              min=-1.0, max=1.0, value=-0.25, step=0.01)
+)  # end inputPanel
+
+renderPlot({
+
+  returns <- input$returns
+  variance <- input$variance
+  skew <- input$skew
+  hurst <- input$hurst
+
+  beta_s <- c(returns, variance, skew, hurst)
+  bu_y <- xts(SPY_design %*% beta_s[1:NCOL(SPY_design)], order.by=index(SPY_design))
+  # se_ll <- xts(SPY_design %*% beta_s[(NCOL(SPY_design)+1):(2*NCOL(SPY_design))], order.by=index(SPY_design))
+
+  # plot(as.numeric(HighFreq::SPY[ran_ge, 4]), t="l", xlab="", ylab="")
+  ch_ob <- chart_Series(HighFreq::SPY[ran_ge, 4])
+  plot(ch_ob)
+  abline(v=which(bu_y[ran_ge] < -1), col="red", lwd=1)
+
+})  # end renderPlot
+```

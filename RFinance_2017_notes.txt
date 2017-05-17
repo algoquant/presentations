@@ -1,0 +1,95 @@
+
+## thoughts
+
+add plots with distributions skilled and unskilled managers
+
+In trading we don't need 95% confidence, just a very small edge of odds in our favor
+
+Model with static drifts
+Higher volatility requires more data
+
+$$ x = {-b \pm \sqrt{b^2-4ac} \over 2a}.$$
+
+TRUE
+FALSE
+![rolling_windows](C:/Develop/R/lecture_slides/figure/rolling_windows.png)  
+
+    smaller: yes
+
+## Machine learning paradigm
+
+- At each point we compare many strategies over the lookback window, and switch to the best performing strategy.  
+- One of the crucial meta-parameters is the length of the rolling lookback window.  
+- But backtesting is a black box.
+- Length of the rolling lookback window is a meta-parameter
+- The length of the rolling lookback window is a meta-parameter, which determines how quickly the model adapts to new information.  
+- In machine learning we can simulate the learning process using backtesting.  
+- Backtesting allows simulating the learning process.  
+
+## Analogy With Coin Flipping {.smaller}  
+
+which strategy is best and we switch to that one 
+backtesting paradigm
+rolling window
+insert backtest png
+learn 
+
+Let's start with a very simple analogy of coin flipping.
+How Many Coin Flips are Needed to Decide Which Coin is Biased?
+
+- How many years of performance data is needed to select a manager with skill?  
+
+- What is the probability of selecting the skilled manager from among multiple managers?  
+
+- What is the probability of correctly selecting a biased coin from a set of unbiased coins, after flipping the coins simultaneously $n$ times?  
+
+- How much performance data is needed to select a manager with skill?  
+
+- The challenge is that a manager without skill can have good performance, based on chance alone.
+
+- If we Flip Many Coins Then We Will Always Find One That We Think is Biased
+
+Let's apply this perspective to the problem of identifying active investment managers who can beat the market. Assume that for every such exceptional manager who can generate an excess return-to-risk ratio of 0.2 (after fees and against his benchmark), there are three other managers who have an expected Sharpe Ratio of 0. If anything, this may be optimistic given S&P Dow Jones reports only 1 in 10 active managers have been outperforming their benchmarks.5 How many 'flips' would you need to observe from all four managers, in parallel, to identify the good one with $95\%$ confidence? 
+
+That's saying you would want to see 225 years of returns to be able to identify the good manager with $95\%$ confidence. You might be tempted to think, 'What if I observe the managers on a weekly basis, won't that give me 225 flips in about 4 ½ years?' Unfortunately, that won't help, because when we observe the managers on a more frequent basis,
+
+We have a set of unbiased coins, except for a single biased one, which has a probability of heads greater than 50% (say 60%).  
+
+To find the biased coin, we flip the coins simultaneously $n$ times, and select the coin that produces the most heads.  
+
+If several coins produce the same number of heads, then we select from them a coin randomly. 
+
+What is the probability of correctly selecting the biased coin, after flipping the coins simultaneously $n$ times?  
+
+To find the biased coin, we flip the coins simultaneously $n$ times, and select the coin that produces the most heads.  
+
+If several coins produce the same number of heads, then we select from them a coin randomly. 
+
+What is the probability of correctly selecting the biased coin, after flipping the coins simultaneously $n$ times?  
+
+We're given an urn with unbiased coins, but one of the coins is biased (with a 60% probability of heads).  We want to find the biased coin, so we flip the coins simultaneously, and select the coin that produces the most heads.  
+
+Plot probabilities of selecting the biased coin
+
+We're only allowed to select a fixed number of coins at random, and then to flip them together a fixed number of times.
+How many coins should we select at random, in order too maximize our chances of selecting the biased coin?
+
+given an urn with unbiased , but one of the 
+
+
+You also know that the probability of getting either a biased or an unbiased coin is 50-50.  
+
+but you don't know if it's biased or not, so you flip it many times to see if it produces more heads than tails.  
+
+# Calculate probabilities of selecting the biased coin, after first selecting a given number of coins from a bin of 20 coins
+# plot(num_coins*prob_s/20, t="l")
+
+# Calculate probability of selecting the biased coin, when there's a tie in number of heads
+# prob_tie <- function(num_coins, pro_b)
+#   sum(choose(num_coins-1, 1:(num_coins-1)) * pro_b^(1:(num_coins-1)) * (1-pro_b)^((num_coins-2):0) / (2:num_coins))
+
+
+
+
+
+
