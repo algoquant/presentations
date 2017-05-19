@@ -1,4 +1,86 @@
 
+
+## talking points
+
+Machine learning has been successfuly applied to speech and image recognition, but has faced challenges in automated trading.  For example forecasting models which rely on historical prices have very poor performance, because asset returns have a very low signal to noise ratio.  As a result, model forecasts have large standard errors, making them difficult to apply in practice.  The problem is often exacerbated by the high dimensionality of many financial models, for example portfolio optimization.
+
+We study several techniques which can help to reduce the problem of large standard errors, such as parameter regularization (shrinkage), dimensionality reduction, and ensembles of models.  We use bootstrap simulation to estimate the standard errors, and to quantify the effect of these techniques. 
+
+Performance of strategies is time-dependent
+Switching between strategies
+
+False Discovery Rate Problem {.smaller}  
+- p-hacking or false-discovery rate problem:
+What is the probability of obtaining a very large number of heads?
+plot probability as function of number of coins
+
+- If we Flip Many Coins Then We Will Always Find One That We Think is Biased
+
+- How long should the lookback window be, to avoid training a model on noise?  
+
+In practice we're faced with a much more difficult problem of choosing among many different strategies.
+Let's imagine we flip many coins.
+We Will Always Find One That We Think is Biased
+
+potential solution of false-discovery rate problem:
+control the false-discovery rate using Bonferroni method Sidak correction  
+increase p-value
+not a good solution
+
+another solution: shrink space of strategies to choose from
+we suffer from bias (we don't choose the best strategy)
+but we gain from lower variance
+
+We're allowed to select a fixed number of coins at random, and then to flip them together a fixed number of times.
+How many coins should we select at random, in order too maximize our chances of selecting the biased coin?
+
+another solution: increase the amount of data - use minutely data - but doesn't work
+
+in real world return distributions are not stationary and drifts aren't static
+time-varying drift (alpha)
+simulate asset returns with static drifts plus a random noise.
+Model with static drifts
+Higher volatility requires more data
+use $1\%$ daily vol and daily drift equal to $0.031\%$
+
+simulate asset returns with time-dependent drifts plus a random noise.
+bias-variance tradeoff
+optimal length of the lookback interval
+Higher volatility requires longer lookback interval
+faster drift requires shorter lookback interval
+
+use $1\%$ daily vol and daily drift equal to $0.031\%$
+
+first conclusion is that we need to use minutely data
+daily data isn't sufficient to switch between strategies
+
+second conclusion is that we need to use shrinkage
+
+
+
+
+## plan
+
++ [ ] Explain Probability of Backtest Overfitting by Prado.
++ [ ] Explain Minimum Backtest Length formula by Prado.
++ [x] Simulate several managers, with only one manager with skill.
++ [ ] The remaining managers underperform slightly, so that average performance is zero.
++ [x] Simulate several managers, with their skill changing over time.
++ [x] Plot the prices of three managers.
++ [x] Apply trend-following rule: select the best performing manager in previous period. 
++ [x] Does this strategy always outperform selecting a manager at random?
++ [ ] Demonstrate that out-of-sample performance pnl increases with the length of the lookback window, but only up to a point.
++ [ ] Demonstrate bias-variance tradeoff.
++ [ ] Demonstrate that out-of-sample performance decreases with greater number of managers.
++ [ ] Calculate the p-values in each period, and demonstrate that they are meaningless.
++ [ ] Apply ensemble rule: long top manager and short bottom manager.
++ [x] Demonstrate that ensemble lookback window profile is lower and flatter.
++ [ ] Explain that ensemble is a form of shrinkage, because the sum of squared weights is smaller.
++ [ ] Apply momentum rule: long top 3 managers.
++ [ ] Apply momentum rule: long top 3 managers and short bottom 3 managers.
++ [ ] Demonstrate that momentum lookback window profile is lower and flatter.
+
+
 ## thoughts
 
 add plots with distributions skilled and unskilled managers

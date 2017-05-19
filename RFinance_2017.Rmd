@@ -14,16 +14,6 @@ abstract: 'How Can Machines Learn to Trade?'
 <SCRIPT SRC='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></SCRIPT>
 <SCRIPT>MathJax.Hub.Config({ tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}})</SCRIPT>
 
-
-
-## Abstract {.smaller}  
-
-Machine learning has been successfuly applied to speech and image recognition, but has faced challenges in automated trading.  For example forecasting models which rely on historical prices have very poor performance, because asset returns have a very low signal to noise ratio.  As a result, model forecasts have large standard errors, making them difficult to apply in practice.  The problem is often exacerbated by the high dimensionality of many financial models, for example portfolio optimization.
-
-We study several techniques which can help to reduce the problem of large standard errors, such as parameter regularization (shrinkage), dimensionality reduction, and ensembles of models.  We use bootstrap simulation to estimate the standard errors, and to quantify the effect of these techniques. 
-
-
-
 ## Backtesting a Machine Learning Model {.smaller}  
 
 - The model is trained over the lookback window, and tested out-of-sample on future data. 
@@ -178,64 +168,6 @@ da_ta %>%
 
 
 
-## False Discovery Rate Problem {.smaller}  
-
-- p-hacking or false-discovery rate problem:
-What is the probability of obtaining a very large number of heads?
-plot probability as function of number of coins
-
-- If we Flip Many Coins Then We Will Always Find One That We Think is Biased
-
-In practice we're faced with a much more difficult problem of choosing among many different strategies.
-Let's imagine we flip many coins.
-We Will Always Find One That We Think is Biased
-
-potential solution of false-discovery rate problem:
-control the false-discovery rate using Bonferroni method Sidak correction  
-increase p-value
-not a good solution
-
-another solution: shrink space of strategies to choose from
-we suffer from bias (we don't choose the best strategy)
-but we gain from lower variance
-
-We're allowed to select a fixed number of coins at random, and then to flip them together a fixed number of times.
-How many coins should we select at random, in order too maximize our chances of selecting the biased coin?
-
-another solution: increase the amount of data - use minutely data - but doesn't work
-
-```{r eval=FALSE, echo=FALSE, fig.width=5.5, fig.height=3.5}
-# Probability of selecting the biased coin out of 2 coins, after 132 coin flips
-# confi_dence(132, num_coins=2, 0.6, 0.5)
-
-# Number of coin flips needed to select the biased coin, with 95% confidence
-# num_flips <- 100:150
-# prob_s <- sapply(num_flips, confi_dence, p1=0.6, num_coins=2)
-# min_num_flips <- num_flips[findInterval(0.95, prob_s)]
-# min_num_flips
-
-# Probabilities of selecting the biased coin, as a function of the number of coins
-num_coins <- 2:50
-prob_s <- sapply(num_coins, confi_dence, p1=0.6, num_flips=50)
-# prob_s <- cbind(num_coins, prob_s)
-# plot(prob_s, t="l", main="Probabilities of selecting the biased coin, as a function of the number of coins")
-
-# Load plotly
-suppressMessages(suppressWarnings(library(plotly)))
-# Create data frame
-da_ta <- data.frame(num_coins=num_coins, probs=prob_s)
-# Plot with plotly using pipes syntax
-da_ta %>% 
-  plot_ly(x=~num_coins, y=~probs, type="scatter", mode="lines + markers", name="probability") %>% 
-  layout(title="Probability of selecting biased coin, from a number of coins", 
-         xaxis=list(title="number of coins"),
-         yaxis=list(title="probability"),
-         legend=list(x=0.1, y=0.1))
-
-```
-
-
-
 ## Dynamic Investing With Multiple Managers {.smaller}  
 
 - Dynamic strategy: at the end of each period, we switch to the best performing manager.  
@@ -323,42 +255,187 @@ da_ta %>%
 
 
 
-## Lookback Window Size {.smaller}  
+## Simulating Managers with Time-dependent Skill {.smaller}  
 
-- How long should the lookback window be, to avoid training a model on noise?  
+```{r eval=TRUE, echo=FALSE, fig.width=10, fig.height=6}
+suppressMessages(suppressWarnings(library(HighFreq)))
+# define daily volatility: daily prices change by vol_at units
+vol_at <- 0.01
+n_row <- 5000
+num_managers <- 3
+# rate of drift (skill) change
+ra_te <- 4*pi
+# Daily probability as function of Sharpe ratio
+sharpe_ratio <- 0.4
+pro_b <- (sharpe_ratio/sqrt(250)+1)/2
+# Adjust probability to account for two managers
+pro_b <- 0.5 + (pro_b-0.5)/2
+# define growth rate
+mea_n <- vol_at*(2*pro_b-1)
+# time-dependent drift (skill)
+dri_ft <- sapply(1:num_managers, function(x) 
+  mea_n*sin(ra_te*(1:n_row)/n_row + 2*pi*x/num_managers))
+# simulate multiple price paths
+set.seed(1121)  # reset random number generator
+re_turns <- matrix(vol_at*rnorm(num_managers*n_row) - vol_at^2/2, nc=num_managers) + dri_ft
+col_ors <- colorRampPalette(c("red", "blue"))(NCOL(re_turns))
+par(mfrow=c(2, 2))
+par(mar=c(3, 1, 1, 1), oma=c(1, 1, 1, 1))
+plot.zoo(dri_ft, main="time-dependent growth rates", lwd=3, xlab=NA, ylab=NA, plot.type="single", col=col_ors)
+plot.zoo(re_turns, main="simulated returns", xlab=NA, ylab=NA, plot.type="single", col=col_ors)
+plot.zoo(apply(re_turns, 2, cumsum), 
+         main="simulated prices", xlab=NA, ylab=NA, plot.type="single", col=col_ors)
+
+```
 
 
 
-## How Much Data is Needed to Decide Which Strategy is Best? {.smaller}  
+## Trend-following: Select Best Manager From Previous Period {.smaller}  
 
-in real world return distributions are not stationary and drifts aren't static
-time-varying drift (alpha)
-simulate asset returns with static drifts plus a random noise.
-Model with static drifts
-Higher volatility requires more data
-use $1\%$ daily vol and daily drift equal to $0.031\%$
+<img alt="trend_following" src="C:/Develop/R/lecture_slides/figure/trend_following.png" width="750" height="500" align="top"/>  
+
+```{r eval=FALSE, echo=FALSE, fig.width=7, fig.height=5}
+num_managers <- 5
+dri_ft <- sapply(1:num_managers, function(x) 
+  mea_n*sin(ra_te*(1:n_row)/n_row + 2*pi*x/num_managers))
+set.seed(1121)  # reset random number generator
+re_turns <- matrix(vol_at*rnorm(num_managers*n_row) - vol_at^2/2, nc=num_managers) + dri_ft
+# calculate cumulative returns
+cum_rets <- apply(re_turns, 2, cumsum)
+
+### pre-calculate row order indices for a vector of look_backs
+look_backs <- 20*(1:50)
+order_stats <- lapply(look_backs, function(look_back) {
+  # total re_turns aggregated over overlapping windows
+  agg_rets <- apply(cum_rets, 2, rutils::diff_it, lag=look_back)
+  or_der <- t(apply(agg_rets, 1, order))
+  or_der <- rutils::lag_it(or_der)
+  or_der[1, ] <- 1
+  or_der
+})  # end lapply
+names(order_stats) <- look_backs
+
+### cum_pnl for long-short multi-manager strategy (without end_points)
+cum_pnl <- function(select_best=NULL, select_worst=NULL, re_turns, or_der) {
+  n_row <- NROW(re_turns)
+  if(!is.null(select_best)) {
+    n_col <- NCOL(re_turns)
+    be_st <- or_der[, (n_col-select_best+1):n_col]
+    be_st <- cbind(1:n_row, be_st)
+  } else {
+    be_st <- NULL
+  }  # end if
+  if(!is.null(select_worst)) {
+    wor_st <- or_der[, 1:select_worst]
+    wor_st <- cbind(1:n_row, wor_st)
+  } else {
+    wor_st <- NULL
+  }  # end if
+  # return total expected pnl
+  # pnl_s <- re_turns[be_st]-re_turns[wor_st]
+  sum(re_turns[be_st])-sum(re_turns[wor_st])
+}  # end cum_pnl
+
+# calculate pnl for long-short multi-manager strategy
+# cum_pnl(select_best=1, select_worst=1, re_turns=re_turns, or_der=order_stats[[5]])
+
+# perform loop over look-back windows
+pnl_s <- sapply(order_stats, cum_pnl, select_best=1, select_worst=NULL, re_turns=re_turns)
+pnl_s <- cbind(look_backs, pnl_s)
+# par(mar=c(1, 1, 1, 1), oma=c(1, 1, 1, 1))
+# plot(pnl_s, t="l", main="Trend-following PnL, as function of look-back window")
 
 
-## How Much Data is Needed to Learn Which Strategy is Best? {.smaller}  
+### double the dri_ft
+set.seed(1121)  # reset random number generator
+re_turns <- matrix(vol_at*rnorm(num_managers*n_row) - vol_at^2/2, nc=num_managers) + 2*dri_ft
+# calculate cumulative returns
+cum_rets <- apply(re_turns, 2, cumsum)
 
-simulate asset returns with time-dependent drifts plus a random noise.
-bias-variance tradeoff
-optimal length of the lookback interval
-Higher volatility requires longer lookback interval
-faster drift requires shorter lookback interval
+### pre-calculate row order indices for a vector of look_backs
+order_stats_2x <- lapply(look_backs, function(look_back) {
+  # total re_turns aggregated over overlapping windows
+  agg_rets <- apply(cum_rets, 2, rutils::diff_it, lag=look_back)
+  or_der <- t(apply(agg_rets, 1, order))
+  or_der <- rutils::lag_it(or_der)
+  or_der[1, ] <- 1
+  or_der
+})  # end lapply
+names(order_stats_2x) <- look_backs
 
-use $1\%$ daily vol and daily drift equal to $0.031\%$
+# perform loop over look-back windows
+pnls_2x <- sapply(order_stats_2x, cum_pnl, select_best=1, select_worst=NULL, re_turns=re_turns)
+par(mar=c(1, 1, 1, 1), oma=c(1, 1, 1, 1))
+plot.zoo(cbind(pnl_s[, 2], pnls_2x), main="Trend-following PnL, as function of look-back window", 
+         lwd=2, xaxt="n", xlab="look-back windows", ylab="PnL", plot.type="single", col=c("black", "red"))
+# add x-axis
+axis(1, seq_along(look_backs), look_backs)
+# add legend
+legend(x="top", legend=paste0("SR=", c(0.4, 0.8)),
+       inset=0.0, cex=0.8, bg="white",
+       lwd=6, lty=c(1, 1), col=c("black", "red"))
 
-first conclusion is that we need to use minutely data
-daily data isn't sufficient to switch between strategies
-
-second conclusion is that we need to use shrinkage
+```
 
 
 
-## How Much Data is Needed to Learn Which Strategy is Best? {.smaller}  
+## Ensemble: Select Top Two Managers From Previous Period {.smaller}  
 
-Performance of strategies is time-dependent
-Switching between strategies
+<img alt="ensemble" src="C:/Develop/R/lecture_slides/figure/ensemble.png" width="750" height="500" align="top"/>  
 
+```{r eval=FALSE, echo=FALSE, fig.width=7, fig.height=5}
+# perform loop over look-back windows
+pnl_s <- sapply(order_stats, cum_pnl, select_best=2, select_worst=NULL, re_turns=re_turns)
+pnl_s <- cbind(look_backs, pnl_s)
+# par(mar=c(1, 1, 1, 1), oma=c(1, 1, 1, 1))
+# plot(pnl_s, t="l", main="Trend-following PnL, as function of look-back window")
+
+
+# perform loop over look-back windows
+pnls_2x <- sapply(order_stats_2x, cum_pnl, select_best=2, select_worst=NULL, re_turns=re_turns)
+par(mar=c(1, 1, 1, 1), oma=c(1, 1, 1, 1))
+plot.zoo(cbind(pnl_s[, 2], pnls_2x), main="Trend-following PnL, as function of look-back window", 
+         lwd=2, xaxt="n", xlab="look-back windows", ylab="PnL", plot.type="single", col=c("black", "red"))
+# add x-axis
+axis(1, seq_along(look_backs), look_backs)
+# add legend
+legend(x="top", legend=paste0("SR=", c(0.4, 0.8)),
+       inset=0.0, cex=0.8, bg="white",
+       lwd=6, lty=c(1, 1), col=c("black", "red"))
+
+```
+
+
+
+## Long-short Ensemble: Long Top Manager and Short Bottom Manager {.smaller}  
+
+<img alt="ensemble" src="C:/Develop/R/lecture_slides/figure/long_short.png" width="750" height="500" align="top"/>  
+
+```{r eval=FALSE, echo=FALSE, fig.width=7, fig.height=5}
+# perform loop over look-back windows
+pnl_s <- sapply(order_stats, cum_pnl, select_best=1, select_worst=1, re_turns=re_turns)
+pnl_s <- cbind(look_backs, pnl_s)
+# par(mar=c(1, 1, 1, 1), oma=c(1, 1, 1, 1))
+# plot(pnl_s, t="l", main="Trend-following PnL, as function of look-back window")
+
+
+# perform loop over look-back windows
+pnls_2x <- sapply(order_stats_2x, cum_pnl, select_best=1, select_worst=1, re_turns=re_turns)
+par(mar=c(1, 1, 1, 1), oma=c(1, 1, 1, 1))
+plot.zoo(cbind(pnl_s[, 2], pnls_2x), main="Trend-following PnL, as function of look-back window", 
+         lwd=2, xaxt="n", xlab="look-back windows", ylab="PnL", plot.type="single", col=c("black", "red"))
+# add x-axis
+axis(1, seq_along(look_backs), look_backs)
+# add legend
+legend(x="top", legend=paste0("SR=", c(0.4, 0.8)),
+       inset=0.0, cex=0.8, bg="white",
+       lwd=6, lty=c(1, 1), col=c("black", "red"))
+
+```
+
+
+## Thank You {.smaller}  
+
+- Slide source is available here:
+\href{https://github.com/algoquant/presentations/blob/master/RFinance_2017.Rmd}}
 
