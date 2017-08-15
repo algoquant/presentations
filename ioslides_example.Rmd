@@ -1,16 +1,17 @@
 ---
-title: ioslides Slide Presentations from R Markdown
-author: algoquant
+title: Producing ioslides Presentations from R Markdown
+author: Jerzy Pawlowski
 affiliation: NYU Tandon School of Engineering
 date: '`r format(Sys.time(), "%m/%d/%Y")`'
 email: jp3900@nyu.edu
+css: slides.css
 output: 
   ioslides_presentation: 
     widescreen: true
     smaller: true
     transition: 0.1
     self_contained: true
-    logo: image/tandon_stacked_color.png
+    logo: image/tandon_long_color.png
 ---
 
 ```{r setup, include=FALSE}
@@ -18,8 +19,8 @@ output:
 library(knitr)
 # This sets the chunk default options
 opts_chunk$set(cache=TRUE, collapse=TRUE, error=FALSE, prompt=TRUE)
-# This sets the chunk display theme
-knit_theme$set(knit_theme$get("acid"))
+# This sets the chunk display theme - causes an error
+# knit_theme$set(knit_theme$get("acid"))
 # This sets some display options
 options(digits=3)
 options(width=80)
@@ -39,18 +40,79 @@ head(mtcars)
 ```
 
 
-## Including plots {.columns-2}
+## Two-column layout using HTML and CSS
 
-Example of two-column layout with a plot.
 
+<div class="column_left_40">
+Example of two-column layout using `HTML` and `CSS`. 
+The location of the break between columns is specified by the `CSS` style code in the file slides.css.
+The left column is 40%, and the right is 60% of the page width. 
+
+```{r, summ_cars, eval=FALSE, echo=TRUE, results="hold", size="tiny"}
+summary(cars)
+```
+
+</div>
+
+<div class="column_right_60">
+Summary of `cars` data frame:
+
+```{r, summ_cars, eval=TRUE, echo=FALSE, size="tiny"}
+```
+
+Note that the `echo = FALSE` parameter can be added to the code chunk to prevent printing of the *R* code that generated the plot.
+</div>
+
+
+
+## Plots in two-column layout using HTML and CSS
+
+<div class="column_left_50">
+Example of two-column layout with a plot.  
 The Normal probability density function is given by:
 $$
   P(x) = \frac{e^{-(x-\mu)^2/2\sigma^2}}{\sigma\sqrt{2 \pi}}
 $$
+Code for plotting the Normal probability density function:
+
+```{r normal_dist_css, eval=FALSE, echo=(-(1:2)), results="hold"}
+par(mar=c(2, 1, 2, 1))  # set plot margins
+par(oma=c(1, 1, 1, 1))  # set outer margins
+# plot a Normal probability distribution
+curve(expr=dnorm(x, sd=1.5), type="l", xlim=c(-5, 5),
+      xlab="", ylab="", lwd=2, col="blue", 
+      main="Normal Density Function")
+x_var <- seq(-5, 5, length=100)
+y_var <- dnorm(x_var, mean=0.0, sd=1.5)
+# set shading range
+star_t <- 2; fin_ish <- 3
+# set polygon base
+are_a <- ((x_var >= star_t) & (x_var <= fin_ish))
+# draw shaded area
+polygon(c(star_t, x_var[are_a], fin_ish),
+        c(-1, y_var[are_a], -1), col="red")
+```
+
+</div>
+
+<div class="column_right_50">
+
+Plot of Normal probability density function:
+
+```{r, normal_dist_css, eval=TRUE, echo=FALSE, fig.width=5, fig.height=4}
+```
+Note that the `echo = FALSE` parameter can be added to the code chunk to prevent printing of the *R* code that generated the plot.
+</div>
+
+
+
+## Plots in two-column layout {.columns-2}
+
+Example of two-column layout with a plot.  But there's no way to control the location of the content break between columns.
 
 Plot the Normal probability density function:
 
-```{r normal_dist, echo=TRUE, fig.width=5, fig.height=4}
+```{r normal_dist, eval=TRUE, echo=TRUE, fig.width=5, fig.height=4}
 par(mar=c(2, 1, 2, 1))  # set plot margins
 par(oma=c(1, 1, 1, 1))  # set outer margins
 x_var <- seq(-5, 7, length=100)
@@ -58,10 +120,12 @@ y_var <- dnorm(x_var, mean=1.0, sd=2.0)
 plot(x_var, y_var, type="l", lty="solid",
      xlab="", ylab="")
 title(main="Normal Density Function", line=0.5)
-star_t <- 3; fin_ish <- 5  # set lower and upper bounds
+# set shading range
+star_t <- 3; fin_ish <- 5
 # set polygon base
 are_a <- ((x_var >= star_t) & (x_var <= fin_ish))
-polygon(c(star_t, x_var[are_a], fin_ish),  # draw polygon
+# draw shaded area
+polygon(c(star_t, x_var[are_a], fin_ish),
         c(-1, y_var[are_a], -1), col="red")
 ```
 

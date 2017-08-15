@@ -5,10 +5,9 @@ date: "May 19, 2017"
 output:
   ioslides_presentation:
     widescreen: yes
-  slidy_presentation: default
 email: jp3900@nyu.edu
 affiliation: NYU Tandon School of Engineering
-abstract: 'How Can Machines Learn to Trade?'
+abstract: How Can Machines Learn to Trade?
 ---
 
 <SCRIPT SRC='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></SCRIPT>
@@ -22,13 +21,13 @@ abstract: 'How Can Machines Learn to Trade?'
 
 - Backtesting allows determining the optimal length of the lookback window.  
 
-<img alt="backtesting" src="C:/Develop/R/lecture_slides/figure/backtest.png" width="1000" height="300" align="top"/>  
+<img alt="backtesting" src="backtest.png" width="1000" height="300" align="top"/>  
 
 
 
 ## Coin Flipping Model {.smaller}  
 
-<img alt="coinflipping" src="C:/Develop/R/lecture_slides/figure/coinflipping.jpg" width="800" height="150" align="top"/>  
+<img alt="coinflipping" src="coinflipping.jpg" width="800" height="150" align="top"/>  
 
 - <a href="http://labs.elmfunds.com/pastreturns/" target="_blank"> Victor Haghani </a> suggested a coin flipping model to illustrate the challenge of properly selecting a manager with skill, based on past performance.
 
@@ -174,7 +173,7 @@ da_ta %>%
 <br>
 
 
-<img alt="backtesting" src="C:/Develop/R/lecture_slides/figure/backtest.png" width="1000" height="300" align="top"/>  
+<img alt="backtesting" src="backtest.png" width="1000" height="300" align="top"/>  
 
 
 
@@ -292,7 +291,7 @@ plot.zoo(apply(re_turns, 2, cumsum),
 
 ## Trend-following: Select Best Manager From Previous Period {.smaller}  
 
-<img alt="trend_following" src="C:/Develop/R/lecture_slides/figure/trend_following.png" width="750" height="500" align="top"/>  
+<img alt="trend_following" src="trend_following.png" width="750" height="500" align="top"/>  
 
 ```{r eval=FALSE, echo=FALSE, fig.width=7, fig.height=5}
 num_managers <- 5
@@ -381,7 +380,7 @@ legend(x="top", legend=paste0("SR=", c(0.4, 0.8)),
 
 ## Ensemble: Select Top Two Managers From Previous Period {.smaller}  
 
-<img alt="ensemble" src="C:/Develop/R/lecture_slides/figure/ensemble.png" width="750" height="500" align="top"/>  
+<img alt="ensemble" src="ensemble.png" width="750" height="500" align="top"/>  
 
 ```{r eval=FALSE, echo=FALSE, fig.width=7, fig.height=5}
 # perform loop over look-back windows
@@ -409,7 +408,7 @@ legend(x="top", legend=paste0("SR=", c(0.4, 0.8)),
 
 ## Long-short Ensemble: Long Top Manager and Short Bottom Manager {.smaller}  
 
-<img alt="ensemble" src="C:/Develop/R/lecture_slides/figure/long_short.png" width="750" height="500" align="top"/>  
+<img alt="ensemble" src="long_short.png" width="750" height="500" align="top"/>  
 
 ```{r eval=FALSE, echo=FALSE, fig.width=7, fig.height=5}
 # perform loop over look-back windows

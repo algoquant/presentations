@@ -1,0 +1,72 @@
+---
+title: "My first flexdashboard document"
+author: "Jerzy Pawlowski, NYU Tandon School of Engineering"
+email: jp3900@nyu.edu
+affiliation: NYU Tandon School of Engineering
+abstract: My first flexdashboard document
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    source_code: embed
+---
+
+```{r setup, include=FALSE}
+# This is an R setup chunk, containing default options applied to all other chunks
+library(flexdashboard)
+```
+
+Page 1
+=====================================  
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### This is the first page
+
+This is a very simple example of a flexdashboard document, with text on the left, and *R* code chunks and plots on the right.
+
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### The data frame *mtcars*
+
+```{r, eval=TRUE, echo=TRUE}
+head(mtcars)
+```
+
+
+### Plot of data frame *cars*
+
+```{r, eval=TRUE, echo=TRUE}
+plot(cars)
+```
+
+
+Page 2
+=====================================  
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### This is the second page
+
+The data frame *nhtemp* contains New Haven temperatures
+
+```{r, eval=TRUE, echo=TRUE}
+head(mtcars)
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### dygraph plot of data frame *nhtemp* containing New Haven temperatures
+
+```{r, eval=TRUE, echo=TRUE}
+library(dygraphs)
+dygraph(nhtemp, main = "New Haven Temperatures") %>% 
+  dyRangeSelector(dateWindow = c("1920-01-01", "1960-01-01"))
+```
+

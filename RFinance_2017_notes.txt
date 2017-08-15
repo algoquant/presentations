@@ -2,7 +2,28 @@
 
 ## talking points
 
-Machine learning has been successfuly applied to speech and image recognition, but has faced challenges in automated trading.  For example forecasting models which rely on historical prices have very poor performance, because asset returns have a very low signal to noise ratio.  As a result, model forecasts have large standard errors, making them difficult to apply in practice.  The problem is often exacerbated by the high dimensionality of many financial models, for example portfolio optimization.
+Machine learning from very high level, no SVM or neural nets.
+How applying ensembles and shrinkage can improve model performance.
+How to build models less sensitive to lookback window.
+One of the crucial meta-parameters is the length of the rolling lookback window.  
+Backtesting lookback window in itself is a form overfitting.
+Simple coin flipping model: identify skilled manager.
+Selecting From Among Multiple Managers: p-hacking.
+Effect of Lookback Window Length: in reality we don't have luxury of increasing lookback window.
+On the plus side, we don't need a very high confidence level to successfuly trade.
+Simulating Managers with Time-dependent Skill: red manager has higher skill, but underperforms by chance.
+Trend-following: hard to Select Best Manager From Previous Period, longer lookback window doesn't help.
+Ensemble: Select Top Two Managers From Previous Period works much better, because betting that best manager is among top two is easier.
+Selecting Top Two Managers is really an ensemble of two models.
+Ensemble shrinks the weights to zero.
+? We suffer from bias (we don't choose the best strategy), but we gain from lower variance.
+Long-short Ensemble: is momentum, or betting on relative outperformance.
+Conclusion: whatever machine learning model you're using, it's much easier to bet on performance of ensemble or on relative outperformance.
+
+
+## temp
+
+has been successfuly applied to speech and image recognition, but has faced challenges in automated trading.  For example forecasting models which rely on historical prices have very poor performance, because asset returns have a very low signal to noise ratio.  As a result, model forecasts have large standard errors, making them difficult to apply in practice.  The problem is often exacerbated by the high dimensionality of many financial models, for example portfolio optimization.
 
 We study several techniques which can help to reduce the problem of large standard errors, such as parameter regularization (shrinkage), dimensionality reduction, and ensembles of models.  We use bootstrap simulation to estimate the standard errors, and to quantify the effect of these techniques. 
 
@@ -27,9 +48,6 @@ control the false-discovery rate using Bonferroni method Sidak correction
 increase p-value
 not a good solution
 
-another solution: shrink space of strategies to choose from
-we suffer from bias (we don't choose the best strategy)
-but we gain from lower variance
 
 We're allowed to select a fixed number of coins at random, and then to flip them together a fixed number of times.
 How many coins should we select at random, in order too maximize our chances of selecting the biased coin?
@@ -75,7 +93,7 @@ second conclusion is that we need to use shrinkage
 + [ ] Calculate the p-values in each period, and demonstrate that they are meaningless.
 + [ ] Apply ensemble rule: long top manager and short bottom manager.
 + [x] Demonstrate that ensemble lookback window profile is lower and flatter.
-+ [ ] Explain that ensemble is a form of shrinkage, because the sum of squared weights is smaller.
++ [x] Explain that ensemble is a form of shrinkage, because the sum of squared weights is smaller.
 + [ ] Apply momentum rule: long top 3 managers.
 + [ ] Apply momentum rule: long top 3 managers and short bottom 3 managers.
 + [ ] Demonstrate that momentum lookback window profile is lower and flatter.
@@ -101,7 +119,6 @@ FALSE
 ## Machine learning paradigm
 
 - At each point we compare many strategies over the lookback window, and switch to the best performing strategy.  
-- One of the crucial meta-parameters is the length of the rolling lookback window.  
 - But backtesting is a black box.
 - Length of the rolling lookback window is a meta-parameter
 - The length of the rolling lookback window is a meta-parameter, which determines how quickly the model adapts to new information.  
