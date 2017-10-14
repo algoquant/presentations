@@ -9,7 +9,7 @@ runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo=TRUE)
+knitr::opts_chunk$set(echo=FALSE)
 library(HighFreq)  # load package HighFreq
 # select OHLC data
 oh_lc <- rutils::env_etf$VTI["/2011"]

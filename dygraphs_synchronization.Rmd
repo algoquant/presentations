@@ -1,0 +1,13 @@
+---
+title: "Synchronization"
+---
+
+```{r, include=FALSE}
+library(dygraphs)
+```
+
+```{r, echo=FALSE,fig.height=2.0}
+dygraph(ldeaths, main = "All", group = "lung-deaths")
+dygraph(mdeaths, main = "Male", group = "lung-deaths")
+dygraph(fdeaths, main = "Female", group = "lung-deaths")
+```

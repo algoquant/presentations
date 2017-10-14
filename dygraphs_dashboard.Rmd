@@ -1,0 +1,71 @@
+---
+title: "Dashboard of Interactive Time Series Plots"
+author: "Jerzy Pawlowski, at Algoquants"
+email: algoquant@algoquants.ch
+affiliation: Algoquants
+date: '`r format(Sys.time(), "%m-%d-%Y %H:%M")`'
+output:
+  html_document:
+    fig_width: 6
+    fig_height: 4
+---
+
+```{r setup, include=FALSE}
+# This is an R setup chunk, containing default options applied to all other chunks
+library(rutils)
+library(dygraphs)
+```
+
+
+### A dashboard of interactive time series plots written in Rmarkdown  
+
+Uses the package *dygraphs* to create the dygraphs objects in a loop, and then uses the package *htmltools* to render (plot) the *dygraphs* objects.  Click and drag to zoom into any plot.  
+
+
+
+```{r echo=FALSE, fig.width=2, fig.height=2}
+## Load time series data from csv files into an environment.
+
+# create new environment for data
+data_env <- new.env()
+dir_data <- "C:/Develop/data_bbg_records"
+# sym_bols <- c("SPX", "VIX")
+# file_names <- paste0(sym_bols, ".csv")
+file_names <- dir(dir_data)
+sym_bols <- rutils::get_name(file_names)
+
+# load data from csv files into the environment
+out <- rutils::get_data(sym_bols=sym_bols,
+                        data_dir=dir_data,
+                        data_env=data_env,
+                        e_cho=FALSE)
+
+
+## Extract the closing prices into a single xts time series
+
+# price_s <- lapply(as.list(data_env)[sym_bols], quantmod::Cl)
+# flatten (cbind) prices into single xts series
+# price_s <- rutils::do_call(cbind, price_s)
+
+price_s <- rutils::get_col(oh_lc=ls(data_env), 
+                           data_env=data_env)
+# remove NA values
+price_s <- rutils::na_locf(price_s)
+price_s <- rutils::na_locf(price_s, from_last=TRUE)
+# save column names
+col_names <- colnames(price_s)
+
+
+cat("\n")
+# create a list of dygraphs objects in loop
+dy_graphs <- lapply(1:NCOL(price_s), function(i) {
+  # cat("Plot of: ", sym_bols[i], "\n")
+  # plot(zoo::coredata(price_s[, i]), main=paste("Plot of:", sym_bols[i]), t="l")
+  # plot(quantmod::chart_Series(price_s[, i], name=paste("Plot of:", sym_bols[i])))
+  # the fig.width and fig.height chunck options are ignored by dygraphs, so need to use the width and height parameters directly
+  dygraphs::dygraph(price_s[, i], main=paste("Plot of:", col_names[i]), width=600, height=400)
+})  # end lapply
+
+# render the dygraphs objects
+htmltools::tagList(dy_graphs)
+```
