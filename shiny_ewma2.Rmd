@@ -10,7 +10,7 @@ runtime: shiny
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
-source("C:/Develop/R/scripts/ewma_model.R")
+source("C:/Develop/R/lecture_slides/scripts/ewma_model.R")
 ```
 
 ```{r ewma_model, echo=FALSE}
@@ -19,14 +19,14 @@ inputPanel(
               min=0.01, max=0.5, value=0.25, step=0.01),
   sliderInput("lambda_2", label="lambda_2:",
               min=0.01, max=0.5, value=0.05, step=0.01),
-  numericInput("win_dow", label="win_dow:", min=10, max=201, value=51)
+  numericInput("wid_th", label="wid_th:", min=10, max=201, value=51)
 )  # end inputPanel
 
 renderPlot({
   
   lambda_1 <- input$lambda_1
   lambda_2 <- input$lambda_2
-  win_dow <- input$win_dow
+  wid_th <- input$wid_th
 
   library(HighFreq)  # load package HighFreq
   # select OHLC data
@@ -35,7 +35,7 @@ renderPlot({
   cl_ose <- Cl(oh_lc)
 
   # simulate EWMA strategy
-  ewma_strat <- simu_ewma2(oh_lc=oh_lc, lambda_1=lambda_1, lambda_2=lambda_2, win_dow=win_dow)
+  ewma_strat <- simu_ewma2(oh_lc=oh_lc, lambda_1=lambda_1, lambda_2=lambda_2, wid_th=wid_th)
   
   # collect and combine output
   ewma_1 <- ewma_strat[, "ewma_1"]
