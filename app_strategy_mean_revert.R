@@ -14,7 +14,7 @@ library(dygraphs)
 library(rutils)
 
 # Calculate indicator_s matrix of OHLC technical indicators
-source(file="C:/Develop/R/scripts/technical_indicators.R")
+source(file="C:/Develop/R/scripts/load_technical_indicators.R")
 
 indicator_s <- cbind(re_turns, z_scores, vol_at, sk_ew)
 
