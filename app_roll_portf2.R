@@ -16,10 +16,10 @@ library(rutils)
 # source the model function
 source("C:/Develop/R/lecture_slides/scripts/roll_portf.R")
 max_eigen <- 2
-sym_bols <- colnames(rutils::env_etf$re_turns)
+sym_bols <- colnames(rutils::etf_env$re_turns)
 sym_bols <- sym_bols[!(sym_bols=="VXX")]
 n_weights <- NROW(sym_bols)
-re_turns <- rutils::env_etf$re_turns[, sym_bols]
+re_turns <- rutils::etf_env$re_turns[, sym_bols]
 re_turns <- zoo::na.locf(re_turns)
 re_turns <- na.omit(re_turns)
 risk_free <- 0.03/260

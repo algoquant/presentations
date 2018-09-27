@@ -30,7 +30,7 @@ renderPlot({
 
   library(HighFreq)  # load package HighFreq
   # select OHLC data
-  oh_lc <- rutils::env_etf$VTI["/2011"]
+  oh_lc <- rutils::etf_env$VTI["/2011"]
   # calculate close prices
   cl_ose <- Cl(oh_lc)
 

@@ -1,8 +1,18 @@
 ##############################
 # This is a shiny app for simulating a contrarian strategy 
 # using the number of consecutive close_low or close_high.
+# The contrarian strategy uses function roll_count().
+# The function roll_count() calculates the the number of 
+# consecutive TRUE elements in a Boolean vector, and resets
+# the count to zero after every FALSE element.
+# 
 # Just press the "Run App" button on upper right of this panel.
 ##############################
+
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# You must first compile the following Rcpp file as follows:
+# Rcpp::sourceCpp(file="C:/Develop/R/Rcpp/lm_arma.cpp")
+
 
 ## Below is the setup code that runs once when the shiny app is started
 
@@ -12,18 +22,20 @@ library(shiny)
 library(dygraphs)
 library(rutils)
 
+############## deprecated ##############
 # Source the strategy functions
 # source("C:/Develop/R/scripts/calc_strategy.R")
 # Calculate indicator_s matrix of OHLC technical indicators
 # source(file="C:/Develop/R/scripts/load_technical_indicators.R")
 # vol_at[which.max(vol_at)] <- 0
 # vol_at[which.max(vol_at)] <- 0
+############## end deprecated ##############
 
 
 # oh_lc <- HighFreq::SPY
 
 # oh_lc <- HighFreq::SPY["2010"]
-# oh_lc <- rutils::env_etf$VTI
+# oh_lc <- rutils::etf_env$VTI
 # load recent ES1 futures data
 # load(file="C:/Develop/data/ES1.RData")
 # symbol_asset <- "SPY"
@@ -63,11 +75,16 @@ inter_face <- shiny::fluidPage(
 
 
 ## Define the server code
+# The function shinyServer() accepts a function 
+# with the arguments "input" and "output".
 ser_ver <- shiny::shinyServer(function(input, output) {
 
   ## Re-calculate the model with new parameters
+  # The function reactive() accepts a block of expressions
+  # which calculate the model, and returns the model output.
   da_ta <- reactive({
-    # get model parameters from input argument
+    
+    ## Extract model parameters from the argument "input"
     # beta_ret <- input$beta_ret
     # en_ter <- input$en_ter
     # ex_it <- input$ex_it
@@ -86,20 +103,24 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # weight_s <- c(beta_ret, en_ter, beta_vol, beta_skew)
     # weight_s <- c(beta_ret, beta_vol, beta_skew, beta_moment, beta_ophi, beta_clhi)
     
-    # set up data for signal
+    ## Set up data for signal
     oh_lc <- com_bo[, paste(symbol_signal, c("Open", "High", "Low", "Close"), sep=".")]
-    log_ohlc <- log(oh_lc)
-    clo_se <- Cl(log_ohlc)
+    ohlc_log <- log(oh_lc)
+    clo_se <- Cl(ohlc_log)
     close_num <- as.numeric(clo_se)
     # re_turns <- rutils::diff_it(clo_se)
-    op_en <- Op(log_ohlc)
-    hi_gh <- Hi(log_ohlc)
+    op_en <- Op(ohlc_log)
+    hi_gh <- Hi(ohlc_log)
     high_num <- as.numeric(hi_gh)
-    lo_w <- Lo(log_ohlc)
+    lo_w <- Lo(ohlc_log)
     low_num <- as.numeric(lo_w)
+    # Set TRUE if close is at the high
     close_high <- (close_num == high_num)
+    # Count number of consecutive closes is at the high
     close_high_count <- roll_count(close_high)
+    # Set TRUE if close is at the low
     close_low <- (close_num == low_num)
+    # Count number of consecutive closes is at the low
     close_low_count <- roll_count(close_low)
     open_num <- as.numeric(op_en)
     open_high <- (open_num == high_num)
@@ -108,7 +129,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     open_low_count <- roll_count(open_low)
     
     
-    # set up data for trading
+    # Set up data for trading
     clo_se <- com_bo[, paste(symbol_asset, "Close", sep=".")]
     re_turns <- rutils::diff_it(log(clo_se))
 
@@ -116,12 +137,12 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     
     po_sit <- rep(NA_integer_, NROW(oh_lc))
     po_sit[1] <- 0
-    po_sit[close_high] <- (-1)
-    po_sit[close_low] <- 1
+    # po_sit[close_high] <- (-1)
+    # po_sit[close_low] <- 1
     # po_sit[open_low & close_high] <- (-1)
     # po_sit[open_high & close_low] <- 1
-    # po_sit[close_high_count>close_high_thresh] <- (-1)
-    # po_sit[close_low_count>close_low_thresh] <- 1
+    po_sit[close_high_count > close_high_thresh] <- (-1)
+    po_sit[close_low_count > close_low_thresh] <- 1
     po_sit <- zoo::na.locf(po_sit)
     po_sit <- rutils::lag_it(po_sit, lagg=trade_lag)
     pnl_s <- cumsum(po_sit*re_turns)
@@ -138,16 +159,16 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # calculate signal
     # sig_nal <- clo_se
     # trending signal
-    # signal_trend <- calc_signal(oh_lc=log_ohlc, clo_se=close_num,
+    # signal_trend <- calc_signal(oh_lc=ohlc_log, clo_se=close_num,
     #                             de_sign=de_sign,
     #                             look_short=look_short, look_long=look_long, high_freq=FALSE)
-    # signal_trend <- calc_ma(oh_lc=log_ohlc, clo_se=close_num,
+    # signal_trend <- calc_ma(oh_lc=ohlc_log, clo_se=close_num,
     #                         de_sign=de_sign,
     #                         look_back=look_long, high_freq=FALSE)
     
     # mean reverting signal
-    # signal_revert <- log_ohlc[, 1]  # dummy signal
-    # signal_revert <- calc_signal(oh_lc=log_ohlc, clo_se=close_num,
+    # signal_revert <- ohlc_log[, 1]  # dummy signal
+    # signal_revert <- calc_signal(oh_lc=ohlc_log, clo_se=close_num,
     #                             de_sign=de_sign,
     #                             look_short=look_short)
     # signal_revert <- HighFreq::roll_zscores(res_ponse=close_num, 
@@ -203,19 +224,21 @@ ser_ver <- shiny::shinyServer(function(input, output) {
   
   # return the dygraph plot to output argument
   output$dygraph <- renderDygraph({
+    col_names <- colnames(da_ta())
     # plot daily closing prices
     # dygraphs::dygraph(cbind(clo_se, da_ta())[endpoints(clo_se, on="days")], main=paste(symbol_asset, "Strategy Using OHLC Technical Indicators")) %>%
       # plot daily closing ES1 prices
       # dygraphs::dygraph(da_ta(), main="Strategy Using OHLC Technical Indicators") %>%
-      dygraphs::dygraph(da_ta(), main=paste(colnames(da_ta())[1], "Strategy Using OHLC Technical Indicators")) %>%
+      dygraphs::dygraph(da_ta(), main=paste(col_names[1], "Strategy Using OHLC Technical Indicators")) %>%
       # plot a few days with all the minute bars
       # dygraphs::dygraph(cbind(clo_se, da_ta())["2018-02-01/2018-02-07"], main=paste(symbol_asset, "Strategy Using OHLC Technical Indicators")) %>%
       # plot a few days with all the ES1 minute bars
       # dygraphs::dygraph(cbind(Cl(ohlc_trade), da_ta())["2018-02-01/2018-02-07"], main=paste(symbol_asset, "Strategy Using OHLC Technical Indicators")) %>%
       # dyAxis("y", label="asset", independentTicks=TRUE) %>%
-      dyAxis("y", label=colnames(da_ta())[1], independentTicks=TRUE) %>%
-      dyAxis("y2", label="strategy", independentTicks=TRUE) %>%
-      dySeries("strategy", axis="y2", col=c("blue", "red"))
+        dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
+        dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
+        dySeries(name=col_names[1], axis="y", col="blue") %>%
+        dySeries(name=col_names[2], axis="y2", strokeWidth=2, col="red")
   })  # end output plot
 
   # output$hist <- hist(da_ta())  # end output hist

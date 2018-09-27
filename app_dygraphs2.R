@@ -39,7 +39,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     lamb_da <- input$lamb_da
     wid_th <- input$wid_th
     # calculate close prices
-    cl_ose <- quantmod::Cl(rutils::env_etf$VTI["2008/2009"])
+    cl_ose <- quantmod::Cl(rutils::etf_env$VTI["2008/2009"])
     # calculate EWMA prices
     weight_s <- exp(-lamb_da*(1:wid_th))
     weight_s <- weight_s/sum(weight_s)
@@ -53,7 +53,8 @@ ser_ver <- shiny::shinyServer(function(input, output) {
   # Define the output plot
   output$dygraph <- renderDygraph({
     dygraph(da_ta(), main="VTI prices") %>%
-      dySeries("VTI", label="VTI", strokeWidth=1.5, color=c("red", "blue"))
+      dySeries("VTI", name="VTI", strokeWidth=1.5, color="blue") %>%
+      dySeries("VTI_EWMA", name="VTI_EWMA", strokeWidth=1.5, color="red")
   })  # end output plot
   
 })
