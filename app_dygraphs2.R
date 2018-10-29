@@ -17,8 +17,8 @@ inter_face <- shiny::shinyUI(fluidPage(
   sidebarLayout(
     sidebarPanel(
       sliderInput("lamb_da", label="lambda:",
-                  min=0.01, max=0.5, value=0.2, step=0.05),
-      numericInput("wid_th", label="wid_th:", min=10, max=201, value=51)
+                  min=0.001, max=0.1, value=0.02, step=0.01),
+      numericInput("wid_th", label="wid_th:", min=51, max=301, value=151)
     ),
     mainPanel(
       dygraphOutput("dygraph")
@@ -28,7 +28,7 @@ inter_face <- shiny::shinyUI(fluidPage(
 
 
 # Define the server code
-ser_ver <- shiny::shinyServer(function(input, output) {
+ser_ver <- function(input, output) {
 
   # source the model function
   source("C:/Develop/R/lecture_slides/scripts/ewma_model.R")
@@ -39,7 +39,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     lamb_da <- input$lamb_da
     wid_th <- input$wid_th
     # calculate close prices
-    cl_ose <- quantmod::Cl(rutils::etf_env$VTI["2008/2009"])
+    cl_ose <- quantmod::Cl(rutils::etf_env$VTI["2007/2010"])
     # calculate EWMA prices
     weight_s <- exp(-lamb_da*(1:wid_th))
     weight_s <- weight_s/sum(weight_s)
@@ -57,7 +57,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
       dySeries("VTI_EWMA", name="VTI_EWMA", strokeWidth=1.5, color="red")
   })  # end output plot
   
-})
+}  # end server code
 
 # Return a Shiny app object
 shiny::shinyApp(ui=inter_face, server=ser_ver)

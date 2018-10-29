@@ -59,7 +59,7 @@ inter_face <- shiny::fluidPage(
 
 
 ## Define the server code
-ser_ver <- shiny::shinyServer(function(input, output) {
+ser_ver <- function(input, output) {
 
   ## Re-calculate the model with new parameters
   da_ta <- reactive({
@@ -79,7 +79,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # calculate signal
     sig_nal <- indicator_s %*% weight_s
     # scale sig_nal using roll_scale()
-    sig_nal <- roll::roll_scale(data=sig_nal, width=look_back, min_obs=1)
+    sig_nal <- roll::roll_scale(sig_nal, width=look_back, min_obs=1)
     sig_nal[1,] <- 0
     sig_nal <- rutils::lag_it(sig_nal)
     # calculate positions, either: -1, 0, or 1
@@ -99,10 +99,10 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     dygraphs::dygraph(cbind(clo_se, da_ta()), main="OHLC Technicals Strategy") %>%
       dyAxis("y", label="VTI", independentTicks=TRUE) %>%
       dyAxis("y2", label="strategy", independentTicks=TRUE) %>%
-      dySeries("strategy", axis="y2", col=c("blue", "red"))
+      dySeries("strategy", axis="y2", col="red")
   })  # end output plot
   
-})  # end server code
+}  # end server code
 
 ## Return a Shiny app object
 shiny::shinyApp(ui=inter_face, server=ser_ver)

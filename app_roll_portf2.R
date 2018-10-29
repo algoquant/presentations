@@ -1,6 +1,6 @@
 ##############################
-# This is a shiny app for simulating rolling portfolio 
-# optimization strategies, which produces an interactive 
+# This is a shiny app for simulating a rolling portfolio 
+# optimization strategy, which produces an interactive 
 # dygraphs plot.
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -17,7 +17,7 @@ library(rutils)
 source("C:/Develop/R/lecture_slides/scripts/roll_portf.R")
 max_eigen <- 2
 sym_bols <- colnames(rutils::etf_env$re_turns)
-sym_bols <- sym_bols[!(sym_bols=="VXX")]
+sym_bols <- sym_bols[!((sym_bols=="VXX")|(sym_bols=="SVXY"))]
 n_weights <- NROW(sym_bols)
 re_turns <- rutils::etf_env$re_turns[, sym_bols]
 re_turns <- zoo::na.locf(re_turns)
@@ -25,11 +25,11 @@ re_turns <- na.omit(re_turns)
 risk_free <- 0.03/260
 ex_cess <- re_turns - risk_free
 # calculate equal weight portfolio
-equal_portf <- cumsum(re_turns %*% rep(1/sqrt(NCOL(re_turns)), NCOL(re_turns)))
+in_dex <- cumsum(re_turns %*% rep(1/sqrt(NCOL(re_turns)), NCOL(re_turns)))
 
 # Define end_points
 end_points <- rutils::calc_endpoints(re_turns, inter_val="months")
-end_points <- end_points[end_points>50]
+end_points <- end_points[end_points > (n_weights+1)]
 len_gth <- NROW(end_points)
 
 # End setup code
@@ -50,12 +50,12 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
   
   # create output plot panel
-  mainPanel(dygraphOutput("dygraph"), width=12)
+  mainPanel(dygraphOutput("dy_graph"), width=12)
 )  # end fluidPage interface
 
 
 ## Define the server code
-ser_ver <- shiny::shinyServer(function(input, output) {
+ser_ver <- function(input, output) {
 
   # re-calculate the data and rerun the model
   da_ta <- reactive({
@@ -65,20 +65,20 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # define start_points
     start_points <- c(rep_len(1, look_back-1), end_points[1:(len_gth-look_back+1)])
     # rerun the model
-    strat_rets <- cbind(
+    pnl_s <- cbind(
       roll_portf_r(ex_cess, re_turns, start_points, end_points, al_pha, max_eigen), 
-      equal_portf)  # end cbind
-    colnames(strat_rets) <- c("strategy", "equal weight")
-    strat_rets
+      in_dex)  # end cbind
+    colnames(pnl_s) <- c("strategy", "equal weight")
+    pnl_s
   })  # end reactive code
   
   # return the dygraph plot to output argument
-  output$dygraph <- renderDygraph({
+  output$dy_graph <- renderDygraph({
     dygraph(da_ta(), main="Rolling Portfolio Optimization Strategy") %>%
-      dySeries("strategy", label="strategy", strokeWidth=1, color=c("blue", "red"))
+      dySeries("strategy", label="strategy", strokeWidth=1, color="red")
   })  # end output plot
   
-})  # end server code
+}  # end server code
 
 ## Return a Shiny app object
 shiny::shinyApp(ui=inter_face, server=ser_ver)

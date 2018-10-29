@@ -1,0 +1,183 @@
+---
+title: Unit Testing Using Packages testthat and devtools
+date:   2016-07-09 12:00:00
+layout: post
+categories: development testing
+output: html_document
+---
+
+### *R* unit testing using packages *testthat* and *devtools*
+
+Unit testing in *R* can be performed using the *R* packages *testthat* and *devtools*. 
+The packages *testthat* and *devtools* provide functions for implementing unit testing in *R*.  
+
+The package *testthat* provides functions for implementing unit tests for other *R* functions.  The unit tests are stored in test files.  It's convenient to create separate test files for each tested *R* function, and name the test files `test-function-name.R`.  The test files can be executed any time the user needs to verify that her *R* functions are working properly.  
+
+The package *devtools* provides functions for executing a whole set of unit tests stored in test files.  This is especially convenient for testing a whole package of *R* functions. 
+
+You can read more about unit testing of *R* packages on 
+<a href="http://r-pkgs.had.co.nz/tests.html" target="_blank"> Hadley Wickham's website: unit testing of *R* packages. </a>
+
+<br>
+
+
+### Setting up a package for unit testing using *devtools*
+
+The function *use_testthat()* from package *devtools* sets up a package for unit testing (in this example the package `rutils` stored in `"C:/Develop/R/rutils"`): 
+```{r eval=FALSE}
+library(devtools)
+devtools::use_testthat("C:/Develop/R/rutils")
+```
+
+The function *use_testthat()* from package *devtools* performs the following operations:
+
++ creates the directories `./tests` and `./tests/testthat`, (the directory `./tests/testthat` is designed to store the test files named `test*.R`),
+
++ creates a file `./tests/testthat.R` for running all the test files,
+
++ adds a field `Suggests: testthat` in the `./DESCRIPTION` file.
+
+After the package is set up for unit testing, the user can add test files to the 
+directory `./tests/testthat`, using the package *testthat*. 
+
+<br>
+
+
+### Writing unit tests using package *testthat*
+
+The package *testthat* contains functions for implementing unit tests. 
+
+The functions *expect_\*()* perform the actual unit tests by comparing the values returned by functions with the values expected by the user.  The *expect_\*()* functions use the base functions *grep()*, *identical()*, and *all.equal()* to determine equality. 
+
+The function *test_that()* is used as a wrapper around the functions *expect_\*()*, to be able to handle the errors they produce when an unexpected value is returned. 
+
+The function *context()* defines a set of tests that test related functionality. 
+ 
+The package *testthat* contains functions for implementing unit tests:
+
++ *expect_match()*: tests whether its first argument matches a regular expression provided by the second argument,
+
++ *expect_equal()*: tests whether its first argument is equal to the second argument, using the function *all.equal()*,
+
++ *expect_true()* and *expect_false()*: test whether their first argument is *TRUE* or *FALSE*,
+
++ *test_that()*: performs one or more tests using calls to functions *expect_\*()*,
+
++ *context()*: defines a set of tests that test related functionality,
+
+Unit tests are organized as a set of calls to the functions *expect_\*()*, each wrapped by the function *test_that()*. 
+Unit tests related to a similar functionality or function can be collected in the same file under a single *context()*.
+
+Below are unit test code examples designed to demonstrate the functions from package *testthat*.  The test code examples are collected under a single *context()*. 
+
++ The function *expect_match()* tests whether its first argument matches a regular expression provided by the second argument.
+
+    If there is a match, then *expect_match()* invisibly returns its first argument, and if there is no match, then it produces an *error* without returning anything.
+For example, `expect_match("character", "char")` invisibly returns `"character"`, while `expect_match("integer", "char")` produces an *error* without returning anything.
+
+    The function *expect_match()*, together with functions *typeof()* and *class()*, can be used to test for the *type* or *class* of an object.
+
+```{r eval=FALSE}
+library(testthat)
+# define context for demos of function expect_match()
+context("demo of expect_match")
+# expect_match() returns its first argument invisibly
+test_result <- expect_match("character", "char")
+# expect_match() produces an error
+test_result <- expect_match("integer", "char")
+# test for object type returns "character" invisibly
+test_result <- expect_match(typeof("a"), "char")
+# test for object type produces an error
+test_result <- expect_match(typeof(11), "char")
+# test for object class returns "matrix" invisibly
+test_result <- expect_match(class(matrix(1:9, nr=3)), "matrix")
+# test for object class produces an error
+test_result <- expect_match(class(1:9), "matrix")
+```
+<br>
+
++ The function *expect_equal()* tests whether its first argument is equal to its second argument, by calling the function *all.equal()* to determine equality. 
+
+    If the arguments are equal, then *expect_equal()* invisibly returns its first argument, but if they are not equal, then it produces an *error* without returning anything.
+
+```{r eval=FALSE}
+library(testthat)
+# define context for demos of function expect_equal()
+context("demo of expect_equal")
+# expect_equal() returns its first argument invisibly
+test_result <- expect_equal(0.3/3, 0.1)
+# expect_equal() produces an error
+test_result <- expect_equal(0.3/3, 1.0)
+```
+<br>
+
++ The function *test_that()* performs one or more tests using calls to functions *expect_\*()*, and handles any errors they produce when an unexpected value is returned. 
+
+    The first argument is a string representing the test name.  The second argument is an expression containing one or more calls to functions *expect_\*()*. 
+
+    The function *test_that()* is used as a wrapper around the functions *expect_\*()*.
+*test_that()* invisibly returns *TRUE* if its second argument doesn't produce any *errors*, and produces an *error* without returning anything, if any of the functions *expect_\*()* produce an *error*.
+
+```{r eval=FALSE}
+library(testthat)
+# define context for demos of function test_that()
+context("demo of test_that")
+# produces error and handles it using test_that()
+test_result <- test_that("first test", stop("whatever"))
+# passes the test and invisibly returns TRUE
+test_result <- test_that("second test", expect_true(1>0))
+test_result <- test_that("third test", {
+                           expect_true(1>0) 
+                           expect_match(typeof("a"), "char")
+                           })
+```
+<br>
+
++ We can now apply the above functions from the package *testthat* to write some unit test code.
+
+    Below is unit test code for the function *na_me()* from package *rutils*:
+
+```{r eval=FALSE}
+library(testthat)
+library(rutils)
+# define context for tests of function na_me()
+context("test na_me")
+# test the type returned by na_me()
+test_that("type must be character", {
+  expect_match(typeof(na_me(env_etf$VTI)), "character")
+})
+# test the value returned by na_me()
+test_that("value must be VTI", {
+  expect_match(na_me(env_etf$VTI), "VTI")
+})
+```
+
+<br>
+
++ Below is unit test code for the function *end_points()* from package *rutils*:
+
+```{r eval=FALSE}
+library(testthat)
+library(rutils)
+# define context for tests of function end_points()
+context("test end_points")
+# test the type returned by end_points()
+test_that("end_points must be integer", {
+  expect_match(typeof(end_points(env_etf$VTI)), "integer")
+})
+# test the value returned by end_points()
+test_that("end_points value", expect_false(last(end_points(env_etf$VTI)) > NROW(env_etf$VTI)))
+```
+
+<br>
+
+
+### Applying unit tests using package *devtools*
+
+Once the directory `./tests/testthat` has been populated with test files named `test*.R`, the user can execute all the tests by calling the function *test()* from package *devtools*: 
+```{r eval=FALSE}
+library(devtools)
+library(rutils)
+devtools::test("C:/Develop/R/rutils")
+```
+
