@@ -18,7 +18,9 @@ data_dir <- "C:/Develop/data/ib_data"
 setwd(dir=data_dir)
 # for SPY
 # oh_lc <- HighFreq::SPY
-load("QM_ohlc.RData")
+sym_bol <- "ES"
+tick_size <- 0.25
+load(paste0(sym_bol, "_ohlc.RData"))
 n_rows <- NROW(oh_lc)
 ohlc_data <- coredata(oh_lc)
 ohlc_lag <- rutils::lag_it(ohlc_data)
@@ -37,16 +39,19 @@ std_dev <- sqrt(std_dev)
 
 ## Create elements of the user interface
 inter_face <- shiny::fluidPage(
-  titlePanel("Market Making Strategy"),
+  titlePanel(paste0("Market Making Strategy for ", sym_bol)),
 
   # create single row with two slider inputs
   fluidRow(
-    column(width=3, sliderInput("buy_spread", label="buy spread:",
-                                min=0.0, max=0.5, value=0.05, step=0.025)),
-    column(width=3, sliderInput("sell_spread", label="sell spread:",
-                                min=0.0, max=0.5, value=0.05, step=0.025)),
+    column(width=3, sliderInput("buy_spread", label="spread:",
+                                min=0.0, max=10*tick_size, value=3*tick_size, step=tick_size)),
+    # column(width=3, sliderInput("sell_spread", label="sell spread:",
+    #                             min=0.0, max=10*tick_size, value=3*tick_size, step=tick_size)),
     column(width=3, sliderInput("lagg", label="lag:",
-                                min=0.0, max=10, value=3, step=1))
+                                min=0.0, max=10, value=3, step=1)),
+    # Select output series
+    column(width=3, selectInput("out_put", label="output series:",
+                                choices=c("Strategy", "Inventory"), selected="Strategy"))
     # for SPY
     # column(width=3, sliderInput("buy_spread", label="buy spread:",
     #                             min=0.0, max=0.1, value=0.001, step=0.001)),
@@ -67,19 +72,20 @@ ser_ver <- function(input, output) {
   da_ta <- reactive({
     # get model parameters from input argument
     buy_spread <- input$buy_spread
-    sell_spread <- input$sell_spread
+    sell_spread <- buy_spread
     lagg <- input$lagg
 
     # Run the trading model (strategy):
     pnl_s <- make_market(oh_lc=ohlc_data, ohlc_lag=rutils::lag_it(ohlc_data, lagg=lagg),
                          buy_spread=buy_spread, sell_spread=sell_spread)
     end_points <- c(1, rutils::calc_endpoints(oh_lc, inter_val="minutes"))
-    xts::xts(pnl_s[end_points, c(4, 5)], index(oh_lc[end_points]))
+    col_names <- c(colnames(oh_lc)[4], input$out_put)
+    xts::xts(pnl_s[end_points, col_names], index(oh_lc[end_points]))
   })  # end reactive code
 
   output$dy_graph <- renderDygraph({
     col_names <- colnames(da_ta())
-    dygraphs::dygraph(da_ta(), main="Market Making Strategy") %>%
+    dygraphs::dygraph(da_ta(), main=paste0("Market Making Strategy for ", sym_bol)) %>%
       dyAxis("y", label=col_names[2], independentTicks=TRUE) %>%
       dyAxis("y2", label=col_names[1], independentTicks=TRUE) %>%
       dySeries(name=col_names[2], axis="y", label=col_names[2], strokeWidth=1, col="red") %>%
