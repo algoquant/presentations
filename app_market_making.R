@@ -6,22 +6,30 @@
 
 ## Below is the setup code that runs once when the shiny app is started
 
-# load packages
-# library(IBrokers2)
-# Model and data setup
-# source the model function
-# source("C:/Develop/R/lecture_slides/scripts/roll_portf_new.R")
-# max_eigen <- 2
+# Load packages
+library(rutils)
+library(dygraphs)
 
-# Load the trading function written as an eWrapper:
-# source("C:/Develop/R/IBrokers2/R/trade_wrapper.R")
+## Model and data setup
+# Load the trading function
+source("C:/Develop/R/scripts/market_making.R")
 
 data_dir <- "C:/Develop/data/ib_data"
 setwd(dir=data_dir)
-load("oh_lc.RData")
+# for SPY
+# oh_lc <- HighFreq::SPY
+load("QM_ohlc.RData")
 n_rows <- NROW(oh_lc)
-ohlc_lag <- rutils::lag_it(oh_lc)
-pric_e <- as.numeric(Cl(oh_lc))
+ohlc_data <- coredata(oh_lc)
+ohlc_lag <- rutils::lag_it(ohlc_data)
+
+# calculate EWMA variance using filter()
+look_back <- 11
+weight_s <- exp(-0.1*1:look_back)
+weight_s <- weight_s/sum(weight_s)
+std_dev <- stats::filter((ohlc_data[, 2]-ohlc_data[, 3])^2, filter=weight_s, sides=1)
+std_dev[1:(look_back-1)] <- std_dev[look_back]
+std_dev <- sqrt(std_dev)
 
 
 # End setup code
@@ -34,9 +42,16 @@ inter_face <- shiny::fluidPage(
   # create single row with two slider inputs
   fluidRow(
     column(width=3, sliderInput("buy_spread", label="buy spread:",
-                                min=0.0, max=2.0, value=0.25, step=0.25)),
+                                min=0.0, max=0.5, value=0.05, step=0.025)),
     column(width=3, sliderInput("sell_spread", label="sell spread:",
-                                min=0.0, max=2.0, value=0.25, step=0.25))
+                                min=0.0, max=0.5, value=0.05, step=0.025)),
+    column(width=3, sliderInput("lagg", label="lag:",
+                                min=0.0, max=10, value=3, step=1))
+    # for SPY
+    # column(width=3, sliderInput("buy_spread", label="buy spread:",
+    #                             min=0.0, max=0.1, value=0.001, step=0.001)),
+    # column(width=3, sliderInput("sell_spread", label="sell spread:",
+    #                             min=0.0, max=0.1, value=0.001, step=0.001))
   ),  # end fluidRow
 
   # Render plot in panel
@@ -53,36 +68,22 @@ ser_ver <- function(input, output) {
     # get model parameters from input argument
     buy_spread <- input$buy_spread
     sell_spread <- input$sell_spread
+    lagg <- input$lagg
 
     # Run the trading model (strategy):
-    buy_price <- as.numeric(Lo(ohlc_lag) - buy_spread)
-    sell_price <- as.numeric(Hi(ohlc_lag) + sell_spread)
-
-    buy_ind <- (as.numeric(Lo(oh_lc)) < buy_price)
-    n_buy <- cumsum(buy_ind)
-    sell_ind <- (as.numeric(Hi(oh_lc)) > sell_price)
-    n_sell <- cumsum(sell_ind)
-
-    buy_s <- numeric(n_rows)
-    buy_s[buy_ind] <- buy_price[buy_ind]
-    buy_s <- cumsum(buy_s)
-    sell_s <- numeric(n_rows)
-    sell_s[sell_ind] <- sell_price[sell_ind]
-    sell_s <- cumsum(sell_s)
-
-    pnl_s <- ((sell_s-buy_s) - pric_e*(n_sell-n_buy))
-    pnl_s <- cbind(pnl_s, Cl(oh_lc))
-    colnames(pnl_s) <- c("Strategy", "Index")
-    pnl_s[c(1, rutils::calc_endpoints(oh_lc, inter_val="minutes")), ]
+    pnl_s <- make_market(oh_lc=ohlc_data, ohlc_lag=rutils::lag_it(ohlc_data, lagg=lagg),
+                         buy_spread=buy_spread, sell_spread=sell_spread)
+    end_points <- c(1, rutils::calc_endpoints(oh_lc, inter_val="minutes"))
+    xts::xts(pnl_s[end_points, c(4, 5)], index(oh_lc[end_points]))
   })  # end reactive code
 
   output$dy_graph <- renderDygraph({
     col_names <- colnames(da_ta())
     dygraphs::dygraph(da_ta(), main="Market Making Strategy") %>%
-      dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
-      dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
-      dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=1, col="red") %>%
-      dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=1, col="blue")
+      dyAxis("y", label=col_names[2], independentTicks=TRUE) %>%
+      dyAxis("y2", label=col_names[1], independentTicks=TRUE) %>%
+      dySeries(name=col_names[2], axis="y", label=col_names[2], strokeWidth=1, col="red") %>%
+      dySeries(name=col_names[1], axis="y2", label=col_names[1], strokeWidth=1, col="blue")
   })  # end output plot
   # output$plo_t <- renderPlot({
   #   plot(da_ta(), t="l", main="Market Making Strategy")
