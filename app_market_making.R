@@ -24,14 +24,14 @@ load(paste0(sym_bol, "_ohlc.RData"))
 n_rows <- NROW(oh_lc)
 ohlc_data <- coredata(oh_lc)
 ohlc_lag <- rutils::lag_it(ohlc_data)
-
+col_names <- c("Strategy PnL", "Inventory", "Realized PnL", "Unrealized PnL", "EWMA")
 # calculate EWMA variance using filter()
-look_back <- 11
-weight_s <- exp(-0.1*1:look_back)
-weight_s <- weight_s/sum(weight_s)
-std_dev <- stats::filter((ohlc_data[, 2]-ohlc_data[, 3])^2, filter=weight_s, sides=1)
-std_dev[1:(look_back-1)] <- std_dev[look_back]
-std_dev <- sqrt(std_dev)
+# look_back <- 11
+# weight_s <- exp(-0.1*1:look_back)
+# weight_s <- weight_s/sum(weight_s)
+# std_dev <- stats::filter((ohlc_data[, 2]-ohlc_data[, 3])^2, filter=weight_s, sides=1)
+# std_dev[1:(look_back-1)] <- std_dev[look_back]
+# std_dev <- sqrt(std_dev)
 
 
 # End setup code
@@ -49,9 +49,13 @@ inter_face <- shiny::fluidPage(
     #                             min=0.0, max=10*tick_size, value=3*tick_size, step=tick_size)),
     column(width=3, sliderInput("lagg", label="lag:",
                                 min=0.0, max=10, value=3, step=1)),
+    column(width=3, sliderInput("lamb_da", label="lambda:",
+                                min=0.0, max=0.1, value=0.01, step=0.001)),
+    column(width=3, sliderInput("invent_limit", label="inventory limit:",
+                                min=5, max=100, value=50, step=1)),
     # Select output series
     column(width=3, selectInput("out_put", label="output series:",
-                                choices=c("Strategy", "Inventory"), selected="Strategy"))
+                                choices=col_names, selected=col_names[1]))
     # for SPY
     # column(width=3, sliderInput("buy_spread", label="buy spread:",
     #                             min=0.0, max=0.1, value=0.001, step=0.001)),
@@ -70,14 +74,19 @@ ser_ver <- function(input, output) {
 
   # re-calculate the data and rerun the model
   da_ta <- reactive({
-    # get model parameters from input argument
-    buy_spread <- input$buy_spread
-    sell_spread <- buy_spread
-    lagg <- input$lagg
+    # Get model parameters from input argument
+    # buy_spread <- input$buy_spread
+    # sell_spread <- buy_spread
+    # lagg <- input$lagg
 
     # Run the trading model (strategy):
-    pnl_s <- make_market(oh_lc=ohlc_data, ohlc_lag=rutils::lag_it(ohlc_data, lagg=lagg),
-                         buy_spread=buy_spread, sell_spread=sell_spread)
+    pnl_s <- make_market(oh_lc=ohlc_data,
+                         ohlc_lag=rutils::lag_it(ohlc_data, lagg=input$lagg),
+                         buy_spread=input$buy_spread,
+                         sell_spread=input$buy_spread,
+                         lamb_da=input$lamb_da,
+                         invent_limit=input$invent_limit)
+    # Output
     end_points <- c(1, rutils::calc_endpoints(oh_lc, inter_val="minutes"))
     col_names <- c(colnames(oh_lc)[4], input$out_put)
     xts::xts(pnl_s[end_points, col_names], index(oh_lc[end_points]))
