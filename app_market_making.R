@@ -50,7 +50,7 @@ inter_face <- shiny::fluidPage(
     column(width=3, sliderInput("lagg", label="lag:",
                                 min=0.0, max=10, value=3, step=1)),
     column(width=3, sliderInput("lamb_da", label="lambda:",
-                                min=0.0, max=0.1, value=0.01, step=0.001)),
+                                min=0.0, max=0.3, value=0.1, step=0.01)),
     column(width=3, sliderInput("invent_limit", label="inventory limit:",
                                 min=5, max=100, value=50, step=1)),
     # Select output series
@@ -85,7 +85,8 @@ ser_ver <- function(input, output) {
                          buy_spread=input$buy_spread,
                          sell_spread=input$buy_spread,
                          lamb_da=input$lamb_da,
-                         invent_limit=input$invent_limit)
+                         invent_limit=input$invent_limit,
+                         warm_up=100)
     # Output
     end_points <- c(1, rutils::calc_endpoints(oh_lc, inter_val="minutes"))
     col_names <- c(colnames(oh_lc)[4], input$out_put)
