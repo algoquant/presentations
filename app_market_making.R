@@ -48,9 +48,9 @@ inter_face <- shiny::fluidPage(
     # column(width=3, sliderInput("sell_spread", label="sell spread:",
     #                             min=0.0, max=10*tick_size, value=3*tick_size, step=tick_size)),
     column(width=3, sliderInput("lagg", label="lag:",
-                                min=0.0, max=10, value=3, step=1)),
+                                min=0, max=10, value=2, step=1)),
     column(width=3, sliderInput("lamb_da", label="lambda:",
-                                min=0.0, max=0.3, value=0.1, step=0.01)),
+                                min=0.0, max=0.9, value=0.05, step=0.01)),
     column(width=3, sliderInput("invent_limit", label="inventory limit:",
                                 min=5, max=100, value=50, step=1)),
     # Select output series
@@ -80,13 +80,23 @@ ser_ver <- function(input, output) {
     # lagg <- input$lagg
 
     # Run the trading model (strategy):
-    pnl_s <- make_market(oh_lc=ohlc_data,
+    # pnl_s <- make_market(oh_lc=ohlc_data,
+    #                      ohlc_lag=rutils::lag_it(ohlc_data, lagg=input$lagg),
+    #                      buy_spread=input$buy_spread,
+    #                      sell_spread=input$buy_spread,
+    #                      lamb_da=input$lamb_da,
+    #                      invent_limit=input$invent_limit,
+    #                      warm_up=100)
+
+    pnl_s <- make_market_ewma(oh_lc=ohlc_data,
                          ohlc_lag=rutils::lag_it(ohlc_data, lagg=input$lagg),
                          buy_spread=input$buy_spread,
                          sell_spread=input$buy_spread,
                          lamb_da=input$lamb_da,
                          invent_limit=input$invent_limit,
+                         lagg=input$lagg,
                          warm_up=100)
+
     # Output
     end_points <- c(1, rutils::calc_endpoints(oh_lc, inter_val="minutes"))
     col_names <- c(colnames(oh_lc)[4], input$out_put)
