@@ -23,6 +23,7 @@ tick_size <- 0.25
 load(paste0(sym_bol, "_ohlc.RData"))
 n_rows <- NROW(oh_lc)
 ohlc_data <- coredata(oh_lc)
+re_turns <- rutils::diff_it(ohlc_data[, 4])
 ohlc_lag <- rutils::lag_it(ohlc_data)
 col_names <- c("Strategy PnL", "Inventory", "Realized PnL", "Unrealized PnL", "EWMA")
 # calculate EWMA variance using filter()
@@ -47,6 +48,10 @@ inter_face <- shiny::fluidPage(
                                 min=0.0, max=10*tick_size, value=3*tick_size, step=tick_size)),
     # column(width=3, sliderInput("sell_spread", label="sell spread:",
     #                             min=0.0, max=10*tick_size, value=3*tick_size, step=tick_size)),
+    column(width=3, sliderInput("look_back", label="look_back:",
+                                min=3, max=211, value=111, step=1)),
+    column(width=3, sliderInput("thresh_old", label="threshold:",
+                                min=0.0, max=4.0, value=1.0, step=0.01)),
     column(width=3, sliderInput("lagg", label="lag:",
                                 min=0, max=10, value=2, step=1)),
     column(width=3, sliderInput("lamb_da", label="lambda:",
@@ -88,15 +93,24 @@ ser_ver <- function(input, output) {
     #                      invent_limit=input$invent_limit,
     #                      warm_up=100)
 
-    pnl_s <- make_market_ewma(oh_lc=ohlc_data,
-                         ohlc_lag=rutils::lag_it(ohlc_data, lagg=input$lagg),
-                         buy_spread=input$buy_spread,
-                         sell_spread=input$buy_spread,
-                         lamb_da=input$lamb_da,
-                         invent_limit=input$invent_limit,
-                         lagg=input$lagg,
-                         warm_up=100)
+    # pnl_s <- make_market_ewma(oh_lc=ohlc_data,
+    #                           ohlc_lag=rutils::lag_it(ohlc_data, lagg=input$lagg),
+    #                           buy_spread=input$buy_spread,
+    #                           sell_spread=input$buy_spread,
+    #                           lamb_da=input$lamb_da,
+    #                           invent_limit=input$invent_limit,
+    #                           lagg=input$lagg,
+    #                           warm_up=100)
 
+    pnl_s <- trade_median(re_turns=re_turns, oh_lc=ohlc_data,
+                          ohlc_lag=rutils::lag_it(ohlc_data, lagg=input$lagg),
+                          look_back=input$look_back, 
+                          thresh_old=input$thresh_old, 
+                          buy_spread=input$buy_spread,
+                          sell_spread=input$buy_spread,
+                          lamb_da=input$lamb_da,
+                          invent_limit=input$invent_limit)
+    
     # Output
     end_points <- c(1, rutils::calc_endpoints(oh_lc, inter_val="minutes"))
     col_names <- c(colnames(oh_lc)[4], input$out_put)
