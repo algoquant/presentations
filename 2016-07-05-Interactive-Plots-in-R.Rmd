@@ -51,16 +51,16 @@ data_frame <-
     coredata(etf_env$price_s[, c("VTI", "IEF")]))
 # plotly syntax using pipes
 data_frame %>% 
-  plot_ly(x=dates, y=VTI, fill="tozeroy", name="VTI") %>% 
-  add_trace(x=dates, y=IEF, fill="tonexty", name="IEF") %>% 
+  plot_ly(x=~dates, y=~VTI, fill="tozeroy", name="VTI", type="scatter", mode="lines") %>% 
+  add_trace(x=~dates, y=~IEF, fill="tonexty", name="IEF", type="scatter", mode="lines") %>% 
   layout(title="VTI and IEF prices", 
          xaxis=list(title="Time"),
          yaxis=list(title="Stock Prices"),
          legend=list(x=0.1, y=0.9))
 # standard plotly syntax - for reference
-# p_lot <- plot_ly(data=data_frame, x=dates, y=VTI, fill="tozeroy", name="VTI")
-# p_lot <- add_trace(p=p_lot, x=dates, y=IEF, fill="tonexty", name="IEF")
-# p_lot <-   layout(title="VTI and IEF prices", xaxis=list(title="Time"), yaxis=list(title="Stock Prices"), legend=list(x=0.1, y=0.9))
+# p_lot <- plot_ly(data=data_frame, x=~dates, y=~VTI, fill="tozeroy", name="VTI", type="scatter", mode="lines")
+# p_lot <- add_trace(p=p_lot, x=~dates, y=~IEF, fill="tonexty", name="IEF", type="scatter", mode="lines")
+# p_lot <- layout(p=p_lot, title="VTI and IEF prices", xaxis=list(title="Time"), yaxis=list(title="Stock Prices"), legend=list(x=0.1, y=0.9))
 # p_lot
 ```
 

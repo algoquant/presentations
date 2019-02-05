@@ -1,0 +1,352 @@
+---
+title: Cloud Computing
+author: Jerzy Pawlowski
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
+output: html_document
+---
+
+
+### Create a *Google Cloud* (gcloud) project
+
+Create a virtual machine *Instance* on the *Google Compute Engine* (GCE).
+https://cloud.google.com/compute/docs/quickstart-linux
+
+Google cloud getting started community
+https://cloud.google.com/community/
+https://cloud.google.com/gcp/getting-started/
+
+Google cloud console
+https://console.cloud.google.com
+
+Project dashboard info
+https://console.cloud.google.com/home/dashboard?authuser=2&project=r-server-229012
+
+
+<br>
+
+### Configure the GCE virtual machine *Instance*
+
+Google cloud console
+https://console.cloud.google.com
+https://console.cloud.google.com/compute/instances?project=r-server-229012
+
+
+Enable OS Login - stores RSA keys for faster login
+Open cloud console:
+https://cloud.google.com/compute/docs/instances/managing-instance-access
+Add in metadata:  enable-oslogin=TRUE
+
+Open secure shell: in cloud console open ssh shell by selecting "Remote access" from drop-down menu next to instance
+In Linux shell:
+```{bash eval=FALSE}
+whoami # algoquant_algoquants_ch
+# Get Linux version and release
+cat /etc/issue
+cat /etc/os-release
+uname -a
+arch
+# Set password
+sudo passwd # star
+```
+
+Enable Compute Engine API - Create API Key Credentials for project r-server
+https://console.cloud.google.com/apis/credentials?authuser=2&project=r-server-229012
+
+
+<br>
+
+### Log in remotely into the GCE virtual machine *Instance*
+
+First method: Open secure ssh shell in cloud console by selecting "Remote access" from drop-down menu
+Then in Linux shell:
+```{bash eval=FALSE}
+whoami # algoquant_algoquants_ch
+# Get Linux version and release
+cat /etc/issue
+cat /etc/os-release
+```
+
+Second method (for faster login): First create secure key pair on Windows
+https://www.ssh.com/ssh/keygen/
+In Windows powershell (as Admin):
+```{bash eval=FALSE}
+# In powershell create secure key pair
+ssh-keygen
+```
+Private key is in file C:\Users\Jerzy\.ssh\id_rsa
+Public key is in file C:\Users\Jerzy\.ssh\id_rsa.pub
+Change (remove) permissions for file id_rsa by right-clicking Properties
+
+Copy public key to Linux account under username: algoquant_algoquants_ch
+```{bash eval=FALSE}
+# After OS-login is set up run gcloud command:
+gcloud compute os-login ssh-keys add --key-file C:\Users\Jerzy\.ssh\id_rsa.pub
+```
+Or in ssh shell launched from cloud console:
+```{bash eval=FALSE}
+# Edit file authorized_keys and copy public key into it
+sudo mkdir ~/.ssh
+sudo nano ~/.ssh/authorized_keys
+# Find the Linux server IP address
+curl ifconfig.me
+whoami # algoquant_algoquants_ch
+```
+Then in Windows powershell:
+```{bash eval=FALSE}
+# Run ssh to log into Linux
+ssh algoquant_algoquants_ch@35.229.92.170
+```
+
+
+<br>
+
+### Install software on the GCE virtual machine *Instance*
+
+Install g++ on Linux
+https://linuxconfig.org/how-to-install-g-the-c-compiler-on-ubuntu-18-04-bionic-beaver-linux
+```{bash eval=FALSE}
+sudo apt install build-essential
+g++ --version
+```
+
+Install Java on Linux
+```{bash eval=FALSE}
+sudo apt-get install default-jre
+sudo apt-get install default-jdk
+sudo apt autoremove
+java -version
+```
+
+Install libcurl on Linux
+```{bash eval=FALSE}
+# Using aptitude (better choice - allows resolving, configuring package dependencies)
+sudo aptitude install -f libxml2-dev
+sudo aptitude install -f libcurl4-openssl-dev
+# Using apt-get
+sudo apt-get install -f curl
+sudo apt-get install -f libxml2-dev
+sudo apt-get install -f libcurl4-openssl-dev
+sudo apt-get update
+sudo apt autoremove
+```
+
+Install OpenSSL on Linux
+```{bash eval=FALSE}
+# Using aptitude
+sudo aptitude install -f libssl-dev
+sudo aptitude install -f openssl-dev
+# Using apt-get
+sudo apt-get install -f libssl-dev
+sudo apt-get update
+sudo apt autoremove
+```
+
+Install Chromium browser on Linux
+```{bash eval=FALSE}
+# Using apt
+sudo apt install -y chromium-browser
+# Launch Chromium from ssh
+DISPLAY=:1 sudo chromium-browser
+```
+
+
+<br>
+
+### Install *R* on the GCE virtual machine *Instance*
+
+Install R on Linux
+https://cran.r-project.org/bin/linux/ubuntu/README.html
+https://www.digitalocean.com/community/tutorials/how-to-install-r-on-ubuntu-18-04
+```{bash eval=FALSE}
+# download authentication keys from repository
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+# add the repository
+sudo add-apt-repository 'deb [arch=amd64,i386] https://cloud.r-project.org/bin/linux/ubuntu/cosmic-cran35/'
+# run update to include package manifests from the new repository
+sudo apt-get update
+
+sudo rm /etc/apt/sources.list
+sudo touch /etc/apt/sources.list
+
+sudo nano /etc/apt/sources.list
+# add
+# deb https://cloud.r-project.org/bin/linux/ubuntu cosmic-cran35/
+
+sudo apt-get update
+sudo apt-get autoremove
+# install base R
+sudo apt-get install -f r-base
+# install devel R
+sudo apt-get install -f r-base-dev
+
+# If above fails, this is alternative method using aptitude instead of apt-get
+# https://askubuntu.com/questions/378558/unable-to-locate-package-while-trying-to-install-packages-with-apt/378565#378565
+sudo add-apt-repository main
+sudo add-apt-repository universe
+sudo add-apt-repository restricted
+sudo add-apt-repository multiverse
+sudo apt-get update
+sudo apt-get install aptitude
+# install base R
+sudo aptitude install -f r-base
+# install devel R
+sudo aptitude install -f r-base-dev
+
+# update Linux packages
+sudo apt-get update
+sudo apt-get upgrade
+
+```
+
+Run R on Linux
+```{bash eval=FALSE}
+# run R as root
+sudo R
+```
+Then install R packages
+```{r eval=FALSE}
+# in R install R packages
+install.packages("RCurl")
+install.packages("curl")
+install.packages("git2r")
+install.packages("openssl")
+install.packages("httr")
+install.packages("gh")
+install.packages("usethis")
+install.packages("devtools")
+```
+
+Then install more R packages
+```{r eval=FALSE}
+# in R install R packages
+devtools::install_github("rstudio/httpuv")
+install.packages(c("data.table", "zoo", "xts", "jsonlite", "dygraphs", "later", "promises", "httpuv", "mime", "rlang", "shiny", "htmltools", "knitr", "rmarkdown", "Rcpp", "RcppArmadillo", "matrixStats", "profvis", "ISLR", "DEoptim", "PerformanceAnalytics", "PortfolioAnalytics"), type="source")
+
+devtools::install_github(repo="joshuaulrich/quantmod", type="source")
+devtools::install_github(repo="joshuaulrich/TTR", type="source")
+
+# Next install the packages rutils, HighFreq, and roll from GitHub as follows:
+devtools::install_github(repo="algoquant/rutils", type="source")
+devtools::install_github(repo="algoquant/HighFreq", type="source")
+```
+
+
+Install RStudio on Linux
+https://www.rstudio.com/products/rstudio/download/
+```{bash eval=FALSE}
+# Install libapparmor1 and gdebi
+sudo apt-get install libapparmor1 gdebi-core
+# Download RStudio for 64-bit Ubuntu - check rstudio.com which is newest version
+wget https://download1.rstudio.org/rstudio-xenial-1.1.463-amd64.deb -O rstudio.deb
+# Install RStudio for 64-bit Ubuntu
+sudo gdebi rstudio.deb
+# Launch RStudio from ssh
+DISPLAY=:1 sudo rstudio
+```
+
+Install RStudio server on Linux
+https://www.rstudio.com/products/rstudio/download-server/
+```{bash eval=FALSE}
+# Download RStudio server for 64-bit Ubuntu - check rstudio.com which is newest version
+wget https://download2.rstudio.org/rstudio-server-1.1.463-amd64.deb -O rstudio.deb
+# Install RStudio for 64-bit Ubuntu
+sudo gdebi rstudio.deb
+rm rstudio.deb
+```
+
+
+<br>
+
+### Install *VNC server* and *XFCE* on the GCE virtual machine *Instance*
+
+Set firewall rules in Linux shell:
+https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-18-04
+```{bash eval=FALSE}
+sudo ufw app list
+# Allow ssh connections
+sudo ufw allow OpenSSH
+# Enable the firewall
+sudo ufw enable
+sudo ufw status
+```
+
+Note: VNC has problems running Chrome and RStudio
+Install VNC server and XFCE in Linux shell:
+https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-vnc-on-ubuntu-18-04
+```{bash eval=FALSE}
+sudo apt update
+# Install VNC server and XFCE
+sudo apt install xfce4 xfce4-goodies
+sudo apt install tightvncserver
+# Start VNC server
+vncserver
+# Kill VNC server
+vncserver -kill :1
+# Reset VNC password
+sudo vncpasswd
+# Install autocutsel package to allow copy/paste
+sudo apt-get install autocutsel
+# List VNC startup script
+cat ~/.vnc/xstartup
+# Back up VNC startup script
+sudo mv ~/.vnc/xstartup ~/.vnc/xstartup.bak
+# Create new VNC startup script using nano editor:
+sudo nano ~/.vnc/xstartup
+# In nano add these lines without the "# "
+# #!/bin/bash
+# xrdb $HOME/.Xresources
+# autocutsel -fork
+# startxfce4 &
+# Make VNC startup script executable
+sudo chmod +x ~/.vnc/xstartup
+# Start VNC server
+vncserver
+# Show open sockets ports
+ss -ltn
+# Kill VNC server (after VNC session is closed)
+vncserver -kill :1
+```
+
+Install VNC viewer on Windows
+https://www.realvnc.com/en/
+In Windows powershell create an ssh tunnel by connecting local host to Linux:
+```{bash eval=FALSE}
+# Run ssh to log into Linux
+ssh -L 5901:127.0.0.1:5901 -C -N -l algoquant_algoquants_ch 35.229.92.170
+```
+In VNC viewer app connect to local host (ignore encryption warning):
+localhost:5901
+A remote login window to Linux should open on Windows.
+
+
+Configure Chromium browser on Linux: 
+In VNC viewer window in Linux go to Applications menu on upper left -> Settings -> Preferred Applications -> select Chromium
+
+
+<br>
+
+### Install *X2Go* for remote desktop to Linux
+
+Note: X2Go has problems running RStudio
+Install X2Go server in Linux shell:
+https://wiki.x2go.org/doku.php/doc:installation:x2goserver
+```{bash eval=FALSE}
+sudo add-apt-repository ppa:x2go/stable
+sudo apt-get update
+sudo apt-get install x2goserver x2goserver-xsession
+```
+
+Install X2Go client on Windows
+https://wiki.x2go.org/doku.php/doc:installation:x2goclient
+https://draculaservers.com/tutorials/install-x2go-ubuntu-remote-desktop/
+
+Run X2Go client:
+In Windows open X2Go client and create new sesssion (no need to tunnel ssh):
+Host  35.229.92.170
+Login algoquant_algoquants_ch
+SSH port  22
+RSA key C:/Users/Jerzy/.ssh/id_rsa
+Session type XFCE
+
+A remote login window to Linux should open on Windows.
+
