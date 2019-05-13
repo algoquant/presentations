@@ -57,7 +57,7 @@ dygraph(nhtemp, main = "New Haven Temperatures") %>%
 suppressMessages(library(xts, quietly=TRUE))
 suppressMessages(library(ggplot2, quietly=TRUE))
 suppressMessages(library(plotly, quietly=TRUE))
-suppressMessages(load(file="C:/Develop/data/etf_data.Rdata"))
+suppressMessages(load(file="C:/Develop/data/etf_data_old_names.Rdata"))
 # create ggplot object
 etf_gg <- qplot(x=index(etf_series_ad[, 1]), 
                 y=as.numeric(etf_series_ad[, 1]), 

@@ -18,13 +18,13 @@
 
 .column_left_50 {
   float: left;
-  width: 49%;
+  width: 45%;
   text-align: left;
 }
 
 .column_right_50 {
   float: right;
-  width: 49%;
+  width: 48%;
   text-align: left;
 }
 
@@ -52,3 +52,9 @@
   text-align: left;
 }
 
+my_logo img {
+    width: 50%;
+    height: 100%;
+    max-height: none;
+    max-width: none;
+}

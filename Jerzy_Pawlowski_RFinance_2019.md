@@ -1,9 +1,12 @@
 ---
-title: Efficient Portfolio Optimization Under Large Skewness and Fat Tails
+title: Real-time Trading With Packages iBrokers2, Rcpp, and Interactive Brokers
 author: Jerzy Pawlowski, NYU Tandon School of Engineering
-date: "January 27, 2019"
+date: "April 4, 2019"
 output: pdf_document
 ---
 
 ### Abstract
-The large standard errors in the estimation of the mean of asset returns and their correlations produce large errors in their forecasts and in portfolio optimization.  This is exacerbated by the large skewness and fat tails (kurtosis) of asset returns, which cause the mean estimator to be less efficient than the median.  We study alternative estimators of the centrality and correlation using the median and the quantiles of asset returns, together with the Cornish-Fisher expansion.  We study the bias-variance tradeoff associated with the length of the look-back interval used for estimation, using cross-validation (backtesting).
+
+We demonstrate how to perform fully automated, algorithmic trading in real-time with packages *iBrokers2*, *Rcpp*, and *Interactive Brokers*.  Real-time trading means trading in a programmatic loop, in which continuous streaming market data is used to update a trading model, and the model outputs are used to place orders via the API.  Real-time trading requires three components: acquisition of streaming market data and account data, trading model execution, and trade order management.  
+The package *IBrokers2* contains *R* functions for executing real-time trading via the API of Interactive Brokers.  *IBrokers2* is derived from package *IBrokers*, and is fully backward compatible with it.  This means that all the *IBrokers* functions and variables are preserved exactly in *IBrokers2*, while some additional functions have been added.  The additional functions in *IBrokers2* provide functionality for the three components required for real-time trading.  They provide a *trade wrapper* environment for live data, and a programmatic *callback* loop for executing the trading model and for placing orders via the API.
+We provide examples of simple trading strategies and explain how they can be modified by users.

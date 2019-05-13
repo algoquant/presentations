@@ -1,5 +1,5 @@
 ---
-title: Producing ioslides Presentations from R Markdown
+title: Creating ioslides Presentations from R Markdown
 author: Jerzy Pawlowski
 affiliation: NYU Tandon School of Engineering
 date: '`r format(Sys.time(), "%m/%d/%Y")`'
@@ -37,6 +37,15 @@ This is an *ioslides* slide presentation rendered from an *R Markdown* document.
 
 ```{r mtcars, echo=TRUE}
 head(mtcars)
+```
+
+
+## Slide with interactive *dygraphs* plot
+
+```{r, dygraphs_simple, cache=FALSE, eval=TRUE, echo=TRUE, fig.width=5, fig.height=4}
+library(dygraphs)
+dygraph(nhtemp, main = "New Haven Temperatures") %>% 
+  dyRangeSelector(dateWindow = c("1920-01-01", "1960-01-01"))
 ```
 
 
@@ -131,13 +140,17 @@ polygon(c(star_t, x_var[are_a], fin_ish),
 
 Note that the `echo = FALSE` parameter can be added to the code chunk to prevent printing of the *R* code that generated the plot.
 
+## Two Columns - doesn't work {.smaller}  
 
+<div class=".columns">
 
-## Slide with interactive *dygraphs* plot
+<div class=".column">
+Column 1
+</div>
 
-```{r, dygraphs_simple, cache=FALSE, eval=TRUE, echo=TRUE, fig.width=5, fig.height=4}
-library(dygraphs)
-dygraph(nhtemp, main = "New Haven Temperatures") %>% 
-  dyRangeSelector(dateWindow = c("1920-01-01", "1960-01-01"))
-```
+<div class=".column">
+Column 2
+</div>
+
+</div>
 

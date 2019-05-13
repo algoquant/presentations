@@ -218,7 +218,7 @@ pip-log.txt
 *.Rhistory
 *.RData
 
-# knitr and LaTEX files
+# knitr, markdown and LaTEX files
 figure/
 shiny_ioslides_cache/
 ioslides_example_cache/
@@ -241,3 +241,4 @@ R_Markdown_to_ioslides_example_cache/
 *.bcf
 *.run.xml
 *.csv
+*cache*

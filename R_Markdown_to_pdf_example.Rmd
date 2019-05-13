@@ -1,40 +1,46 @@
 ---
-title: Publishing R Markdown documents as pdf documents
-author: algoquant
-date: July 2, 2016
+title: Publishing pdf Documents Using R Markdown
+author: Jerzy Pawlowski
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
+# date: July 2, 2016
 output: pdf_document
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
 ```
 
-### *R Markdown* documents
+### *R Markdown* Documents
 
-This is an *R Markdown* document. Markdown is a simple formatting syntax for publishing *HTML*, *pdf*, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+This is a *pdf* file knitted from an *R Markdown* document. Markdown is a simple formatting language for publishing *HTML*, *pdf*, and *MS Word* documents. For more details on using R Markdown see this [**RStudio website**](http://rmarkdown.rstudio.com).  
+
+Hello World!  
+Creating *pdf* files from *R Markdown* documents isn't difficult at all!  
+![easy](image/easy_button.png){width="30%"}
 
 
-### Including *R* code chunks
+### Including *R* Code Chunks
 
-*R* code chunks can be embedded in *R Markdown* documents, and they are automatically executed and their output is embedded in the output document.
+*R* code chunks can be embedded in *R Markdown* documents.  They are automatically executed and their output is embedded in the output document.  
+This is an *R* code chunk:
 
 ```{r mtcars, echo=TRUE}
 head(mtcars)
 ```
 
 
-### Including plots
+### Including Math Formulas
 
-You can also embed plots in *pdf* files, for example:
+Math formulas can be written in *LaTeX*.  For example, the Normal probability density function is given by:
 
-The Normal probability density function is given by:
 $$
-\displaystyle
-  P(x) = \frac{e^{-(x-\mu)^2/2\sigma^2}}{\sigma\sqrt{2 \pi}}
+P(x) = \frac{e^{-(x-\mu)^2/2\sigma^2}}{\sigma\sqrt{2 \pi}}
 $$
 
-Plot the Normal probability density function:
+### Including Plots
 
-```{r pressure, echo=TRUE}
+You can also embed plots in *pdf* files, produced by *R* code chunks.  For example, the *R* code chunk to plot the Normal probability density function:
+
+```{r normal, echo=TRUE}
 x_var <- seq(-5, 7, length=100)
 y_var <- dnorm(x_var, mean=1.0, sd=2.0)
 plot(x_var, y_var, type="l", lty="solid",
@@ -47,4 +53,10 @@ polygon(c(star_t, x_var[are_a], fin_ish),  # draw polygon
         c(-1, y_var[are_a], -1), col="red")
 ```
 
-Note that the `echo = FALSE` parameter can be added to the code chunk to prevent printing of the *R* code that generated the plot.
+
+Note that the `echo = FALSE` parameter can be added to the code chunk to prevent printing of the *R* code that generated the plot.  
+
+
+Hope that you enjoy using *R Markdown*!
+![smiling_face](image//smile_small.png){width="30%"}
+
