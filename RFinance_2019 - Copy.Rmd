@@ -42,12 +42,6 @@ library(grid)
 
 - The model outputs are used by an order management system to place trade orders via an API.  
 
-- The package <a href="https://cran.r-project.org/web/packages/IBrokers/index.html" target="_blank"><em>*IBrokers*</em></a> contains *R* functions for downloading live market data via the <a href="https://interactivebrokers.github.io/tws-api/" target="_blank">API of Interactive Brokers (IB API)</a>, and for placing trade orders to Interactive Brokers.  
-
-- The function `iBrokers::reqRealTimeBars()` downloads live (real-time) *OHLC* bars of market data from Interactive Brokers.  
-
-- The function `IBrokers::twsOrder()` places trade orders to Interactive Brokers.  
-
 </div>
 
 <div class="column_right_50">
@@ -66,7 +60,7 @@ grid.raster(img, just="centre")
 
 <div class="column_left_50">
 
-- The package <a href="https://cran.r-project.org/web/packages/IBrokers/index.html" target="_blank"><em>*IBrokers*</em></a> allows downloading live market data via the <a href="https://interactivebrokers.github.io/tws-api/" target="_blank">API of Interactive Brokers (IB API)</a>
+- The package <a href="https://cran.r-project.org/web/packages/IBrokers/index.html" target="_blank"><em>*IBrokers*</em></a> contains *R* functions for communicating via the <a href="https://interactivebrokers.github.io/tws-api/" target="_blank">API of Interactive Brokers (IB API)</a>.  
 
 - The function `twsConnect()` opens a connection to the *IB API* via the <a href="https://interactivebrokers.github.io/tws-api/initial_setup.html" target="_blank">IB Trader Workstation (TWS)</a>.  
 
@@ -141,13 +135,13 @@ grid.raster(img, just="centre")
 
 - Market events can be either *trade events* or *market quotes*.  
 
+- The function `processMsg()` processes individual market events by calling the appropriate *eWrapper* *handlers* and saving the data into the *eWrapper* environment.  
+
 - Streaming market events are processed in a *callback loop* which runs inside the function `twsCALLBACK()`.  
 
 - The function `twsCALLBACK()` first creates an *eWrapper* object by calling the function `eWrapper.RealTimeBars.CSV()`, and then passes it to the function `processMsg()`.  
 
 - The function `twsCALLBACK()` then calls `processMsg()` in a *callback loop*.  
-
-- The function `processMsg()` processes individual market events by calling the appropriate *eWrapper* *handlers* and saving the data into the *eWrapper* environment.  
 
 </div>
 
@@ -199,7 +193,7 @@ grid.raster(img, just="centre")
 
 - `IBrokers2::trade_wrapper()` creates a *trade_wrapper* object, containing the data handler `realtimeBars()` and the trading model `model_fun()`.  
 
-- The function `realtimeBars()` is a *trade_wrapper* handler which updates the data environment with new data and then runs the trading model `model_fun()`.  
+- `realtimeBars()` updates the data environment with new data and then runs the trading model `model_fun()`.  
 
 - `model_fun()` reruns the trading model using updated market data, and places trade orders using `IBrokers::twsOrder()`.
 
