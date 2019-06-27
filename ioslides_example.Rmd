@@ -26,7 +26,7 @@ options(digits=3)
 options(width=80)
 ```
 
-## *R Markdown* documents
+## *R Markdown* documents | This is a subtitle
 
 This is an *ioslides* slide presentation rendered from an *R Markdown* document. Markdown is a simple markup language for publishing *html*, *pdf*, and MS Word documents. For more details on using *R Markdown* see <http://rmarkdown.rstudio.com>.
 
@@ -115,7 +115,7 @@ Note that the `echo = FALSE` parameter can be added to the code chunk to prevent
 
 
 
-## Plots in two-column layout {.columns-2}
+## Plots in two-column layout without CSS {.columns-2}
 
 Example of two-column layout with a plot.  But there's no way to control the location of the content break between columns.
 
