@@ -54,6 +54,35 @@ The *R* Project for Statistical Computing
 </div>
 
 
+## What is Package *IBrokers2*?  
+
+<div class="column_left_50">
+
+- <a href="https://github.com/algoquant/iBrokers2" target="_blank">*iBrokers2*</a> is an open-source package written in *R*, derived from package <a href="https://cran.r-project.org/web/packages/iBrokers/index.html" target="_blank">*iBrokers*</a>.  
+
+- The package *IBrokers2* allows users to test their own trading strategies in paper trading, without having to program the IB API directly.  
+
+- The package *IBrokers2* can be an element of a toolkit for developing trading strategies, and testing them in paper trading.  
+
+- The package IBrokers2 is *NOT* a software product for inexperienced users, and it requires strong knowledge of *R* and the IB API.
+
+- The package *IBrokers2* does NOT provide realistic trading strategies.
+
+- The package *IBrokers2* comes with no warranty, and it is not affiliated or endorsed by Interactive Brokers.
+
+</div>
+
+<div class="column_right_50">
+
+```{r, eval=FALSE, echo=TRUE}
+# Install and load package IBrokers2
+devtools::install_github(repo="algoquant/IBrokers2")
+library(IBrokers2)
+```
+
+</div>
+
+
 
 ## Why the *R* Language?  
 
@@ -142,7 +171,7 @@ library(IBrokers)
 ib_connect <- IBrokers::twsConnect(port=7497)
 # Define S&P Emini future June 2019 contract
 con_tract <- IBrokers::twsFuture(symbol="ES",
-  exch="GLOBEX", expiry="201906")
+  exch="GLOBEX", expiry="201909")
 # Get list with instrument information
 IBrokers::reqContractDetails(conn=ib_connect, 
                              Contract=con_tract)
@@ -233,16 +262,12 @@ close(file_connect)
 <div class="column_right_50">
 
 ```{r, eval=FALSE, echo=TRUE}
-# Install and load package IBrokers2
-devtools::install_github(repo="algoquant/IBrokers2")
-library(IBrokers2)
-
 # Define instrument for trading ES futures contracts
 con_tracts <- list(
   ES=IBrokers2::twsFuture(
     symbol="ES", 
     exch="GLOBEX", 
-    expiry="201906"))
+    expiry="201909"))
 
 # Define parameters of market making strategy
 trade_params <- list(ES=list(
@@ -266,7 +291,7 @@ trade_params <- list(ES=list(
 
 - Users can define their own custom trading model function inside the `trade_wrapper()` function.  
 
-- We can define a simple market-making strategy as follows:  
+- We can define a naive market-making strategy as follows:  
   - Place a limit *buy* order at previous bar *Low* price minus *buy spread*,  
   - Place a limit *sell* order at previous bar *High* price plus *sell spread*.  
 
@@ -418,7 +443,7 @@ con_tracts <- list(
   ES=IBrokers2::twsFuture(
     symbol="ES", 
     exch="GLOBEX", 
-    expiry="201906"))
+    expiry="201909"))
 
 # Define parameters of EWMA crossover strategy
 trade_params <- list(ES=list(
@@ -445,13 +470,18 @@ trade_params <- list(ES=list(
 ```{r, eval=FALSE, echo=TRUE}
 ### The function crossover_strat() performs an EWMA crossover strategy
 crossover_strat <- function(contract_id, trade_params, ib_connect) {
-  ## Extract bars of prices from da_ta$bar_data
+  ## Extract model parameters and state variables
   count_er <- e_wrapper$da_ta$count_er[contract_id]
-  bar_new <- e_wrapper$da_ta$bar_data[[contract_id]][count_er, ]
-  ew_ma <- e_wrapper$da_ta$ewma[contract_id]
-  w_ap <- bar_new[7]
   posi_tion <- e_wrapper$da_ta$portfolio[contract_id, "position"]
+  if (posi_tion == 0)
+    siz_e <- trade_params["siz_e"]/2
+  else
+    siz_e <- trade_params["siz_e"]
   is_contrarian <- trade_params["is_contrarian"]
+  ## Extract bars of prices from da_ta$bar_data
+  bar_new <- e_wrapper$da_ta$bar_data[[contract_id]][count_er, ]
+  w_ap <- bar_new[7]
+  ew_ma <- e_wrapper$da_ta$ewma[contract_id]
 ```
 
 </div>
@@ -462,7 +492,7 @@ crossover_strat <- function(contract_id, trade_params, ib_connect) {
 
 <div class="column_left_40">
 
-- We can define a simple contrarian *EWMA* crossover strategy as follows:  
+- We can define a naive contrarian *EWMA* crossover strategy as follows:  
   - Place a market *sell* order when the current price crosses above the *EWMA*,  
   - Place a market *buy* order when the current price crosses below the *EWMA*.  
 
@@ -477,34 +507,33 @@ crossover_strat <- function(contract_id, trade_params, ib_connect) {
 ```{r, eval=FALSE, echo=TRUE}
 ## Place market orders
 if (IBrokers2::is.twsConnection(ib_connect)) {
+  is_contrarian <- trade_params["is_contrarian"]
   if (is_contrarian) {
-    if ((w_ap > ew_ma) & (posi_tion > 0)) {
-      # Place buy market order
+    if ((w_ap > ew_ma) & (posi_tion >= 0)) {
+      # Place sell market order
       order_id <- IBrokers2::reqIds(ib_connect)
       ib_order <- IBrokers2::twsOrder(
         order_id, orderType="MKT", action="SELL", 
-        totalQuantity=trade_params["siz_e"])
-      IBrokers2::placeOrder(
-        ib_connect, e_wrapper$da_ta$con_tracts[[contract_id]], ib_order)
-    } else if ((w_ap < ew_ma) & (posi_tion < 0)) {
-      # Place sell market order
+        totalQuantity=siz_e)
+      IBrokers2::placeOrder(ib_connect, e_wrapper$da_ta$con_tracts[[contract_id]], ib_order)
+    } else if ((w_ap < ew_ma) & (posi_tion <= 0)) {
+      # Place buy market order
       order_id <- IBrokers2::reqIds(ib_connect)
       ib_order <- IBrokers2::twsOrder(
         order_id, orderType="MKT", action="BUY", 
-        totalQuantity=trade_params["siz_e"])
-      IBrokers2::placeOrder(
-        ib_connect, e_wrapper$da_ta$con_tracts[[contract_id]], ib_order)
+        totalQuantity=siz_e)
+      IBrokers2::placeOrder(ib_connect, e_wrapper$da_ta$con_tracts[[contract_id]], ib_order)
     }  # end if
   } else {
-    if ((w_ap > ew_ma) & (posi_tion < 0)) {
+    if ((w_ap > ew_ma) & (posi_tion <= 0)) {
       # Place buy market order
       order_id <- IBrokers2::reqIds(ib_connect)
-      ib_order <- IBrokers2::twsOrder(order_id, orderType="MKT", action="BUY", totalQuantity=trade_params["siz_e"])
+      ib_order <- IBrokers2::twsOrder(order_id, orderType="MKT", action="BUY", totalQuantity=siz_e)
       IBrokers2::placeOrder(ib_connect, e_wrapper$da_ta$con_tracts[[contract_id]], ib_order)
-    } else if ((w_ap < ew_ma) & (posi_tion > 0)) {
+    } else if ((w_ap < ew_ma) & (posi_tion >= 0)) {
       # Place sell market order
       order_id <- IBrokers2::reqIds(ib_connect)
-      ib_order <- IBrokers2::twsOrder(order_id, orderType="MKT", action="SELL", totalQuantity=trade_params["siz_e"])
+      ib_order <- IBrokers2::twsOrder(order_id, orderType="MKT", action="SELL", totalQuantity=siz_e)
       IBrokers2::placeOrder(ib_connect, e_wrapper$da_ta$con_tracts[[contract_id]], ib_order)
     }  # end if
   }  # end if is_contrarian
@@ -617,7 +646,7 @@ trade_params <- list(
 
 - The regression can be performed very efficiently in *C++* using the package <a href="https://cran.r-project.org/web/packages/Rcpp/index.html" target="_blank">*Rcpp*</a> for integrating *C++* code with *R*.  
 
-- The residual of the regression determines the trade decision.  
+- The residual z-score of the regression determines the trade decision.  
 
 
 </div>
@@ -627,6 +656,7 @@ trade_params <- list(
 ```{r, eval=FALSE, echo=TRUE}
   ### The function pairs_strat() performs a pairs trading strategy
   pairs_strat <- function(contract_id, trade_params, ib_connect) {
+    ## Extract model parameters and state variables
     look_back <- trade_params["look_back"]
     thresh_old <- trade_params["thresh_old"]
     posi_tion <- e_wrapper$da_ta$portfolio[contract_id, "position"]
@@ -659,9 +689,9 @@ trade_params <- list(
 
 <div class="column_left_40">
 
-- We can define a simple contrarian pairs trading strategy as follows:  
-  - Place a market pairs *sell* order when the residual is above the trade threshold,  
-  - Place a market pairs *buy* order when the residual is below the trade threshold.  
+- We can define a naive contrarian pairs trading strategy as follows:  
+  - Place a market pairs *sell* order when the z-score is above the trade threshold,  
+  - Place a market pairs *buy* order when the z-score is below the trade threshold.  
 
 - The *trade wrapper* environment maintains data about the state of the trading environment, such as trade IDs, positions, etc.  
 
