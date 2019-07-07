@@ -1,20 +1,20 @@
 ---
-title: Real-time Trading via Interactive Brokers with Package iBrokers2
-subtitle: Stevens Conference on High-Frequency Finance and Analytics
-abstract: Package iBrokers2 for Real-time Trading With Interactive Brokers
-date: June 27, 2019
-author: Jerzy Pawlowski, NYU Tandon School of Engineering
+title: "Real-time Trading via Interactive Brokers with Package iBrokers2"
+author: "Jerzy Pawlowski, NYU Tandon School of Engineering"
+date: "June 27, 2019"
+output:
+  ioslides_presentation:
+    logo: image/tandon_long_color.png
+    self_contained: yes
+    smaller: yes
+    transition: 0.1
+    widescreen: yes
+css: slides.css
 affiliation: NYU Tandon School of Engineering
 email: jp3900@nyu.edu
 conference_address: Stevens Institute of Technology
-css: slides.css
-output: 
-  ioslides_presentation: 
-    widescreen: true
-    smaller: true
-    transition: 0.1
-    self_contained: true
-    logo: image/tandon_long_color.png
+subtitle: Stevens Conference on High-Frequency Finance and Analytics
+abstract: Package iBrokers2 for Real-time Trading With Interactive Brokers
 ---
 
 ```{r, setup, include=FALSE}
