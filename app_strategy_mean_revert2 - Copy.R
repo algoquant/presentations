@@ -40,8 +40,8 @@ load(file="C:/Develop/data/combined.RData")
 #   dySeries("TY1.Close", axis="y2", col=c("blue", "red"))
 
 # set up data for trading
-la_bel <- "ES1"
-es_1 <- oh_lc[, paste(la_bel, c("Open", "High", "Low", "Close"), sep=".")]
+sym_bol <- "ES1"
+es_1 <- com_bo[, paste(sym_bol, c("Open", "High", "Low", "Close"), sep=".")]
 es_1 <- log(es_1)
 # create random time series of minutely OHLC prices
 # es_1 <- HighFreq::random_ohlc(vol_at = 1e-03, 
@@ -57,7 +57,7 @@ colnames(es1_returns) <- "returns"
 
 # set up data for signal
 la_bel <- "UX1"
-oh_lc <- oh_lc[, paste(la_bel, c("Open", "High", "Low", "Close"), sep=".")]
+oh_lc <- com_bo[, paste(la_bel, c("Open", "High", "Low", "Close"), sep=".")]
 # oh_lc <- xts::to.period(oh_lc, period="minutes", k=5)
 # create random time series of minutely OHLC prices
 # oh_lc <- HighFreq::random_ohlc(vol_at = 1e-03, 
@@ -163,8 +163,8 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     #                             de_sign=de_sign,
     #                             look_short=look_short, look_long=look_long, high_freq=FALSE)
     signal_long <- calc_ma(oh_lc=log_ohlc, clo_se=close_num,
-                            de_sign=de_sign,
-                            look_back=look_long, high_freq=FALSE)
+                           de_sign=de_sign,
+                           look_back=look_long, high_freq=FALSE)
     # mean reverting signal
     # signal_short <- log_ohlc[, 1]  # dummy signal
     # signal_short <- calc_signal(oh_lc=log_ohlc, clo_se=close_num,
@@ -209,10 +209,13 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # pnl_s <- signal_short
     # pnl_s <- cumsum(po_sit*re_turns)
     # colnames(pnl_s) <- "strategy"
-    # sim_revert(signal_short, re_turns, close_high, close_high_count, close_low, close_low_count, en_ter, ex_it, trade_lag)
     
-    sim_trending(signal_long, es1_returns, es1_close_high, es1_close_low, en_ter, ex_it, trade_lag)
-    # sim_trending(signal_long, re_turns, close_high, close_low, en_ter, ex_it, trade_lag)
+    # da_ta <- sim_revert(signal_short, re_turns, close_high, close_high_count, close_low, close_low_count, en_ter, ex_it, trade_lag)
+    da_ta <- sim_trend(signal_long, es1_returns, es1_close_high, es1_close_low, en_ter, ex_it, trade_lag)
+    da_ta <- cbind(Cl(es_1), da_ta)
+    colnames(da_ta)[1] <- sym_bol
+    da_ta
+    # sim_trend(signal_long, re_turns, close_high, close_low, en_ter, ex_it, trade_lag)
     # sim_revert_trending(signal_short, signal_long, re_turns, close_high, close_low, en_ter, ex_it, trade_lag)
     # po_sit <- xts(po_sit, index(oh_lc))
     # colnames(po_sit) <- "strategy"
@@ -224,14 +227,18 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # plot daily closing prices
     # dygraphs::dygraph(cbind(clo_se, da_ta())[endpoints(clo_se, on="days")], main=paste(la_bel, "Strategy Using OHLC Technical Indicators")) %>%
       # plot daily closing ES1 prices
-      dygraphs::dygraph(cbind(Cl(es_1), da_ta())[endpoints(clo_se, on="days")], main=paste(la_bel, "Strategy Using OHLC Technical Indicators")) %>%
+      dygraphs::dygraph(da_ta()[endpoints(clo_se, on="days")], main=paste(la_bel, "Strategy Using OHLC Technical Indicators")) %>%
       # plot a few days with all the minute bars
       # dygraphs::dygraph(cbind(clo_se, da_ta())["2018-02-01/2018-02-07"], main=paste(la_bel, "Strategy Using OHLC Technical Indicators")) %>%
       # plot a few days with all the ES1 minute bars
       # dygraphs::dygraph(cbind(Cl(es_1), da_ta())["2018-02-01/2018-02-07"], main=paste(la_bel, "Strategy Using OHLC Technical Indicators")) %>%
-      dyAxis("y", label=la_bel, independentTicks=TRUE) %>%
+      dyAxis("y", label=sym_bol, independentTicks=TRUE) %>%
       dyAxis("y2", label="strategy", independentTicks=TRUE) %>%
-      dySeries("strategy", axis="y2", col=c("blue", "red"))
+      # dySeries("strategy", axis="y2", col=c("blue", "red"))
+      # dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
+      # dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
+      dySeries(name=sym_bol, axis="y", col="blue") %>%
+      dySeries(name="strategy", axis="y2", col="red")
   })  # end output plot
 
   # output$hist <- hist(da_ta())  # end output hist

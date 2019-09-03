@@ -22,13 +22,13 @@ returns_running <- 60*HighFreq::run_returns(x_ts=HighFreq::SPY)
 ```{r ewma_model, echo=FALSE}
 inputPanel(
   sliderInput("re_turns", label="returns:",
-              min=-2.0, max=2.0, value=-2.0, step=0.01),
+              min=-2.0, max=5.0, value=2.0, step=0.01),
   sliderInput("vari_ance", label="variance:",
-              min=-2.0, max=2.0, value=2.0, step=0.01),
+              min=-2.0, max=2.0, value=0.0, step=0.01),
   sliderInput("ske_w", label="skew:",
-              min=-2.0, max=2.0, value=-2.0, step=0.01),
+              min=-2.0, max=2.0, value=0.0, step=0.01),
   sliderInput("hu_rst", label="hurst:",
-              min=-2.0, max=2.0, value=-2.0, step=0.01),
+              min=-2.0, max=2.0, value=2.0, step=0.01),
   sliderInput("inter_val", label="interval:",
               min=1.0, max=200.0, value=60, step=1.0)
 )  # end inputPanel
@@ -53,6 +53,7 @@ renderPlot({
   position_s[se_ll] <- -1.0
   position_s[bu_y] <- 1.0
   position_s <- zoo::na.locf(position_s)
+  # Lag the positions
   position_s <- c(0, position_s[-NROW(position_s)])
   # pnl_s <- position_s*re_turns
   # be_ta <- (sum(pnl_s * re_turns) - sum(pnl_s) * sum(re_turns)) / (sum(pnl_s * pnl_s) - sum(pnl_s)^2 )
