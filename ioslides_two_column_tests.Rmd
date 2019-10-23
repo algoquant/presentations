@@ -1,0 +1,253 @@
+---
+title: ioslides With Two Columns (mostly failed tests)
+author: Jerzy Pawlowski
+affiliation: NYU Tandon School of Engineering
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
+email: jp3900@nyu.edu
+css: slides.css
+output: 
+  ioslides_presentation: 
+    widescreen: true
+    smaller: true
+    transition: 0.1
+    self_contained: true
+    logo: image/tandon_long_color.png
+---
+
+```{r setup, include=FALSE}
+# This is an R setup chunk, containing default options applied to all other chunks
+library(knitr)
+# This sets the chunk default options
+opts_chunk$set(cache=TRUE, collapse=TRUE, error=FALSE, prompt=TRUE)
+# This sets the chunk display theme
+knit_theme$set(knit_theme$get("acid"))
+# This sets some display options
+options(digits=3)
+options(width=80)
+```
+
+
+## Two-column Layout Using *CSS* Code  
+
+The formatting of *R Markdown* documents can be controlled using *CSS* code stored in a separate file.  The file with *CSS* code should be either in the same directory as the *R Markdown* file, or in a sub-directory.  
+
+Below is an example of two-column layout using *CSS* code.  
+The location of the break between columns is specified by the *CSS* style code in the file slides.css.  
+The left column is 40%, and the right is 60% of the page width.  
+
+<div class="column_left_40">
+The left column contains *R* code that returns the summary of the *cars* data frame:  
+```{r, sum_cars, eval=FALSE, echo=TRUE, results="hold"}
+summary(cars)
+```
+</div>
+
+<div class="column_right_60">
+The right column contains the output of the *R* code in the left column:  
+```{r, sum_cars, eval=TRUE, echo=FALSE}
+```
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the *R* code.
+</div>
+
+
+
+## Slide with *R* Code and Output in Two Columns {.columns-2}
+
+Left column contains *R* code that returns the summary of the *cars* data frame:
+This doesn't work.
+
+```{r, sum_cars1, eval=FALSE, echo=TRUE, results="hold"}
+summary(cars)
+```
+
+
+Right column with extra copy of *R* output:
+
+```{r, sum_cars1, eval=TRUE, echo=FALSE}
+```
+
+
+
+## Plots in Two-column Layout Without *CSS* {.columns-2}  
+
+Example of two-column layout with a plot.  But there's no way to control the location of the content break between columns.  
+
+Plot the Normal probability density function:  
+
+```{r normal_dist, eval=TRUE, echo=TRUE, fig.width=5, fig.height=4}
+par(mar=c(2, 1, 2, 1))  # Set plot margins
+par(oma=c(1, 1, 1, 1))  # Set outer margins
+x_var <- seq(-5, 7, length=100)
+y_var <- dnorm(x_var, mean=1.0, sd=2.0)
+plot(x_var, y_var, type="l", lty="solid",
+     xlab="", ylab="")
+title(main="Normal Density Function", line=0.5)
+# Set shading range
+star_t <- 3; fin_ish <- 5
+# Set polygon base
+are_a <- ((x_var >= star_t) & (x_var <= fin_ish))
+# Draw shaded area
+polygon(c(star_t, x_var[are_a], fin_ish),
+        c(-1, y_var[are_a], -1), col="red")
+```
+
+Note that the `echo = FALSE` parameter can be added to the code chunk to prevent printing of the *R* code that generated the plot.  
+
+
+
+## Slide with Multiple Columns Using alt *CSS* Code
+
+<style>
+  .col2 {
+    columns: 2 200px;         /* number of columns and width in pixels */
+    -webkit-columns: 2 200px; /* chrome, safari */
+    -moz-columns: 2 200px;    /* firefox */
+  }
+</style>
+
+This works, but even a small modification messes up the column breaks.  
+
+<div class="col2">
+
+Left column with head of *mtcars* data frame:
+
+```{r, eval=TRUE, echo=TRUE}
+head(mtcars, 6)
+```
+
+
+Right column with tail of *mtcars* data frame:
+
+```{r, eval=TRUE, echo=TRUE}
+tail(mtcars, 6)
+```
+
+</div>
+
+
+
+## Another Slide with Multiple Columns Using alt *CSS* Code
+
+This doesn't work.  The chunk option `eval = FALSE` is messing up the columns.  
+
+<div class="col2">
+
+Left column with *R* code that returns the summary of the *iris* data frame:
+
+```{r, sum_iris, eval=FALSE, echo=TRUE, results="hold"}
+summary(iris)
+```
+
+
+Right column with extra copy of *R* output:
+
+```{r, sum_iris, eval=TRUE, echo=TRUE}
+```
+
+</div>
+
+
+
+## Slide with Multiple Columns Using alt *CSS* Code
+
+<div class="columns-2">
+
+**1** one  
+**2** two  
+more text  
+more text  
+more text  
+**3** three  
+**4** four  
+**5** five  
+**6** six  
+more text  
+more text  
+more text  
+**7** seven  
+**8** eight  
+more text  
+more text  
+more text  
+**9** nine  
+
+</div>
+
+
+## Slide with Two Columns
+
+<div class="columns-2">
+
+##### Left column:  
+
+![smiling_face](image/smile_small.png)
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+##### Right column:  
+
+  - Bullet 1
+  - Bullet 2
+  - Bullet 3
+</div>
+
+
+
+## Slide with Multiple Columns Using *CSS* Code
+
+<div style="-webkit-column-count: 2; -moz-column-count: 2; column-count: 2; -webkit-column-rule: 1px dotted #e0e0e0; -moz-column-rule: 1px dotted #e0e0e0; column-rule: 1px dotted #e0e0e0;">
+    Left column's content
+    
+    Right column's content
+</div>
+
+
+
+## Slide with R Code and Plot in Two Columns {.columns-2}
+
+*Ioslides* allow for creating slides with two columns, but it's not possible to control where the second column starts.  The second column starts only after the first column is fully filled with lines of content.
+
+### First column with *R* code:  
+
+```{r, plot_cars, eval=FALSE, echo=(-(1:1)), fig.show="hide"}
+par(cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+plot(cars)
+```
+<br> empty lines to fill up the first column ...
+<br>...
+<br>...
+<br>...
+<br>...
+<br>...
+<br>...
+<br>...
+<br>...
+
+### Second column with plot:  
+
+```{r, plot_cars, eval=TRUE, echo=FALSE, fig.width=5, fig.height=4}
+```
+
+
+## Slide with R Code and Output in Two Columns {.columns-2}
+
+First column contains simple R code that returns the summary of the cars data frame:
+
+```{r, summ_cars, eval=FALSE, echo=TRUE, results="hold", size="tiny"}
+summary(cars)
+```
+
+
+Second column contains the output of the code in the first column:
+
+```{r, summ_cars, eval=TRUE, echo=FALSE, size="tiny"}
+```
+

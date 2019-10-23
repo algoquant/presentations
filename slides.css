@@ -1,5 +1,6 @@
 
-/* define logo layout */
+
+/** define logo layout **/
 
 /* define logo dimensions */
 .gdbar img {
@@ -14,6 +15,13 @@
   height: 100px !important;
 }
 
+my_logo img {
+    width: 50%;
+    height: 100%;
+    max-height: none;
+    max-width: none;
+}
+
 /* define code chunk format */
 pre {
   width: 100%; /* 106%; */
@@ -21,7 +29,7 @@ pre {
   padding: 10px 15px 10px 15px; /* 10px 0 10px 60px; */
 }
 
-/* define two-column layouts */
+/** define two-column layouts **/
 
 .column_left_50 {
   float: left;
@@ -57,11 +65,4 @@ pre {
   float: right;
   width: 40%;
   text-align: left;
-}
-
-my_logo img {
-    width: 50%;
-    height: 100%;
-    max-height: none;
-    max-width: none;
 }

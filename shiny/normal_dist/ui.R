@@ -22,7 +22,6 @@ shinyUI(fluidPage(
     ),  # end sidebarPanel
 # Show a plot of the generated distribution
     mainPanel(
-      plotOutput("distPlot")
-    )  # end mainPanel
+      plotOutput("distPlot"))  # end mainPanel
   )  # end sidebarLayout
 ))  # end shinyUI

@@ -1,0 +1,36 @@
+---
+title: An *ioslides* Presentation With an Animated *gif* of the Treasury Yield Curve
+author: Your Name
+affiliation: NYU Tandon School of Engineering
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
+email: jp3900@nyu.edu
+css: slides.css
+output: 
+  ioslides_presentation: 
+    widescreen: true
+    smaller: true
+    transition: 0.1
+    self_contained: true
+    logo: tandon_long_color.png
+---
+
+```{r setup, include=FALSE}
+# This is an R setup chunk, containing default options applied to all other chunks
+library(knitr)
+# This sets the chunk default options
+opts_chunk$set(cache=TRUE, collapse=TRUE, error=FALSE, prompt=TRUE, size="scriptsize")
+# This sets the chunk display theme
+knit_theme$set(knit_theme$get("acid"))
+# This sets some display options
+options(digits=3)
+options(width=80)
+```
+
+
+## Animated *gif* of the Treasury Yield Curve  
+
+The yield curve shape changes depending on the economic conditions: in recessions rates drop and the curve flattens,
+while in expansions rates rise and the curve steepens.
+
+![animated_gif](treasury_curve.gif)
+

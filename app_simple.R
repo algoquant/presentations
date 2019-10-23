@@ -19,14 +19,14 @@ std_dev <- 1.0
 ##############################
 ## Define the user interface
 
-user_interface <- shiny::fluidPage(
+inter_face <- shiny::fluidPage(
   # Create slider input for the input parameters
   numericInput('n_data', "Number of data points:", value=n_data),
   sliderInput("std_dev", label="Standard deviation:",
               min=0.1, max=3.0, value=std_dev, step=0.1),
   
   # Render plot in panel
-  plotOutput("plo_t")
+  plotOutput("plo_t", height=500, width=500)
 )  # end fluidPage interface
 
 
@@ -37,11 +37,13 @@ user_interface <- shiny::fluidPage(
 
 ser_ver <- function(input, output) {
   output$plo_t <- renderPlot({
-    hist(rnorm(input$n_data, sd=input$std_dev), xlim=c(-2, 2))
+    par(mar=c(2, 2, 4, 0), oma=c(0, 0, 0, 0))
+    hist(rnorm(input$n_data, sd=input$std_dev), xlim=c(-4, 4),
+         main="Histogram of Random Data")
   })  # end renderPlot
 }  # end ser_ver
 
 
 # Return a Shiny app object
 
-shinyApp(ui=user_interface, server=ser_ver)
+shinyApp(ui=inter_face, server=ser_ver)

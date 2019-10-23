@@ -8,9 +8,9 @@ output: html_document
 runtime: shiny
 ---
 
-This is a shiny app with a backtest of a contrarian trading strategy for 1-second SPY returns.
+This is a shiny app with a backtest of a contrarian trading strategy for 1-minute SPY returns.
 
-The strategy calculates the z-scores from a rolling time series regression of 1-second SPY returns against the time index, over a lookback period.
+The strategy calculates the z-scores from a rolling time series regression of 1-minute SPY returns against the time index, over a lookback period.
 
 The rolling z-scores are calculated using the RcppArmadillo function HighFreq::roll_zscores().
 
@@ -94,7 +94,7 @@ renderPlot({
 
   # Run the trading strategy and plot it
   pnl_s <- run_strategy(re_turns, z_scores, thresh_old)[endpoints(HighFreq::SPY, on="days")]
-  chart_Series(pnl_s, name="Cumulative PnL of the Contrarian Strategy for 1-second SPY Returns")
+  chart_Series(pnl_s, name="Cumulative PnL of the Contrarian Strategy for 1-minute SPY Returns")
 
 })  # end renderPlot
 ```
