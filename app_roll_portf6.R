@@ -14,10 +14,10 @@ library(dygraphs)
 library(HighFreq)
 # Model and data setup
 # source the model function
-# source("C:/Develop/R/lecture_slides/scripts/roll_portf_new.R")
+# source("C:/Develop/lecture_slides/scripts/roll_portf_new.R")
 # max_eigen <- 2
 
-# load("C:/Develop/R/lecture_slides/data/sp500_returns.RData")
+# load("C:/Develop/lecture_slides/data/sp500_returns.RData")
 # # Subset the columns with non-zero returns
 # re_turns <- re_turns[, !(re_turns[(NROW(re_turns) %/% 10), ] == 0)]
 # # Subset 100 columns to reduce computations
@@ -26,7 +26,7 @@ library(HighFreq)
 # re_turns <- re_turns[, sam_ple]
 
 
-load("C:/Develop/R/lecture_slides/data/sp500_prices.RData")
+load("C:/Develop/lecture_slides/data/sp500_prices.RData")
 re_turns <- returns_100
 n_weights <- NCOL(re_turns)
 # Random data

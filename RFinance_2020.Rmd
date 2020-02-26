@@ -1,0 +1,336 @@
+---
+title: Package iBrokers2 for Real-time Trading With Interactive Brokers
+abstract: Package iBrokers2 for Real-time Trading With Interactive Brokers
+date: June 5, 2020
+author: Jerzy Pawlowski, NYU Tandon School of Engineering
+email: jp3900@nyu.edu
+affiliation: NYU Tandon School of Engineering
+css: slides.css
+output: 
+  ioslides_presentation: 
+    widescreen: true
+    smaller: true
+    transition: 0.1
+    logo: image/tandon_long_color.png
+    self_contained: true
+---
+
+```{r, setup, include=FALSE}
+# Set horizontal image position - adjusts too much
+# knitr::opts_chunk$set(out.extra='style="float:left;"')
+# knitr::opts_chunk$set(out.extra='style="float:right;"')
+# knitr::opts_chunk$set(out.extra='style="display:block; margin:auto;"')
+library(png)
+library(grid)
+```
+
+[//]: # (These html image links are commented out because they don't produce self-contained html document)
+[//]: # (<img src="figure/real_time_trading.png" width="700" height="500" align="left"/>)
+[//]: # (<img src="figure/eWrapper_object.png" width="500" height="500" align="left"/>)
+[//]: # (<img src="figure/market_event_processing2.png" width="500" height="500" align="left"/>)
+[//]: # (<img src="figure/trade_wrapper_object.png" width="500" height="500" align="left"/>)
+[//]: # (<img src="figure/functions_IBrokers2.png" width="500" height="400" align="left"/>)
+[//]: # (<img src="figure/trade_processing.png" width="500" height="500" align="left"/>)
+
+## Executing Real-time Trading Strategies  
+
+<div class="column_left_50">
+
+- Real-time trading requires running a programmatic loop.  
+
+- Continuous streaming market data is used to update a trading model.  
+
+- The model outputs are used by an order management system to place trade orders via an API.  
+
+- The package <a href="https://cran.r-project.org/web/packages/IBrokers/index.html" target="_blank"><em>*IBrokers*</em></a> contains *R* functions for downloading live market data via the <a href="https://interactivebrokers.github.io/tws-api/" target="_blank">API of Interactive Brokers (IB API)</a>, and for placing trade orders to Interactive Brokers.  
+
+- The function `iBrokers::reqRealTimeBars()` downloads live (real-time) *OHLC* bars of market data from Interactive Brokers.  
+
+- The function `IBrokers::twsOrder()` places trade orders to Interactive Brokers.  
+
+</div>
+
+<div class="column_right_50">
+
+```{r fig.width=7, echo=FALSE}
+img <- readPNG("figure/real_time_trading.png")
+grid.raster(img, just="centre")
+```
+
+
+</div>
+
+
+
+## The Package *IBrokers* for Interactive Brokers  
+
+<div class="column_left_50">
+
+- The package <a href="https://cran.r-project.org/web/packages/IBrokers/index.html" target="_blank"><em>*IBrokers*</em></a> allows downloading live market data via the <a href="https://interactivebrokers.github.io/tws-api/" target="_blank">API of Interactive Brokers (IB API)</a>
+
+- The function `twsConnect()` opens a connection to the *IB API* via the <a href="https://interactivebrokers.github.io/tws-api/initial_setup.html" target="_blank">IB Trader Workstation (TWS)</a>.  
+
+- The function `reqRealTimeBars()` downloads live (real-time) *OHLC* bars of market data.  
+
+- `reqRealTimeBars()` relies on the functions `eWrapper.RealTimeBars.CSV()` and `twsCALLBACK` to process real-time market events (trades and quotes).  
+
+- The function `eWrapper.RealTimeBars.CSV()` creates an *eWrapper* object designed for processing *OHLC* price data.
+
+</div>
+
+<div class="column_right_50">
+
+```{r, eval=FALSE, echo=TRUE}
+# Install and load package IBrokers
+install.packages("IBrokers")
+library(IBrokers)
+# Connect to Interactive Brokers TWS via API
+ib_connect <- IBrokers::twsConnect(port=7497)
+# Define S&P Emini future June 2019 contract
+con_tract <- IBrokers::twsFuture(symbol="ES",
+  exch="GLOBEX", expiry="201906")
+# Get list with instrument information
+IBrokers::reqContractDetails(conn=ib_connect, 
+                             Contract=con_tract)
+# Open file connection for data download
+file_name <- "C:/Develop/data/ib_data/ES_ohlc_live.csv"
+file_connect <- file(file_name, open="w")
+# Download live data to file
+IBrokers::reqRealTimeBars(conn=ib_connect,
+           Contract=con_tract, barSize="1",
+           eventWrapper=eWrapper.RealTimeBars.CSV(1),
+           file=file_connect)
+# Close the Interactive Brokers API connection
+IBrokers::twsDisconnect(ib_connect)
+# Close data file
+close(file_connect)
+```
+
+</div>
+
+
+
+## The *eWrapper* Object  
+
+<div class="column_left_50">
+
+- An *eWrapper* object consists of a *data environment* and *handlers* (methods) for formatting and adding new data to the *data environment*.
+
+- The function `eWrapper()` creates a generic *eWrapper* object.
+
+- The function `eWrapper.RealTimeBars.CSV()` creates an *eWrapper* object designed for processing *OHLC* price data.
+
+- The functionality of package *IBrokers* can easily be extended by writing new *eWrapper* objects, designed for processing different types of data and performing different tasks.
+
+</div>
+
+<div class="column_right_50">
+
+```{r fig.width=7, echo=FALSE}
+img <- readPNG("figure/eWrapper_object.png")
+grid.raster(img, just="centre")
+```
+
+</div>
+
+
+
+## Market Event Processing  
+
+<div class="column_left_50">
+
+- Market events can be either *trade events* or *market quotes*.  
+
+- Streaming market events are processed in a *callback loop* which runs inside the function `twsCALLBACK()`.  
+
+- The function `twsCALLBACK()` first creates an *eWrapper* object by calling the function `eWrapper.RealTimeBars.CSV()`, and then passes it to the function `processMsg()`.  
+
+- The function `twsCALLBACK()` then calls `processMsg()` in a *callback loop*.  
+
+- The function `processMsg()` processes individual market events by calling the appropriate *eWrapper* *handlers* and saving the data into the *eWrapper* environment.  
+
+</div>
+
+<div class="column_right_50">
+
+```{r fig.width=7, echo=FALSE}
+img <- readPNG("figure/market_event_processing2.png")
+grid.raster(img, just="centre")
+```
+
+</div>
+
+
+
+## The *trade_wrapper* Object  
+
+<div class="column_left_50">
+
+- The functionality of package *IBrokers* can easily be extended to trading by writing a new *eWrapper* object.
+
+- The function `IBrokers2::trade_wrapper()` creates a *trade_wrapper* object (a modified *eWrapper*) designed for real-time trading.
+
+- The *trade_wrapper* data environment contains buffers for *OHLC* market data, trading model parameters, instrument positions, open trade orders, etc.  
+
+- The *trade_wrapper* contains the data handler `realtimeBars()` and the trading model `model_fun()`.  
+
+- The function `IBrokers2::trade_wrapper()` can be modified to support different market instruments and trading models.  
+
+</div>
+
+<div class="column_right_50">
+
+```{r fig.width=7, echo=FALSE}
+img <- readPNG("figure/trade_wrapper_object.png")
+grid.raster(img, just="centre")
+```
+
+</div>
+
+
+
+## Functions in Package *IBrokers2*  
+
+<div class="column_left_50">
+
+- Most of the functions in package *IBrokers2* were derived from those in *IBrokers*.  
+
+- `IBrokers2::trade_realtime()` initiates real-time trading.
+
+- `IBrokers2::trade_wrapper()` creates a *trade_wrapper* object, containing the data handler `realtimeBars()` and the trading model `model_fun()`.  
+
+- The function `realtimeBars()` is a *trade_wrapper* handler which updates the data environment with new data and then runs the trading model `model_fun()`.  
+
+- `model_fun()` reruns the trading model using updated market data, and places trade orders using `IBrokers::twsOrder()`.
+
+- The function `IBrokers2::call_back()` performs the *callback loop*.  
+
+</div>
+
+<div class="column_right_50">
+
+```{r fig.width=7, echo=FALSE}
+img <- readPNG("figure/functions_IBrokers2.png")
+grid.raster(img, just="centre")
+```
+
+</div>
+
+
+
+## Trade Processing Using Package *IBrokers2*  
+
+<div class="column_left_50">
+
+- Trade processing using package *IBrokers2* uses a similar framework to that for downloading real-time *OHLC* market data using `IBrokers::reqRealTimeBars()`.  
+
+- The main difference is that now trade orders are placed to the IB Trader Workstation (TWS).
+
+</div>
+
+<div class="column_right_50">
+
+```{r fig.width=7, echo=FALSE}
+img <- readPNG("figure/trade_processing.png")
+grid.raster(img, just="centre")
+```
+
+</div>
+
+
+
+## Real-time Trading Using Package *IBrokers2*  
+
+<div class="column_left_50">
+
+- The function `trade_realtime()` accepts the `trade_wrapper()` and `call_back()` functions, and initiates real-time trading.
+
+- The *OHLC* market data arrives from Interactive Brokers in 5-second intervals.
+
+- Every time new data arrives, `model_fun()` reruns the trading model and places trade orders using `IBrokers::twsOrder()`.
+
+- The instrument parameters specify the number of contracts, trade order types, etc.
+
+- The trading instruments and their parameters are specified as lists to allow trading multiple instruments simultaneously.
+
+</div>
+
+<div class="column_right_50">
+
+```{r, eval=FALSE, echo=TRUE}
+# Install and load package IBrokers2
+devtools::install_github(repo="algoquant/IBrokers2")
+library(IBrokers2)
+# Define named lists for trading one contract
+con_tracts <- list(ES=IBrokers2::twsFuture(symbol="ES", exch="GLOBEX", expiry="201906"))
+trade_params <- list(ES=c(buy_spread=0.75, sell_spread=0.75, siz_e=1, lagg=2, lamb_da=0.05))
+# Open file connection for data download
+file_names <- "C:/Develop/data/ib_data/ES_ohlc_live.csv"
+file_connects <- lapply(file_names, function(file_name) file(file_name, open="w"))
+# Open the IB connection to TWS
+ac_count <- "algoquant"
+ib_connect <- IBrokers2::twsConnect(port=7497)
+# Run the trading model (strategy):
+IBrokers2::trade_realtime(ib_connect=ib_connect,
+  Contract=con_tracts,
+  eventWrapper=IBrokers2::trade_wrapper(ac_count=ac_count,
+    con_tracts=con_tracts,
+    trade_params=trade_params,
+    file_connects=file_connects,
+    warm_up=10),
+  CALLBACK=IBrokers2::call_back,
+  file=file_connects)
+# Stop the trading loop by hitting the red STOP button in RStudio
+# Close the Interactive Brokers API connection
+IBrokers::twsDisconnect(ib_connect)
+# Close data files
+for (file_connect in file_connects) close(file_connect)
+```
+
+</div>
+
+
+
+## Future Development of Package *IBrokers2*  
+
+<div class="column_left_50">
+
+### Current state  
+
+- The package *IBrokers2* is currently an initial proof of concept, rather than a working application.
+
+- The package *IBrokers2* is derived from the package *IBrokers*, and is fully backward compatible with it.  
+
+- All the *IBrokers* functions and variables are preserved exactly in *IBrokers2*, while some additional functions have been added to provide functionality for real-time trading.  
+
+### Future development  
+
+- Rewrite critical functions using *Rcpp* and the C++ API of Interactive Brokers.  
+
+</div>
+
+<div class="column_right_50">
+
+### Applications  
+
+- Education and trading competitions: Interactive Brokers has been kind to provide student *paper trading* accounts, together with market data. 
+
+- Crowd-sourced hedge fund: the package *IBrokers2* could become the foundation for a system similar to <a href="https://www.quantopian.com/" target="_blank"><em>*Quantopian*</em></a>.
+
+</div>
+
+
+
+## Thank You  
+
+- Many thanks to Jeff Ryan for developing the package *IBrokers*.  
+
+- The package *IBrokers2* is available on GitHub:  
+https://github.com/algoquant/iBrokers2  
+
+### Contact information  
+
+NYU email: <a title="NYU email"> jp3900@nyu.edu </a>  
+
+LinkedIn profile:  
+https://www.linkedin.com/in/jerzypawlowski  

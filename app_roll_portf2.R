@@ -14,7 +14,7 @@ library(rutils)
 
 # Model and data setup
 # source the model function
-source("C:/Develop/R/lecture_slides/scripts/roll_portf.R")
+source("C:/Develop/lecture_slides/scripts/roll_portf.R")
 max_eigen <- 2
 sym_bols <- colnames(rutils::etf_env$re_turns)
 sym_bols <- sym_bols[!((sym_bols=="VXX")|(sym_bols=="SVXY"))]

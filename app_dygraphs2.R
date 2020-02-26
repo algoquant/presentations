@@ -31,7 +31,7 @@ inter_face <- shiny::shinyUI(fluidPage(
 ser_ver <- function(input, output) {
 
   # source the model function
-  source("C:/Develop/R/lecture_slides/scripts/ewma_model.R")
+  source("C:/Develop/lecture_slides/scripts/ewma_model.R")
   
   # Calculate the data for plotting
   da_ta <- reactive({

@@ -61,7 +61,7 @@ run_strategy <- function(re_turns, typ_e, look_back, al_pha, max_eigen, quan_til
 
 
 ### Run the initial data setup below once ###
-# load("C:/Develop/R/lecture_slides/data/sp500.RData")
+# load("C:/Develop/lecture_slides/data/sp500.RData")
 # re_turns <- eapply(env_sp500, function(xt_s) {
 #   rutils::diff_it(log(quantmod::Cl(xt_s)))
 # })  # end eapply

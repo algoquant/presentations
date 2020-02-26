@@ -15,9 +15,9 @@ library(dygraphs)
 library(HighFreq)
 # Model and data setup
 # source the model function
-# source("C:/Develop/R/lecture_slides/scripts/roll_portf_new.R")
+# source("C:/Develop/lecture_slides/scripts/roll_portf_new.R")
 # max_eigen <- 2
-load("C:/Develop/R/lecture_slides/data/sp500_prices.RData")
+load("C:/Develop/lecture_slides/data/sp500_prices.RData")
 re_turns <- returns_100
 n_weights <- NCOL(re_turns)
 risk_free <- 0.03/260

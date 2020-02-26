@@ -12,9 +12,9 @@
 library(shiny)
 library(dygraphs)
 library(HighFreq)
-Rcpp::sourceCpp(file="C:/Develop/R/lecture_slides/assignments/rcpp_strat.cpp")
+Rcpp::sourceCpp(file="C:/Develop/lecture_slides/assignments/rcpp_strat.cpp")
 # Model and data setup
-load("C:/Develop/R/lecture_slides/data/sp500_prices.RData")
+load("C:/Develop/lecture_slides/data/sp500_prices.RData")
 re_turns <- returns_100
 n_weights <- NCOL(re_turns)
 risk_free <- 0.03/260

@@ -1,0 +1,12 @@
+---
+title: "How Can Machines Learn to Trade?"
+author: Jerzy Pawlowski, NYU Tandon School of Engineering
+date: June 5, 2020
+output: pdf_document
+---
+
+## Abstract  
+
+Machine learning has been successfuly applied to speech and image recognition, but has faced challenges in automated trading.  For example forecasting models which rely on historical prices have very poor performance, because asset returns have a very low signal to noise ratio.  As a result, model forecasts have large standard errors, making them difficult to apply in practice.  The problem is often exacerbated by the high dimensionality of many financial models, for example portfolio optimization.
+
+We study several techniques which can help to reduce the problem of large standard errors, such as parameter regularization (shrinkage), dimensionality reduction, and ensembles of models.  We use bootstrap simulation to estimate the standard errors, and to quantify the effect of these techniques. 

@@ -15,11 +15,11 @@ library(HighFreq)
 
 # Model and data setup
 # Source the model function
-# Source("C:/Develop/R/lecture_slides/scripts/roll_portf_new.R")
+# Source("C:/Develop/lecture_slides/scripts/roll_portf_new.R")
 # max_eigen <- 2
-load("C:/Develop/R/lecture_slides/data/sp500_prices.RData")
+load("C:/Develop/lecture_slides/data/sp500_prices.RData")
 re_turns <- returns_100["2000/"]
-# load("C:/Develop/R/lecture_slides/data/sp100_rets.RData")
+# load("C:/Develop/lecture_slides/data/sp100_rets.RData")
 # Random data
 # re_turns <- xts(matrix(rnorm(NROW(returns_100)*NCOL(returns_100)), nc=NCOL(returns_100)), 
 #                 index(returns_100))
