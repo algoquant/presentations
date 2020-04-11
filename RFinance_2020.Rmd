@@ -1,5 +1,5 @@
 ---
-title: Package iBrokers2 for Real-time Trading With Interactive Brokers
+title: Nonparametric Estimators as Machine Learning Features
 abstract: Package iBrokers2 for Real-time Trading With Interactive Brokers
 date: June 5, 2020
 author: Jerzy Pawlowski, NYU Tandon School of Engineering

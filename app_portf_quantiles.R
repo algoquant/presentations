@@ -62,7 +62,7 @@ inter_face <- shiny::fluidPage(
                                 choices=c("days", "weeks", "months", "years"), selected="days")),
     # Input look-back interval
     column(width=3, sliderInput("look_back", label="Lookback interval",
-                                min=2, max=25, value=5, step=1)),
+                                min=2, max=70, value=5, step=1)),
     # Input look-back lag interval
     # column(width=3, sliderInput("look_lag", label="Lookback lag interval", min=1, max=10, value=2, step=1)),
     # Input the weight decay parameter
@@ -78,8 +78,8 @@ inter_face <- shiny::fluidPage(
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input the percentile
     column(width=3, sliderInput("percen_tile", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
-    # Input the strategy coefficient: co_eff=1 for momentum, and co_eff=-1 for contrarian
-    column(width=3, selectInput("co_eff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
+    # Input the strategy factor: fac_tor=1 for momentum, and fac_tor=-1 for contrarian
+    column(width=3, selectInput("fac_tor", "factor (1 momentum, -1 contrarian):", choices=c(-1, 1), selected=(-1))),
     # Input the bid-offer spread
     column(width=3, numericInput("bid_offer", label="bid-offer:", value=0.001, step=0.001))
   ),  # end fluidRow
@@ -104,7 +104,7 @@ ser_ver <- function(input, output) {
     # typ_e <- isolate(input$typ_e)
     # al_pha <- isolate(input$al_pha)
     percen_tile <- isolate(input$percen_tile)
-    co_eff <- as.numeric(isolate(input$co_eff))
+    fac_tor <- as.numeric(isolate(input$fac_tor))
     bid_offer <- isolate(input$bid_offer)
     # Model is re-calculated when the re_calculate variable is updated
     input$re_calculate
@@ -142,14 +142,14 @@ ser_ver <- function(input, output) {
       # ex_cess <- (ex_cess - colMeans(ex_cess))
       # sig_nal <- mean(drop(coredata(index_rets))*ex_cess)/sapply(ex_cess, var)
       ## Calculate the portfolio weights as ranks
-      weight_s <- co_eff*sig_nal
+      # weight_s <- fac_tor*sig_nal
       ## Calculate the portfolio weights as quantiles
-      # weight_s <- numeric(n_cols)
-      # names(weight_s) <- sym_bols
+      weight_s <- numeric(n_cols)
+      names(weight_s) <- sym_bols
       # Calculate the signal order
-      # or_der <- order(sig_nal)
-      # weight_s[or_der[1:quan_tile]] <- (-co_eff)
-      # weight_s[or_der[(n_cols-quan_tile+1):n_cols]] <- co_eff
+      or_der <- order(sig_nal)
+      weight_s[or_der[1:quan_tile]] <- (-fac_tor)
+      weight_s[or_der[(n_cols-quan_tile+1):n_cols]] <- fac_tor
       # Scale the weights
       weight_s <- weight_s/sum(abs(weight_s))
       # Subset the re_turns

@@ -1,5 +1,5 @@
 ---
-title: "How Can Machines Learn to Trade?"
+title: Nonparametric Estimators as Machine Learning Features
 author: Jerzy Pawlowski, NYU Tandon School of Engineering
 date: June 5, 2020
 output: pdf_document
@@ -7,6 +7,10 @@ output: pdf_document
 
 ## Abstract  
 
-Machine learning has been successfuly applied to speech and image recognition, but has faced challenges in automated trading.  For example forecasting models which rely on historical prices have very poor performance, because asset returns have a very low signal to noise ratio.  As a result, model forecasts have large standard errors, making them difficult to apply in practice.  The problem is often exacerbated by the high dimensionality of many financial models, for example portfolio optimization.
+The large standard errors in the estimation of mean asset returns and their correlations produce large errors in portfolio optimization and machine learning models.  This is exacerbated by the large fat tails (leptokurtosis) of asset returns, especially for the highly leptokurtic high frequency returns.  For highly leptokurtic distributions, nonparametric estimators have lower standard errors than traditional moment estimators.  For example, the sample median has a smaller standard error than the sample mean.  But the median estimator is biased for skewed distributions.  We are thus faced with the bias-variance tradeoff. 
 
-We study several techniques which can help to reduce the problem of large standard errors, such as parameter regularization (shrinkage), dimensionality reduction, and ensembles of models.  We use bootstrap simulation to estimate the standard errors, and to quantify the effect of these techniques. 
+We introduce nonparametric estimators of the location, dispersion, and skewness, by expressing them as weighted sums of the median and higher quantiles of asset returns.  This is analogous to the Cornish–Fisher expansion.  The weights are chosen to reduce the estimator bias while still maintaining low variance, to achieve the best bias-variance tradeoff.  
+
+We apply the nonparametric estimators to portfolio optimization and demonstrate better out-of-sample performance.  We implement the cross-validation simulations using an R package written in RcppArmadillo.
+
+

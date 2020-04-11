@@ -15,7 +15,8 @@ library(HighFreq)
 # Model and data setup
 
 ## Load QM futures 5-second bars
-sym_bol <- "QM"
+sym_bol <- "ES"  # S&P500 Emini futures
+# sym_bol <- "QM"  # oil
 load(file=paste0("C:/Develop/data/ib_data/", sym_bol, "_ohlc.RData"))
 price_s <- Cl(oh_lc)
 # Or random prices

@@ -33,6 +33,7 @@ n_weights <- NCOL(re_turns)
 # coredata(re_turns) <- matrix(rnorm(prod(dim(re_turns)))/100, nc=n_weights)
 risk_free <- 0.03/260
 ex_cess <- (re_turns - risk_free)
+# ex_cess <- returns_100
 # calculate returns on equal weight portfolio
 in_dex <- xts(cumsum(re_turns %*% rep(1/sqrt(n_weights), n_weights)), index(re_turns))
 
@@ -47,20 +48,23 @@ inter_face <- shiny::fluidPage(
   fluidRow(
     # Input end points interval
     column(width=3, selectInput("inter_val", label="End points Interval",
-                choices=c("weeks", "months", "years"), selected="weeks")),
+                choices=c("days", "weeks", "months", "years"), selected="weeks")),
     # Input look-back interval
     column(width=3, sliderInput("look_back", label="Lookback interval",
-                                min=1, max=150, value=70, step=1)),
+                                min=1, max=350, value=55, step=1)),
     column(width=3, sliderInput("lamb_da", label="Weight decay:",
                                 min=0.01, max=0.99, value=0.01, step=0.05)),
     # Input end points interval
     column(width=3, selectInput("typ_e", label="Weights type",
-                                choices=c("max_sharpe", "min_var", "min_varpca", "rank", "rankrob"), selected="rank")),
+                                choices=c("max_sharpe", "max_sharpe_median", "min_var", "min_varpca", "rank", "rankrob", "quan_tile"), selected="max_sharpe")),
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=3, numericInput("max_eigen", "Number of eigenvalues", value=5)),
+    column(width=3, numericInput("max_eigen", "Number of eigenvalues", value=15)),
     # Input the shrinkage intensity
     column(width=3, sliderInput("al_pha", label="Shrinkage intensity",
-                                min=0.01, max=0.99, value=0.1, step=0.05)),
+                                min=0.01, max=0.99, value=0.7, step=0.05)),
+    # Input the quantile
+    column(width=3, sliderInput("pro_b", label="Confidence level",
+                                min=0.01, max=0.49, value=0.25, step=0.01)),
     column(width=3, numericInput("co_eff", "Weight coefficient:", value=1)),
     actionButton("re_calculate", "Recalculate the Model")
   ),  # end fluidRow
@@ -82,6 +86,7 @@ ser_ver <- function(input, output) {
     lamb_da <- isolate(input$lamb_da)
     typ_e <- isolate(input$typ_e)
     al_pha <- isolate(input$al_pha)
+    pro_b <- isolate(input$pro_b)
     co_eff <- isolate(input$co_eff)
     # Model is re-calculated when the re_calculate variable is updated
     input$re_calculate
@@ -99,7 +104,7 @@ ser_ver <- function(input, output) {
     weight_s <- weight_s/sum(weight_s)
     weight_s <- matrix(weight_s, nc=1)
     # calculate smoothed ex_cess returns
-    ex_cess <- HighFreq::roll_conv(re_turns, weight_s=weight_s)
+    ex_cess <- HighFreq::roll_conv(ex_cess, weight_s=weight_s)
     # ex_cess <- HighFreq::lag_it(ex_cess, lagg=1)
     
     # Rerun the model
@@ -107,6 +112,7 @@ ser_ver <- function(input, output) {
                                  re_turns=re_turns,
                                  start_points=start_points-1,
                                  end_points=end_points-1,
+                                 pro_b=pro_b,
                                  max_eigen=max_eigen, 
                                  al_pha=al_pha, 
                                  typ_e=typ_e,

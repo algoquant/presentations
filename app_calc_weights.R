@@ -1,5 +1,5 @@
 ##############################
-# This is a shiny app for visualizing calc_weights_n
+# This is a shiny app for visualizing calc_weights
 # 
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -10,7 +10,7 @@
 library(shiny)
 library(dygraphs)
 library(HighFreq)
-Rcpp::sourceCpp(file="C:/Develop/lecture_slides/assignments/rcpp_strat.cpp")
+# Rcpp::sourceCpp(file="C:/Develop/lecture_slides/assignments/rcpp_strat.cpp")
 # Model and data setup
 # source the model function
 # source("C:/Develop/lecture_slides/scripts/roll_portf_new.R")
@@ -29,24 +29,24 @@ n_weights <- NCOL(re_turns)
 
 ## Create elements of the user interface
 inter_face <- shiny::fluidPage(
-  titlePanel("Rolling Portfolio Optimization Strategy for S&P500 Sub-portfolio"),
+  titlePanel("Visualize Weights for S&P500 Portfolio"),
   
   # create single row with two slider inputs
   fluidRow(
     # Input number of eigenvalues for regularized matrix inverse
     column(width=4, numericInput("max_eigen", "Number of eigenvalues:", value=5)),
     # Input end points interval
-    column(width=4, selectInput("inter_val", label="End points Interval",
-                choices=c("weeks", "months", "years"), selected="months")),
+    # column(width=4, selectInput("inter_val", label="End points Interval",
+    #             choices=c("weeks", "months", "years"), selected="months")),
     # Input look-back interval
-    column(width=4, sliderInput("look_back", label="Lookback interval:",
-                                min=1, max=30, value=12, step=1)),
+    # column(width=4, sliderInput("look_back", label="Lookback interval:",
+    #                             min=1, max=30, value=12, step=1)),
     # Input end_stub interval
     # column(width=4, sliderInput("end_stub", label="End_stub interval:",
     #                             min=1, max=90, value=30, step=1)),
     # Input the shrinkage intensity
-    column(width=4, sliderInput("al_pha", label="Shrinkage intensity:",
-                                min=0.01, max=0.99, value=0.1, step=0.05))
+    # column(width=4, sliderInput("al_pha", label="Shrinkage intensity:",
+    #                             min=0.01, max=0.99, value=0.1, step=0.05))
   ),  # end fluidRow
   
   # create output plot panel
@@ -60,11 +60,11 @@ ser_ver <- function(input, output) {
   # re-calculate the data and rerun the model
   da_ta <- reactive({
     # get model parameters from input argument
-    inter_val <- input$inter_val
+    # inter_val <- input$inter_val
     max_eigen <- input$max_eigen
-    look_back <- input$look_back
+    # look_back <- input$look_back
     # end_stub <- input$end_stub
-    al_pha <- input$al_pha
+    # al_pha <- input$al_pha
     
     # Define end points
     # end_points <- rutils::calc_endpoints(re_turns, inter_val=inter_val)
@@ -74,7 +74,7 @@ ser_ver <- function(input, output) {
     # Define start_points
     # start_points <- c(rep_len(1, look_back-1), end_points[1:(len_gth-look_back+1)])
     # rerun the model
-    weight_s = calc_weights_n(re_turns, max_eigen, al_pha);
+    weight_s = HighFreq::calc_weights(re_turns, max_eigen=max_eigen);
     
     # pnl_s <- roll_portf_n(ex_cess=re_turns, 
     #                               re_turns=re_turns,
