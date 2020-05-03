@@ -18,8 +18,7 @@ library(HighFreq)
 # Source("C:/Develop/lecture_slides/scripts/roll_portf_new.R")
 # max_eigen <- 2
 load("C:/Develop/lecture_slides/data/sp500_prices.RData")
-re_turns <- returns_100["2000/"]
-# load("C:/Develop/lecture_slides/data/sp100_rets.RData")
+re_turns <- re_turns["2000/"]
 # Random data
 # re_turns <- xts(matrix(rnorm(NROW(returns_100)*NCOL(returns_100)), nc=NCOL(returns_100)), 
 #                 index(returns_100))

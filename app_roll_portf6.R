@@ -17,7 +17,7 @@ library(HighFreq)
 # source("C:/Develop/lecture_slides/scripts/roll_portf_new.R")
 # max_eigen <- 2
 
-# load("C:/Develop/lecture_slides/data/sp500_returns.RData")
+# load("C:/Develop/lecture_slides/data/sp500_prices.RData")
 # # Subset the columns with non-zero returns
 # re_turns <- re_turns[, !(re_turns[(NROW(re_turns) %/% 10), ] == 0)]
 # # Subset 100 columns to reduce computations
@@ -25,10 +25,23 @@ library(HighFreq)
 # sam_ple <- sample(1:NCOL(re_turns), 100)
 # re_turns <- re_turns[, sam_ple]
 
+# S&P500 stocks
+load("C:/Develop/lecture_slides/data/etf_data.RData")
+# re_turns <- etf_env$re_turns
+# n_weights <- NCOL(re_turns)
 
+
+# S&P500 stocks
 load("C:/Develop/lecture_slides/data/sp500_prices.RData")
 re_turns <- returns_100
+re_turns <- cbind(re_turns, etf_env$re_turns$SVXY, etf_env$re_turns$VXX)
+
+
+re_turns <- zoo::na.locf(re_turns)
+re_turns <- zoo::na.locf(re_turns, fromLast=TRUE)
+
 n_weights <- NCOL(re_turns)
+
 # Random data
 # coredata(re_turns) <- matrix(rnorm(prod(dim(re_turns)))/100, nc=n_weights)
 risk_free <- 0.03/260
@@ -65,7 +78,9 @@ inter_face <- shiny::fluidPage(
     # Input the quantile
     column(width=3, sliderInput("pro_b", label="Confidence level",
                                 min=0.01, max=0.49, value=0.25, step=0.01)),
-    column(width=3, numericInput("co_eff", "Weight coefficient:", value=1)),
+    # column(width=3, numericInput("co_eff", "Weight coefficient:", value=1)),
+    column(width=3, selectInput("co_eff", label="Weight coefficient",
+                                choices=c(1, -1), selected=1)),
     actionButton("re_calculate", "Recalculate the Model")
   ),  # end fluidRow
   
@@ -87,7 +102,7 @@ ser_ver <- function(input, output) {
     typ_e <- isolate(input$typ_e)
     al_pha <- isolate(input$al_pha)
     pro_b <- isolate(input$pro_b)
-    co_eff <- isolate(input$co_eff)
+    co_eff <- as.numeric(isolate(input$co_eff))
     # Model is re-calculated when the re_calculate variable is updated
     input$re_calculate
     
@@ -117,7 +132,7 @@ ser_ver <- function(input, output) {
                                  al_pha=al_pha, 
                                  typ_e=typ_e,
                                  co_eff=co_eff)
-    # pnl_s[which(is.na(pnl_s)), ] <- 0
+    pnl_s[which(is.na(pnl_s)), ] <- 0
     pnl_s <- cumsum(pnl_s)
     pnl_s <- cbind(pnl_s, in_dex)
     colnames(pnl_s) <- c("Strategy", "Index")

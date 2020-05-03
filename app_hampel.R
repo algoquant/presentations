@@ -15,10 +15,10 @@ library(HighFreq)
 # Model and data setup
 
 ## Load QM futures 5-second bars
-sym_bol <- "ES"  # S&P500 Emini futures
+# sym_bol <- "ES"  # S&P500 Emini futures
 # sym_bol <- "QM"  # oil
-load(file=paste0("C:/Develop/data/ib_data/", sym_bol, "_ohlc.RData"))
-price_s <- Cl(oh_lc)
+# load(file=paste0("C:/Develop/data/ib_data/", sym_bol, "_ohlc.RData"))
+# price_s <- Cl(oh_lc)
 # Or random prices
 # price_s <- xts(exp(cumsum(rnorm(NROW(oh_lc)))), index(oh_lc))
 
@@ -28,8 +28,8 @@ price_s <- Cl(oh_lc)
 # price_s <- Cl(vix_env$chain_ed)
 
 ## VTI ETF daily bars
-# sym_bol <- "VTI"
-# price_s <- Cl(rutils::etf_env$VTI)
+sym_bol <- "VTI"
+price_s <- Cl(rutils::etf_env$VTI)
 
 ## SPY ETF minute bars
 # sym_bol <- "SPY"
@@ -60,7 +60,7 @@ inter_face <- shiny::fluidPage(
     #                             choices=c("days", "weeks", "months", "years"), selected="days")),
     # Input look-back interval
     column(width=3, sliderInput("look_back", label="Lookback", min=3, max=30, value=9, step=1)),
-    # Input look-back lag interval
+    # Input lag trade parameter
     column(width=3, sliderInput("lagg", label="lagg", min=1, max=5, value=2, step=1)),
     # Input threshold interval
     column(width=3, sliderInput("thresh_old", label="threshold", min=1.0, max=10.0, value=1.8, step=0.2))

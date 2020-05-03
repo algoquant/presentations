@@ -126,10 +126,10 @@ ser_ver <- function(input, output) {
     # Calculate tranche shading for CVaR
     va_r <- at_tach; var_max <- de_tach
     var_s <- seq(va_r, var_max, length=100)
-    dens_ity <- sapply(var_s, portf_loss, def_thresh=def_thresh, rh_o=rh_o, l_gd=l_gd)
+    densi_ty <- sapply(var_s, portf_loss, def_thresh=def_thresh, rh_o=rh_o, l_gd=l_gd)
     # Draw shaded polygon
     polygon(c(va_r, var_s, var_max),
-            c(-1, dens_ity, -1), col="red", border=NA, density=10)
+            c(-1, densi_ty, -1), col="red", border=NA, density=10)
     # text(x=0.045, y=0, labels="CVaR", lwd=2, pos=3)
     
     # Text with tranche attachment
