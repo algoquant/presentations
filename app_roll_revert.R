@@ -26,7 +26,8 @@ n_cols <- NCOL(re_turns)
 risk_free <- 0.03/260
 ex_cess <- (re_turns - risk_free)
 # Calculate returns on equal weight portfolio
-in_dex <- xts(cumsum(re_turns %*% rep(1/n_cols, n_cols)), index(re_turns))
+in_dex <- xts(cumsum(rowMeans(re_turns)), index(re_turns))
+
 
 ## End setup code
 

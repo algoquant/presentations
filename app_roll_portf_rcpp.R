@@ -1,8 +1,10 @@
 ##############################
-# This is a shiny app for simulating a rolling portfolio 
-# optimization strategy, which produces an interactive 
-# dygraphs plot.
-# It uses HighFreq::back_test()
+# This is a shiny app for backtesting a minimum variance 
+# rolling portfolio optimization strategy, which produces 
+# an interactive dygraphs plot.
+# 
+# This is an old student version that compiles Rcpp code 
+# from package HighFreq.
 # 
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -13,10 +15,9 @@
 library(shiny)
 library(dygraphs)
 library(HighFreq)
+# Compile Rcpp code from package HighFreq
+Rcpp::sourceCpp(file="C:/Develop/lecture_slides/assignments/rcpp_strat.cpp")
 # Model and data setup
-# source the model function
-# source("C:/Develop/lecture_slides/scripts/roll_portf_new.R")
-# max_eigen <- 2
 load("C:/Develop/lecture_slides/data/sp500_prices.RData")
 re_turns <- returns_100
 n_weights <- NCOL(re_turns)
@@ -76,12 +77,12 @@ ser_ver <- function(input, output) {
     # Define start_points
     start_points <- c(rep_len(1, look_back-1), end_points[1:(len_gth-look_back+1)])
     # rerun the model
-    pnl_s <- HighFreq::back_test(ex_cess=re_turns, 
-                                  re_turns=re_turns,
-                                  start_points=start_points-1,
-                                  end_points=end_points-1,
-                                  max_eigen=max_eigen, 
-                                  al_pha=al_pha)
+    pnl_s <- back_test(ex_cess=re_turns, 
+                        re_turns=re_turns,
+                        start_points=start_points-1,
+                        end_points=end_points-1,
+                        max_eigen=max_eigen, 
+                        al_pha=al_pha)
     pnl_s[which(is.na(pnl_s)), ] <- 0
     # pnl_s <- back_test_r(ex_cess, re_turns, start_points, end_points, al_pha, max_eigen, end_stub)
     # pnl_s <- sd(rutils::diff_it(in_dex))*pnl_s/sd(rutils::diff_it(pnl_s))

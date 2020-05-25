@@ -17,7 +17,7 @@ library(rutils)
 source("C:/Develop/lecture_slides/scripts/roll_portf.R")
 # max_eigen <- 2
 sym_bols <- colnames(rutils::etf_env$re_turns)
-sym_bols <- sym_bols[!((sym_bols=="VXX")|(sym_bols=="SVXY"))]
+sym_bols <- sym_bols[-match(c("VXX", "SVXY", "MTUM"), sym_bols)]
 n_weights <- NROW(sym_bols)
 re_turns <- rutils::etf_env$re_turns[, sym_bols]
 re_turns <- zoo::na.locf(re_turns)
