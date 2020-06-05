@@ -7,19 +7,30 @@
 ##############################
 
 # Best parameters
-# inter_val	months
-# look_back	6	5 13  11  5
-# max_eigen	7	5 5 3 3
-# al_pha	0.1	0.7 0.1 0.1
+# typ_e inter_val look_back max_eigen al_pha
+# max_sharpe  days 15-35  6-7
+# min_var  days 15-35  6-7
+# max_sharpe  weeks 3-6  5-9
+# min_var  weeks 3-5  6-9
+# max_sharpe  weeks 16  6-9
+# min_var  weeks 16  6-9
+# Long weekly look_backs work very well because of IEF long position !
+# max_sharpe  weeks 100  8-9
+# min_var  weeks 100  8-9
+# max_sharpe  months 7  6
+# min_var  months 2-3  9
+# Long monthly look_backs work very well because of IEF long position !
+# max_sharpe  months 21-100  9
+# min_var  months 21-100  9
 
 
 
-## Below is the setup code that runs once when the shiny app is started
+## Setup code that runs once when the shiny app is started
 
 # load packages
+library(HighFreq)
 library(shiny)
 library(dygraphs)
-library(HighFreq)
 # Model and data setup
 
 # Source the model function
@@ -27,12 +38,18 @@ library(HighFreq)
 
 
 # Load ETF data
-# sym_bols <- c("DBC", "IEF", "VTI", "XLB", "XLE", "XLF", "XLI", "XLK", "XLP", "XLU", "XLV", "XLY")
+# sym_bols <- rutils::etf_env$sym_bols
+# ETFs with smallest Hurst
+# sym_bols <- c("XLP", "XLU", "VNQ", "XLV", "XLF", "XLB", "XLE", "XLY", "XLI", "XLK")
 # ETFs with largest Hurst
+# sym_bols <- c("DBC", "IEF", "VTI", "XLB", "XLE", "XLF", "XLI", "XLK", "XLP", "XLU", "XLV", "XLY")
 # sym_bols <- c("VYM", "VEU", "DBC", "IEF", "VTI", "IWF", "IWD", "IWB")
 # sym_bols <- c("XLU", "XLE", "XLK", "IWD", "VYM", "IWF", "XLI", "IEF", "VNQ", "DBC")
 # sym_bols <- c("VYM", "VEU", "DBC", "IEF", "VTI", "IWF", "IWD", "IWB", "XLU", "XLE", "XLK", "XLI", "VNQ")
-sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "IEF", "VEU")
+# sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "IEF", "VEU", "SVXY", "VXX")
+# sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "IEF", "VEU")
+sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "VEU", "SVXY", "VXX")
+
 n_weights <- NROW(sym_bols)
 re_turns <- rutils::etf_env$re_turns[, sym_bols]
 # Select rows with IEF data
@@ -46,25 +63,29 @@ first_non_na <- sapply(re_turns, function(x_ts) {
 # Find first row containing at least 3 non-NA values.
 # sort(first_non_na)[3]
 # Select rows containing at least 3 non-NA values.
-re_turns <- re_turns[(sort(first_non_na)[3]):NROW(re_turns)]
+# re_turns <- re_turns[(sort(first_non_na)[3]):NROW(re_turns)]
+re_turns <- re_turns[-(1:(sort(first_non_na)[7]-1))]
 # Copy over NA values with zeros
 re_turns[1, is.na(re_turns[1, ])] <- 0
 re_turns <- zoo::na.locf(re_turns, na.rm=FALSE)
 # sum(is.na(re_turns))
 
 # Calculate the volumes
-volume_s <- lapply(sym_bols, function(sym_bol) {
-  quantmod::Vo(get(x=sym_bol, envir=rutils::etf_env))
-})  # end lapply
-volume_s <- rutils::do_call(cbind, volume_s)
-colnames(volume_s) <- sym_bols
-volume_s <- volume_s[index(re_turns)]
-volume_s[volume_s == 0] <- NA
-volume_s <- zoo::na.locf(volume_s, na.rm=FALSE)
-volume_s <- zoo::na.locf(volume_s, fromLast=TRUE)
+# volume_s <- lapply(sym_bols, function(sym_bol) {
+#   quantmod::Vo(get(x=sym_bol, envir=rutils::etf_env))
+# })  # end lapply
+# volume_s <- rutils::do_call(cbind, volume_s)
+# colnames(volume_s) <- sym_bols
+# volume_s <- volume_s[index(re_turns)]
+# volume_s[volume_s == 0] <- NA
+# volume_s <- zoo::na.locf(volume_s, na.rm=FALSE)
+# volume_s <- zoo::na.locf(volume_s, fromLast=TRUE)
+# Calculate the row ranks
+# ex_cess <- matrixStats::rowRanks(re_turns)
+# ex_cess <- (ex_cess - rowMeans(ex_cess))
 # Scale re_turns by the volumes
-ex_cess <- re_turns/sqrt(volume_s)
-# ex_cess <- re_turns
+# ex_cess <- re_turns/sqrt(volume_s)
+ex_cess <- re_turns
 
 
 ############
@@ -76,7 +97,12 @@ ex_cess <- re_turns/sqrt(volume_s)
 # ex_cess <- re_turns
 
 # Benchmark index
-in_dex <- xts(cumsum(rowMeans(re_turns)), index(re_turns))
+# in_dex <- xts(cumsum(rowMeans(re_turns)), index(re_turns))
+# in_dex <- Cl(rutils::etf_env$VTI)[index(re_turns)]
+in_dex <- rutils::etf_env$re_turns[index(re_turns), "VTI"]
+in_dex[1] <- 0
+in_dex <- zoo::na.locf(in_dex, na.rm=FALSE)
+in_dex <- cumsum(in_dex)
 
 
 # Portfolio with largest Hurst
@@ -97,20 +123,20 @@ inter_face <- shiny::fluidPage(
   fluidRow(
     # Input end points interval
     column(width=3, selectInput("inter_val", label="End points Interval",
-                choices=c("days", "weeks", "months", "years"), selected="months")),
+                choices=c("days", "weeks", "months", "years"), selected="weeks")),
     # Input look-back interval
     column(width=3, sliderInput("look_back", label="Lookback interval",
-                                min=1, max=100, value=5, step=1)),
+                                min=1, max=100, value=18, step=1)),
     column(width=3, sliderInput("lamb_da", label="Weight decay:",
                                 min=0.01, max=0.99, value=0.01, step=0.05)),
     # Input end points interval
     column(width=3, selectInput("typ_e", label="Weights type",
                                 choices=c("max_sharpe", "max_sharpe_median", "min_var", "min_varpca", "rank", "rankrob", "quan_tile"), selected="max_sharpe")),
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=3, numericInput("max_eigen", "Number of eigenvalues", value=5)),
+    column(width=3, numericInput("max_eigen", "Number of eigenvalues", value=6)),
     # Input the shrinkage intensity
     column(width=3, sliderInput("al_pha", label="Shrinkage intensity",
-                                min=0.01, max=0.99, value=0.1, step=0.05)),
+                                min=0.01, max=0.99, value=0.01, step=0.05)),
     # Input the quantile
     column(width=3, sliderInput("pro_b", label="Confidence level",
                                 min=0.01, max=0.49, value=0.25, step=0.01)),
@@ -141,13 +167,13 @@ ser_ver <- function(input, output) {
     co_eff <- as.numeric(isolate(input$co_eff))
     # Model is re-calculated when the re_calculate variable is updated
     input$re_calculate
-    
+
     # Define end points
     end_p <- rutils::calc_endpoints(re_turns, inter_val=inter_val)
     # end_p <- ifelse(end_p<(n_weights+1), n_weights+1, end_p)
     end_p <- end_p[end_p > 2*n_weights]
     n_rows <- NROW(end_p)
-    # Define start_p
+    # Define start points
     start_p <- c(rep_len(1, look_back-1), end_p[1:(n_rows-look_back+1)])
     
     # Calculate the weight_s

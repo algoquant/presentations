@@ -5,7 +5,7 @@
 # Just press the "Run App" button on upper right of this panel.
 ##############################
 
-## Below is the setup code that runs once when the shiny app is started
+## Setup code runs once when the shiny app is started
 
 
 # load packages
@@ -56,7 +56,7 @@ es1_returns <- rutils::diff_it(clo_se)
 colnames(es1_returns) <- "returns"
 
 # set up data for signal
-la_bel <- "UX1"
+la_bel <- "TU1"
 oh_lc <- com_bo[, paste(la_bel, c("Open", "High", "Low", "Close"), sep=".")]
 # oh_lc <- xts::to.period(oh_lc, period="minutes", k=5)
 # create random time series of minutely OHLC prices

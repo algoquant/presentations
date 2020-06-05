@@ -8,11 +8,15 @@
 ## Below is the setup code that runs once when the shiny app is started
 
 # Load R packages
+library(HighFreq)
 library(shiny)
 library(dygraphs)
-library(HighFreq)
 
 # Model and data setup
+
+## SPY ETF minute bars - works really well !!!
+# sym_bol <- "SPY"
+# price_s <- Cl(HighFreq::SPY["2011"])["T09:31:00/T15:59:00"]
 
 ## Load QM futures 5-second bars
 # sym_bol <- "ES"  # S&P500 Emini futures
@@ -22,20 +26,26 @@ library(HighFreq)
 # Or random prices
 # price_s <- xts(exp(cumsum(rnorm(NROW(oh_lc)))), index(oh_lc))
 
-## Load VX futures 5-second bars
+## Load combined futures data
+# com_bo <- HighFreq::SPY
+load(file="C:/Develop/data/combined.RData")
+sym_bol <- "UX1"
+# symbol_s <- unique(rutils::get_name(colnames(com_bo)))
+price_s <- na.omit(com_bo[, "UX1.Close"])
+# TU1: look_back=14, thresh_old=2.0, lagg=1
+# TU1: look_back=30, thresh_old=9.2, lagg=1
+
+
+## Load VX futures daily bars
 # sym_bol <- "VX"
 # load(file="C:/Develop/data/vix_data/vix_cboe.RData")
 # price_s <- Cl(vix_env$chain_ed)
 
 ## VTI ETF daily bars
-sym_bol <- "VTI"
-price_s <- Cl(rutils::etf_env$VTI)
+# sym_bol <- "VTI"
+# price_s <- Cl(rutils::etf_env$VTI)
 
-## SPY ETF minute bars
-# sym_bol <- "SPY"
-# price_s <- Cl(HighFreq::SPY["2011"])["T09:31:00/T15:59:00"]
-
-re_turns <- rutils::diff_it(log(price_s))
+re_turns <- rutils::diff_it(price_s)
 
 cap_tion <- paste("Contrarian Strategy for", sym_bol, "Using the Hampel Filter Over Prices")
 
