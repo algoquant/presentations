@@ -7,9 +7,9 @@
 ## Below is the setup code that runs once when the shiny app is started
 
 # load packages
+library(HighFreq)
 library(shiny)
 library(dygraphs)
-library(HighFreq)
 # Rcpp::sourceCpp(file="C:/Develop/lecture_slides/assignments/rcpp_strat.cpp")
 # Model and data setup
 # source the model function
@@ -17,6 +17,9 @@ library(HighFreq)
 # max_eigen <- 2
 load("C:/Develop/lecture_slides/data/sp500_prices.RData")
 # re_turns <- returns_100
+re_turns <- re_turns[, !is.na(re_turns[NROW(re_turns), ])]
+re_turns <- re_turns[, !is.na(re_turns[NROW(re_turns)-1000, ])]
+re_turns <- na.omit(re_turns)
 n_weights <- NCOL(re_turns)
 # risk_free <- 0.03/260
 # ex_cess <- (re_turns - risk_free)

@@ -47,8 +47,8 @@ library(dygraphs)
 # sym_bols <- c("XLU", "XLE", "XLK", "IWD", "VYM", "IWF", "XLI", "IEF", "VNQ", "DBC")
 # sym_bols <- c("VYM", "VEU", "DBC", "IEF", "VTI", "IWF", "IWD", "IWB", "XLU", "XLE", "XLK", "XLI", "VNQ")
 # sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "IEF", "VEU", "SVXY", "VXX")
-# sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "IEF", "VEU")
-sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "VEU", "SVXY", "VXX")
+sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "IEF", "VEU")
+# sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "VEU", "SVXY", "VXX")
 
 n_weights <- NROW(sym_bols)
 re_turns <- rutils::etf_env$re_turns[, sym_bols]

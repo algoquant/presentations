@@ -9,13 +9,18 @@
 ## Below is the setup code that runs once when the shiny app is started
 
 # load packages
+library(HighFreq)
 library(shiny)
 library(dygraphs)
-library(HighFreq)
 # Model and data setup
 
 # Source the model function
 # source("C:/Develop/lecture_slides/scripts/roll_portf.R")
+
+
+# Load PCA data
+# load("C:/Develop/data/pca_rets.RData")
+# re_turns <- pca_rets[, 1:9]
 
 
 # Load ETF data
@@ -26,6 +31,7 @@ library(HighFreq)
 
 
 # Load S&P500 stocks
+# load("C:/Develop/data/returns_100.RData")
 load("C:/Develop/lecture_slides/data/sp500_prices.RData")
 # # Select the columns with non-zero returns
 # re_turns <- re_turns[, !(re_turns[NROW(re_turns) %/% 10, ] == 0)]
