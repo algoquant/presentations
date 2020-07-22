@@ -8,9 +8,9 @@
 ## Below is the setup code that runs once when the shiny app is started
 
 # Load R packages
+library(HighFreq)
 library(shiny)
 library(dygraphs)
-library(HighFreq)
 
 ## Model and data setup
 # Uncomment the data you want to load

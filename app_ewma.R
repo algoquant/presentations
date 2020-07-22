@@ -6,13 +6,13 @@
 
 ## Below is the setup code that runs once when the shiny app is started
 
-
-# load packages
+## Load packages
+library(HighFreq)
 library(shiny)
 library(dygraphs)
-library(rutils)
 
-# Set up ETF data
+
+## Set up ETF data
 # if (!("etf_env" %in% search()))
 #   attach(etf_env)
 # if (!("etf_env" %in% ls()))
@@ -22,26 +22,25 @@ library(rutils)
 # sym_bol <- "SVXY"
 # re_turns <- etf_env$re_turns
 
-sym_bol <- "SVXY"
-# data_env <- "rutils::etf_env"
-# attach(rutils::etf_env)
-# sym_bols <- get("sym_bols", rutils::etf_env)
-sym_bols <- rutils::etf_env$sym_bols
+# data_env <- rutils::etf_env
+# sym_bols <- get("sym_bols", data_env)
+# sym_bol <- "SVXY"
+# sym_bols <- rutils::etf_env$sym_bols
 
 
-# Set up S&P500 data
-# if (!("env_sp500" %in% search()))
-#   attach(env_sp500)
-# if (!("env_sp500" %in% ls())) {
-#   load(file="C:/Develop/lecture_slides/data/sp500.RData")
-#   load(file="C:/Develop/lecture_slides/data/sp500_prices.RData")
-# }  # end if
-# data_env <- "env_sp500"
-# sym_bols <- colnames(re_turns)
-# sym_bol <- "AAPL"
+## Set up S&P500 data
+# if (!("sp500_env" %in% search()))
+#   attach(sp500_env)
+if (!("sp500_env" %in% ls())) {
+  load(file="C:/Develop/lecture_slides/data/sp500.RData")
+}  # end if
+data_env <- sp500_env
+# sym_bols <- names(data_env)
+sym_bols <- c("PG", "CDNS", "YUM", "YUMC", "KHC", "SNPS", "ODFL", "CHRW", "AWK", "SO", "EA", "FIS", "DG", "BAX", "HRL", "MSFT", "XOM", "BSX", "JNJ", "CLX", "CL", "MCD", "WMT", "SBUX", "LLY", "ADM", "BIO", "XLNX", "ATVI", "DISH", "K", "SHW", "SIG", "CSCO", "INTU", "VRTX", "FB", "ORCL", "DUK", "KSS", "ROP", "AKAM", "MXIM", "TXN", "NEM", "COST", "EL", "JWN", "ACN", "FISV", "KLAC", "PFE", "TYL", "BIIB", "MCHP", "BBBY", "DRE", "PEP", "LIN", "NKE", "TROW", "LEN", "HOLX", "NVR", "UDR", "WEC", "DHI", "NI")
+sym_bol <- "YUM"
 
 
-# End setup code
+## End setup code
 
 
 ## Create elements of the user interface
@@ -50,16 +49,17 @@ inter_face <- shiny::fluidPage(
   
   # create single row with four slider inputs
   fluidRow(
-    # Input look-back interval
-    column(width=3, sliderInput("look_back", label="Lookback interval",
-                                min=1, max=250, value=4, step=1)),
-    # Input lag trade parameter
-    column(width=3, sliderInput("lagg", label="Confirmation signals", min=1, max=5, value=2, step=1)),
-    # Input model weights type
+    # Input stock symbol
     column(width=3, selectInput("sym_bol", label="Symbol",
                                 choices=sym_bols, selected=sym_bol)),
+    # Input look-back interval
+    column(width=3, sliderInput("look_back", label="Lookback interval",
+                                min=1, max=150, value=4, step=1)),
+    # Input lag trade parameter
+    column(width=3, sliderInput("lagg", label="Confirmation signals", min=1, max=5, value=2, step=1)),
+    # Input trend or revert
     column(width=3, selectInput("co_eff", label="Trend (1) Revert (-1)",
-                                choices=c(1, -1), selected=1))
+                                choices=c(1, -1), selected=(1)))
   ),  # end fluidRow
   
   # create output plot panel
@@ -72,18 +72,19 @@ ser_ver <- shiny::shinyServer(function(input, output) {
 
   # re-calculate the data and rerun the model
   da_ta <- reactive({
-    # get model parameters from input argument
+    # Get model parameters from input argument
+    sym_bol <- input$sym_bol
     look_back <- input$look_back
     lagg <- input$lagg
-    sym_bol <- input$sym_bol
     co_eff <- as.numeric(input$co_eff)
 
+    # Prepare data
     # sym_bol <- "SVXY"
     # sym_bol2 <- "VXX"
-    oh_lc <- get(sym_bol, rutils::etf_env)
+    oh_lc <- get(sym_bol, data_env)
     # oh_lc2 <- get(sym_bol2, data_env)
-    price_s <- quantmod::Cl(oh_lc)
-    star_t <- as.numeric(cl_ose[1])
+    price_s <- log(quantmod::Cl(oh_lc))
+    star_t <- as.numeric(price_s[1])
     # re_turns <- na.omit(get(sym_bol, re_turns))
     re_turns <- rutils::diff_it(price_s)
     # re_turns2 <- na.omit(get(sym_bol2, re_turns))
@@ -101,8 +102,8 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     vol_ume <- quantmod::Vo(oh_lc)
     
     # Simulate strategy
-    v_wap <- rutils::roll_sum(x_ts=price_s*vol_ume, look_back=look_back)
-    volume_rolling <- rutils::roll_sum(x_ts=vol_ume, look_back=look_back)
+    v_wap <- HighFreq::roll_sum(t_series=price_s*vol_ume, look_back=look_back)
+    volume_rolling <- HighFreq::roll_sum(t_series=vol_ume, look_back=look_back)
     v_wap <- v_wap/volume_rolling
     v_wap[is.na(v_wap)] <- 0
     
@@ -113,7 +114,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # Otherwise keep previous position.
     # This is designed to prevent whipsaws and over-trading.
     # position_s <- ifelse(indica_tor == indic_lag, indica_tor, position_s)
-    indic_sum <- roll::roll_sum(indica_tor, width=lagg)
+    indic_sum <- HighFreq::roll_sum(t_series=indica_tor, look_back=lagg)
     indic_sum[1:lagg] <- 0
     position_s <- rep(NA_integer_, NROW(price_s))
     position_s[1] <- 0
@@ -123,7 +124,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # position_s[1:lagg] <- 0
     # Lag the positions to trade in next period
     position_s <- rutils::lag_it(position_s, lagg=1)
-    # Calculate simple dollar returns
+    # Calculate log strategy returns
     # re_turns <- rutils::diff_it(price_s)
     # Calculate strategy profits and losses
     pnl_s <- co_eff*re_turns*position_s
@@ -140,9 +141,9 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     dygraphs::dygraph(da_ta(), main=paste(col_names[1], "Strategy")) %>%
       dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
       dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
-      dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=2, col="red") %>%
+      dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=2, col="blue") %>%
       dySeries(name=col_names[3], axis="y", label=col_names[3], strokeWidth=2, col="green") %>%
-      dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=2, col="blue")
+      dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=2, col="red")
   })  # end output plot
 
 })  # end server code

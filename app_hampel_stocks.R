@@ -18,9 +18,22 @@ library(dygraphs)
 # sym_bol <- "VTI"
 # price_s <- Cl(rutils::etf_env$VTI)
 
+
+## Set up S&P500 data
+# if (!("sp500_env" %in% search()))
+#   attach(sp500_env)
+if (!("sp500_env" %in% ls())) {
+  load(file="C:/Develop/lecture_slides/data/sp500.RData")
+}  # end if
+data_env <- sp500_env
+# sym_bols <- names(data_env)
+sym_bols <- c("PG", "CDNS", "YUM", "YUMC", "KHC", "SNPS", "ODFL", "CHRW", "AWK", "SO", "EA", "FIS", "DG", "BAX", "HRL", "MSFT", "XOM", "BSX", "JNJ", "CLX", "CL", "MCD", "WMT", "SBUX", "LLY", "ADM", "BIO", "XLNX", "ATVI", "DISH", "K", "SHW", "SIG", "CSCO", "INTU", "VRTX", "FB", "ORCL", "DUK", "KSS", "ROP", "AKAM", "MXIM", "TXN", "NEM", "COST", "EL", "JWN", "ACN", "FISV", "KLAC", "PFE", "TYL", "BIIB", "MCHP", "BBBY", "DRE", "PEP", "LIN", "NKE", "TROW", "LEN", "HOLX", "NVR", "UDR", "WEC", "DHI", "NI")
+sym_bol <- "YUM"
+
+
 ## SPY ETF minute bars - works really well !!!
-sym_bol <- "SPY"
-price_s <- Cl(HighFreq::SPY["2011"])["T09:31:00/T15:59:00"]
+# sym_bol <- "SPY"
+# price_s <- Cl(HighFreq::SPY["2011"])["T09:31:00/T15:59:00"]
 
 ## Load QM futures 5-second bars
 # sym_bol <- "ES"  # S&P500 Emini futures
@@ -45,7 +58,7 @@ price_s <- Cl(HighFreq::SPY["2011"])["T09:31:00/T15:59:00"]
 # load(file="C:/Develop/data/vix_data/vix_cboe.RData")
 # price_s <- Cl(vix_env$chain_ed)
 
-cap_tion <- paste("Contrarian Strategy for", sym_bol, "Using the Hampel Filter Over Prices")
+cap_tion <- "Contrarian Strategy for S&P500 Stocks Using the Hampel Filter Over Prices"
 
 ## End setup code
 
@@ -63,6 +76,9 @@ inter_face <- shiny::fluidPage(
   
   # Create single row with two slider inputs
   fluidRow(
+    # Input stock symbol
+    column(width=3, selectInput("sym_bol", label="Symbol",
+                                choices=sym_bols, selected=sym_bol)),
     # Input end points interval
     # column(width=3, selectInput("inter_val", label="End points Interval",
     #                             choices=c("days", "weeks", "months", "years"), selected="days")),
@@ -103,6 +119,7 @@ ser_ver <- function(input, output) {
   # Re-calculate the data and rerun the model
   da_ta <- reactive({
     # Get model parameters from input argument
+    sym_bol <- input$sym_bol
     look_back <- input$look_back
     lagg <- input$lagg
     # max_eigen <- isolate(input$max_eigen)
@@ -120,6 +137,10 @@ ser_ver <- function(input, output) {
     
     # look_back <- 11
     # half_window <- look_back %/% 2
+    
+    cap_tion <- paste("Contrarian Strategy for", sym_bol, "Using the Hampel Filter Over Prices")
+
+    price_s <- log(quantmod::Cl(get(sym_bol, data_env)))
     
     # Rerun the model
     medi_an <- TTR::runMedian(price_s, n=look_back)
@@ -146,7 +167,7 @@ ser_ver <- function(input, output) {
     re_turns <- rutils::diff_it(price_s)
     pnl_s <- cumsum(positions_lag*re_turns)
     pnl_s <- cbind(pnl_s, cumsum(re_turns))
-    colnames(pnl_s) <- c("Strategy", "Index")
+    colnames(pnl_s) <- c("Strategy", sym_bol)
     # pnl_s[rutils::calc_endpoints(pnl_s, inter_val="minutes")]
     # pnl_s[rutils::calc_endpoints(pnl_s, inter_val="hours")]
     pnl_s

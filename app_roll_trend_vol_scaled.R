@@ -47,28 +47,28 @@ library(dygraphs)
 # sym_bols <- c("XLU", "XLE", "XLK", "IWD", "VYM", "IWF", "XLI", "IEF", "VNQ", "DBC")
 # sym_bols <- c("VYM", "VEU", "DBC", "IEF", "VTI", "IWF", "IWD", "IWB", "XLU", "XLE", "XLK", "XLI", "VNQ")
 # sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "IEF", "VEU", "SVXY", "VXX")
-sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "IEF", "VEU")
+# sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "IEF", "VEU")
+# sym_bols <- c("VEU", "GLD", "EEM", "DBC", "VYM", "USO", "IWB", "IWD", "VTI")
+# sym_bols <- c("TLT", "IEF", "USO", "GLD", "DBC", "XLY", "XLI", "XLB", "XLV", "XLE", "XLU", "XLK", "XLP", "IWD")
+
 # sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "VEU", "SVXY", "VXX")
 
-n_weights <- NROW(sym_bols)
-re_turns <- rutils::etf_env$re_turns[, sym_bols]
+# n_weights <- NROW(sym_bols)
+# re_turns <- rutils::etf_env$re_turns[, sym_bols]
 # Select rows with IEF data
 # re_turns <- re_turns[index(rutils::etf_env$IEF)]
 # 
 # Or
 # Calculate the first non-NA values and their positions.
-first_non_na <- sapply(re_turns, function(x_ts) {
-  match(TRUE, !is.na(x_ts))
-})  # end sapply
+# first_non_na <- sapply(re_turns, function(x_ts) {
+#   match(TRUE, !is.na(x_ts))
+# })  # end sapply
 # Find first row containing at least 3 non-NA values.
 # sort(first_non_na)[3]
 # Select rows containing at least 3 non-NA values.
 # re_turns <- re_turns[(sort(first_non_na)[3]):NROW(re_turns)]
-re_turns <- re_turns[-(1:(sort(first_non_na)[7]-1))]
-# Copy over NA values with zeros
-re_turns[1, is.na(re_turns[1, ])] <- 0
-re_turns <- zoo::na.locf(re_turns, na.rm=FALSE)
-# sum(is.na(re_turns))
+# re_turns <- re_turns[-(1:(sort(first_non_na)[7]-1))]
+
 
 # Calculate the volumes
 # volume_s <- lapply(sym_bols, function(sym_bol) {
@@ -81,20 +81,25 @@ re_turns <- zoo::na.locf(re_turns, na.rm=FALSE)
 # volume_s <- zoo::na.locf(volume_s, na.rm=FALSE)
 # volume_s <- zoo::na.locf(volume_s, fromLast=TRUE)
 # Calculate the row ranks
+
+
+############
+# S&P100
+load("C:/Develop/lecture_slides/data/sp500_returns.RData")
+re_turns <- re_turns["2000-01-01/"]
+sym_bols <- colnames(re_turns)
+n_weights <- NROW(sym_bols)
+
+
+# Copy over NA values with zeros
+re_turns[1, is.na(re_turns[1, ])] <- 0
+re_turns <- zoo::na.locf(re_turns, na.rm=FALSE)
+# sum(is.na(re_turns))
 # ex_cess <- matrixStats::rowRanks(re_turns)
 # ex_cess <- (ex_cess - rowMeans(ex_cess))
 # Scale re_turns by the volumes
 # ex_cess <- re_turns/sqrt(volume_s)
 ex_cess <- re_turns
-
-
-############
-# S&P100
-# load("C:/Develop/lecture_slides/data/sp100_rets_hurst.RData")
-# re_turns <- re_turns["2000-01-01/"]
-# sym_bols <- colnames(re_turns)
-# n_weights <- NROW(sym_bols)
-# ex_cess <- re_turns
 
 # Benchmark index
 # in_dex <- xts(cumsum(rowMeans(re_turns)), index(re_turns))

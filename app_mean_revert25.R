@@ -8,13 +8,13 @@
 ## Setup code runs once when the shiny app is started
 
 
-# load packages
+# Load packages
+library(HighFreq)
 library(shiny)
 library(dygraphs)
-library(rutils)
 
 # Source the strategy functions
-source("C:/Develop/R/scripts/calc_strategy.R")
+source("C:/Develop/R/scripts/backtest_functions.R")
 # Calculate indicator_s matrix of OHLC technical indicators
 # source(file="C:/Develop/R/scripts/load_technical_indicators.R")
 # vol_at[which.max(vol_at)] <- 0
@@ -27,7 +27,7 @@ source("C:/Develop/R/scripts/calc_strategy.R")
 # oh_lc <- rutils::etf_env$VTI
 # load recent ES1 futures data
 # load(file="C:/Develop/data/ES1.RData")
-# la_bel <- "SPY"
+# sig_nal <- "SPY"
 
 # load recent combined futures data
 load(file="C:/Develop/data/combined.RData")
@@ -56,8 +56,8 @@ es1_returns <- rutils::diff_it(clo_se)
 colnames(es1_returns) <- "returns"
 
 # set up data for signal
-la_bel <- "TU1"
-oh_lc <- com_bo[, paste(la_bel, c("Open", "High", "Low", "Close"), sep=".")]
+sig_nal <- "TU1"
+oh_lc <- com_bo[, paste(sig_nal, c("Open", "High", "Low", "Close"), sep=".")]
 # oh_lc <- xts::to.period(oh_lc, period="minutes", k=5)
 # create random time series of minutely OHLC prices
 # oh_lc <- HighFreq::random_ohlc(vol_at = 1e-03, 
@@ -68,9 +68,9 @@ close_num <- as.numeric(clo_se)
 hi_gh <- Hi(log_ohlc)
 lo_w <- Lo(log_ohlc)
 close_high <- (close_num == as.numeric(hi_gh))
-close_high_count <- roll_count(close_high)
+close_high_count <- HighFreq::roll_count(close_high)
 close_low <- (close_num == as.numeric(lo_w))
-close_low_count <- roll_count(close_low)
+close_low_count <- HighFreq::roll_count(close_low)
 re_turns <- rutils::diff_it(clo_se)
 colnames(re_turns) <- "returns"
 date_s <- 1:NROW(oh_lc)
@@ -85,7 +85,7 @@ de_sign <- matrix(date_s, nc=1)
 
 ## Create elements of the user interface
 inter_face <- shiny::fluidPage(
-  titlePanel(paste(la_bel, "Strategy Using OHLC Technical Indicators")),
+  titlePanel(paste(sig_nal, "Strategy Using OHLC Technical Indicators")),
   
   # create single row with four slider inputs
   fluidRow(
@@ -225,13 +225,13 @@ ser_ver <- shiny::shinyServer(function(input, output) {
   # return the dygraph plot to output argument
   output$dygraph <- renderDygraph({
     # plot daily closing prices
-    # dygraphs::dygraph(cbind(clo_se, da_ta())[endpoints(clo_se, on="days")], main=paste(la_bel, "Strategy Using OHLC Technical Indicators")) %>%
+    # dygraphs::dygraph(cbind(clo_se, da_ta())[endpoints(clo_se, on="days")], main=paste(sig_nal, "Strategy Using OHLC Technical Indicators")) %>%
       # plot daily closing ES1 prices
-      dygraphs::dygraph(da_ta()[endpoints(clo_se, on="days")], main=paste(la_bel, "Strategy Using OHLC Technical Indicators")) %>%
+      dygraphs::dygraph(da_ta()[endpoints(clo_se, on="days")], main=paste(sig_nal, "Strategy Using OHLC Technical Indicators")) %>%
       # plot a few days with all the minute bars
-      # dygraphs::dygraph(cbind(clo_se, da_ta())["2018-02-01/2018-02-07"], main=paste(la_bel, "Strategy Using OHLC Technical Indicators")) %>%
+      # dygraphs::dygraph(cbind(clo_se, da_ta())["2018-02-01/2018-02-07"], main=paste(sig_nal, "Strategy Using OHLC Technical Indicators")) %>%
       # plot a few days with all the ES1 minute bars
-      # dygraphs::dygraph(cbind(Cl(es_1), da_ta())["2018-02-01/2018-02-07"], main=paste(la_bel, "Strategy Using OHLC Technical Indicators")) %>%
+      # dygraphs::dygraph(cbind(Cl(es_1), da_ta())["2018-02-01/2018-02-07"], main=paste(sig_nal, "Strategy Using OHLC Technical Indicators")) %>%
       dyAxis("y", label=sym_bol, independentTicks=TRUE) %>%
       dyAxis("y2", label="strategy", independentTicks=TRUE) %>%
       # dySeries("strategy", axis="y2", col=c("blue", "red"))

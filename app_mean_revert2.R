@@ -14,7 +14,7 @@ library(dygraphs)
 library(rutils)
 
 # Source the strategy functions
-source("C:/Develop/R/scripts/calc_strategy.R")
+source("C:/Develop/R/scripts/backtest_functions.R")
 # Calculate indicator_s matrix of OHLC technical indicators
 # source(file="C:/Develop/R/scripts/load_technical_indicators.R")
 # vol_at[which.max(vol_at)] <- 0
@@ -52,9 +52,9 @@ close_num <- drop(clo_se)
 hi_gh <- Hi(ohlc_log)
 lo_w <- Lo(ohlc_log)
 close_high <- (close_num == drop(hi_gh))
-# close_high_count <- roll_count(close_high)
+# close_high_count <- HighFreq::roll_count(close_high)
 close_low <- (close_num == drop(lo_w))
-# close_low_count <- roll_count(close_low)
+# close_low_count <- HighFreq::roll_count(close_low)
 # re_turns <- rutils::diff_it(clo_se)
 # colnames(re_turns) <- "returns"
 date_s <- 1:NROW(oh_lc)

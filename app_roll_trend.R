@@ -26,20 +26,24 @@ library(dygraphs)
 # Load ETF data
 # load("C:/Develop/lecture_slides/data/etf_data.RData")
 # re_turns <- rutils::etf_env$re_turns
-# sym_bols <- c("DBC", "IEF", "VTI", "XLB", "XLE", "XLF", "XLI", "XLK", "XLP", "XLU", "XLV", "XLY")
+# sym_bols <- c("VXX", "VEU", "GLD", "EEM", "IEF", "DBC", "TLT", "SVXY", "VYM", "USO", "MTUM", "IWB", "IWD", "VTI")
+# sym_bols <- c("VEU", "GLD", "EEM", "DBC", "VYM", "USO", "IWB", "IWD", "VTI")
 # re_turns <- rutils::etf_env$re_turns[, sym_bols]
+# re_turns <- re_turns["2001-06-02/"]
+
 
 
 # Load S&P500 stocks
 # load("C:/Develop/data/returns_100.RData")
-load("C:/Develop/lecture_slides/data/sp500_prices.RData")
+load("C:/Develop/lecture_slides/data/sp500_returns.RData")
 # # Select the columns with non-zero returns
-# re_turns <- re_turns[, !(re_turns[NROW(re_turns) %/% 10, ] == 0)]
+re_turns <- re_turns["1999-01-01/"]
+re_turns <- re_turns[, !(re_turns[NROW(re_turns) %/% 10, ] == 0)]
 # # Select 100 columns to reduce computations
-# set.seed(1121)  # reset random number generator
-# sam_ple <- sample(1:NCOL(re_turns), 100)
-# re_turns <- re_turns[, sam_ple]
-re_turns <- returns_100
+set.seed(1121)  # reset random number generator
+sam_ple <- sample(1:NCOL(re_turns), 100)
+re_turns <- re_turns[, sam_ple]
+# re_turns <- returns_100
 # re_turns <- cbind(re_turns, rutils::etf_env$re_turns$SVXY, rutils::etf_env$re_turns$VXX)
 
 re_turns[1, is.na(re_turns[1, ])] <- 0
@@ -55,7 +59,7 @@ ex_cess <- (re_turns - risk_free)
 # ex_cess <- returns_100
 # calculate returns on equal weight portfolio
 # in_dex <- xts(cumprod(1 + rowMeans(re_turns)), index(re_turns))
-in_dex <- xts(cumsum(rowMeans(re_turns)), index(re_turns))
+in_dex <- xts(cumsum(rowSums(re_turns)), index(re_turns))
 
 # End setup code
 

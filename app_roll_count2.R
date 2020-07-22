@@ -1,8 +1,8 @@
 ##############################
 # This is a shiny app for simulating a contrarian strategy 
 # using the number of consecutive close_low or close_high.
-# The contrarian strategy uses function roll_count().
-# The function roll_count() calculates the the number of 
+# The contrarian strategy uses function HighFreq::roll_count().
+# The function HighFreq::roll_count() calculates the the number of 
 # consecutive TRUE elements in a Boolean vector, and resets
 # the count to zero after every FALSE element.
 # 
@@ -10,22 +10,19 @@
 ##############################
 
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# You must first compile the following Rcpp file as follows:
-# Rcpp::sourceCpp(file="C:/Develop/R/Rcpp/lm_arma.cpp")
-
-
 ## Setup code runs once when the shiny app is started
 
-
 # Load packages
-library(rutils)
+library(HighFreq)
 library(shiny)
 library(dygraphs)
 
 ############## deprecated ##############
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# You must first compile the following Rcpp file as follows:
+# Rcpp::sourceCpp(file="C:/Develop/R/Rcpp/lm_arma.cpp")
 # Source the strategy functions
-# source("C:/Develop/R/scripts/calc_strategy.R")
+# source("C:/Develop/R/scripts/backtest_functions.R")
 # Calculate indicator_s matrix of OHLC technical indicators
 # source(file="C:/Develop/R/scripts/load_technical_indicators.R")
 # vol_at[which.max(vol_at)] <- 0
@@ -136,16 +133,16 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # Set TRUE if close is at the high
     close_high <- (close_num == hi_gh)
     # Count number of consecutive closes is at the high
-    close_high_count <- roll_count(close_high)
+    close_high_count <- HighFreq::roll_count(close_high)
     # Set TRUE if close is at the low
     close_low <- (close_num == low_num)
     # Count number of consecutive closes is at the low
-    close_low_count <- roll_count(close_low)
+    close_low_count <- HighFreq::roll_count(close_low)
     op_en <- as.numeric(op_en)
     open_high <- (op_en == hi_gh)
-    open_high_count <- roll_count(open_high)
+    open_high_count <- HighFreq::roll_count(open_high)
     open_low <- (op_en == low_num)
-    open_low_count <- roll_count(open_low)
+    open_low_count <- HighFreq::roll_count(open_low)
     
     
     # Set up data for trading
