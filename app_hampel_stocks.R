@@ -149,7 +149,6 @@ ser_ver <- function(input, output) {
     ma_d[1:look_back, ] <- 1
     z_scores <- ifelse(ma_d!=0, (price_s-medi_an)/ma_d, 0)
     z_scores[1:look_back, ] <- 0
-    ma_d <- na.locf(z_scores)
     mad_zscores <- TTR::runMAD(z_scores, n=look_back)
     mad_zscores[1:look_back, ] <- 0
     
@@ -161,11 +160,11 @@ ser_ver <- function(input, output) {
     # position_s <- ifelse(z_scores < (-thresh_old), 1, position_s)
     position_s <- ifelse(z_scores > thresh_old*mad_zscores, -1, position_s)
     position_s <- ifelse(z_scores < (-thresh_old*mad_zscores), 1, position_s)
-    position_s <- na.locf(position_s)
-    positions_lag <- rutils::lag_it(position_s, lagg=lagg)
+    position_s <- zoo::na.locf(position_s, na.rm=FALSE)
+    position_s <- rutils::lag_it(position_s, lagg=lagg)
     
     re_turns <- rutils::diff_it(price_s)
-    pnl_s <- cumsum(positions_lag*re_turns)
+    pnl_s <- cumsum(position_s*re_turns)
     pnl_s <- cbind(pnl_s, cumsum(re_turns))
     colnames(pnl_s) <- c("Strategy", sym_bol)
     # pnl_s[rutils::calc_endpoints(pnl_s, inter_val="minutes")]
