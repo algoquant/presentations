@@ -25,7 +25,7 @@ lagg <- 5
 vr_s <- sapply(re_turns, function(re_turn) {
   re_turn <- na.omit(re_turn)
   if (NROW(re_turn) > 100)
-    calc_var(re_turn, lagg)/calc_var(re_turn)/lagg
+    HighFreq::calc_var(re_turn, lagg)/HighFreq::calc_var(re_turn)/lagg
   else NULL
 })  # end sapply
 vr_s <- sort(unlist(vr_s), decreasing=TRUE)
@@ -98,7 +98,7 @@ ser_ver <- function(input, output) {
   output$dy_graph <- renderDygraph({
     pnl_s <- da_ta()
     # Variance ratio
-    # tre_nd <- calc_var(pnl_s, lagg)/calc_var(pnl_s)/lagg
+    # tre_nd <- HighFreq::calc_var(pnl_s, lagg)/HighFreq::calc_var(pnl_s)/lagg
     # Hurst
     tre_nd <- calc_hurst_rets(pnl_s, end_p)
     # Autocorrelation

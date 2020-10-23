@@ -86,14 +86,14 @@ ser_ver <- shiny::shinyServer(function(input, output) {
 
     # Prepare data
     oh_lc <- get(sym_bol, data_env)
-    clo_se <- log(quantmod::Cl(oh_lc))
-    star_t <- as.numeric(clo_se[1, ])
+    clos_e <- log(quantmod::Cl(oh_lc))
+    star_t <- as.numeric(clos_e[1, ])
     rang_e <- (log(quantmod::Hi(oh_lc)) - log(quantmod::Lo(oh_lc)))
     # Run model
     pnl_s <- backtest_zscores(oh_lc, look_back=look_back, lagg=lagg, thresh_old=thresh_old, co_eff=co_eff)
     position_s <- pnl_s[ ,"positions"]
     pnl_s <- star_t + cumsum(pnl_s[ ,"pnls"])
-    pnl_s <- cbind(clo_se, pnl_s, clo_se + co_eff*position_s*rang_e)
+    pnl_s <- cbind(clos_e, pnl_s, clos_e + co_eff*position_s*rang_e)
     colnames(pnl_s) <- c(sym_bol, "Strategy", "Positions")
     pnl_s
   })  # end reactive code

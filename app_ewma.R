@@ -91,8 +91,8 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # com_bined <- cbind(re_turns, -na.omit(re_turns2))
     # which_na <- which(is.na(com_bined$VXX))
     # com_bined$VXX[which_na] <- com_bined$SVXY[which_na]
-    # cl_ose <- cumprod(1+rowMeans(com_bined))
-    # cl_ose <- quantmod::Cl(oh_lc)
+    # clos_e <- cumprod(1+rowMeans(com_bined))
+    # clos_e <- quantmod::Cl(oh_lc)
     
     # sum(is.na(com_bined))
     # head(com_bined)

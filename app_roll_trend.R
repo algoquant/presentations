@@ -72,7 +72,7 @@ inter_face <- shiny::fluidPage(
   fluidRow(
     # Input end points interval
     column(width=3, selectInput("inter_val", label="End points Interval",
-                choices=c("days", "weeks", "months", "years"), selected="weeks")),
+                choices=c("days", "weeks", "months", "years"), selected="months")),
     # Input look-back interval
     column(width=3, sliderInput("look_back", label="Lookback interval",
                                 min=1, max=350, value=55, step=1)),

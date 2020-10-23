@@ -37,9 +37,9 @@ sym_bol <- rutils::get_name(colnames(ta_q)[1])
 # ta_q <- ta_q[3e4:(n_rows-3e4), c("SIZE", "PRICE")]
 
 # ta_q <- ta_q[ta_q$SIZE > 200]
-# clo_se <- matrix(ta_q$PRICE, nc=1)
+# clos_e <- matrix(ta_q$PRICE, nc=1)
 # vol_ume <- matrix(ta_q$SIZE, nc=1)
-# re_turns <- rutils::diff_it(clo_se)
+# re_turns <- rutils::diff_it(clos_e)
 
 
 ## End setup code
@@ -101,22 +101,22 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # Prepare data
     # ta_q <- ta_q[ta_q$SIZE > lot_s]
     ta_q <- ta_q[quantmod::Vo(ta_q) > lot_s, ]
-    clo_se <- quantmod::Cl(ta_q)
-    # clo_se <- (max(clo_se) + 10 - clo_se)
+    clos_e <- quantmod::Cl(ta_q)
+    # clos_e <- (max(clos_e) + 10 - clos_e)
     vol_ume <- quantmod::Vo(ta_q)
-    re_turns <- rutils::diff_it(clo_se)
+    re_turns <- rutils::diff_it(clos_e)
     n_rows <- NROW(ta_q)
 
 
     if (mo_del == "VWAP") {
       # VWAP model
-      v_wap <- HighFreq::roll_sum(t_series=clo_se*vol_ume, look_back=look_back)
+      v_wap <- HighFreq::roll_sum(t_series=clos_e*vol_ume, look_back=look_back)
       volume_rolling <- HighFreq::roll_sum(t_series=vol_ume, look_back=look_back)
       v_wap <- v_wap/volume_rolling
       v_wap[is.na(v_wap)] <- 0
       # Calculate VWAP indicator
-      indic_long <- ((clo_se - v_wap) > thresh_old)
-      indic_short <- ((clo_se - v_wap) < (-thresh_old))
+      indic_long <- ((clos_e - v_wap) > thresh_old)
+      indic_short <- ((clos_e - v_wap) < (-thresh_old))
       # End VWAP model
     } else if (mo_del == "Hampel") {
       # Hampel model
@@ -134,7 +134,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     } else if (mo_del == "ZScore") {
       # Z-Score regression model
       de_sign <- matrix(1:n_rows, nc=1)
-      sig_nal <- HighFreq::roll_zscores(res_ponse=clo_se, de_sign=de_sign, look_back=look_back)
+      sig_nal <- HighFreq::roll_zscores(res_ponse=clos_e, de_sign=de_sign, look_back=look_back)
       colnames(sig_nal) <- "sig_nal"
       sig_nal[1:look_back] <- 0
       sig_nal[is.infinite(sig_nal)] <- 0
@@ -154,7 +154,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     position_s <- zoo::na.locf(position_s, na.rm=FALSE)
     position_s <- rutils::lag_it(position_s, lagg=1)
     pnl_s <- cumsum(co_eff*re_turns*position_s)
-    pnl_s <- cbind(clo_se, pnl_s)
+    pnl_s <- cbind(clos_e, pnl_s)
     # in_dex <- seq.POSIXt(Sys.time()-NROW(pnl_s)+1, Sys.time(), by=1)
     # pnl_s <- xts::xts(coredata(pnl_s), in_dex)
     colnames(pnl_s) <- c(sym_bol, "strategy")

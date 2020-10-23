@@ -39,13 +39,13 @@ ser_ver <- function(input, output) {
     lamb_da <- input$lamb_da
     wid_th <- input$wid_th
     # calculate close prices
-    cl_ose <- quantmod::Cl(rutils::etf_env$VTI["2007/2010"])
+    clos_e <- quantmod::Cl(rutils::etf_env$VTI["2007/2010"])
     # calculate EWMA prices
     weight_s <- exp(-lamb_da*(1:wid_th))
     weight_s <- weight_s/sum(weight_s)
-    ew_ma <- filter(cl_ose, filter=weight_s, sides=1)
+    ew_ma <- filter(clos_e, filter=weight_s, sides=1)
     ew_ma[1:(wid_th-1)] <- ew_ma[wid_th]
-    ew_ma <- xts(cbind(cl_ose, ew_ma), order.by=index(cl_ose))
+    ew_ma <- xts(cbind(clos_e, ew_ma), order.by=index(clos_e))
     colnames(ew_ma) <- c("VTI", "VTI_EWMA")
     ew_ma  # return data for plotting
   })  # end reactive data

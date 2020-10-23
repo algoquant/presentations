@@ -122,9 +122,9 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     oh_lc <- com_bo[, paste(symbol_signal, c("Open", "High", "Low", "Close"), sep=".")]
     oh_lc <- na.omit(oh_lc)
     in_dex <- zoo::index(oh_lc)
-    clo_se <- Cl(oh_lc)
-    close_num <- as.numeric(clo_se)
-    # re_turns <- rutils::diff_it(clo_se)
+    clos_e <- Cl(oh_lc)
+    close_num <- as.numeric(clos_e)
+    # re_turns <- rutils::diff_it(clos_e)
     op_en <- Op(oh_lc)
     hi_gh <- Hi(oh_lc)
     hi_gh <- as.numeric(hi_gh)
@@ -146,9 +146,9 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     
     
     # Set up data for trading
-    clo_se <- com_bo[in_dex, paste(symbol_asset, "Close", sep=".")]
-    clo_se <- zoo::na.locf(clo_se, fromLast=TRUE)
-    re_turns <- rutils::diff_it(clo_se)
+    clos_e <- com_bo[in_dex, paste(symbol_asset, "Close", sep=".")]
+    clos_e <- zoo::na.locf(clos_e, fromLast=TRUE)
+    re_turns <- rutils::diff_it(clos_e)
 
     ## Simulate strategy
     
@@ -169,8 +169,8 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     
     # Calculate pnl_s
     pnl_s <- cumsum(position_s*re_turns)
-    pnl_s <- cbind(clo_se, pnl_s)#[xts::endpoints(pnl_s, on="days")]
-    # pnl_s <- xts::to.daily(cbind(clo_se, pnl_s))
+    pnl_s <- cbind(clos_e, pnl_s)#[xts::endpoints(pnl_s, on="days")]
+    # pnl_s <- xts::to.daily(cbind(clos_e, pnl_s))
     # colnames(pnl_s) <- c("asset", "strategy")
     colnames(pnl_s) <- c(symbol_asset, "strategy")
     pnl_s
@@ -180,18 +180,18 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # close_low_count <- (close_num == max_min[, 2])
     
     # calculate signal
-    # sig_nal <- clo_se
+    # sig_nal <- clos_e
     # trending signal
-    # signal_trend <- calc_signal(oh_lc=oh_lc, clo_se=close_num,
+    # signal_trend <- calc_signal(oh_lc=oh_lc, clos_e=close_num,
     #                             de_sign=de_sign,
     #                             look_short=look_short, look_long=look_long, high_freq=FALSE)
-    # signal_trend <- calc_ma(oh_lc=oh_lc, clo_se=close_num,
+    # signal_trend <- calc_ma(oh_lc=oh_lc, clos_e=close_num,
     #                         de_sign=de_sign,
     #                         look_back=look_long, high_freq=FALSE)
     
     # mean reverting signal
     # signal_revert <- oh_lc[, 1]  # dummy signal
-    # signal_revert <- calc_signal(oh_lc=oh_lc, clo_se=close_num,
+    # signal_revert <- calc_signal(oh_lc=oh_lc, clos_e=close_num,
     #                             de_sign=de_sign,
     #                             look_short=look_short)
     # signal_revert <- HighFreq::roll_zscores(res_ponse=close_num, 
@@ -218,7 +218,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # position_s <- rutils::lag_it(position_s, lagg=lagg)
 
     # trending signal
-    # sig_nal <- HighFreq::roll_zscores(res_ponse=clo_se, 
+    # sig_nal <- HighFreq::roll_zscores(res_ponse=clos_e, 
     #                         de_sign=de_sign, 
     #                         look_back=look_long)
     # sig_nal[1:look_long, ] <- 0
@@ -251,12 +251,12 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     cap_tion <- paste("Contrarian Strategy for", col_names[1], "Using OHLC Technical Indicators")
     
     # plot daily closing prices
-    # dygraphs::dygraph(cbind(clo_se, da_ta())[endpoints(clo_se, on="days")], main=cap_tion) %>%
+    # dygraphs::dygraph(cbind(clos_e, da_ta())[endpoints(clos_e, on="days")], main=cap_tion) %>%
       # plot daily closing ES1 prices
       # dygraphs::dygraph(da_ta(), main=cap_tion) %>%
       dygraphs::dygraph(da_ta(), main=cap_tion) %>%
       # plot a few days with all the minute bars
-      # dygraphs::dygraph(cbind(clo_se, da_ta())["2018-02-01/2018-02-07"], main=cap_tion) %>%
+      # dygraphs::dygraph(cbind(clos_e, da_ta())["2018-02-01/2018-02-07"], main=cap_tion) %>%
       # plot a few days with all the ES1 minute bars
       # dygraphs::dygraph(cbind(Cl(ohlc_trade), da_ta())["2018-02-01/2018-02-07"], main=cap_tion) %>%
       # dyAxis("y", label="asset", independentTicks=TRUE) %>%

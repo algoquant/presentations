@@ -85,14 +85,14 @@ ser_ver <- shiny::shinyServer(function(input, output) {
 
     # Prepare data
     oh_lc <- get(sym_bol, data_env)
-    clo_se <- log(quantmod::Cl(oh_lc))
-    star_t <- as.numeric(clo_se[1, ])
+    clos_e <- log(quantmod::Cl(oh_lc))
+    star_t <- as.numeric(clos_e[1, ])
     # Run model and calculate strategy profits and losses
     pnl_s <- backtest_ewma(oh_lc, look_back=look_back, lagg=lagg, thresh_old=thresh_old, co_eff=co_eff)
     # position_s <- pnl_s[ ,"positions"]
     v_wap <- pnl_s[ ,"vwap"]
     pnl_s <- star_t + cumsum(pnl_s[ ,"pnls"])
-    pnl_s <- cbind(clo_se, pnl_s, v_wap)
+    pnl_s <- cbind(clos_e, pnl_s, v_wap)
     colnames(pnl_s) <- c(sym_bol, "strategy", "vwap")
     pnl_s
   })  # end reactive code

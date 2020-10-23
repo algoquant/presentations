@@ -45,8 +45,8 @@ inter_face <- shiny::fluidPage(
     # # input the op_en-hi_gh beta
     # column(width=4, sliderInput("beta_ophi", label="op_en-hi_gh beta:",
     #                             min=-5.0, max=5.0, value=-5.0, step=0.1)),
-    # # input the clo_se-hi_gh beta
-    # column(width=4, sliderInput("beta_clhi", label="clo_se-hi_gh beta:",
+    # # input the clos_e-hi_gh beta
+    # column(width=4, sliderInput("beta_clhi", label="clos_e-hi_gh beta:",
     #                             min=-5.0, max=5.0, value=-5.0, step=0.1)),
     # input the look-back interval
     column(width=4, sliderInput("look_back", label="look-back:",
@@ -96,7 +96,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
   
   # return the dygraph plot to output argument
   output$dygraph <- renderDygraph({
-    dygraphs::dygraph(cbind(clo_se, da_ta()), main="OHLC Technicals Strategy") %>%
+    dygraphs::dygraph(cbind(clos_e, da_ta()), main="OHLC Technicals Strategy") %>%
       dyAxis("y", label="VTI", independentTicks=TRUE) %>%
       dyAxis("y2", label="strategy", independentTicks=TRUE) %>%
       dySeries("strategy", axis="y2", col=c("blue", "red"))
