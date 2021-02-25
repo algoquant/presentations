@@ -34,25 +34,32 @@ in_dex <- xts(cumsum(re_turns %*% rep(1/sqrt(n_weights), n_weights)), index(re_t
 inter_face <- shiny::fluidPage(
   titlePanel("Rolling Portfolio Optimization Strategy for S&P500 Sub-portfolio"),
   
-  # create single row with two slider inputs
+  fluidRow(
+    # The Shiny App is re-calculated when the actionButton is clicked and the re_calculate variable is updated
+    column(width=12, 
+           h4("Click the button 'Recalculate the Model' to re-calculate the Shiny App."),
+           actionButton("re_calculate", "Recalculate the Model"))
+  ),  # end fluidRow
+  
+  # Create single row with two slider inputs
   fluidRow(
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=4, numericInput("max_eigen", "Number of eigenvalues:", value=5)),
+    column(width=4, numericInput("max_eigen", "Number of eigenvalues:", value=45)),
     # Input end points interval
     column(width=4, selectInput("inter_val", label="End points Interval",
                 choices=c("weeks", "months", "years"), selected="months")),
     # Input look-back interval
-    column(width=4, sliderInput("look_back", label="Lookback interval:",
+    column(width=4, sliderInput("look_back", label="Look-back interval:",
                                 min=1, max=30, value=12, step=1)),
     # Input end_stub interval
     # column(width=4, sliderInput("end_stub", label="End_stub interval:",
     #                             min=1, max=90, value=30, step=1)),
     # Input the shrinkage intensity
     column(width=4, sliderInput("al_pha", label="Shrinkage intensity:",
-                                min=0.01, max=0.99, value=0.1, step=0.05))
+                                min=0.01, max=0.99, value=0.8, step=0.05))
   ),  # end fluidRow
   
-  # create output plot panel
+  # Create output plot panel
   mainPanel(dygraphOutput("dy_graph"), width=12)
 )  # end fluidPage interface
 
@@ -60,14 +67,16 @@ inter_face <- shiny::fluidPage(
 ## Define the server code
 ser_ver <- function(input, output) {
 
-  # re-calculate the data and rerun the model
+  # Recalculate the data and rerun the model
   da_ta <- reactive({
-    # get model parameters from input argument
-    inter_val <- input$inter_val
-    max_eigen <- input$max_eigen
-    look_back <- input$look_back
+    # Get model parameters from input argument
+    inter_val <- isolate(input$inter_val)
+    max_eigen <- isolate(input$max_eigen)
+    al_pha <- isolate(input$al_pha)
+    look_back <- isolate(input$look_back)
     # end_stub <- input$end_stub
-    al_pha <- input$al_pha
+    # Model is re-calculated when the re_calculate variable is updated
+    input$re_calculate
     
     # Define end points
     end_points <- rutils::calc_endpoints(re_turns, inter_val=inter_val)
@@ -76,7 +85,7 @@ ser_ver <- function(input, output) {
     len_gth <- NROW(end_points)
     # Define start_points
     start_points <- c(rep_len(1, look_back-1), end_points[1:(len_gth-look_back+1)])
-    # rerun the model
+    # Rerun the model
     pnl_s <- back_test(ex_cess=re_turns, 
                         re_turns=re_turns,
                         start_points=start_points-1,
@@ -92,7 +101,7 @@ ser_ver <- function(input, output) {
     pnl_s[c(1, end_points), ]
   })  # end reactive code
   
-  # return to output argument a dygraph plot with two y-axes
+  # Return to output argument a dygraph plot with two y-axes
   output$dy_graph <- renderDygraph({
     col_names <- colnames(da_ta())
     dygraphs::dygraph(da_ta(), main="Rolling Portfolio Optimization Strategy") %>%

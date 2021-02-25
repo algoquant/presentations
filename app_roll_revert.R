@@ -34,7 +34,7 @@ in_dex <- xts(cumsum(rowMeans(re_turns)), index(re_turns))
 
 ## Create elements of the user interface
 inter_face <- shiny::fluidPage(
-  titlePanel("Rolling Portfolio Optimization Strategy for S&P500 Sub-portfolio"),
+  titlePanel("Rolling Portfolio Optimization Strategy for S&P500 Portfolio"),
   
   fluidRow(
     # The Shiny App is re-calculated when the actionButton is clicked and the re_calculate variable is updated

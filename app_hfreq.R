@@ -29,7 +29,7 @@ file_name <- "goog_tick_trades_2020_02_10_2020_05_10_biglots"
 # in_dex <- paste(ta_q$DATE, ta_q$TIME_M)
 # in_dex <- strptime(in_dex, "%Y%m%d %H:%M:%OS")
 # in_dex <- as.POSIXct(in_dex)
-load(file=paste0("C:/Develop/data/", file_name, ".RData"))
+load(file=paste0("C:/Develop/data/TwoSig/", file_name, ".RData"))
 
 # sym_bol <- ta_q$SYM_ROOT[1]
 sym_bol <- rutils::get_name(colnames(ta_q)[1])
@@ -59,7 +59,7 @@ inter_face <- shiny::fluidPage(
     # column(width=3, selectInput("sym_bol", label="Symbol",
     #                             choices=sym_bols, selected=sym_bol)),
     # Input model type
-    column(width=3, selectInput("mo_del", label="model",
+    column(width=3, selectInput("model_type", label="model",
                                 choices=c("VWAP", "Hampel", "ZScore"), selected="ZScore")),
     # Input look-back interval
     column(width=3, sliderInput("look_back", label="Lookback interval",
@@ -88,7 +88,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
   # re-calculate the data and rerun the model
   da_ta <- reactive({
     # Get model parameters from input argument
-    mo_del <- isolate(input$mo_del)
+    model_type <- isolate(input$model_type)
     look_back <- isolate(input$look_back)
     lagg <- isolate(input$lagg)
     thresh_old <- isolate(input$thresh_old)
@@ -108,7 +108,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     n_rows <- NROW(ta_q)
 
 
-    if (mo_del == "VWAP") {
+    if (model_type == "VWAP") {
       # VWAP model
       v_wap <- HighFreq::roll_sum(t_series=clos_e*vol_ume, look_back=look_back)
       volume_rolling <- HighFreq::roll_sum(t_series=vol_ume, look_back=look_back)
@@ -118,7 +118,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
       indic_long <- ((clos_e - v_wap) > thresh_old)
       indic_short <- ((clos_e - v_wap) < (-thresh_old))
       # End VWAP model
-    } else if (mo_del == "Hampel") {
+    } else if (model_type == "Hampel") {
       # Hampel model
       medi_an <- TTR::runMedian(re_turns, n=look_back)
       medi_an[1:look_back] <- 1
@@ -131,7 +131,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
       indic_long <- (z_scores > thresh_old*mad_zscores)
       indic_short <- (z_scores < (-thresh_old*mad_zscores))
       # End Hampel model
-    } else if (mo_del == "ZScore") {
+    } else if (model_type == "ZScore") {
       # Z-Score regression model
       de_sign <- matrix(1:n_rows, nc=1)
       sig_nal <- HighFreq::roll_zscores(res_ponse=clos_e, de_sign=de_sign, look_back=look_back)

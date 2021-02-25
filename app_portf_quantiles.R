@@ -1,7 +1,7 @@
 ##############################
-# This is a shiny app for simulating a rolling portfolio 
-# optimization strategy with filtering of returns.
-# It uses HighFreq::back_test()
+# This is a shiny app for simulating a momentum strategy 
+# using the percentiles of trailing returns.
+# It's written in pure R and does not use HighFreq::back_test()
 # 
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -17,16 +17,22 @@ library(HighFreq)
 # Source the model function
 # Source("C:/Develop/lecture_slides/scripts/roll_portf_new.R")
 # max_eigen <- 2
-load("C:/Develop/lecture_slides/data/sp500_prices.RData")
-re_turns <- returns_100["2000/"]
-sym_bols <- colnames(re_turns)
-n_cols <- NCOL(re_turns)
+load("C:/Develop/lecture_slides/data/sp500_returns.RData")
+ret_s <- returns_100["2000/"]
+sym_bols <- colnames(ret_s)
+n_cols <- NCOL(ret_s)
+# Copy over NA values
+ret_s[1, is.na(ret_s[1, ])] <- 0
+ret_s <- zoo::na.locf(ret_s, na.rm=FALSE)
 # Calculate returns on equal weight portfolio
-index_rets <- xts(re_turns %*% rep(1/n_cols, n_cols), index(re_turns))
-in_dex <- cumsum(index_rets)
+in_dex <- rowMeans(ret_s)
+std_dev <- sd(in_dex[in_dex<0])
+# sharp_e <- sqrt(252)*mean(in_dex)/std_dev
+in_dex <- xts(in_dex, index(ret_s))
+
 # Calculate vector of monthly end points and start points
 look_back <- 12
-end_points <- rutils::calc_endpoints(re_turns, inter_val="months")
+end_points <- rutils::calc_endpoints(ret_s, inter_val="months")
 end_points[end_points<2*n_cols] <- 2*n_cols
 n_rows <- NROW(end_points)
 # sliding window
@@ -36,7 +42,7 @@ start_points <- c(rep_len(1, look_back-1), end_points[1:(n_rows-look_back+1)])
 # risk_free is the daily risk-free rate
 risk_free <- 0.03/252
 # Calculate daily excess returns 
-ex_cess <- re_turns - risk_free
+ex_cess <- ret_s - risk_free
 
 percen_tile <- 0.1
 quan_tile <- round(percen_tile*n_cols)
@@ -59,7 +65,7 @@ inter_face <- shiny::fluidPage(
   fluidRow(
     # Input end points interval
     column(width=3, selectInput("inter_val", label="End points Interval",
-                                choices=c("days", "weeks", "months", "years"), selected="days")),
+                                choices=c("days", "weeks", "months", "years"), selected="weeks")),
     # Input look-back interval
     column(width=3, sliderInput("look_back", label="Lookback interval",
                                 min=2, max=70, value=5, step=1)),
@@ -110,7 +116,7 @@ ser_ver <- function(input, output) {
     input$re_calculate
     
     # Define end points
-    end_points <- rutils::calc_endpoints(re_turns, inter_val=inter_val)
+    end_points <- rutils::calc_endpoints(ret_s, inter_val=inter_val)
     # end_points <- ifelse(end_points<(n_cols+1), n_cols+1, end_points)
     end_points <- end_points[end_points > (n_cols+1)]
     n_rows <- NROW(end_points)
@@ -124,23 +130,23 @@ ser_ver <- function(input, output) {
     # weight_s <- exp(-lamb_da*1:look_back)
     # weight_s <- weight_s/sum(weight_s)
     # weight_s <- matrix(weight_s, nc=1)
-    # ex_cess <- HighFreq::roll_conv(re_turns, weight_s=weight_s)
+    # ex_cess <- HighFreq::roll_conv(ret_s, weight_s=weight_s)
     # ex_cess <- rutils::lag_it(ex_cess, lagg=look_lag)
     
     # Rerun the model
     pnl_s <- lapply(2:n_rows, function(it) {
       # Subset the ex_cess returns
-      ex_cess <- ex_cess[start_points[it-1]:end_points[it-1], ]
+      sub_excess <- ex_cess[start_points[it-1]:end_points[it-1], ]
       # Calculate the signal as volatility
-      std_dev <- sapply(ex_cess, sd)
+      std_dev <- sapply(sub_excess, sd)
       # sig_nal <- std_dev
       # Calculate the signal as Sharpe ratio
-      sig_nal <- ifelse((std_dev == 0), 0, colSums(ex_cess)/std_dev)
+      sig_nal <- ifelse(is.na(std_dev) | (std_dev == 0), 0, colSums(sub_excess)/std_dev)
       # Calculate the signal as beta
-      # index_rets <- index_rets[start_points[it-1]:end_points[it-1], ]
-      # index_rets <- (index_rets - mean(index_rets))
-      # ex_cess <- (ex_cess - colMeans(ex_cess))
-      # sig_nal <- mean(drop(coredata(index_rets))*ex_cess)/sapply(ex_cess, var)
+      # in_dex <- in_dex[start_points[it-1]:end_points[it-1], ]
+      # in_dex <- (in_dex - mean(in_dex))
+      # sub_excess <- (sub_excess - colMeans(sub_excess))
+      # sig_nal <- mean(drop(coredata(in_dex))*sub_excess)/sapply(sub_excess, var)
       ## Calculate the portfolio weights as ranks
       # weight_s <- fac_tor*sig_nal
       ## Calculate the portfolio weights as quantiles
@@ -152,19 +158,21 @@ ser_ver <- function(input, output) {
       weight_s[or_der[(n_cols-quan_tile+1):n_cols]] <- fac_tor
       # Scale the weights
       weight_s <- weight_s/sum(abs(weight_s))
-      # Subset the re_turns
-      re_turns <- re_turns[(end_points[it-1]+1):end_points[it], ]
+      # Subset the ret_s
+      sub_returns <- ret_s[(end_points[it-1]+1):end_points[it], ]
       # Calculate the out-of-sample portfolio returns
-      xts(re_turns %*% weight_s, index(re_turns))
+      xts(sub_returns %*% weight_s, index(sub_returns))
     }  # end anonymous function
     )  # end lapply
     
     # Calculate cumulative portfolio returns
     pnl_s <- rutils::do_call(rbind, pnl_s)
-    pnl_s <- cumsum(pnl_s)
-    
+    pnl_s <- std_dev*pnl_s/sd(pnl_s[pnl_s<0])
     pnl_s <- cbind(pnl_s, in_dex[index(pnl_s)])
-    colnames(pnl_s) <- c("Strategy", "Index")
+    sharp_e <- sqrt(252)*sapply(pnl_s, function(x) mean(x)/sd(x[x<0]))
+    sharp_e <- round(sharp_e, 3)
+    pnl_s <- cumsum(pnl_s)
+    colnames(pnl_s) <- paste0(c("Strategy SR=", "Index SR="), sharp_e)
     # pnl_s[c(1, end_points), ]
     pnl_s
   })  # end reactive code

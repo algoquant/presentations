@@ -6,7 +6,7 @@
 # Just press the "Run App" button on upper right of this panel.
 ##############################
 
-# Best parameters
+# Best parameters - these are stale and don't work
 # typ_e inter_val look_back max_eigen al_pha
 # max_sharpe  days 15-35  6-7
 # min_var  days 15-35  6-7
@@ -51,22 +51,22 @@ library(dygraphs)
 # sym_bols <- c("VEU", "GLD", "EEM", "DBC", "VYM", "USO", "IWB", "IWD", "VTI")
 # sym_bols <- c("TLT", "IEF", "USO", "GLD", "DBC", "XLY", "XLI", "XLB", "XLV", "XLE", "XLU", "XLK", "XLP", "IWD")
 
-# sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "VEU", "SVXY", "VXX")
+sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "VEU", "SVXY", "VXX")
 
-# n_weights <- NROW(sym_bols)
-# re_turns <- rutils::etf_env$re_turns[, sym_bols]
+n_weights <- NROW(sym_bols)
+re_turns <- rutils::etf_env$re_turns[, sym_bols]
 # Select rows with IEF data
 # re_turns <- re_turns[index(rutils::etf_env$IEF)]
 # 
 # Or
 # Calculate the first non-NA values and their positions.
-# first_non_na <- sapply(re_turns, function(x_ts) {
-#   match(TRUE, !is.na(x_ts))
-# })  # end sapply
+first_non_na <- sapply(re_turns, function(x_ts) {
+  match(TRUE, !is.na(x_ts))
+})  # end sapply
 # Find first row containing at least 3 non-NA values.
-# sort(first_non_na)[3]
+sort(first_non_na)[3]
 # Select rows containing at least 3 non-NA values.
-# re_turns <- re_turns[(sort(first_non_na)[3]):NROW(re_turns)]
+re_turns <- re_turns[(sort(first_non_na)[3]):NROW(re_turns)]
 # re_turns <- re_turns[-(1:(sort(first_non_na)[7]-1))]
 
 
@@ -85,10 +85,10 @@ library(dygraphs)
 
 ############
 # S&P100
-load("C:/Develop/lecture_slides/data/sp500_returns.RData")
-re_turns <- re_turns["2000-01-01/"]
-sym_bols <- colnames(re_turns)
-n_weights <- NROW(sym_bols)
+# load("C:/Develop/lecture_slides/data/sp500_returns.RData")
+# re_turns <- re_turns["2000-01-01/"]
+# sym_bols <- colnames(re_turns)
+# n_weights <- NROW(sym_bols)
 
 
 # Copy over NA values with zeros
@@ -124,7 +124,14 @@ in_dex <- cumsum(in_dex)
 inter_face <- shiny::fluidPage(
   titlePanel("Rolling Portfolio Optimization Strategy for ETFs"),
   
-  # create single row with two slider inputs
+  fluidRow(
+    # The Shiny App is re-calculated when the actionButton is clicked and the re_calculate variable is updated
+    column(width=12, 
+           h4("Click the button 'Recalculate the Model' to re-calculate the Shiny App."),
+           actionButton("re_calculate", "Recalculate the Model"))
+  ),  # end fluidRow
+  
+  # Create single row with two slider inputs
   fluidRow(
     # Input end points interval
     column(width=3, selectInput("inter_val", label="End points Interval",
@@ -145,13 +152,13 @@ inter_face <- shiny::fluidPage(
     # Input the quantile
     column(width=3, sliderInput("pro_b", label="Confidence level",
                                 min=0.01, max=0.49, value=0.25, step=0.01)),
-    # column(width=3, numericInput("co_eff", "Weight coefficient:", value=1)),
-    column(width=3, selectInput("co_eff", label="Weight coefficient",
-                                choices=c(1, -1), selected=1)),
-    actionButton("re_calculate", "Recalculate the Model")
+    # If co_eff=1 then trending, If co_eff=(-1) then contrarian
+    # column(width=3, numericInput("co_eff", "Trend coefficient:", value=1)),
+    column(width=3, selectInput("co_eff", label="Trend coefficient",
+                                choices=c(1, -1), selected=1))
   ),  # end fluidRow
   
-  # create output plot panel
+  # Create output plot panel
   mainPanel(dygraphOutput("dy_graph"), width=12)
 )  # end fluidPage interface
 
