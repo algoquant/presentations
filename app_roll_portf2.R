@@ -73,7 +73,7 @@ ser_ver <- function(input, output) {
   })  # end reactive code
   
   # return the dygraph plot to output argument
-  output$dy_graph <- renderDygraph({
+  output$dy_graph <- dygraphs::renderDygraph({
     dygraph(da_ta(), main="Rolling Portfolio Optimization Strategy") %>%
       dySeries("strategy", label="strategy", strokeWidth=1, color="red")
   })  # end output plot

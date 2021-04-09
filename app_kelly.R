@@ -139,7 +139,7 @@ ser_ver <- function(input, output) {
     
         
     # Calculate position_s and pnls from z-scores and ran_ge
-    # position_s <- rep(NA_real_, NROW(price_s))
+    # position_s <- rep(NA_integer_, NROW(price_s))
     # position_s[1] <- 0
     # thresh_old <- 3*mad(z_scores)
     # position_s <- ifelse(z_scores > thresh_old, -1, position_s)
@@ -157,7 +157,7 @@ ser_ver <- function(input, output) {
   })  # end reactive code
   
   # Return to the output argument a dygraph plot with two y-axes
-  output$dy_graph <- renderDygraph({
+  output$dy_graph <- dygraphs::renderDygraph({
     col_names <- colnames(da_ta())
     dygraphs::dygraph(da_ta(), main=cap_tion) %>%
       dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%

@@ -78,7 +78,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
   })  # end reactive code
   
   # return the dygraph plot to output argument
-  output$dygraph <- renderDygraph({
+  output$dygraph <- dygraphs::renderDygraph({
     dygraphs::dygraph(cbind(clos_e, da_ta()), main="OHLC Technicals Strategy") %>%
       dyAxis("y", label="VTI", independentTicks=TRUE) %>%
       dyAxis("y2", label="strategy", independentTicks=TRUE) %>%

@@ -246,7 +246,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
   })  # end reactive code
   
   # return the dygraph plot to output argument
-  output$dygraph <- renderDygraph({
+  output$dygraph <- dygraphs::renderDygraph({
     col_names <- colnames(da_ta())
     cap_tion <- paste("Contrarian Strategy for", col_names[1], "Using OHLC Technical Indicators")
     

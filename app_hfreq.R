@@ -110,8 +110,8 @@ ser_ver <- shiny::shinyServer(function(input, output) {
 
     if (model_type == "VWAP") {
       # VWAP model
-      v_wap <- HighFreq::roll_sum(t_series=clos_e*vol_ume, look_back=look_back)
-      volume_rolling <- HighFreq::roll_sum(t_series=vol_ume, look_back=look_back)
+      v_wap <- HighFreq::roll_sum(se_ries=clos_e*vol_ume, look_back=look_back)
+      volume_rolling <- HighFreq::roll_sum(se_ries=vol_ume, look_back=look_back)
       v_wap <- v_wap/volume_rolling
       v_wap[is.na(v_wap)] <- 0
       # Calculate VWAP indicator
@@ -163,7 +163,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
   })  # end reactive code
   
   # return the dygraph plot to output argument
-  output$dy_graph <- renderDygraph({
+  output$dy_graph <- dygraphs::renderDygraph({
     # plot(coredata(da_ta()), t="l")
     col_names <- colnames(da_ta())
     dygraphs::dygraph(da_ta(), main=paste(col_names[1], "Strategy")) %>%

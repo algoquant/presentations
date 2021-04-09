@@ -51,7 +51,7 @@ ser_ver <- function(input, output) {
   })  # end reactive data
   
   # Define the output plot
-  output$dygraph <- renderDygraph({
+  output$dygraph <- dygraphs::renderDygraph({
     dygraph(da_ta(), main="VTI prices") %>%
       dySeries("VTI", name="VTI", strokeWidth=1.5, color="blue") %>%
       dySeries("VTI_EWMA", name="VTI_EWMA", strokeWidth=1.5, color="red")

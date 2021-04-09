@@ -223,7 +223,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
   })  # end reactive code
   
   # return the dygraph plot to output argument
-  output$dygraph <- renderDygraph({
+  output$dygraph <- dygraphs::renderDygraph({
     # plot daily closing prices
     # dygraphs::dygraph(cbind(clos_e, da_ta())[endpoints(clos_e, on="days")], main=paste(sig_nal, "Strategy Using OHLC Technical Indicators")) %>%
       # plot daily closing ES1 prices

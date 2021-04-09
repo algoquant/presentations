@@ -83,7 +83,7 @@ ser_ver <- function(input, output) {
   ## Create plot and return it to the output argument
   # The function reactive() accepts a block of expressions
   # which calculate the model, and returns the model output.
-  output$plot_portf <- renderPlot({
+  output$plot_portf <- shiny::renderPlot({
     
     # Extract model parameters from the argument "input"
     at_tach <- input$at_tach

@@ -34,7 +34,7 @@ server <- shiny::shinyServer(function(input, output) {
             level = as.numeric(input$interval))
   })
   
-  output$dygraph <- renderDygraph({
+  output$dygraph <- dygraphs::renderDygraph({
     dygraph(predicted(), main = "Predicted Deaths/Month") %>%
       dySeries(c("lwr", "fit", "upr"), label = "Deaths") %>%
       dyOptions(drawGrid = input$showgrid)

@@ -99,7 +99,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
   })  # end reactive code
   
   # return the dygraph plot to output argument
-  output$dy_graph <- renderDygraph({
+  output$dy_graph <- dygraphs::renderDygraph({
     col_names <- colnames(da_ta())
     dygraphs::dygraph(da_ta(), main=paste(col_names[1], "Strategy")) %>%
       dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%

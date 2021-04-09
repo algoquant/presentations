@@ -81,7 +81,7 @@ serv_er <- function(input, output) {
     }  # end run_strategy
     
     
-    output$distPlot <- renderPlot({
+    output$distPlot <- shiny::renderPlot({
         # Extract from input the strategy model parameters
         look_back <- isolate(input$look_back)
         al_pha <- isolate(input$al_pha)
@@ -95,7 +95,7 @@ serv_er <- function(input, output) {
         pnl_s <- cbind(pnl_s, in_dex*max(pnl_s)/max(in_dex))
         colnames(pnl_s) <- c("Strategy", "Index")
         pnl_s[c(1, end_points), ]
-        # output$dy_graph <- renderDygraph({
+        # output$dy_graph <- dygraphs::renderDygraph({
         #     col_names <- colnames(da_ta())
         #     dygraphs::dygraph(da_ta(), main="Rolling Portfolio Optimization Strategy") %>%
         #         dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%

@@ -95,7 +95,7 @@ ser_ver <- function(input, output) {
   })  # end reactive code
   
   # return to output argument a dygraph plot with two y-axes
-  output$dy_graph <- renderDygraph({
+  output$dy_graph <- dygraphs::renderDygraph({
     pnl_s <- da_ta()
     # Variance ratio
     # tre_nd <- HighFreq::calc_var(pnl_s, lagg)/HighFreq::calc_var(pnl_s)/lagg
@@ -115,7 +115,7 @@ ser_ver <- function(input, output) {
     #   dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=1, col="blue")
   })  # end output plot
   
-  # output$dygraph <- renderDygraph({
+  # output$dygraph <- dygraphs::renderDygraph({
   #   dygraph(da_ta(), main="Rolling Portfolio Optimization Strategy") %>%
   #     dySeries("strategy", label="strategy", strokeWidth=1, color="red")
   # })  # end output plot

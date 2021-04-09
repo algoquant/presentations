@@ -102,7 +102,7 @@ ser_ver <- function(input, output) {
   })  # end reactive code
   
   # Return to output argument a dygraph plot with two y-axes
-  output$dy_graph <- renderDygraph({
+  output$dy_graph <- dygraphs::renderDygraph({
     col_names <- colnames(da_ta())
     dygraphs::dygraph(da_ta(), main="Rolling Portfolio Optimization Strategy") %>%
       dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%

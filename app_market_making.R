@@ -117,7 +117,7 @@ ser_ver <- function(input, output) {
     xts::xts(pnl_s[end_points, col_names], index(oh_lc[end_points]))
   })  # end reactive code
 
-  output$dy_graph <- renderDygraph({
+  output$dy_graph <- dygraphs::renderDygraph({
     col_names <- colnames(da_ta())
     dygraphs::dygraph(da_ta(), main=paste0("Market Making Strategy for ", sym_bol)) %>%
       dyAxis("y", label=col_names[2], independentTicks=TRUE) %>%
@@ -125,7 +125,7 @@ ser_ver <- function(input, output) {
       dySeries(name=col_names[2], axis="y", label=col_names[2], strokeWidth=1, col="red") %>%
       dySeries(name=col_names[1], axis="y2", label=col_names[1], strokeWidth=1, col="blue")
   })  # end output plot
-  # output$plo_t <- renderPlot({
+  # output$plo_t <- shiny::renderPlot({
   #   plot(da_ta(), t="l", main="Market Making Strategy")
   # })  # end renderPlot
 

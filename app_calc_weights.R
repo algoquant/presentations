@@ -97,7 +97,7 @@ ser_ver <- function(input, output) {
   })  # end reactive code
   
   # return to output argument a dygraph plot with two y-axes
-  output$plo_t <- renderPlot({
+  output$plo_t <- shiny::renderPlot({
     plot(da_ta())
   })  # end renderPlot
   

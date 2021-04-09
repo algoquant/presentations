@@ -355,7 +355,7 @@ ser_ver <- function(input, output) {
   })  # end reactive code
   
   # Return to output argument a dygraph plot with two y-axes
-  output$dy_graph <- renderDygraph({
+  output$dy_graph <- dygraphs::renderDygraph({
     cap_tion <- da_ta()$cap_tion
     pnl_s <- da_ta()$pnl_s
     col_names <- colnames(pnl_s)

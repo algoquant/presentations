@@ -33,39 +33,40 @@ inter_face <- fluidPage(
         sidebarPanel(
             sliderInput("n_bins",
                         "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30),
+                        min=1,
+                        max=50,
+                        value=30),
             # The Shiny App is re-calculated when the actionButton is clicked and the re_calculate variable is updated
             h4("Click the button 'Recalculate plot' to re-calculate the Shiny App."),
             actionButton("re_calculate", "Recalculate plot")
         ),
 
         # Show a plot of the generated distribution
-        mainPanel(
-           plotOutput("histo_gram")
-        )
-    )
-)
+        mainPanel(plotOutput("histo_gram"))
+        
+    )  # end sidebarLayout
+    
+)  # end fluidPage
 
 # Define server code required to draw a histogram
 serv_er <- function(input, output) {
 
-    # Plot the simulated data
-    output$histo_gram <- renderPlot({
+    # Plot the histogram of the simulated data
+    output$histo_gram <- shiny::renderPlot({
         # isolate() prevents automatic re-calculation when n_bins is updated
         n_bins <- isolate(input$n_bins)
         # Model is re-calculated when the re_calculate variable is updated
         input$re_calculate
         # Calculate breaks based on input$bins from ui.R
-        break_s <- seq(min(da_ta), max(da_ta), length.out = n_bins + 1)
+        break_s <- seq(min(da_ta), max(da_ta), length.out=n_bins+1)
 
         # Plot the histogram with the specified number of breaks
-        hist(da_ta, breaks = break_s, col = "darkgray", border = "white",
+        hist(da_ta, breaks=break_s, col="darkgray", border="white",
              main="Histogram of random data")
-    })
-}
+    })  # end renderPlot
+    
+}  # end serv_er
 
 # Run the Shiny application 
-shinyApp(ui = inter_face, server = serv_er)
+shinyApp(ui=inter_face, server=serv_er)
 

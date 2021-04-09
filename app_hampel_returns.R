@@ -1,6 +1,6 @@
 ##############################
 # This is a shiny app for simulating a contrarian strategy 
-# using the Hampel filter.
+# using the Hampel filter  over returns.
 # 
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -16,39 +16,27 @@ library(dygraphs)
 
 ## VTI ETF daily bars
 # sym_bol <- "VTI"
-# price_s <- Cl(rutils::etf_env$VTI)
-
-
-## Set up S&P500 data
-# if (!("sp500_env" %in% search()))
-#   attach(sp500_env)
-if (!("sp500_env" %in% ls())) {
-  load(file="C:/Develop/lecture_slides/data/sp500.RData")
-}  # end if
-data_env <- sp500_env
-# sym_bols <- names(data_env)
-sym_bols <- c("PG", "CDNS", "YUM", "YUMC", "KHC", "SNPS", "ODFL", "CHRW", "AWK", "SO", "EA", "FIS", "DG", "BAX", "HRL", "MSFT", "XOM", "BSX", "JNJ", "CLX", "CL", "MCD", "WMT", "SBUX", "LLY", "ADM", "BIO", "XLNX", "ATVI", "DISH", "K", "SHW", "SIG", "CSCO", "INTU", "VRTX", "FB", "ORCL", "DUK", "KSS", "ROP", "AKAM", "MXIM", "TXN", "NEM", "COST", "EL", "JWN", "ACN", "FISV", "KLAC", "PFE", "TYL", "BIIB", "MCHP", "BBBY", "DRE", "PEP", "LIN", "NKE", "TROW", "LEN", "HOLX", "NVR", "UDR", "WEC", "DHI", "NI")
-sym_bol <- "YUM"
-
+# clos_e <- log(Cl(rutils::etf_env$VTI))
 
 ## SPY ETF minute bars - works really well !!!
 # sym_bol <- "SPY"
-# price_s <- Cl(HighFreq::SPY["2011"])["T09:31:00/T15:59:00"]
+# clos_e <- log(Cl(HighFreq::SPY["2011"])["T09:31:00/T15:59:00"])
 
 ## Load QM futures 5-second bars
 # sym_bol <- "ES"  # S&P500 Emini futures
-# sym_bol <- "QM"  # oil
-# load(file=paste0("C:/Develop/data/ib_data/", sym_bol, "_ohlc.RData"))
-# price_s <- Cl(oh_lc)
+sym_bol <- "QM"  # oil
+load(file=paste0("C:/Develop/data/ib_data/", sym_bol, "_ohlc.RData"))
+n_rows <- NROW(oh_lc)
+clos_e <- log(Cl(oh_lc))
 # Or random prices
-# price_s <- xts(exp(cumsum(rnorm(NROW(oh_lc)))), index(oh_lc))
+# clos_e <- xts(cumsum(rnorm(NROW(oh_lc))), index(oh_lc))
 
 ## Load combined futures data
 # com_bo <- HighFreq::SPY
 # load(file="C:/Develop/data/combined.RData")
 # sym_bol <- "UX1"
 # symbol_s <- unique(rutils::get_name(colnames(com_bo)))
-# price_s <- na.omit(com_bo[, "UX1.Close"])
+# clos_e <- log(na.omit(com_bo[, "UX1.Close"]))
 # TU1: look_back=14, thresh_old=2.0, lagg=1
 # TU1: look_back=30, thresh_old=9.2, lagg=1
 
@@ -56,9 +44,11 @@ sym_bol <- "YUM"
 ## Load VX futures daily bars
 # sym_bol <- "VX"
 # load(file="C:/Develop/data/vix_data/vix_cboe.RData")
-# price_s <- Cl(vix_env$chain_ed)
+# clos_e <- log(Cl(vix_env$chain_ed))
 
-cap_tion <- "Contrarian Strategy for S&P500 Stocks Using the Hampel Filter Over Prices"
+re_turns <- rutils::diff_it(clos_e)
+
+cap_tion <- paste("Contrarian Strategy for", sym_bol, "Using the Hampel Filter Over Returns")
 
 ## End setup code
 
@@ -69,16 +59,13 @@ inter_face <- shiny::fluidPage(
   
   fluidRow(
     # The Shiny App is re-calculated when the actionButton is clicked and the re_calculate variable is updated
-    # column(width=12, 
-    #        h4("Click the button 'Recalculate the Model' to re-calculate the Shiny App."),
-    #        actionButton("re_calculate", "Recalculate the Model"))
+    column(width=12,
+           h4("Click the button 'Recalculate the Model' to re-calculate the Shiny App."),
+           actionButton("re_calculate", "Recalculate the Model"))
   ),  # end fluidRow
   
   # Create single row with two slider inputs
   fluidRow(
-    # Input stock symbol
-    column(width=3, selectInput("sym_bol", label="Symbol",
-                                choices=sym_bols, selected=sym_bol)),
     # Input end points interval
     # column(width=3, selectInput("inter_val", label="End points Interval",
     #                             choices=c("days", "weeks", "months", "years"), selected="days")),
@@ -119,11 +106,10 @@ ser_ver <- function(input, output) {
   # Re-calculate the data and rerun the model
   da_ta <- reactive({
     # Get model parameters from input argument
-    sym_bol <- input$sym_bol
-    look_back <- input$look_back
-    lagg <- input$lagg
+    look_back <- isolate(input$look_back)
+    lagg <- isolate(input$lagg)
     # max_eigen <- isolate(input$max_eigen)
-    thresh_old <- input$thresh_old
+    thresh_old <- isolate(input$thresh_old)
     # look_lag <- isolate(input$look_lag
     # lamb_da <- isolate(input$lamb_da)
     # typ_e <- isolate(input$typ_e)
@@ -132,28 +118,25 @@ ser_ver <- function(input, output) {
     # co_eff <- as.numeric(isolate(input$co_eff))
     # bid_offer <- isolate(input$bid_offer)
     # Model is re-calculated when the re_calculate variable is updated
-    # input$re_calculate
+    input$re_calculate
 
     
     # look_back <- 11
     # half_window <- look_back %/% 2
     
-    cap_tion <- paste("Contrarian Strategy for", sym_bol, "Using the Hampel Filter Over Prices")
-
-    price_s <- log(quantmod::Cl(get(sym_bol, data_env)))
-    
     # Rerun the model
-    medi_an <- TTR::runMedian(price_s, n=look_back)
+    medi_an <- TTR::runMedian(re_turns, n=look_back)
     medi_an[1:look_back, ] <- 1
-    ma_d <- TTR::runMAD(price_s, n=look_back)
+    ma_d <- TTR::runMAD(re_turns, n=look_back)
     ma_d[1:look_back, ] <- 1
-    z_scores <- ifelse(ma_d!=0, (price_s-medi_an)/ma_d, 0)
+    z_scores <- ifelse(ma_d != 0, (re_turns-medi_an)/ma_d, 0)
     z_scores[1:look_back, ] <- 0
-    mad_zscores <- TTR::runMAD(z_scores, n=look_back)
-    mad_zscores[1:look_back, ] <- 0
+    # mad_zscores <- TTR::runMAD(z_scores, n=look_back)
+    # mad_zscores[1:look_back, ] <- 0
+    mad_zscores <- 1
     
     # Calculate position_s and pnls from z-scores and ran_ge
-    position_s <- rep(NA_integer_, NROW(price_s))
+    position_s <- rep(NA_integer_, n_rows)
     position_s[1] <- 0
     # thresh_old <- 3*mad(z_scores)
     # position_s <- ifelse(z_scores > thresh_old, -1, position_s)
@@ -163,10 +146,10 @@ ser_ver <- function(input, output) {
     position_s <- zoo::na.locf(position_s, na.rm=FALSE)
     position_s <- rutils::lag_it(position_s, lagg=lagg)
     
-    re_turns <- rutils::diff_it(price_s)
+    # re_turns <- rutils::diff_it(clos_e)
     pnl_s <- cumsum(position_s*re_turns)
     pnl_s <- cbind(pnl_s, cumsum(re_turns))
-    colnames(pnl_s) <- c("Strategy", sym_bol)
+    colnames(pnl_s) <- c("Strategy", "Index")
     # pnl_s[rutils::calc_endpoints(pnl_s, inter_val="minutes")]
     # pnl_s[rutils::calc_endpoints(pnl_s, inter_val="hours")]
     pnl_s

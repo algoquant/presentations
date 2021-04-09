@@ -5,6 +5,11 @@
 # Just press the "Run App" button on upper right of this panel.
 ##############################
 
+
+## To-do
+# Adapt lagg confirmation signal code from app_ewma.R using HighFreq::roll_vec() or HighFreq::roll_count()
+
+
 ## Below is the setup code that runs once when the shiny app is started
 
 # Load R packages
@@ -18,8 +23,8 @@ library(dygraphs)
 # The data_type = "tick_data" goes together with model_type = "sharpe_ticks"
 
 
-# Select the data: "spybars", "etf", "tick_data", or "sp500"
-data_type <- "etf"
+# Select the data: "spybars", "otherbars", "etf", "tick_data", or "sp500"
+data_type <- "otherbars"
 switch(data_type,
        "spybars" = {
          cap_tion <- "Strategy for 1-minute SPY Bars"
@@ -36,6 +41,25 @@ switch(data_type,
          re_turns <- rutils::diff_it(price_s)
          std_dev <- sd(re_turns[re_turns<0])
          # price_s <- price_s[end_points]
+       },
+       "otherbars" = {
+         cap_tion <- "Strategy for 1-minute LODE Bars"
+         sym_bol <- "LODE"
+         sym_bols <- sym_bol
+         model_type <- "zscore"
+         oh_lc <- data.table::fread(file="C:/Develop/predictive/data/lode_oneminutebars.csv", sep=",")
+         n_rows <- NROW(oh_lc)
+         clos_e <- log(oh_lc$close)
+         date_s <- seq.POSIXt(from=as.POSIXct("2021-03-10 09:30:00", origin="1970-01-01"), by="min", length.out=n_rows)
+         clos_e <- xts::xts(clos_e, date_s)
+         re_turns <- rutils::diff_it(clos_e)
+         std_dev <- sd(re_turns[re_turns<0])
+         end_points <- xts::endpoints(re_turns, on="hours")
+         # Coerce oh_lc into a matrix
+         oh_lc <- oh_lc[, c(4, 6, 7, 5)]
+         colnames(oh_lc) <- c("Open", "High", "Low", "Close")
+         # data.table::setDF(oh_lc)
+         oh_lc <- as.matrix(oh_lc)
        },
        "tick_data" = {
          cap_tion <- "Strategy for AAPL Tick Data"
@@ -445,7 +469,7 @@ ser_ver <- function(input, output) {
   })  # end reactive code
 
   # Return to the output argument a dygraph plot with two y-axes
-  output$dy_graph <- renderDygraph({
+  output$dy_graph <- dygraphs::renderDygraph({
     col_names <- colnames(da_ta())
     dygraphs::dygraph(da_ta(), main=cap_tion) %>%
       dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%

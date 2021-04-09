@@ -102,19 +102,19 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     vol_ume <- quantmod::Vo(oh_lc)
     
     # Simulate strategy
-    v_wap <- HighFreq::roll_sum(t_series=price_s*vol_ume, look_back=look_back)
-    volume_rolling <- HighFreq::roll_sum(t_series=vol_ume, look_back=look_back)
+    v_wap <- HighFreq::roll_sum(se_ries=price_s*vol_ume, look_back=look_back)
+    volume_rolling <- HighFreq::roll_sum(se_ries=vol_ume, look_back=look_back)
     v_wap <- v_wap/volume_rolling
     v_wap[is.na(v_wap)] <- 0
     
     # Calculate VWAP indicator
-    indica_tor <- sign(price_s - v_wap)
-    # indic_lag <- rutils::lag_it(indica_tor, lagg=1)
-    # Flip position only if the indica_tor and its recent past values are the same.
+    in_dic <- sign(price_s - v_wap)
+    # indic_lag <- rutils::lag_it(in_dic, lagg=1)
+    # Flip position only if the in_dic and its recent past values are the same.
     # Otherwise keep previous position.
     # This is designed to prevent whipsaws and over-trading.
-    # position_s <- ifelse(indica_tor == indic_lag, indica_tor, position_s)
-    indic_sum <- HighFreq::roll_sum(t_series=indica_tor, look_back=lagg)
+    # position_s <- ifelse(in_dic == indic_lag, in_dic, position_s)
+    indic_sum <- HighFreq::roll_sum(se_ries=in_dic, look_back=lagg)
     indic_sum[1:lagg] <- 0
     position_s <- rep(NA_integer_, NROW(price_s))
     position_s[1] <- 0
@@ -136,7 +136,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
   })  # end reactive code
   
   # return the dygraph plot to output argument
-  output$dy_graph <- renderDygraph({
+  output$dy_graph <- dygraphs::renderDygraph({
     col_names <- colnames(da_ta())
     dygraphs::dygraph(da_ta(), main=paste(col_names[1], "Strategy")) %>%
       dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
