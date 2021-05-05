@@ -18,7 +18,7 @@ ui <- shiny::shinyUI(fluidPage(
       checkboxInput("showgrid", label = "Show Grid", value = TRUE)
     ),
     mainPanel(
-      dygraphOutput("dygraph")
+      dygraphs::dygraphOutput("dygraph")
     )
   )
 ))

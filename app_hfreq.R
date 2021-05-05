@@ -51,9 +51,9 @@ inter_face <- shiny::fluidPage(
   
   # create single row with four slider inputs
   fluidRow(
-    # The Shiny App is re-calculated when the actionButton is clicked and the re_calculate variable is updated
+    # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
     column(width=12, 
-           h4("Click the button 'Recalculate the Model' to re-calculate the Shiny App."),
+           h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
            actionButton("re_calculate", "Recalculate the Model")),
     # Input stock symbol
     # column(width=3, selectInput("sym_bol", label="Symbol",
@@ -78,14 +78,14 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
   
   # create output plot panel
-  mainPanel(dygraphOutput("dy_graph"), width=12)
+  mainPanel(dygraphs::dygraphOutput("dy_graph"), width=12)
 )  # end fluidPage interface
 
 
 ## Define the server code
 ser_ver <- shiny::shinyServer(function(input, output) {
 
-  # re-calculate the data and rerun the model
+  # Recalculate the data and rerun the model
   da_ta <- reactive({
     # Get model parameters from input argument
     model_type <- isolate(input$model_type)
@@ -95,7 +95,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # tri_m <- input$tri_m
     lot_s <- isolate(input$lot_s)
     co_eff <- as.numeric(isolate(input$co_eff))
-    # Model is re-calculated when the re_calculate variable is updated
+    # Model is recalculated when the re_calculate variable is updated
     input$re_calculate
     
     # Prepare data

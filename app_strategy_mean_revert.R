@@ -54,14 +54,14 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
   
   # create output plot panel
-  mainPanel(dygraphOutput("dygraph"), width=12)
+  mainPanel(dygraphs::dygraphOutput("dygraph"), width=12)
 )  # end fluidPage interface
 
 
 ## Define the server code
 ser_ver <- function(input, output) {
 
-  ## Re-calculate the model with new parameters
+  ## Recalculate the model with new parameters
   da_ta <- reactive({
     # get model parameters from input argument
     beta_ret <- input$beta_ret

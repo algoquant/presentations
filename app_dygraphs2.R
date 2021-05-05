@@ -21,7 +21,7 @@ inter_face <- shiny::shinyUI(fluidPage(
       numericInput("wid_th", label="wid_th:", min=51, max=301, value=151)
     ),
     mainPanel(
-      dygraphOutput("dygraph")
+      dygraphs::dygraphOutput("dygraph")
     )
   )
 ))  # end shinyUI interface
@@ -43,7 +43,8 @@ ser_ver <- function(input, output) {
     # calculate EWMA prices
     weight_s <- exp(-lamb_da*(1:wid_th))
     weight_s <- weight_s/sum(weight_s)
-    ew_ma <- filter(clos_e, filter=weight_s, sides=1)
+    ew_ma <- .Call(stats:::C_cfilter, clos_e, filter=weight_s, sides=1, circular=FALSE)
+    # ew_ma <- filter(clos_e, filter=weight_s, sides=1)
     ew_ma[1:(wid_th-1)] <- ew_ma[wid_th]
     ew_ma <- xts(cbind(clos_e, ew_ma), order.by=index(clos_e))
     colnames(ew_ma) <- c("VTI", "VTI_EWMA")

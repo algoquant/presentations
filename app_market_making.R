@@ -69,7 +69,7 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
 
   # Render plot in panel
-  mainPanel(dygraphOutput("dy_graph"), width=12)
+  mainPanel(dygraphs::dygraphOutput("dy_graph"), width=12)
   # plotOutput("plo_t")
 )  # end fluidPage interface
 
@@ -77,7 +77,7 @@ inter_face <- shiny::fluidPage(
 ## Define the server code
 ser_ver <- function(input, output) {
 
-  # re-calculate the data and rerun the model
+  # Recalculate the data and rerun the model
   da_ta <- reactive({
     # Get model parameters from input argument
     # buy_spread <- input$buy_spread

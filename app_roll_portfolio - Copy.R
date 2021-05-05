@@ -92,9 +92,9 @@ inter_face <- shiny::fluidPage(
   # titlePanel("Rolling Portfolio Optimization Strategy for ETF Portfolio or for Sub-Portfolio of S&P500 Stocks"),
   
   fluidRow(
-    # The Shiny App is re-calculated when the actionButton is clicked and the re_calculate variable is updated
+    # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
     column(width=12, 
-           h4("Click the button 'Recalculate the Model' to re-calculate the Shiny App."),
+           h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
            actionButton("re_calculate", "Recalculate the Model"))
   ),  # end fluidRow
   
@@ -133,14 +133,14 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphOutput("dy_graph"), width=12)
+  mainPanel(dygraphs::dygraphOutput("dy_graph"), width=12)
 )  # end fluidPage interface
 
 
 ## Define the server code
 ser_ver <- function(input, output) {
 
-  # Re-calculate the data and rerun the model
+  # Recalculate the data and rerun the model
   da_ta <- reactive({
     # get model parameters from input argument
     inter_val <- isolate(input$inter_val)
@@ -153,7 +153,7 @@ ser_ver <- function(input, output) {
     pro_b <- isolate(input$pro_b)
     returns_scaling <- isolate(input$returns_scaling)
     fac_tor <- as.numeric(isolate(input$fac_tor))
-    # Model is re-calculated when the re_calculate variable is updated
+    # Model is recalculated when the re_calculate variable is updated
     input$re_calculate
     
     switch(returns_scaling,

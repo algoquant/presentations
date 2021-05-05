@@ -125,9 +125,9 @@ inter_face <- shiny::fluidPage(
   titlePanel("Rolling Portfolio Optimization Strategy for ETFs"),
   
   fluidRow(
-    # The Shiny App is re-calculated when the actionButton is clicked and the re_calculate variable is updated
+    # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
     column(width=12, 
-           h4("Click the button 'Recalculate the Model' to re-calculate the Shiny App."),
+           h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
            actionButton("re_calculate", "Recalculate the Model"))
   ),  # end fluidRow
   
@@ -142,7 +142,7 @@ inter_face <- shiny::fluidPage(
     column(width=3, sliderInput("lamb_da", label="Weight decay:",
                                 min=0.01, max=0.99, value=0.01, step=0.05)),
     # Input end points interval
-    column(width=3, selectInput("typ_e", label="Weights type",
+    column(width=3, selectInput("model_type", label="Weights type",
                                 choices=c("max_sharpe", "max_sharpe_median", "min_var", "min_varpca", "rank", "rankrob", "quan_tile"), selected="max_sharpe")),
     # Input number of eigenvalues for regularized matrix inverse
     column(width=3, numericInput("max_eigen", "Number of eigenvalues", value=6)),
@@ -159,25 +159,25 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphOutput("dy_graph"), width=12)
+  mainPanel(dygraphs::dygraphOutput("dy_graph"), width=12)
 )  # end fluidPage interface
 
 
 ## Define the server code
 ser_ver <- function(input, output) {
 
-  # re-calculate the data and rerun the model
+  # Recalculate the data and rerun the model
   da_ta <- reactive({
     # get model parameters from input argument
     inter_val <- isolate(input$inter_val)
     max_eigen <- isolate(input$max_eigen)
     look_back <- isolate(input$look_back)
     lamb_da <- isolate(input$lamb_da)
-    typ_e <- isolate(input$typ_e)
+    model_type <- isolate(input$model_type)
     al_pha <- isolate(input$al_pha)
     pro_b <- isolate(input$pro_b)
     co_eff <- as.numeric(isolate(input$co_eff))
-    # Model is re-calculated when the re_calculate variable is updated
+    # Model is recalculated when the re_calculate variable is updated
     input$re_calculate
 
     # Define end points
@@ -208,7 +208,7 @@ ser_ver <- function(input, output) {
                                  pro_b=pro_b,
                                  max_eigen=max_eigen, 
                                  al_pha=al_pha, 
-                                 typ_e=typ_e,
+                                 model_type=model_type,
                                  co_eff=co_eff)
     pnl_s[which(is.na(pnl_s)), ] <- 0
     pnl_s <- cumsum(pnl_s)

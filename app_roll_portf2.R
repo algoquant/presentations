@@ -50,14 +50,14 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
   
   # create output plot panel
-  mainPanel(dygraphOutput("dy_graph"), width=12)
+  mainPanel(dygraphs::dygraphOutput("dy_graph"), width=12)
 )  # end fluidPage interface
 
 
 ## Define the server code
 ser_ver <- function(input, output) {
 
-  # re-calculate the data and rerun the model
+  # Recalculate the data and rerun the model
   da_ta <- reactive({
     # get model parameters from input argument
     look_back <- input$look_back

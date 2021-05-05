@@ -32,9 +32,9 @@ inter_face <- shiny::fluidPage(
   titlePanel(cap_tion),
   
   # fluidRow(
-  # The Shiny App is re-calculated when the actionButton is clicked and the add_annotations variable is updated
+  # The Shiny App is recalculated when the actionButton is clicked and the add_annotations variable is updated
   #   column(width=12,
-  #          h4("Click the button 'Recalculate the Model' to re-calculate the Shiny App."),
+  #          h4("Click the button 'Recalculate the Model' to recalculate the Shiny App."),
   #          actionButton("add_annotations", "Recalculate the Model"))
   # ),  # end fluidRow
   
@@ -48,12 +48,12 @@ inter_face <- shiny::fluidPage(
     # Input umber of histogram bins
     column(width=3, sliderInput("n_bins", "Number of bins:", min=1, max=50, value=100)),
     # Input short look-back interval
-    column(width=3, sliderInput("short_back", label="Short lookback", min=3, max=150, value=50, step=1)),
+    column(width=3, sliderInput("short_back", label="Short lookback", min=3, max=300, value=150, step=1)),
     # Input long look-back interval
     # column(width=3, sliderInput("long_back", label="Long lookback", min=10, max=200, value=100, step=2)),
     # Input lag trade parameter
     # column(width=3, sliderInput("lagg", label="lagg", min=1, max=5, value=2, step=1)),
-    # Input threshold level
+    # Input exponent of volume
     column(width=3, sliderInput("expo_nent", label="Exponent of Volume", min=0.25, max=2.0, value=1.0, step=0.1)),
     # column(width=3, sliderInput("thresh_old", label="threshold", min=0.5, max=3.0, value=0.9, step=0.1)),
     # Input add annotations Boolean
@@ -78,7 +78,7 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(plotOutput("histo_gram"))
+  mainPanel(plotOutput("histo_gram", width="90%", height="550px"))
 
 )  # end fluidPage interface
 
@@ -86,7 +86,7 @@ inter_face <- shiny::fluidPage(
 ## Define the server code
 ser_ver <- function(input, output) {
   
-  # Re-calculate the data and rerun the model
+  # recalculate the data and rerun the model
   # da_ta <- reactive({
   # Get model parameters from input argument
   # max_eigen <- isolate(input$max_eigen)
@@ -97,7 +97,7 @@ ser_ver <- function(input, output) {
   # percen_tile <- isolate(input$percen_tile)
   # co_eff <- as.numeric(isolate(input$co_eff))
   # bid_offer <- isolate(input$bid_offer)
-  # Model is re-calculated when the add_annotations variable is updated
+  # Model is recalculated when the add_annotations variable is updated
   # input$add_annotations
   
   # Create an empty list of reactive values.
@@ -122,12 +122,12 @@ ser_ver <- function(input, output) {
     
     # Calculate the rolling volume
     re_turns <- re_turns()$returns
-    vol_ume <- (re_turns()$volume)^input$expo_nent
+    vol_ume <- (re_turns()$volume)
     # Scale the volume by the rolling volume
     vol_ume <- short_back*vol_ume/HighFreq::roll_sum(vol_ume, look_back=short_back)
     # re_turns <- rutils::diff_it(clos_e())
     # Calculate the cumulative returns scaled by the rolling volume
-    scale_d <- re_turns/vol_ume
+    scale_d <- ifelse(vol_ume > 0, re_turns/(vol_ume^input$expo_nent), 0)
     scale_d[is.na(scale_d) | is.infinite(scale_d)] <- 0
 
     scale_d <- cbind(re_turns, scale_d)
@@ -138,7 +138,7 @@ ser_ver <- function(input, output) {
   
   # Plot the histogram of the simulated data
   output$histo_gram <- shiny::renderPlot({
-    # isolate() prevents automatic re-calculation when n_bins is updated
+    # isolate() prevents automatic recalculation when n_bins is updated
     sym_bol <- input$sym_bol
     cat("Plotting data for ", sym_bol, "\n")
     
@@ -166,8 +166,10 @@ ser_ver <- function(input, output) {
     cap_tion <- paste("Histogram of", sym_bol, "Returns Scaled by the Trading Volumes \n", 
                       "kurtosis=", round(kurto_sis, 2), "kurtosis scaled=", round(kurtosis_scaled, 2), "\n", 
                       "pacf=", round(pac_f, 2), "pacf scaled=", round(pacf_scaled, 2))
-    hist(re_turns, breaks=break_s, xlim=c(-5*ma_d, 5*ma_d), xlab="returns", ylab="", 
-         freq=FALSE, col="darkgray", border="white", main=cap_tion)
+    hist(re_turns, breaks=break_s, main=cap_tion, 
+         xlim=c(-5*ma_d, 5*ma_d), ylim=1.05*range(den_sity$y),  
+         xlab="returns", ylab="", 
+         freq=FALSE, col="darkgray", border="white")
     # Draw kernel density of re_turns
     lines(den_sity, col="blue", lwd=3)
     # Draw kernel density of scale_d
@@ -175,6 +177,10 @@ ser_ver <- function(input, output) {
     # Add density of normal distribution
     curve(expr=dnorm(x, mean=mean(re_turns), sd=sd(re_turns)),
           add=TRUE, lwd=2, col="green")
+    # Add legend
+    legend("topright", inset=0.05, bty="n", cex=1.5, 
+           leg=c("density", "scaled", "normal"),
+           lwd=6, lty=1, col=c("blue", "red", "green"))
     
   })  # end renderPlot
   

@@ -59,7 +59,7 @@ inter_face <- shiny::fluidPage(
 
 ser_ver <- function(input, output) {
 
-  ## Re-calculate the model with new parameters
+  ## Recalculate the model with new parameters
   # The function reactive() accepts a block of expressions
   # which calculate the model, and returns the model output.
   da_ta <- reactive({

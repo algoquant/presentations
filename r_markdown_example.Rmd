@@ -1,5 +1,5 @@
 ---
-title: "Example R Markdown Document"
+title: "Example R markdown Document"
 author: Jerzy Pawlowski
 date: '`r format(Sys.time(), "%m/%d/%Y")`'
 output: html_document
@@ -13,11 +13,11 @@ if (!require("quantmod"))
   install.packages("quantmod")
 ```
 
-### R Markdown
+### R markdown
 
-This is an *R Markdown* document. Markdown is a simple formatting syntax for authoring *HTML*, *pdf*, and *MS Word* documents. For more details on using *R Markdown* see <http://rmarkdown.rstudio.com>.  
+This is an *R markdown* document. Markdown is a simple formatting syntax for authoring *HTML*, *pdf*, and *MS Word* documents. For more details on using *R markdown* see <http://rmarkdown.rstudio.com>.  
 
-One of the advantages of writing documents *R Markdown* is that they can be compiled into *HTML* documents, which can incorporate interactive plots,
+One of the advantages of writing documents *R markdown* is that they can be compiled into *HTML* documents, which can incorporate interactive plots,
 
 You can read more about publishing documents using *R* here:  
 https://algoquant.github.io/r,/markdown/2016/07/02/Publishing-documents-in-R/
@@ -48,7 +48,9 @@ https://guides.github.com/features/mastering-markdown/
 
 ### The **knitr** package
 
-Clicking the **knit** button in *RStudio*, compiles the *R Markdown* document, including embedded *math formulas* and *R* code chunks, into output documents. 
+The main difference between *markdown* and *R markdown*, is that *R markdown* allows including *R* code chunks.
+
+Clicking the **knit** button in *RStudio*, compiles the *R markdown* document, including embedded *math formulas* and *R* code chunks, into the output document. 
 
 Example of an *R* code chunk:
 
@@ -57,20 +59,9 @@ summary(cars)
 ```
 
 
-### Plots in *R Markdown* documents
+### Math formulas in *R markdown* documents
 
-Plots can also be embeded, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-
-
-### Math formulas in *R Markdown* documents
-
-Math formulas can also be embeded in *R Markdown* documents.  
+Math formulas can also be embedded in *R markdown* documents.  
 
 For example inline formulas: $\frac{2}{3}$, $\sqrt{b^2 - 4ac}$, and $\hat{\lambda}=1.02$.  
 
@@ -83,4 +74,28 @@ $$
   \left( \sum_{k=1}^n b_k^2 \right) 
 $$
 
+
+
+
+### Plots in *R markdown* documents
+
+Plots can also be embedded, for example:
+
+```{r pressure, echo=TRUE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter may be added to the code chunk to prevent printing of the *R* code that generated the plot.
+
+
+
+
+### Dynamic *dygraphs* plots in *R markdown* documents
+
+*R markdown* allows including dynamic *dygraphs* plots if the output format is *HTML*. 
+For example:
+
+```{r dygraph, echo=TRUE}
+dygraphs::dygraph(log(Cl(rutils::etf_env$VTI)), main="VTI Stock Price (log)")
+```
 

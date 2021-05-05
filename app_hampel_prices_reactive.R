@@ -33,9 +33,9 @@ inter_face <- shiny::fluidPage(
   titlePanel(cap_tion),
   
   # fluidRow(
-  # The Shiny App is re-calculated when the actionButton is clicked and the add_annotations variable is updated
+  # The Shiny App is recalculated when the actionButton is clicked and the add_annotations variable is updated
   #   column(width=12,
-  #          h4("Click the button 'Recalculate the Model' to re-calculate the Shiny App."),
+  #          h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
   #          actionButton("add_annotations", "Recalculate the Model"))
   # ),  # end fluidRow
   
@@ -77,7 +77,7 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphOutput("dy_graph"), width=12)
+  mainPanel(dygraphs::dygraphOutput("dy_graph"), width=12)
   
 )  # end fluidPage interface
 
@@ -85,7 +85,7 @@ inter_face <- shiny::fluidPage(
 ## Define the server code
 ser_ver <- function(input, output) {
   
-  # Re-calculate the data and rerun the model
+  # Recalculate the data and rerun the model
   # da_ta <- reactive({
   # Get model parameters from input argument
   # max_eigen <- isolate(input$max_eigen)
@@ -96,7 +96,7 @@ ser_ver <- function(input, output) {
   # percen_tile <- isolate(input$percen_tile)
   # co_eff <- as.numeric(isolate(input$co_eff))
   # bid_offer <- isolate(input$bid_offer)
-  # Model is re-calculated when the add_annotations variable is updated
+  # Model is recalculated when the add_annotations variable is updated
   # input$add_annotations
   
   
@@ -227,7 +227,7 @@ ser_ver <- function(input, output) {
   # Calculate position_s if there's new thresh_old value
   dy_graph <- reactive({
     cat("Ploting pnl_s\n")
-    # Model is re-calculated when the add_annotations variable is updated
+    # Model is recalculated when the add_annotations variable is updated
     add_annotations <- input$add_annotations
     # cap_tion <- pnl_s()$caption
     pnl_s <- pnl_s()

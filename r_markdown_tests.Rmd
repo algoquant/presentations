@@ -52,11 +52,11 @@ options(width=80)
 #### `r 'This is a Heading Created by Inline R Code'`
 
 ```{r mt_cars, echo=(-(1:2)), results="asis"}
-# this chunk creates a dynamic markdown heading using pander
+# This chunk creates a dynamic markdown heading using pander
 suppressWarnings(library(pander, quietly=TRUE))
-# get number of rows to be displayed
+# Get number of rows to be displayed
 n_rows <- sample(x=3:7, size=1)
-# create dynamic heading using pander
+# Create dynamic heading using pander
 pandoc.header(paste("Here is", n_rows, "rows of the 'mtcars' data frame"), level=4)
 head(mtcars, n_rows)
 ```

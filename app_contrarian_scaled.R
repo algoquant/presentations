@@ -161,9 +161,9 @@ inter_face <- shiny::fluidPage(
   titlePanel(cap_tion),
 
   fluidRow(
-    # The Shiny App is re-calculated when the actionButton is clicked and the re_calculate variable is updated
+    # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
     column(width=12,
-           h4("Click the button 'Recalculate the Model' to re-calculate the Shiny App."),
+           h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
            actionButton("re_calculate", "Recalculate the Model"))
   ),  # end fluidRow
 
@@ -214,7 +214,7 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
 
   # Create output plot panel
-  mainPanel(dygraphOutput("dy_graph"), height=8, width=12)
+  mainPanel(dygraphs::dygraphOutput("dy_graph"), height=8, width=12)
 
 )  # end fluidPage interface
 
@@ -222,7 +222,7 @@ inter_face <- shiny::fluidPage(
 ## Define the server code
 ser_ver <- function(input, output) {
 
-  # Re-calculate the data and rerun the strategy
+  # Recalculate the data and rerun the strategy
   da_ta <- reactive({
     # Get model parameters from input argument
     sym_bol <- isolate(input$sym_bol)
@@ -241,7 +241,7 @@ ser_ver <- function(input, output) {
     # fac_tor <- as.numeric(isolate(input$fac_tor))
     bid_offer <- isolate(input$bid_offer)
     fac_tor <- as.numeric(isolate(input$fac_tor))
-    # Strategy is re-calculated when the re_calculate variable is updated
+    # Strategy is recalculated when the re_calculate variable is updated
     input$re_calculate
 
     

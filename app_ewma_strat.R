@@ -83,9 +83,9 @@ inter_face <- shiny::fluidPage(
   titlePanel(cap_tion),
 
   fluidRow(
-    # The Shiny App is re-calculated when the actionButton is clicked and the re_calculate variable is updated
+    # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
     column(width=12,
-           h4("Click the button 'Recalculate the Model' to re-calculate the Shiny App."),
+           h4("Click the button 'Recalculate the Model' to recalculate the Shiny App."),
            actionButton("re_calculate", "Recalculate the Model"))
   ),  # end fluidRow
 
@@ -136,7 +136,7 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
 
   # Create output plot panel
-  mainPanel(dygraphOutput("dy_graph"), height=8, width=12)
+  mainPanel(dygraphs::dygraphOutput("dy_graph"), height=8, width=12)
 
 )  # end fluidPage interface
 
@@ -144,7 +144,7 @@ inter_face <- shiny::fluidPage(
 ## Define the server code
 ser_ver <- function(input, output) {
 
-  # Re-calculate the data and rerun the strategy
+  # recalculate the data and rerun the strategy
   da_ta <- reactive({
     # Get model parameters from input argument
     fast_lambda <- isolate(input$fast_lambda)
@@ -165,16 +165,16 @@ ser_ver <- function(input, output) {
     # fac_tor <- as.numeric(isolate(input$fac_tor))
     bid_offer <- isolate(input$bid_offer)
     fac_tor <- as.numeric(isolate(input$fac_tor))
-    # Strategy is re-calculated when the re_calculate variable is updated
+    # Strategy is recalculated when the re_calculate variable is updated
     input$re_calculate
 
-    # calculate EWMA prices
+    # Calculate EWMA weights
     fast_weights <- exp(-fast_lambda*1:look_back)
     fast_weights <- fast_weights/sum(fast_weights)
     slow_weights <- exp(-slow_lambda*1:look_back)
     slow_weights <- slow_weights/sum(slow_weights)
     
-    # Filter the prices using weights
+    # Calculate EWMA prices by filtering with the weights
     fast_ewma <- .Call(stats:::C_cfilter, cum_sum, filter=fast_weights, sides=1, circular=FALSE)
     fast_ewma[1:(look_back-1)] <- fast_ewma[look_back]
     slow_ewma <- .Call(stats:::C_cfilter, cum_sum, filter=slow_weights, sides=1, circular=FALSE)
@@ -223,8 +223,9 @@ ser_ver <- function(input, output) {
 
     # Calculate position turnover
     turn_over <- abs(rutils::diff_it(position_s))/2
+    n_trades <- sum(2*turn_over)# / n_rows
     # Calculate number of trades
-    # sum(turn_over)/NROW(position_s)
+    # sum(turn_over)/n_rows
     # Calculate transaction costs
     cost_s <- bid_offer*turn_over
     pnl_s <- (pnl_s - cost_s)

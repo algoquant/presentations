@@ -46,11 +46,23 @@ inter_face <- shiny::fluidPage(
 
 ser_ver <- function(input, output) {
   
-  # Plot the data
-  output$plo_t <- shiny::renderPlot({
+  ## Recalculate the model with new parameters
+  # The function reactive() accepts a block of expressions
+  # which calculate the model, and returns the model output.
+  da_ta <- reactive({
+    cat("Calculating the data\n")
     
     # Simulate the data
-    da_ta <- rnorm(input$n_data, sd=input$std_dev)
+    rnorm(input$n_data, sd=1)
+    
+  })  # end reactive code
+  
+  
+  # Plot the data
+  output$plo_t <- shiny::renderPlot({
+    cat("Plotting the data\n")
+    
+    da_ta <- input$std_dev*da_ta()
     
     # Plot the data
     par(mar=c(2, 4, 4, 0), oma=c(0, 0, 0, 0))

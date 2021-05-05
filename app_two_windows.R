@@ -28,9 +28,9 @@ inter_face <- shiny::fluidPage(
   titlePanel(cap_tion),
 
   fluidRow(
-    # The Shiny App is re-calculated when the actionButton is clicked and the re_calculate variable is updated
+    # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
     # column(width=12, 
-    #        h4("Click the button 'Recalculate the Model' to re-calculate the Shiny App."),
+    #        h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
     #        actionButton("re_calculate", "Recalculate the Model"))
   ),  # end fluidRow
   
@@ -66,7 +66,7 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphOutput("dy_graph"), width=12)
+  mainPanel(dygraphs::dygraphOutput("dy_graph"), width=12)
   
 )  # end fluidPage interface
 
@@ -74,7 +74,7 @@ inter_face <- shiny::fluidPage(
 ## Define the server code
 ser_ver <- function(input, output) {
   
-  # Re-calculate the data and rerun the model
+  # Recalculate the data and rerun the model
   da_ta <- reactive({
     # Get model parameters from input argument
     wei_ght <- input$wei_ght
@@ -88,7 +88,7 @@ ser_ver <- function(input, output) {
     # percen_tile <- isolate(input$percen_tile)
     # co_eff <- as.numeric(isolate(input$co_eff))
     # bid_offer <- isolate(input$bid_offer)
-    # Model is re-calculated when the re_calculate variable is updated
+    # Model is recalculated when the re_calculate variable is updated
     # input$re_calculate
 
     

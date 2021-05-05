@@ -35,9 +35,9 @@ inter_face <- shiny::fluidPage(
   titlePanel("Rolling Portfolio Optimization Strategy for S&P500 Sub-portfolio"),
   
   fluidRow(
-    # The Shiny App is re-calculated when the actionButton is clicked and the re_calculate variable is updated
+    # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
     column(width=12, 
-           h4("Click the button 'Recalculate the Model' to re-calculate the Shiny App."),
+           h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
            actionButton("re_calculate", "Recalculate the Model"))
   ),  # end fluidRow
   
@@ -60,7 +60,7 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphOutput("dy_graph"), width=12)
+  mainPanel(dygraphs::dygraphOutput("dy_graph"), width=12)
 )  # end fluidPage interface
 
 
@@ -75,7 +75,7 @@ ser_ver <- function(input, output) {
     al_pha <- isolate(input$al_pha)
     look_back <- isolate(input$look_back)
     # end_stub <- input$end_stub
-    # Model is re-calculated when the re_calculate variable is updated
+    # Model is recalculated when the re_calculate variable is updated
     input$re_calculate
     
     # Define end points

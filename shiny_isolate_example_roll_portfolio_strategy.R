@@ -6,7 +6,7 @@
 # Find out more about building applications with Shiny here:
 # http://shiny.rstudio.com/
 #
-# Find out more about controlling re-calculation using isolate() here:
+# Find out more about controlling Recalculation using isolate() here:
 # https://shiny.rstudio.com/articles/isolation.html
 
 
@@ -26,9 +26,9 @@ inter_face <- fluidPage(
     titlePanel("Rolling Portfolio Optimization Strategy for a S&P500 Sub-portfolio"),
 
     fluidRow(
-        # The Shiny App is re-calculated when the actionButton is clicked and the re_calculate variable is updated
+        # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
         column(width=8, 
-               h4("Click the button 'Recalculate plot' to re-calculate the Shiny App."),
+               h4("Click the button 'Recalculate plot' to Recalculate the Shiny App."),
                actionButton("re_calculate", "Recalculate the Model"))
     ),  # end fluidRow
     
@@ -45,7 +45,7 @@ inter_face <- fluidPage(
     
     # Show a plot of the generated distribution
     # Create output plot panel
-    # mainPanel(dygraphOutput("dy_graph"), width=12)
+    # mainPanel(dygraphs::dygraphOutput("dy_graph"), width=12)
     mainPanel(plotOutput("distPlot"), width=12)
     )  # end fluidPage
 
@@ -87,7 +87,7 @@ serv_er <- function(input, output) {
         al_pha <- isolate(input$al_pha)
         max_eigen <- isolate(as.numeric(input$max_eigen))
         lagg <- isolate(as.numeric(input$lagg))
-        # Model is re-calculated when the re_calculate variable is updated
+        # Model is recalculated when the re_calculate variable is updated
         input$re_calculate
         
         # Run the trading strategy and plot it

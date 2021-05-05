@@ -85,7 +85,7 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
   
   # create output plot panel
-  mainPanel(dygraphOutput("dygraph"), width=12)
+  mainPanel(dygraphs::dygraphOutput("dygraph"), width=12)
 )  # end fluidPage interface
 
 
@@ -94,7 +94,7 @@ inter_face <- shiny::fluidPage(
 # with the arguments "input" and "output".
 ser_ver <- shiny::shinyServer(function(input, output) {
 
-  ## Re-calculate the model with new parameters
+  ## Recalculate the model with new parameters
   # The function reactive() accepts a block of expressions
   # which calculate the model, and returns the model output.
   da_ta <- reactive({
