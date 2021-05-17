@@ -64,13 +64,13 @@ inter_face <- shiny::fluidPage(
   # create single row with two slider inputs
   fluidRow(
     # Input weights
-    column(width=3, sliderInput("weight1", label=paste0("Weight for ", name_s[1], ":"),
+    column(width=2, sliderInput("weight1", label=paste0("Weight for ", name_s[1], ":"),
                                 min=-10, max=10, value=5, step=0.1)),
-    column(width=3, sliderInput("weight2", label=paste0("Weight for ", name_s[2], ":"),
+    column(width=2, sliderInput("weight2", label=paste0("Weight for ", name_s[2], ":"),
                                 min=-10, max=10, value=0, step=0.1)),
-    column(width=3, sliderInput("weight3", label=paste0("Weight for ", name_s[3], ":"),
+    column(width=2, sliderInput("weight3", label=paste0("Weight for ", name_s[3], ":"),
                                 min=-10, max=10, value=0, step=0.1)),
-    column(width=3, sliderInput("weight4", label=paste0("Weight for ", name_s[4], ":"),
+    column(width=2, sliderInput("weight4", label=paste0("Weight for ", name_s[4], ":"),
                                 min=-10, max=10, value=0, step=0.1))
   ),  # end fluidRow
   

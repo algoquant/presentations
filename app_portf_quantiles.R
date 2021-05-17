@@ -64,30 +64,30 @@ inter_face <- shiny::fluidPage(
   # Create single row with two slider inputs
   fluidRow(
     # Input end points interval
-    column(width=3, selectInput("inter_val", label="End points Interval",
+    column(width=2, selectInput("inter_val", label="End points Interval",
                                 choices=c("days", "weeks", "months", "years"), selected="weeks")),
     # Input look-back interval
-    column(width=3, sliderInput("look_back", label="Lookback interval",
+    column(width=2, sliderInput("look_back", label="Lookback interval",
                                 min=2, max=70, value=5, step=1)),
     # Input look-back lag interval
-    # column(width=3, sliderInput("look_lag", label="Lookback lag interval", min=1, max=10, value=2, step=1)),
+    # column(width=2, sliderInput("look_lag", label="Lookback lag interval", min=1, max=10, value=2, step=1)),
     # Input the weight decay parameter
-    # column(width=3, sliderInput("lamb_da", label="Weight decay:",
+    # column(width=2, sliderInput("lamb_da", label="Weight decay:",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input model weights type
-    # column(width=3, selectInput("typ_e", label="Portfolio weights type",
+    # column(width=2, selectInput("typ_e", label="Portfolio weights type",
     #                             choices=c("max_sharpe", "min_var", "min_varpca", "rank"), selected="rank")),
     # Input number of eigenvalues for regularized matrix inverse
-    # column(width=3, sliderInput("max_eigen", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
+    # column(width=2, sliderInput("max_eigen", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
     # Input the shrinkage intensity
-    # column(width=3, sliderInput("al_pha", label="Shrinkage intensity",
+    # column(width=2, sliderInput("al_pha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input the percentile
-    column(width=3, sliderInput("percen_tile", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
-    # Input the strategy factor: fac_tor=1 for momentum, and fac_tor=-1 for contrarian
-    column(width=3, selectInput("fac_tor", "factor (1 momentum, -1 contrarian):", choices=c(-1, 1), selected=(-1))),
+    column(width=2, sliderInput("percen_tile", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
+    # Input the strategy factor: co_eff=1 for momentum, and co_eff=-1 for contrarian
+    column(width=2, selectInput("co_eff", "factor (1 momentum, -1 contrarian):", choices=c(-1, 1), selected=(-1))),
     # Input the bid-offer spread
-    column(width=3, numericInput("bid_offer", label="bid-offer:", value=0.001, step=0.001))
+    column(width=2, numericInput("bid_offer", label="bid-offer:", value=0.001, step=0.001))
   ),  # end fluidRow
   
   # Create output plot panel
@@ -110,7 +110,7 @@ ser_ver <- function(input, output) {
     # typ_e <- isolate(input$typ_e)
     # al_pha <- isolate(input$al_pha)
     percen_tile <- isolate(input$percen_tile)
-    fac_tor <- as.numeric(isolate(input$fac_tor))
+    co_eff <- as.numeric(isolate(input$co_eff))
     bid_offer <- isolate(input$bid_offer)
     # Model is recalculated when the re_calculate variable is updated
     input$re_calculate
@@ -148,14 +148,14 @@ ser_ver <- function(input, output) {
       # sub_excess <- (sub_excess - colMeans(sub_excess))
       # sig_nal <- mean(drop(coredata(in_dex))*sub_excess)/sapply(sub_excess, var)
       ## Calculate the portfolio weights as ranks
-      # weight_s <- fac_tor*sig_nal
+      # weight_s <- co_eff*sig_nal
       ## Calculate the portfolio weights as quantiles
       weight_s <- numeric(n_cols)
       names(weight_s) <- sym_bols
       # Calculate the signal order
       or_der <- order(sig_nal)
-      weight_s[or_der[1:quan_tile]] <- (-fac_tor)
-      weight_s[or_der[(n_cols-quan_tile+1):n_cols]] <- fac_tor
+      weight_s[or_der[1:quan_tile]] <- (-co_eff)
+      weight_s[or_der[(n_cols-quan_tile+1):n_cols]] <- co_eff
       # Scale the weights
       weight_s <- weight_s/sum(abs(weight_s))
       # Subset the ret_s

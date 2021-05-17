@@ -170,46 +170,46 @@ inter_face <- shiny::fluidPage(
   # Create single row with two slider inputs
   fluidRow(
     # Input stock symbol
-    column(width=3, selectInput("sym_bol", label="Symbol",
+    column(width=2, selectInput("sym_bol", label="Symbol",
                                 choices=sym_bols, selected=sym_bol)),
     # Input choice of model
-    column(width=3, selectInput("model_type", label="Model type",
+    column(width=2, selectInput("model_type", label="Model type",
                                 choices=c("rets_by_range", "sharpe_ohlc", "rescaled_ohlc", "sharpe_ticks", "volatility", "zscore", "sharpe"), selected=model_type)),
     # Input end points interval
-    # column(width=3, selectInput("inter_val", label="End points Interval",
+    # column(width=2, selectInput("inter_val", label="End points Interval",
     #                             choices=c("days", "weeks", "months", "years"), selected="days")),
     # Input look-back interval
-    column(width=3, sliderInput("look_back", label="Look-back", min=3, max=30, value=5, step=1)),
+    column(width=2, sliderInput("look_back", label="Look-back", min=3, max=30, value=5, step=1)),
     # Input look-back lag interval
-    column(width=3, sliderInput("lagg", label="lagg", min=1, max=5, value=1, step=1)),
+    column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=1, step=1)),
     
     # Input confirmation signal Boolean
-    column(width=3, selectInput("con_firm", label="Confirm the signal", choices=c("True", "False"), selected="False")),
+    column(width=2, selectInput("con_firm", label="Confirm the signal", choices=c("True", "False"), selected="False")),
     
     # Input threshold interval
-    column(width=3, sliderInput("thresh_old", label="Threshold", min=0.2, max=2.0, value=0.8, step=0.1)),
+    column(width=2, sliderInput("thresh_old", label="Threshold", min=0.2, max=2.0, value=0.8, step=0.1)),
     # Input minimum trade volume for filtering ticks
-    column(width=3, sliderInput("vol_ume", label="Big tick volume", min=50, max=1000, value=400, step=50)),
+    column(width=2, sliderInput("vol_ume", label="Big tick volume", min=50, max=1000, value=400, step=50)),
     # Input the weight decay parameter
-    # column(width=3, sliderInput("lamb_da", label="Weight decay:",
+    # column(width=2, sliderInput("lamb_da", label="Weight decay:",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input model weights type
-    # column(width=3, selectInput("typ_e", label="Portfolio weights type",
+    # column(width=2, selectInput("typ_e", label="Portfolio weights type",
     #                             choices=c("max_sharpe", "min_var", "min_varpca", "rank"), selected="rank")),
     # Input number of eigenvalues for regularized matrix inverse
-    # column(width=3, sliderInput("max_eigen", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
+    # column(width=2, sliderInput("max_eigen", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
     # Input the shrinkage intensity
-    # column(width=3, sliderInput("al_pha", label="Shrinkage intensity",
+    # column(width=2, sliderInput("al_pha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input the percentile
-    # column(width=3, sliderInput("percen_tile", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
-    # Input the strategy coefficient: fac_tor=1 for momentum, and fac_tor=-1 for contrarian
-    # column(width=3, selectInput("fac_tor", "Coefficient:", choices=c(-1, 1), selected=(-1))),
+    # column(width=2, sliderInput("percen_tile", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
+    # Input the strategy coefficient: co_eff=1 for momentum, and co_eff=-1 for contrarian
+    # column(width=2, selectInput("co_eff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # Input the bid-offer spread
-    column(width=3, numericInput("bid_offer", label="Bid-offer:", value=0.0000, step=0.0001)),
-    # If fac_tor=1 then trending, If fac_tor=(-1) then contrarian
-    # column(width=3, numericInput("fac_tor", "Trend coefficient:", value=1)),
-    column(width=3, selectInput("fac_tor", label="Trend coefficient",
+    column(width=2, numericInput("bid_offer", label="Bid-offer:", value=0.0000, step=0.0001)),
+    # If co_eff=1 then trending, If co_eff=(-1) then contrarian
+    # column(width=2, numericInput("co_eff", "Trend coefficient:", value=1)),
+    column(width=2, selectInput("co_eff", label="Trend coefficient",
                                 choices=c(1, -1), selected=(-1)))
   ),  # end fluidRow
 
@@ -238,9 +238,9 @@ ser_ver <- function(input, output) {
     # typ_e <- isolate(input$typ_e)
     # al_pha <- isolate(input$al_pha)
     # percen_tile <- isolate(input$percen_tile)
-    # fac_tor <- as.numeric(isolate(input$fac_tor))
+    # co_eff <- as.numeric(isolate(input$co_eff))
     bid_offer <- isolate(input$bid_offer)
-    fac_tor <- as.numeric(isolate(input$fac_tor))
+    co_eff <- as.numeric(isolate(input$co_eff))
     # Strategy is recalculated when the re_calculate variable is updated
     input$re_calculate
 
@@ -449,7 +449,7 @@ ser_ver <- function(input, output) {
     # Calculate number of trades
     # sum(turn_over)/NROW(position_s)
     # Calculate strategy pnl_s
-    pnl_s <- (fac_tor*position_s*re_turns)
+    pnl_s <- (co_eff*position_s*re_turns)
 
     # Calculate transaction costs
     cost_s <- bid_offer*turn_over

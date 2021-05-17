@@ -45,37 +45,37 @@ inter_face <- shiny::fluidPage(
   # Create single row with two slider inputs
   fluidRow(
     # Input choice of data
-    column(width=3, selectInput("data_name", label="Data",
+    column(width=2, selectInput("data_name", label="Data",
                                 choices=c("etf", "sp500"), selected="etf")),
     # Input choice of model
-    column(width=3, selectInput("model_type", label="Model type",
+    column(width=2, selectInput("model_type", label="Model type",
                                 choices=c("rank_sharpe", "max_sharpe", "max_sharpe_median", "min_var", "min_varpca", "rank_simple", "rank_hold", "rank", "rankrob", "quan_tile"), selected="rank_sharpe")),
     # Input end points interval
-    column(width=3, selectInput("inter_val", label="End points Interval",
+    column(width=2, selectInput("inter_val", label="End points Interval",
                                 choices=c("days", "weeks", "months", "years"), selected="weeks")),
     # Input look-back interval
-    column(width=3, sliderInput("look_back", label="Lookback interval",
+    column(width=2, sliderInput("look_back", label="Lookback interval",
                                 min=2, max=40, value=5, step=1)),
     # Input Weight decay for filtering returns
-    column(width=3, sliderInput("lamb_da", label="Weight decay:",
+    column(width=2, sliderInput("lamb_da", label="Weight decay:",
                                 min=0.01, max=0.99, value=0.99, step=0.05)),
     # Input exponent for variance
-    column(width=3, sliderInput("expo_nent", label="Variance exponent:",
+    column(width=2, sliderInput("expo_nent", label="Variance exponent:",
                                 min=0.25, max=1.5, value=1.0, step=0.05)),
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=3, numericInput("max_eigen", "Number of eigenvalues", value=11)),
+    column(width=2, numericInput("max_eigen", "Number of eigenvalues", value=11)),
     # Input the shrinkage intensity
-    column(width=3, sliderInput("al_pha", label="Shrinkage intensity",
+    column(width=2, sliderInput("al_pha", label="Shrinkage intensity",
                                 min=0.01, max=0.99, value=0.01, step=0.05)),
     # Input the quantile
-    column(width=3, sliderInput("pro_b", label="Confidence level",
+    column(width=2, sliderInput("pro_b", label="Confidence level",
                                 min=0.01, max=0.49, value=0.25, step=0.01)),
     # Input choice of ex_cess returns
-    column(width=3, selectInput("returns_scaling", label="Excess returns scaling",
+    column(width=2, selectInput("returns_scaling", label="Excess returns scaling",
                                 choices=c("none", "sum", "re_scaled", "volatility", "sharpe", "skew"), selected="none")),
-    # If fac_tor=1 then trending, If fac_tor=(-1) then contrarian
-    # column(width=3, numericInput("fac_tor", "Trend coefficient:", value=1)),
-    column(width=3, selectInput("fac_tor", label="Trend coefficient",
+    # If co_eff=1 then trending, If co_eff=(-1) then contrarian
+    # column(width=2, numericInput("co_eff", "Trend coefficient:", value=1)),
+    column(width=2, selectInput("co_eff", label="Trend coefficient",
                                 choices=c(1, -1), selected=(-1)))
   ),  # end fluidRow
   
@@ -100,7 +100,7 @@ ser_ver <- function(input, output) {
     al_pha <- isolate(input$al_pha)
     pro_b <- isolate(input$pro_b)
     returns_scaling <- isolate(input$returns_scaling)
-    fac_tor <- as.numeric(isolate(input$fac_tor))
+    co_eff <- as.numeric(isolate(input$co_eff))
     # Model is recalculated when the re_calculate variable is updated
     input$re_calculate
     
@@ -273,7 +273,7 @@ ser_ver <- function(input, output) {
       # position_s[end_points, ] <- ex_cess[end_points, ]
       # position_s <- zoo::na.locf(position_s, na.rm=FALSE)
       position_s <- (position_s - rowMeans(position_s))
-      pnl_s <- fac_tor*position_s*ret_s
+      pnl_s <- co_eff*position_s*ret_s
       pnl_s <- rowMeans(pnl_s)
     } else if (model_type == "rank_hold") {
       # Run rank and hold model
@@ -288,7 +288,7 @@ ser_ver <- function(input, output) {
       position_s <- (position_s - rowMeans(position_s))
       # Average the past position_s to reflect holding the position for some time
       position_s <- HighFreq::roll_sum(position_s, look_back=look_back)
-      pnl_s <- fac_tor*position_s*ret_s
+      pnl_s <- co_eff*position_s*ret_s
       pnl_s <- rowMeans(pnl_s)
     } else if (inter_val == "days") {
       # Rerun the strategy with fixed start date
@@ -300,7 +300,7 @@ ser_ver <- function(input, output) {
                                    max_eigen=max_eigen,
                                    al_pha=al_pha,
                                    model_type=model_type,
-                                   co_eff=fac_tor)
+                                   co_eff=co_eff)
       pnl_s[which(is.na(pnl_s)), ] <- 0
     } else {
       # Rerun the strategy with multiple start dates
@@ -318,7 +318,7 @@ ser_ver <- function(input, output) {
       #                                max_eigen=max_eigen, 
       #                                al_pha=al_pha, 
       #                                model_type=model_type,
-      #                                co_eff=fac_tor)
+      #                                co_eff=co_eff)
       #   pnl_s[which(is.na(pnl_s)), ] <- 0
       #   pnl_s
       # })  # end lapply
@@ -337,7 +337,7 @@ ser_ver <- function(input, output) {
                                    max_eigen=max_eigen,
                                    al_pha=al_pha,
                                    model_type=model_type,
-                                   co_eff=fac_tor)
+                                   co_eff=co_eff)
       pnl_s[which(is.na(pnl_s)), ] <- 0
     }  # end if
   

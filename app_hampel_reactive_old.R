@@ -42,38 +42,38 @@ inter_face <- shiny::fluidPage(
   # Create single row with two slider inputs
   fluidRow(
     # Input end points interval
-    # column(width=3, selectInput("inter_val", label="End points Interval",
+    # column(width=2, selectInput("inter_val", label="End points Interval",
     #                             choices=c("days", "weeks", "months", "years"), selected="days")),
     # Input stock symbol
-    column(width=3, selectInput("sym_bol", label="Symbol",
+    column(width=2, selectInput("sym_bol", label="Symbol",
                                 choices=sym_bols, selected=sym_bol)),
     # Input short look-back interval
-    column(width=3, sliderInput("short_back", label="Short lookback", min=3, max=30, value=8, step=1)),
+    column(width=2, sliderInput("short_back", label="Short lookback", min=3, max=30, value=8, step=1)),
     # Input long look-back interval
-    column(width=3, sliderInput("long_back", label="Long lookback", min=10, max=100, value=20, step=1)),
+    column(width=2, sliderInput("long_back", label="Long lookback", min=10, max=100, value=20, step=1)),
     # Input lag trade parameter
-    column(width=3, sliderInput("lagg", label="lagg", min=1, max=5, value=2, step=1)),
+    column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=2, step=1)),
     # Input threshold interval
-    column(width=3, sliderInput("thresh_old", label="threshold", min=0.5, max=3.0, value=2.0, step=0.1)),
+    column(width=2, sliderInput("thresh_old", label="threshold", min=0.5, max=3.0, value=2.0, step=0.1)),
     # Input add annotations Boolean
-    column(width=3, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False"))
+    column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False"))
     # Input the weight decay parameter
-    # column(width=3, sliderInput("lamb_da", label="Weight decay:",
+    # column(width=2, sliderInput("lamb_da", label="Weight decay:",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input model weights type
-    # column(width=3, selectInput("typ_e", label="Portfolio weights type",
+    # column(width=2, selectInput("typ_e", label="Portfolio weights type",
     #                             choices=c("max_sharpe", "min_var", "min_varpca", "rank"), selected="rank")),
     # Input number of eigenvalues for regularized matrix inverse
-    # column(width=3, sliderInput("max_eigen", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
+    # column(width=2, sliderInput("max_eigen", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
     # Input the shrinkage intensity
-    # column(width=3, sliderInput("al_pha", label="Shrinkage intensity",
+    # column(width=2, sliderInput("al_pha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input the percentile
-    # column(width=3, sliderInput("percen_tile", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
+    # column(width=2, sliderInput("percen_tile", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
     # Input the strategy coefficient: co_eff=1 for momentum, and co_eff=-1 for contrarian
-    # column(width=3, selectInput("co_eff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
+    # column(width=2, selectInput("co_eff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # Input the bid-offer spread
-    # column(width=3, numericInput("bid_offer", label="bid-offer:", value=0.001, step=0.001))
+    # column(width=2, numericInput("bid_offer", label="bid-offer:", value=0.001, step=0.001))
   ),  # end fluidRow
   
   # Create output plot panel
@@ -103,6 +103,9 @@ ser_ver <- function(input, output) {
   # short_back <- 11
   # half_window <- short_back %/% 2
 
+  # Create an empty list of reactive values.
+  value_s <- reactiveValues()
+  
   # Load data
   clos_e <- reactive({
     cat("Loading data\n")
@@ -205,15 +208,21 @@ ser_ver <- function(input, output) {
     # position_s <- ifelse(z_scores > thresh_old, -1, position_s)
     # position_s <- ifelse(z_scores < (-thresh_old), 1, position_s)
     position_s <- zoo::na.locf(position_s, na.rm=FALSE)
+    # Calculate indicator of flipping the positions
+    in_dic <- rutils::diff_it(position_s)
+    # Lag the positions to reflect trade on next day
     position_s <- rutils::lag_it(position_s, lagg=1)
-    
+
+    # Calculate pnl_s
     pnl_s <- cumsum(position_s*re_turns)
     cum_sum <- cumsum(re_turns)
-    pnl_s <- cbind(pnl_s, cum_sum)
-    colnames(pnl_s) <- c("Strategy", "Index")
+    pnl_s <- cbind(cum_sum, pnl_s)
+    colnames(pnl_s) <- c("Index", "Strategy")
+    
+    # Calculate number of trades
+    value_s$n_trades <- sum(abs(in_dic)>0)
     
     # Add buy/sell indicators
-    in_dic <- rutils::diff_it(position_s)
     indic_buy <- (in_dic > 0)
     indic_sell <- (in_dic < 0)
 
@@ -226,7 +235,7 @@ ser_ver <- function(input, output) {
 
   # Calculate position_s if there's new thresh_old value
   dy_graph <- reactive({
-    cat("Ploting pnl_s\n")
+    cat("Plotting pnl_s\n")
     # Model is recalculated when the add_annotations variable is updated
     add_annotations <- input$add_annotations
     # cap_tion <- pnl_s()$caption
@@ -238,22 +247,29 @@ ser_ver <- function(input, output) {
     # Number of trades
     # n_trades <- sum(abs(rutils::diff_it(position_s)))# / n_rows
     # cap_tion <- paste("Number of trades =", n_trades)
-    cap_tion <- paste("Number of trades")
+    # Calculate Sharpe ratios
+    sharp_e <- sqrt(252)*sapply(rutils::diff_it(pnl_s[, 1:2]), function(x) mean(x)/sd(x[x<0]))
+    sharp_e <- round(sharp_e, 3)
     
+    # cap_tion <- paste("Contrarian Strategy for", input$sym_bol, "Using the Hampel Filter Over Prices")
+    cap_tion <- paste("Strategy for", input$sym_bol, "Trading Volumes, \n", 
+                      paste0(c("Index SR=", "Strategy SR="), sharp_e, collapse=", "), ", \n",
+                      "Number of trades=", value_s$n_trades)
+
     if (add_annotations == "True") {
       dygraphs::dygraph(pnl_s, main=cap_tion) %>%
         dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
-        dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=1, col="red") %>%
-        dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=1, col="blue") %>%
-        dySeries(name=col_names[3], axis="y2", label=col_names[3], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
-        dySeries(name=col_names[4], axis="y2", label=col_names[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
+        dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=1, col="blue") %>%
+        dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=1, col="red") %>%
+        dySeries(name=col_names[3], axis="y", label=col_names[3], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
+        dySeries(name=col_names[4], axis="y", label=col_names[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
     } else if (add_annotations == "False") {
         dygraphs::dygraph(pnl_s[, 1:2], main=cap_tion) %>%
           dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
           dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
-          dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=1, col="red") %>%
-          dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=1, col="blue")
+          dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=1, col="blue") %>%
+          dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=1, col="red")
     }  # end if
         
   })  # end reactive

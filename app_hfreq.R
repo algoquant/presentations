@@ -56,24 +56,24 @@ inter_face <- shiny::fluidPage(
            h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
            actionButton("re_calculate", "Recalculate the Model")),
     # Input stock symbol
-    # column(width=3, selectInput("sym_bol", label="Symbol",
+    # column(width=2, selectInput("sym_bol", label="Symbol",
     #                             choices=sym_bols, selected=sym_bol)),
     # Input model type
-    column(width=3, selectInput("model_type", label="model",
+    column(width=2, selectInput("model_type", label="model",
                                 choices=c("VWAP", "Hampel", "ZScore"), selected="ZScore")),
     # Input look-back interval
-    column(width=3, sliderInput("look_back", label="Lookback interval",
+    column(width=2, sliderInput("look_back", label="Lookback interval",
                                 min=1, max=300, value=100, step=1)),
     # Input lag trade parameter
-    column(width=3, sliderInput("lagg", label="Confirmation signals", min=1, max=5, value=2, step=1)),
+    column(width=2, sliderInput("lagg", label="Confirmation signals", min=1, max=5, value=2, step=1)),
     # Input trim parameter to remove price jumps - smaller tri_m removes more price jumps
-    # column(width=3, sliderInput("tri_m", label="Trim", min=0.1, max=10, value=10.0, step=0.1)),
+    # column(width=2, sliderInput("tri_m", label="Trim", min=0.1, max=10, value=10.0, step=0.1)),
     # Input lots parameter to remove odd lots - larger lot_s removes more ticks
-    column(width=3, sliderInput("lot_s", label="Lots number", min=100, max=1e3, value=200, step=50)),
+    column(width=2, sliderInput("lot_s", label="Lots number", min=100, max=1e3, value=200, step=50)),
     # Input threshold parameter to control position flipping
-    column(width=3, sliderInput("thresh_old", label="Threshold", min=0.0, max=4.0, value=0.0, step=0.1)),
+    column(width=2, sliderInput("thresh_old", label="Threshold", min=0.0, max=4.0, value=0.0, step=0.1)),
     # Input trending or reverting (contrarian) strategy
-    column(width=3, selectInput("co_eff", label="Trend (1) Revert (-1)",
+    column(width=2, selectInput("co_eff", label="Trend (1) Revert (-1)",
                                 choices=c(1, -1), selected=(-1)))
   ),  # end fluidRow
   

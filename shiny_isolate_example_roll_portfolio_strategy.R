@@ -33,13 +33,13 @@ inter_face <- fluidPage(
     ),  # end fluidRow
     
     fluidRow(
-        column(width=3, sliderInput("look_back", label="lookback value:",
+        column(width=2, sliderInput("look_back", label="lookback value:",
                                     min=5, max=111, value=11, step=1)),
-        column(width=3, sliderInput("al_pha", label="Shrinkage intensity:",
+        column(width=2, sliderInput("al_pha", label="Shrinkage intensity:",
                     min=0, max=1, value=0, step=0.01)),
-        column(width=3, selectInput("max_eigen", label="max-eigen:",
+        column(width=2, selectInput("max_eigen", label="max-eigen:",
                     choices=2:10, selected=3)),
-        column(width=3, selectInput("lagg", label="lag:",
+        column(width=2, selectInput("lagg", label="lag:",
                     choices=2:10, selected=2))
     ),  # end fluidRow
     

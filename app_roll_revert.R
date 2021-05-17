@@ -46,28 +46,28 @@ inter_face <- shiny::fluidPage(
   # Create single row with two slider inputs
   fluidRow(
     # Input end points interval
-    column(width=3, selectInput("inter_val", label="End points Interval",
+    column(width=2, selectInput("inter_val", label="End points Interval",
                                 choices=c("days", "weeks", "months", "years"), selected="days")),
     # Input look-back interval
-    column(width=3, sliderInput("look_back", label="Lookback interval",
+    column(width=2, sliderInput("look_back", label="Lookback interval",
                                 min=2, max=125, value=6, step=1)),
     # Input look-back lag interval
-    # column(width=3, sliderInput("look_lag", label="Lookback lag interval", min=1, max=10, value=2, step=1)),
+    # column(width=2, sliderInput("look_lag", label="Lookback lag interval", min=1, max=10, value=2, step=1)),
     # Input the weight decay parameter
-    # column(width=3, sliderInput("lamb_da", label="Weight decay:",
+    # column(width=2, sliderInput("lamb_da", label="Weight decay:",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input model weights type
-    column(width=3, selectInput("typ_e", label="Portfolio weights type",
+    column(width=2, selectInput("typ_e", label="Portfolio weights type",
                                 choices=c("max_sharpe", "min_var", "min_varpca", "rank"), selected="rank")),
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=3, sliderInput("max_eigen", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
+    column(width=2, sliderInput("max_eigen", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
     # Input the shrinkage intensity
-    column(width=3, sliderInput("al_pha", label="Shrinkage intensity",
+    column(width=2, sliderInput("al_pha", label="Shrinkage intensity",
                                 min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input the strategy coefficient: co_eff=1 for momentum, and co_eff=-1 for contrarian
-    column(width=3, selectInput("co_eff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
+    column(width=2, selectInput("co_eff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # Input the bid-offer spread
-    column(width=3, numericInput("bid_offer", label="bid-offer:", value=0.0, step=0.001))
+    column(width=2, numericInput("bid_offer", label="bid-offer:", value=0.0, step=0.001))
   ),  # end fluidRow
   
   # Create output plot panel

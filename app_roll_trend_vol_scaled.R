@@ -134,27 +134,27 @@ inter_face <- shiny::fluidPage(
   # Create single row with two slider inputs
   fluidRow(
     # Input end points interval
-    column(width=3, selectInput("inter_val", label="End points Interval",
+    column(width=2, selectInput("inter_val", label="End points Interval",
                 choices=c("days", "weeks", "months", "years"), selected="weeks")),
     # Input look-back interval
-    column(width=3, sliderInput("look_back", label="Lookback interval",
+    column(width=2, sliderInput("look_back", label="Lookback interval",
                                 min=1, max=100, value=18, step=1)),
-    column(width=3, sliderInput("lamb_da", label="Weight decay:",
+    column(width=2, sliderInput("lamb_da", label="Weight decay:",
                                 min=0.01, max=0.99, value=0.01, step=0.05)),
     # Input end points interval
-    column(width=3, selectInput("model_type", label="Weights type",
+    column(width=2, selectInput("model_type", label="Weights type",
                                 choices=c("max_sharpe", "max_sharpe_median", "min_var", "min_varpca", "rank", "rankrob", "quan_tile"), selected="max_sharpe")),
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=3, numericInput("max_eigen", "Number of eigenvalues", value=6)),
+    column(width=2, numericInput("max_eigen", "Number of eigenvalues", value=6)),
     # Input the shrinkage intensity
-    column(width=3, sliderInput("al_pha", label="Shrinkage intensity",
+    column(width=2, sliderInput("al_pha", label="Shrinkage intensity",
                                 min=0.01, max=0.99, value=0.01, step=0.05)),
     # Input the quantile
-    column(width=3, sliderInput("pro_b", label="Confidence level",
+    column(width=2, sliderInput("pro_b", label="Confidence level",
                                 min=0.01, max=0.49, value=0.25, step=0.01)),
     # If co_eff=1 then trending, If co_eff=(-1) then contrarian
-    # column(width=3, numericInput("co_eff", "Trend coefficient:", value=1)),
-    column(width=3, selectInput("co_eff", label="Trend coefficient",
+    # column(width=2, numericInput("co_eff", "Trend coefficient:", value=1)),
+    column(width=2, selectInput("co_eff", label="Trend coefficient",
                                 choices=c(1, -1), selected=1))
   ),  # end fluidRow
   

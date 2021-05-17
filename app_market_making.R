@@ -44,27 +44,27 @@ inter_face <- shiny::fluidPage(
 
   # create single row with two slider inputs
   fluidRow(
-    column(width=3, sliderInput("buy_spread", label="spread:",
+    column(width=2, sliderInput("buy_spread", label="spread:",
                                 min=0.0, max=10*tick_size, value=3*tick_size, step=tick_size)),
-    # column(width=3, sliderInput("sell_spread", label="sell spread:",
+    # column(width=2, sliderInput("sell_spread", label="sell spread:",
     #                             min=0.0, max=10*tick_size, value=3*tick_size, step=tick_size)),
-    column(width=3, sliderInput("look_back", label="look_back:",
+    column(width=2, sliderInput("look_back", label="look_back:",
                                 min=3, max=211, value=111, step=1)),
-    column(width=3, sliderInput("thresh_old", label="threshold:",
+    column(width=2, sliderInput("thresh_old", label="threshold:",
                                 min=0.0, max=4.0, value=1.0, step=0.01)),
-    column(width=3, sliderInput("lagg", label="lag:",
+    column(width=2, sliderInput("lagg", label="lag:",
                                 min=0, max=10, value=2, step=1)),
-    column(width=3, sliderInput("lamb_da", label="lambda:",
+    column(width=2, sliderInput("lamb_da", label="lambda:",
                                 min=0.0, max=0.9, value=0.05, step=0.01)),
-    column(width=3, sliderInput("invent_limit", label="inventory limit:",
+    column(width=2, sliderInput("invent_limit", label="inventory limit:",
                                 min=5, max=100, value=50, step=1)),
     # Select output series
-    column(width=3, selectInput("out_put", label="output series:",
+    column(width=2, selectInput("out_put", label="output series:",
                                 choices=col_names, selected=col_names[1]))
     # for SPY
-    # column(width=3, sliderInput("buy_spread", label="buy spread:",
+    # column(width=2, sliderInput("buy_spread", label="buy spread:",
     #                             min=0.0, max=0.1, value=0.001, step=0.001)),
-    # column(width=3, sliderInput("sell_spread", label="sell spread:",
+    # column(width=2, sliderInput("sell_spread", label="sell spread:",
     #                             min=0.0, max=0.1, value=0.001, step=0.001))
   ),  # end fluidRow
 

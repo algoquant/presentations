@@ -38,17 +38,17 @@ inter_face <- shiny::fluidPage(
   # Create single row with two slider inputs
   fluidRow(
     # Input look-back interval
-    column(width=3, sliderInput("look_back", label="Lookback", min=11, max=130, value=21, step=1)),
+    column(width=2, sliderInput("look_back", label="Lookback", min=11, max=130, value=21, step=1)),
     # Input exponent for variance
-    column(width=3, sliderInput("expo_nent", label="Std Dev exponent:",
+    column(width=2, sliderInput("expo_nent", label="Std Dev exponent:",
                                 min=0.25, max=2.5, value=1.0, step=0.05)),
     # Input weight_s
-    column(width=3, sliderInput("weight_s", label="VTI weight:",
+    column(width=2, sliderInput("weight_s", label="VTI weight:",
                                 min=0.01, max=0.99, value=0.5, step=0.05))
     # Input lag trade parameter
-    # column(width=3, sliderInput("lagg", label="lagg", min=1, max=5, value=2, step=1)),
+    # column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=2, step=1)),
     # Input threshold interval
-    # column(width=3, sliderInput("thresh_old", label="threshold", min=0.5, max=3.0, value=1.0, step=0.1))
+    # column(width=2, sliderInput("thresh_old", label="threshold", min=0.5, max=3.0, value=1.0, step=0.1))
   ),  # end fluidRow
   
   # Create output plot panel

@@ -62,22 +62,22 @@ inter_face <- shiny::fluidPage(
   # Create row with for symbols
   fluidRow(
     # Input the symbol for signal
-    column(width=3, selectInput("symbol_signal", label="symbol for signal: ",
+    column(width=2, selectInput("symbol_signal", label="symbol for signal: ",
                                 choices=symbol_s, selected=symbol_s[1])),
     # Input the symbol for trading
-    column(width=3, selectInput("symbol_asset", label="symbol for trading (asset): ",
+    column(width=2, selectInput("symbol_asset", label="symbol for trading (asset): ",
                                 choices=symbol_s, selected=symbol_s[1])),
     # Input the trade lag
-    column(width=3, numericInput("lagg", label="trade lag:",
+    column(width=2, numericInput("lagg", label="trade lag:",
                                  min=1, max=33, value=3, step=1)),
   ),  # end fluidRow
   
   # Create row for thresholds
   fluidRow(
     # Input the count threshold levels
-    column(width=3, numericInput("close_high_thresh", label="close high threshold:",
+    column(width=2, numericInput("close_high_thresh", label="close high threshold:",
                                  min=0, max=10, value=2, step=1)),
-    column(width=3, numericInput("close_low_thresh", label="close low threshold:",
+    column(width=2, numericInput("close_low_thresh", label="close low threshold:",
                                  min=0, max=10, value=2, step=1))
     # Input the long look-back interval
     # column(width=4, sliderInput("look_long", label="look-back long:",

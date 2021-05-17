@@ -27,10 +27,10 @@ inter_face <- shiny::fluidPage(
   # Create single row of widgets with two slider inputs
   fluidRow(
     # Input stock symbol
-    column(width=3, selectInput("sym_bol", label="Symbol",
+    column(width=2, selectInput("sym_bol", label="Symbol",
                                 choices=sym_bols, selected=sym_bol)),
     # Input look-back interval
-    column(width=3, sliderInput("look_back", label="Lookback interval",
+    column(width=2, sliderInput("look_back", label="Lookback interval",
                                 min=1, max=150, value=11, step=1))
   ),  # end fluidRow
   

@@ -30,7 +30,7 @@ inter_face <- shiny::fluidPage(
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the bid-offer spread
-    column(width=2, numericInput("bid_offer", label="Bid-offer:", value=0.0000, step=0.0001))
+    column(width=2, numericInput("bid_offer", label="Bid-offer:", value=0.0000, step=0.0001)),
   ),  # end fluidRow
 
   fluidRow(
@@ -65,10 +65,8 @@ ser_ver <- function(input, output) {
     clos_e <- quantmod::Cl(oh_lc)
     re_turns <- rutils::diff_it(log(clos_e))
     re_turns <- re_turns/sd(re_turns)
-    # vol_ume <- quantmod::Vo(oh_lc)
-    # cbind(re_turns, vol_ume)
-    re_turns
-    
+    clos_e
+
   })  # end Load the data
   
 
@@ -83,7 +81,7 @@ ser_ver <- function(input, output) {
     lagg <- input$lagg
 
     # Calculate cumulative returns
-    re_turns <- da_ta()
+    re_turns <- da_ta
     cum_rets <- cumsum(re_turns)
     n_rows <- NROW(re_turns)
     
@@ -144,7 +142,7 @@ ser_ver <- function(input, output) {
     pnl_s <- cbind(re_turns, pnl_s)
     
     # Calculate Sharpe ratios
-    sharp_e <- sqrt(252)*sapply(pnl_s, function(x) mean(x)/sd(x[x<0]))
+    sharp_e <- sqrt(252)*lapply(pnl_s, function(x) mean(x)/sd(x[x<0]))
     value_s$sharp_e <- round(sharp_e, 3)
 
     # Bind with indicators
@@ -162,7 +160,7 @@ ser_ver <- function(input, output) {
   output$dy_graph <- dygraphs::renderDygraph({
     
     # Get the pnl_s
-    pnl_s <- pnl_s()
+    pnl_s <- pnl_s
     col_names <- colnames(pnl_s)
     
     # Get Sharpe ratios
@@ -180,9 +178,9 @@ ser_ver <- function(input, output) {
     if (add_annotations == "True") {
       dygraphs::dygraph(pnl_s, main=cap_tion) %>%
         dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
-        dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
+        dyAxis("y", label=col_names[2], independentTicks=TRUE) %>%
         dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=1, col="blue") %>%
-        dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=1, col="red") %>%
+        dySeries(name=col_names[2], axis="y", label=col_names[2], strokeWidth=1, col="red") %>%
         dySeries(name=col_names[3], axis="y", label=col_names[3], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
         dySeries(name=col_names[4], axis="y", label=col_names[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
     } else if (add_annotations == "False") {

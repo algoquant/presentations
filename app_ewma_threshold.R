@@ -52,17 +52,17 @@ inter_face <- shiny::fluidPage(
   # create single row with four slider inputs
   fluidRow(
     # Input stock symbol
-    column(width=3, selectInput("sym_bol", label="Symbol",
+    column(width=2, selectInput("sym_bol", label="Symbol",
                                 choices=sym_bols, selected=sym_bol)),
     # Input look-back interval
-    column(width=3, sliderInput("look_back", label="Lookback interval",
+    column(width=2, sliderInput("look_back", label="Lookback interval",
                                 min=1, max=150, value=4, step=1)),
     # Input lag trade parameter
-    column(width=3, sliderInput("lagg", label="Confirmation signals", min=1, max=5, value=2, step=1)),
+    column(width=2, sliderInput("lagg", label="Confirmation signals", min=1, max=5, value=2, step=1)),
     # Input lag trade parameter
-    column(width=3, sliderInput("thresh_old", label="Threshold", min=0.01, max=1.5, value=0.05, step=0.01)),
+    column(width=2, sliderInput("thresh_old", label="Threshold", min=0.01, max=1.5, value=0.05, step=0.01)),
     # Input trending or reverting (contrarian) strategy
-    column(width=3, selectInput("co_eff", label="Trend (1) Revert (-1)",
+    column(width=2, selectInput("co_eff", label="Trend (1) Revert (-1)",
                                 choices=c(1, -1), selected=(1)))
   ),  # end fluidRow
   
