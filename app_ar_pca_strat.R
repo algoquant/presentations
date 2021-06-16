@@ -15,7 +15,7 @@ library(dygraphs)
 
 ## Model and data setup
 
-cap_tion <- paste("EWMA Moving Average Crossover Strategy")
+cap_tion <- paste("Autoregressive Strategy Using the Principal Components")
 
 ## End setup code
 
@@ -37,14 +37,16 @@ inter_face <- shiny::fluidPage(
   fluidRow(
     # Input the look-back interval
     column(width=2, sliderInput("max_back", label="Max Look-back", min=3, max=50, value=10, step=1)),
+    # Input the response look-back interval
+    column(width=2, sliderInput("n_agg", label="Aggregation Interval", min=2, max=20, value=5, step=1)),
     # Input the look-back interval
-    column(width=2, sliderInput("max_eigen", label="Max Eigen", min=2, max=6, value=3, step=1))
+    column(width=2, sliderInput("max_eigen", label="Max Eigen", min=2, max=20, value=3, step=1))
     # Input the trade lag
     # column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=2, step=1))
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dy_graph", width="100%", height="550px"), height=10, width=11)
+  mainPanel(dygraphs::dygraphOutput("dy_graph", width="100%", height="600px"), height=10, width=12)
 
 )  # end fluidPage interface
 
@@ -65,29 +67,33 @@ ser_ver <- function(input, output) {
     n_rows <- NROW(oh_lc)
     clos_e <- log(quantmod::Cl(oh_lc))
     re_turns <- rutils::diff_it(clos_e)
-    # cum_rets <- cumsum(re_turns)
-    vol_ume <- quantmod::Vo(oh_lc)
     re_turns <- re_turns/sd(re_turns)
-    # vol_ume <- quantmod::Vo(oh_lc)
-    
+
+    ## Divide the returns by the volume - use trading time (volume clock)
     # Need to scale the volume by the rolling average volume
-    look_back <- 11
-    volume_rolling <- roll::roll_mean(vol_ume, width=look_back)
-    volume_rolling <- zoo::na.locf(volume_rolling, fromLast=TRUE)
-    vol_ume <- vol_ume/volume_rolling
+    # vol_ume <- quantmod::Vo(oh_lc)
+    # vol_ume[vol_ume == 0] <- NA
+    # vol_ume <- zoo::na.locf(vol_ume)
+    # look_back <- 11
+    # volume_rolling <- roll::roll_mean(vol_ume, width=look_back, min_obs=1)
+    # volume_rolling <- zoo::na.locf(volume_rolling, fromLast=TRUE)
+    # vol_ume <- vol_ume/volume_rolling
     
     # Divide  the returns by the volume - use trading time (volume clock)
     # rets_scaled <- ifelse(vol_ume > 0, re_turns/vol_ume, 0)
-    rets_scaled <- re_turns/vol_ume
-    rets_scaled <- rets_scaled/sd(rets_scaled)
+    # rets_scaled <- re_turns/vol_ume
+    # rets_scaled <- rets_scaled/sd(rets_scaled)
+
+    # Don't scale by the volume
+    rets_scaled <- re_turns
     
     cbind(re_turns, rets_scaled)
     
   })  # end Load the data
   
 
-  # Recalculate the strategy
-  predic_tor <- reactive({
+  # Recalculate the design
+  de_sign <- reactive({
     
     cat("Recalculating PCA Predictor For ", input$sym_bol, "\n")
     
@@ -101,30 +107,36 @@ ser_ver <- function(input, output) {
     date_s <- zoo::index(re_turns)
     n_rows <- NROW(re_turns)
     
-
-    look_backs <- 2:max_back
-    de_sign <- lapply(look_backs, function(x) sqrt(x)*roll::roll_mean(rets_scaled, x))
-    de_sign <- do.call(cbind, de_sign)
-    de_sign[1, ] <- 0
-    de_sign <- zoo::na.locf(de_sign)
-    # sum(is.na(de_sign))
-    de_sign <- cbind(rets_scaled, de_sign)
+    # res_ponse <- rutils::lag_it(de_sign[, max_back], lagg=(-max_back))
+    n_agg <- input$n_agg
+    res_ponse <- sqrt(n_agg)*roll::roll_mean(re_turns, n_agg, min_obs=1)
+    # res_ponse[1:(n_agg-1)] <- 0
     
+    look_backs <- n_agg*(1:max_back)
+    # de_sign <- lapply(look_backs, function(x) sqrt(x)*roll::roll_mean(rets_scaled, x, min_obs=1))
+    de_sign <- lapply(look_backs, rutils::lag_it, in_put=res_ponse)
+    de_sign <- do.call(cbind, de_sign)
+    # de_sign[1, ] <- 0
+    # de_sign <- zoo::na.locf(de_sign)
+    # sum(is.na(de_sign))
+    de_sign <- cbind(res_ponse, de_sign)
+    
+    res_ponse <- rutils::lag_it(res_ponse, lagg=(-n_agg))
+    
+    ## Define predictors as the principal components of de_sign
     # Calculate covariance matrix of de_sign
-    cov_mat <- cov(de_sign)
+    # cov_mat <- cov(de_sign)
     # Calculate eigenvectors and eigenvalues
-    ei_gen <- eigen(cov_mat)
+    # ei_gen <- eigen(cov_mat)
     
     # Define predictors as the principal components of de_sign
     # eigen_vec <- ei_gen$vectors
-    predic_tor <- xts::xts(de_sign %*% ei_gen$vectors, order.by=date_s)
-    # colnames(predic_tor) <- paste0("pc", 1:NCOL(predic_tor))
-    # round(cov(predic_tor), 3)
-    predic_tor <- rutils::lag_it(predic_tor)
-    predic_tor <- cbind(rep(1, n_rows), predic_tor)
-    predic_tor
+    # de_sign <- xts::xts(de_sign %*% ei_gen$vectors, order.by=date_s)
+    # colnames(de_sign) <- paste0("pc", 1:NCOL(de_sign))
+    # round(cov(de_sign), 3)
+    cbind(res_ponse, rep(1, n_rows), de_sign)
 
-  })  # end Recalculate the strategy
+  })  # end Recalculate the design
   
   
   # Recalculate the strategy
@@ -135,17 +147,15 @@ ser_ver <- function(input, output) {
     # Get model parameters from input argument
     max_eigen <- input$max_eigen
 
-    predic_tor <- predic_tor()
+    res_ponse <- de_sign()[, 1]
+    predic_tor <- de_sign()[, -1]
     re_turns <- da_ta()[, 1]
+    # max_eigen <- min(max_eigen, NCOL(predic_tor))
+    max_eigen <- NCOL(predic_tor)
     
     n_rows <- NROW(re_turns)
-    in_sample <- 1:(n_rows %/% 4)
-    out_sample <- (n_rows %/% 4 + 1):n_rows
-    
-    # res_ponse <- rutils::lag_it(de_sign[, max_back], lagg=(-max_back))
-    res_ponse <- sqrt(max_eigen)*roll::roll_mean(re_turns, max_eigen)
-    res_ponse[1:(max_eigen-1)] <- 0
-    res_ponse <- rutils::lag_it(res_ponse, lagg=(-max_eigen))
+    in_sample <- 1:(n_rows %/% 2)
+    out_sample <- (n_rows %/% 2 + 1):n_rows
     
     # Calculate in-sample fitted coefficients
     in_verse <- MASS::ginv(predic_tor[in_sample, 1:max_eigen])
@@ -160,7 +170,7 @@ ser_ver <- function(input, output) {
     # Calculate indicator of flipping the positions
     in_dic <- rutils::diff_it(position_s)
     # Calculate number of trades
-    value_s$n_trades <- sum(abs(in_dic)>0)
+    value_s$n_trades <- sum(abs(in_dic) > 0)
     
     # Add buy/sell indicators for annotations
     indic_buy <- (in_dic > 0)
@@ -186,9 +196,11 @@ ser_ver <- function(input, output) {
     
     # Bind with indicators
     pnl_s <- cumsum(pnl_s)
-    cum_rets <- cumsum(re_turns)
-    pnl_s <- cbind(pnl_s, cum_rets[indic_buy], cum_rets[indic_sell])
-    colnames(pnl_s) <- c(paste(input$sym_bol, "Returns"), "Strategy", "Buy", "Sell")
+    if (value_s$n_trades > 1) {
+      cum_rets <- cumsum(re_turns)
+      pnl_s <- cbind(pnl_s, cum_rets[indic_buy], cum_rets[indic_sell])
+      colnames(pnl_s) <- c(paste(input$sym_bol, "Returns"), "Strategy", "Buy", "Sell")
+    }  # end if
     
     pnl_s
     

@@ -1,6 +1,7 @@
 ##############################
-# This is a shiny app for simulating a Z-Scores strategy, 
+# This is a shiny app for backtesting a Z-Scores strategy, 
 # with a dygraphs plot.
+# 
 # Just press the "Run App" button on upper right of this panel.
 ##############################
 
@@ -68,13 +69,17 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
   
   # create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dy_graph"), width=12)
+  mainPanel(dygraphs::dygraphOutput("dy_graph", width="100%", height="600px"), height=10, width=12)
+  # mainPanel(dygraphs::dygraphOutput("dy_graph"), width=12)
 )  # end fluidPage interface
 
 
 ## Define the server code
 ser_ver <- shiny::shinyServer(function(input, output) {
 
+  # Create an empty list of reactive values.
+  value_s <- reactiveValues()
+  
   # Recalculate the data and rerun the model
   da_ta <- reactive({
     # Get model parameters from input argument
@@ -88,24 +93,39 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     oh_lc <- get(sym_bol, data_env)
     clos_e <- log(quantmod::Cl(oh_lc))
     star_t <- as.numeric(clos_e[1, ])
-    rang_e <- (log(quantmod::Hi(oh_lc)) - log(quantmod::Lo(oh_lc)))
+    # rang_e <- (log(quantmod::Hi(oh_lc)) - log(quantmod::Lo(oh_lc)))
     # Run model
     pnl_s <- backtest_zscores(oh_lc, look_back=look_back, lagg=lagg, thresh_old=thresh_old, co_eff=co_eff)
     position_s <- pnl_s[ ,"positions"]
+    
+    # Calculate number of trades
+    value_s$n_trades <- sum(abs(rutils::diff_it(position_s)) > 0)
+    # Calculate Sharpe ratios
+    sharp_e <- sqrt(252)*sapply(cbind(rutils::diff_it(clos_e), pnl_s[ ,"pnls"]), function(x) mean(x)/sd(x[x<0]))
+    value_s$sharp_e <- round(sharp_e, 3)
+    
     pnl_s <- star_t + cumsum(pnl_s[ ,"pnls"])
-    pnl_s <- cbind(clos_e, pnl_s, clos_e + co_eff*position_s*rang_e)
-    colnames(pnl_s) <- c(sym_bol, "Strategy", "Positions")
+    # pnl_s <- cbind(clos_e, pnl_s, clos_e + co_eff*position_s*rang_e)
+    # colnames(pnl_s) <- c(sym_bol, "Strategy", "Positions")
+    pnl_s <- cbind(clos_e, pnl_s)
+    colnames(pnl_s) <- c(sym_bol, "Strategy")
     pnl_s
   })  # end reactive code
   
   # return the dygraph plot to output argument
   output$dy_graph <- dygraphs::renderDygraph({
-    col_names <- colnames(da_ta())
-    dygraphs::dygraph(da_ta(), main=paste(col_names[1], "Strategy")) %>%
+    pnl_s <- da_ta()
+    col_names <- colnames(pnl_s)
+    
+    cap_tion <- paste("Strategy for", input$sym_bol, "Regression Z-score / \n", 
+                      paste0(c("Index SR=", "Strategy SR="), value_s$sharp_e, collapse=" / "), "/ \n",
+                      "Number of trades=", value_s$n_trades)
+    
+    dygraphs::dygraph(pnl_s, main=cap_tion) %>%
       dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
       dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
       dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=2, col="blue") %>%
-      dySeries(name=col_names[3], axis="y", label=col_names[3], strokeWidth=2, col="green") %>%
+      # dySeries(name=col_names[3], axis="y", label=col_names[3], strokeWidth=2, col="green") %>%
       dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=2, col="red")
   })  # end output plot
 

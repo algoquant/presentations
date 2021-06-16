@@ -1,7 +1,7 @@
 ##############################
 # This is a shiny app for simulating strategy using 
-# static betas times OHLC technical indicators, 
-# with dygraphs plot.
+# static betas times OHLC technical indicators, with 
+# dygraphs plot.
 # Just press the "Run App" button on upper right of this panel.
 ##############################
 
