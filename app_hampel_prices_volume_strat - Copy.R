@@ -51,11 +51,12 @@ inter_face <- shiny::fluidPage(
     # Input short look-back interval
     column(width=2, sliderInput("short_back", label="Short lookback", min=3, max=30, value=3, step=1)),
     # Input long look-back interval
-    column(width=2, sliderInput("long_back", label="Long lookback", min=10, max=200, value=100, step=2)),
+    column(width=2, sliderInput("long_back", label="Long lookback", min=10, max=200, value=21, step=2)),
+    column(width=2, sliderInput("lamb_da", label="lamb_da:", min=0.001, max=0.1, value=0.05, step=0.001)),
     # Input lag trade parameter
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=1, step=1)),
     # Input threshold level
-    column(width=2, sliderInput("thresh_old", label="threshold", min=0.5, max=6.0, value=3.0, step=0.1)),
+    column(width=2, sliderInput("thresh_old", label="threshold", min=0.5, max=6.0, value=1.0, step=0.1)),
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False"))
     # Input the weight decay parameter
@@ -164,33 +165,56 @@ ser_ver <- function(input, output) {
   z_scores <- reactive({
     cat("Calculating z_scores\n")
     short_back <- input$short_back
-    # long_back <- input$long_back
+    long_back <- input$long_back
+    lamb_da <- input$lamb_da
     
+    # Calculate EWMA weights
+    weight_s <- exp(-lamb_da*1:long_back)
+    weight_s <- weight_s/sum(weight_s)
+    
+    hi_gh <- Hi(oh_lc())
+    lo_w <- Lo(oh_lc())
+    clos_e <- Cl(oh_lc())
+    vol_at <- HighFreq::roll_conv(hi_gh-lo_w, matrix(weight_s))
+    vol_at <- rutils::lag_it(vol_at, pad_zeros=FALSE)
+    # Calculate the rolling prices
+    # oh_lc <- HighFreq::roll_sum(oh_lc(), look_back=short_back)/short_back
+    close_w <- HighFreq::roll_conv(clos_e, matrix(weight_s))
+    close_w <- rutils::lag_it(close_w, pad_zeros=FALSE)
+
+    # Calculate EWMA prices by filtering with the weights
+    # cum_scaled <- cumsum(rets_scaled)
+
     # Calculate the rolling volume
-    vol_ume <- Vo(oh_lc())
+    # vol_ume <- Vo(oh_lc())
     # Scale the volume by the rolling volume
-    vol_ume <- short_back*vol_ume/HighFreq::roll_sum(vol_ume, look_back=short_back)
+    # vol_ume <- short_back*vol_ume/HighFreq::roll_sum(vol_ume, look_back=short_back)
     # re_turns <- rutils::diff_it(clos_e())
     # Calculate the cumulative returns scaled by the rolling volume
-    vol_ume <- rutils::lag_it(vol_ume, pad_zeros=FALSE)
-    re_turns <- ifelse(vol_ume > 0, re_turns()/vol_ume, 0)
+    # vol_ume <- rutils::lag_it(vol_ume, pad_zeros=FALSE)
+    # re_turns <- ifelse(vol_ume > 0, re_turns()/vol_ume, 0)
     # re_turns[is.na(re_turns) | is.infinite(re_turns)] <- 0
-    cum_scaled <- cumsum(re_turns)
+    # re_turns <- rutils::diff_it(clos_e)
+    # cum_scaled <- cumsum(re_turns)
 
     # Calculate the rolling median of the cumulative returns
-    mi_n <- roll::roll_min(cum_scaled, width=short_back)
-    ma_x <- roll::roll_max(cum_scaled, width=short_back)
-    mi_n[1:short_back, ] <- 0
-    ma_x[1:short_back, ] <- 1
-    mi_n <- rutils::lag_it(mi_n, pad_zeros=FALSE)
-    ma_x <- rutils::lag_it(ma_x, pad_zeros=FALSE)
+    # mi_n <- roll::roll_min(lo_w, width=short_back)
+    # ma_x <- roll::roll_max(hi_gh, width=short_back)
+    # mi_n[1:short_back, ] <- 0
+    # ma_x[1:short_back, ] <- 1
+    # mi_n <- rutils::lag_it(mi_n, pad_zeros=FALSE)
+    # ma_x <- rutils::lag_it(ma_x, pad_zeros=FALSE)
     # Don't divide z_scores by the ma_d because it's redundant since z_scores is divided by the mad_zscores.
     # Old code:
     # ma_d <- TTR::runMAD(re_turns, n=short_back)
     # ma_d[1:short_back, ] <- 1
     # z_scores <- ifelse(ma_d != 0, (clos_e-mi_n)/ma_d, 0)
     # Calculate the z_scores as the rolling cumulative returns
-    z_scores <- ifelse(ma_x > mi_n, (2*cum_scaled - mi_n - ma_x)/(ma_x - mi_n), 0)
+    # z_scores <- ifelse(ma_x > mi_n, (2*clos_e - mi_n - ma_x)/(ma_x - mi_n), 0)
+    z_scores <- ifelse(vol_at > 0, (clos_e - close_w)/vol_at, 0)
+    zscores_w <- HighFreq::roll_conv(matrix(z_scores), matrix(weight_s))
+    zscores_w <- rutils::lag_it(zscores_w, pad_zeros=FALSE)
+    z_scores <- ifelse(zscores_w > 0, z_scores/zscores_w, z_scores)
     # z_scores[is.na(z_scores) | is.infinite(z_scores)] <- 0
     # Standardize the z_scores
     # Old code:
