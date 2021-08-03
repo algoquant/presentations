@@ -49,14 +49,14 @@ inter_face <- shiny::fluidPage(
     column(width=2, selectInput("sym_bol", label="Symbol",
                                 choices=sym_bols, selected=sym_bol)),
     # Input short look-back interval
-    column(width=2, sliderInput("short_back", label="Short lookback", min=3, max=30, value=3, step=1)),
+    # column(width=2, sliderInput("short_back", label="Short lookback", min=3, max=30, value=3, step=1)),
     # Input long look-back interval
-    column(width=2, sliderInput("long_back", label="Long lookback", min=10, max=200, value=21, step=2)),
-    column(width=2, sliderInput("lamb_da", label="lamb_da:", min=0.001, max=0.1, value=0.05, step=0.001)),
+    column(width=2, sliderInput("long_back", label="Long lookback", min=10, max=100, value=100, step=1)),
+    column(width=2, sliderInput("lamb_da", label="lamb_da:", min=0.001, max=0.1, value=0.03, step=0.001)),
     # Input lag trade parameter
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=1, step=1)),
     # Input threshold level
-    column(width=2, sliderInput("thresh_old", label="threshold", min=0.5, max=6.0, value=1.0, step=0.1)),
+    column(width=2, sliderInput("thresh_old", label="threshold", min=0.5, max=6.0, value=2.0, step=0.1)),
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False"))
     # Input the weight decay parameter
@@ -158,13 +158,13 @@ ser_ver <- function(input, output) {
   # Calculate log returns
   re_turns <- reactive({
     cat("Calculating log returns\n")
-    rutils::diff_it(Cl(oh_lc()))
+    rutils::diff_it(log(Cl(oh_lc())))
   })  # end reactive
   
   # Calculate z_scores if there are new short_back and long_back values
   z_scores <- reactive({
     cat("Calculating z_scores\n")
-    short_back <- input$short_back
+    # short_back <- input$short_back
     long_back <- input$long_back
     lamb_da <- input$lamb_da
     

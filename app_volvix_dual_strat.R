@@ -101,7 +101,7 @@ ser_ver <- function(input, output) {
     n_rows <- NROW(re_turns)
 
     # Calculate rolling volatility
-    vari_ance <- HighFreq::roll_var_ohlc(oh_lc=vt_i, look_back=look_back, scal_e=FALSE)
+    vari_ance <- HighFreq::roll_var_ohlc(ohlc=vt_i, look_back=look_back, scale=FALSE)
 
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the in_dic and its recent past values are the same.
@@ -115,7 +115,7 @@ ser_ver <- function(input, output) {
     # Calculate trailing z-scores of SVXY
     de_sign <- cbind(sqrt(vari_ance), vx_x, vti_close)
     res_ponse <- svx_y
-    z_scores <- drop(HighFreq::roll_zscores(res_ponse=res_ponse, de_sign=de_sign, look_back=look_back))
+    z_scores <- drop(HighFreq::roll_zscores(response=res_ponse, design=de_sign, look_back=look_back))
     z_scores[1:look_back] <- 0
     z_scores[is.infinite(z_scores)] <- 0
     z_scores[is.na(z_scores)] <- 0
@@ -125,7 +125,7 @@ ser_ver <- function(input, output) {
     in_dic[z_scores > thresh_old] <- co_eff
     in_dic[z_scores < (-thresh_old)] <- (-co_eff)
     in_dic <- zoo::na.locf(in_dic, na.rm=FALSE)
-    indic_sum <- HighFreq::roll_vec(se_ries=in_dic, look_back=lagg)
+    indic_sum <- HighFreq::roll_vec(tseries=in_dic, look_back=lagg)
     indic_sum[1:lagg] <- 0
     position_s <- rep(NA_integer_, n_rows)
     position_s[1] <- 0
