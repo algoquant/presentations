@@ -107,7 +107,7 @@ ser_ver <- function(input, output) {
     # This is designed to prevent whipsaws and over-trading.
     # position_s <- ifelse(in_dic == indic_lag, in_dic, position_s)
     
-    indic_sum <- HighFreq::roll_vec(se_ries=in_dic, look_back=lagg)
+    indic_sum <- HighFreq::roll_vec(tseries=matrix(in_dic), look_back=lagg)
     indic_sum[1:lagg] <- 0
     position_s <- rep(NA_integer_, n_rows)
     position_s[1] <- 0

@@ -419,7 +419,7 @@ ser_ver <- function(input, output) {
              # Calculate trailing z-scores
              # de_sign <- matrix(1:n_rows, nc=1)
              de_sign <- matrix(1:n_rows, nc=1)
-             z_scores <- HighFreq::roll_zscores(res_ponse=re_turns, de_sign=de_sign, look_back=look_back)
+             z_scores <- HighFreq::roll_zscores(response=re_turns, design=de_sign, look_back=look_back)
              # colnames(z_scores) <- "zscore"
              z_scores[1:look_back] <- 0
              z_scores[is.infinite(z_scores)] <- 0

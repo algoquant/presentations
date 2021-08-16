@@ -101,7 +101,7 @@ ser_ver <- function(input, output) {
     n_rows <- NROW(re_turns)
 
     # Calculate rolling volatility
-    vari_ance <- HighFreq::roll_var_ohlc(oh_lc=vt_i, look_back=look_back, scal_e=FALSE)
+    vari_ance <- HighFreq::roll_var_ohlc(ohlc=vt_i, look_back=look_back, scal_e=FALSE)
 
     # Create design matrix
     if (sym_bol == "SVXY") {
@@ -115,7 +115,7 @@ ser_ver <- function(input, output) {
     }  # end if
     
     # Calculate trailing z-scores
-    z_scores <- drop(HighFreq::roll_zscores(res_ponse=res_ponse, de_sign=de_sign, look_back=look_back))
+    z_scores <- drop(HighFreq::roll_zscores(response=res_ponse, design=de_sign, look_back=look_back))
     # colnames(z_scores) <- "zscore"
     z_scores[1:look_back] <- 0
     z_scores[is.infinite(z_scores)] <- 0
@@ -136,7 +136,7 @@ ser_ver <- function(input, output) {
     in_dic <- zoo::na.locf(in_dic, na.rm=FALSE)
 
     
-    indic_sum <- HighFreq::roll_vec(se_ries=in_dic, look_back=lagg)
+    indic_sum <- HighFreq::roll_vec(tseries=matrix(in_dic), look_back=lagg)
     indic_sum[1:lagg] <- 0
     position_s <- rep(NA_integer_, n_rows)
     position_s[1] <- 0

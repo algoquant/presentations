@@ -125,7 +125,7 @@ ser_ver <- function(input, output) {
     in_dic[z_scores > thresh_old] <- co_eff
     in_dic[z_scores < (-thresh_old)] <- (-co_eff)
     in_dic <- zoo::na.locf(in_dic, na.rm=FALSE)
-    indic_sum <- HighFreq::roll_vec(tseries=in_dic, look_back=lagg)
+    indic_sum <- HighFreq::roll_vec(tseries=matrix(in_dic), look_back=lagg)
     indic_sum[1:lagg] <- 0
     position_s <- rep(NA_integer_, n_rows)
     position_s[1] <- 0
@@ -138,7 +138,7 @@ ser_ver <- function(input, output) {
     # Calculate trailing z-scores of VXX
     # de_sign <- cbind(sqrt(vari_ance), svx_y, vti_close)
     # res_ponse <- vx_x
-    # z_scores <- drop(HighFreq::roll_zscores(res_ponse=res_ponse, de_sign=de_sign, look_back=look_back))
+    # z_scores <- drop(HighFreq::roll_zscores(response=res_ponse, design=de_sign, look_back=look_back))
     # z_scores[1:look_back] <- 0
     # z_scores[is.infinite(z_scores)] <- 0
     # z_scores[is.na(z_scores)] <- 0
@@ -148,7 +148,7 @@ ser_ver <- function(input, output) {
     # in_dic[z_scores > thresh_old] <- co_eff
     # in_dic[z_scores < (-thresh_old)] <- (-co_eff)
     # in_dic <- zoo::na.locf(in_dic, na.rm=FALSE)
-    # indic_sum <- HighFreq::roll_vec(se_ries=in_dic, look_back=lagg)
+    # indic_sum <- HighFreq::roll_vec(tseries=matrix(in_dic), look_back=lagg)
     # indic_sum[1:lagg] <- 0
     # position_s <- rep(NA_integer_, n_rows)
     # position_s[1] <- 0

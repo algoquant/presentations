@@ -110,8 +110,8 @@ ser_ver <- shiny::shinyServer(function(input, output) {
 
     if (model_type == "VWAP") {
       # VWAP model
-      v_wap <- HighFreq::roll_sum(se_ries=clos_e*vol_ume, look_back=look_back)
-      volume_rolling <- HighFreq::roll_sum(se_ries=vol_ume, look_back=look_back)
+      v_wap <- HighFreq::roll_sum(tseries=clos_e*vol_ume, look_back=look_back)
+      volume_rolling <- HighFreq::roll_sum(tseries=vol_ume, look_back=look_back)
       v_wap <- v_wap/volume_rolling
       v_wap[is.na(v_wap)] <- 0
       # Calculate VWAP indicator
@@ -134,7 +134,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     } else if (model_type == "ZScore") {
       # Z-Score regression model
       de_sign <- matrix(1:n_rows, nc=1)
-      sig_nal <- HighFreq::roll_zscores(res_ponse=clos_e, de_sign=de_sign, look_back=look_back)
+      sig_nal <- HighFreq::roll_zscores(response=clos_e, design=de_sign, look_back=look_back)
       colnames(sig_nal) <- "sig_nal"
       sig_nal[1:look_back] <- 0
       sig_nal[is.infinite(sig_nal)] <- 0

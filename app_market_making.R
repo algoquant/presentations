@@ -85,7 +85,7 @@ ser_ver <- function(input, output) {
     # lagg <- input$lagg
 
     # Run the trading model (strategy):
-    # pnl_s <- make_market(oh_lc=ohlc_data,
+    # pnl_s <- make_market(ohlc=ohlc_data,
     #                      ohlc_lag=rutils::lag_it(ohlc_data, lagg=input$lagg),
     #                      buy_spread=input$buy_spread,
     #                      sell_spread=input$buy_spread,
@@ -93,7 +93,7 @@ ser_ver <- function(input, output) {
     #                      invent_limit=input$invent_limit,
     #                      warm_up=100)
 
-    # pnl_s <- make_market_ewma(oh_lc=ohlc_data,
+    # pnl_s <- make_market_ewma(ohlc=ohlc_data,
     #                           ohlc_lag=rutils::lag_it(ohlc_data, lagg=input$lagg),
     #                           buy_spread=input$buy_spread,
     #                           sell_spread=input$buy_spread,
@@ -102,7 +102,7 @@ ser_ver <- function(input, output) {
     #                           lagg=input$lagg,
     #                           warm_up=100)
 
-    pnl_s <- trade_median(re_turns=re_turns, oh_lc=ohlc_data,
+    pnl_s <- trade_median(re_turns=re_turns, ohlc=ohlc_data,
                           ohlc_lag=rutils::lag_it(ohlc_data, lagg=input$lagg),
                           look_back=input$look_back, 
                           thresh_old=input$thresh_old, 

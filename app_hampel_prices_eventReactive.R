@@ -183,7 +183,7 @@ ser_ver <- function(input, output) {
     # Calculate number of consecutive indicators in same direction.
     # This is designed to avoid trading on microstructure noise.
     # in_dic <- ifelse(in_dic == indic_lag, in_dic, in_dic)
-    indic_sum <- HighFreq::roll_vec(se_ries=in_dic, look_back=input$lagg)
+    indic_sum <- HighFreq::roll_vec(tseries=matrix(in_dic), look_back=input$lagg)
     indic_sum[1:input$lagg] <- 0
     
     # Calculate position_s and pnls from indic_sum.

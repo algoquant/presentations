@@ -99,7 +99,7 @@ ser_ver <- function(input, output) {
     
     # Calculate SVXY z-scores
     in_deks <- matrix(1:n_rows, nc=1)
-    svxy_scores <- drop(HighFreq::roll_zscores(res_ponse=svxy_close, de_sign=in_deks, look_back=look_back))
+    svxy_scores <- drop(HighFreq::roll_zscores(response=svxy_close, design=in_deks, look_back=look_back))
     svxy_scores[1:look_back] <- 0
     svxy_scores[is.infinite(svxy_scores)] <- 0
     svxy_scores[is.na(svxy_scores)] <- 0
@@ -109,7 +109,7 @@ ser_ver <- function(input, output) {
     # svxy_scores <- (svxy_close - roll_svxy)/var_rolling
     
     # Calculate VXX z-scores
-    vxx_scores <- drop(HighFreq::roll_zscores(res_ponse=vxx_close, de_sign=in_deks, look_back=look_back))
+    vxx_scores <- drop(HighFreq::roll_zscores(response=vxx_close, design=in_deks, look_back=look_back))
     vxx_scores[1:look_back] <- 0
     vxx_scores[is.infinite(vxx_scores)] <- 0
     vxx_scores[is.na(vxx_scores)] <- 0
@@ -119,7 +119,7 @@ ser_ver <- function(input, output) {
     # vxx_scores <- (vxx_close - roll_vxx)/var_rolling
     
     # Calculate stock z-scores
-    stock_scores <- drop(HighFreq::roll_zscores(res_ponse=clos_e, de_sign=in_deks, look_back=look_back))
+    stock_scores <- drop(HighFreq::roll_zscores(response=clos_e, design=in_deks, look_back=look_back))
     stock_scores[1:look_back] <- 0
     stock_scores[is.infinite(stock_scores)] <- 0
     stock_scores[is.na(stock_scores)] <- 0
@@ -130,7 +130,7 @@ ser_ver <- function(input, output) {
 
     # Calculate volatility z-scores
     vol_at <- log(quantmod::Hi(oh_lc))-log(quantmod::Lo(oh_lc))
-    volat_scores <- drop(HighFreq::roll_zscores(res_ponse=vol_at, de_sign=in_deks, look_back=look_back))
+    volat_scores <- drop(HighFreq::roll_zscores(response=vol_at, design=in_deks, look_back=look_back))
     volat_scores[1:look_back] <- 0
     volat_scores[is.infinite(volat_scores)] <- 0
     volat_scores[is.na(volat_scores)] <- 0
@@ -141,7 +141,7 @@ ser_ver <- function(input, output) {
     
     # Calculate volume z-scores
     vol_ume <- quantmod::Vo(oh_lc)
-    volume_scores <- drop(HighFreq::roll_zscores(res_ponse=vol_ume, de_sign=in_deks, look_back=look_back))
+    volume_scores <- drop(HighFreq::roll_zscores(response=vol_ume, design=in_deks, look_back=look_back))
     volume_scores[1:look_back] <- 0
     volume_scores[is.infinite(volume_scores)] <- 0
     volume_scores[is.na(volume_scores)] <- 0

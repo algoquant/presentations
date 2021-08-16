@@ -102,8 +102,8 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     vol_ume <- quantmod::Vo(oh_lc)
     
     # Simulate strategy
-    v_wap <- HighFreq::roll_sum(se_ries=price_s*vol_ume, look_back=look_back)
-    volume_rolling <- HighFreq::roll_sum(se_ries=vol_ume, look_back=look_back)
+    v_wap <- HighFreq::roll_sum(tseries=price_s*vol_ume, look_back=look_back)
+    volume_rolling <- HighFreq::roll_sum(tseries=vol_ume, look_back=look_back)
     v_wap <- v_wap/volume_rolling
     v_wap[is.na(v_wap)] <- 0
     
@@ -114,7 +114,7 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # Otherwise keep previous position.
     # This is designed to prevent whipsaws and over-trading.
     # position_s <- ifelse(in_dic == indic_lag, in_dic, position_s)
-    indic_sum <- HighFreq::roll_sum(se_ries=in_dic, look_back=lagg)
+    indic_sum <- HighFreq::roll_sum(tseries=matrix(in_dic), look_back=lagg)
     indic_sum[1:lagg] <- 0
     position_s <- rep(NA_integer_, NROW(price_s))
     position_s[1] <- 0

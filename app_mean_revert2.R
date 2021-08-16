@@ -159,20 +159,20 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # calculate signal
     # sig_nal <- clos_e
     # trending signal
-    # signal_trend <- calc_signal(oh_lc=ohlc_log, clos_e=close_num,
-    #                             de_sign=de_sign,
+    # signal_trend <- calc_signal(ohlc=ohlc_log, clos_e=close_num,
+    #                             design=de_sign,
     #                             look_short=look_short, look_long=look_long, high_freq=FALSE)
-    # signal_trend <- calc_ma(oh_lc=ohlc_log, clos_e=close_num,
-    #                         de_sign=de_sign,
+    # signal_trend <- calc_ma(ohlc=ohlc_log, clos_e=close_num,
+    #                         design=de_sign,
     #                         look_back=look_long, high_freq=FALSE)
     
     # mean reverting signal
     # signal_revert <- ohlc_log[, 1]  # dummy signal
-    signal_revert <- calc_signal(oh_lc=ohlc_log, clos_e=close_num,
-                                de_sign=de_sign,
+    signal_revert <- calc_signal(ohlc=ohlc_log, clos_e=close_num,
+                                design=de_sign,
                                 look_short=look_short)
-    # signal_revert <- HighFreq::roll_zscores(res_ponse=close_num, 
-    #                         de_sign=de_sign, 
+    # signal_revert <- HighFreq::roll_zscores(response=close_num, 
+    #                         design=de_sign, 
     #                         look_back=look_short)
     # sig_nal[1:look_short, ] <- 0
     # scale sig_nal using HighFreq::roll_scale()
@@ -195,8 +195,8 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # po_sit <- rutils::lag_it(po_sit, lagg=trade_lag)
 
     # trending signal
-    # sig_nal <- HighFreq::roll_zscores(res_ponse=clos_e, 
-    #                         de_sign=de_sign, 
+    # sig_nal <- HighFreq::roll_zscores(response=clos_e, 
+    #                         design=de_sign, 
     #                         look_back=look_long)
     # sig_nal[1:look_long, ] <- 0
     # sig_nal <- rutils::lag_it(sig_nal)

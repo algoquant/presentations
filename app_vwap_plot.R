@@ -62,8 +62,8 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # Calculate the VWAP indicator
     clos_e <- clos_e()[, 1]
     vol_ume <- clos_e()[, 2]
-    v_wap <- HighFreq::roll_sum(se_ries=clos_e*vol_ume, look_back=look_back)
-    volume_rolling <- HighFreq::roll_sum(se_ries=vol_ume, look_back=look_back)
+    v_wap <- HighFreq::roll_sum(tseries=clos_e*vol_ume, look_back=look_back)
+    volume_rolling <- HighFreq::roll_sum(tseries=vol_ume, look_back=look_back)
     v_wap <- v_wap/volume_rolling
     v_wap[is.na(v_wap)] <- 0
     # Return the plot data

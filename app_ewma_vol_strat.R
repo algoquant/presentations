@@ -83,12 +83,12 @@ ser_ver <- function(input, output) {
     
     # Calculate the slow and fast volatilities
     if (fast_back > 1) {
-      fast_var <- HighFreq::roll_var_ohlc(oh_lc=oh_lc, look_back=fast_back, scal_e=FALSE)
-      slow_var <- HighFreq::roll_var_ohlc(oh_lc=oh_lc, look_back=slow_back, scal_e=FALSE)
+      fast_var <- HighFreq::roll_var_ohlc(ohlc=oh_lc, look_back=fast_back, scal_e=FALSE)
+      slow_var <- HighFreq::roll_var_ohlc(ohlc=oh_lc, look_back=slow_back, scal_e=FALSE)
     } else {
       high_low <- quantmod::Hi(oh_lc) - quantmod::Lo(oh_lc)
       fast_var <- as.numeric(high_low)
-      slow_var <- HighFreq::roll_vec(se_ries=high_low, look_back=slow_back)/slow_back
+      slow_var <- HighFreq::roll_vec(tseries=high_low, look_back=slow_back)/slow_back
     }  # end if
 
     # Determine dates when the EWMAs have crossed
@@ -100,7 +100,7 @@ ser_ver <- function(input, output) {
     # This is designed to prevent whipsaws and over-trading.
     # position_s <- ifelse(in_dic == indic_lag, in_dic, position_s)
     
-    indic_sum <- HighFreq::roll_vec(se_ries=in_dic, look_back=lagg)
+    indic_sum <- HighFreq::roll_vec(tseries=matrix(in_dic), look_back=lagg)
     indic_sum[1:lagg] <- 0
     position_s <- rep(NA_integer_, n_rows)
     position_s[1] <- 0
