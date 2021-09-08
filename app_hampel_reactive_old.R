@@ -2,7 +2,7 @@
 # This is a shiny app for simulating a contrarian strategy 
 # using the Hampel filter over prices.
 # It flips the position only if the indicator persists over several 
-# consectutive periods equal to lagg.
+# consecutive periods equal to lagg.
 # It uses reactive code to avoid unnecessary calculations.
 # This is the best performing strategy.
 # 

@@ -1,11 +1,11 @@
 ##############################
-# This is a shiny app for simulating a contrarian strategy based 
-# on the z-scores from regressions of returns, using function 
+# This is a shiny app for simulating a contrarian stat-arb portfolio strategy
+# based on the z-scores from regressions of returns, using function
 # HighFreq::run_zscores(). 
+# The strategy invests in a portfolio with weights equal to the betas. 
 # The model flips the position only if the indicator persists over 
 # several consecutive periods equal to lagg.
 # It uses reactive code to avoid unnecessary calculations.
-# This is the best performing univariate strategy.
 #
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -19,7 +19,7 @@ library(dygraphs)
 
 ## Model and data setup
 
-cap_tion <- paste("Regression Z-score of SVXY Versus VXX")
+cap_tion <- paste("Stat-arb Portfolio Strategy")
 
 ## End setup code
 
@@ -30,11 +30,11 @@ inter_face <- shiny::fluidPage(
 
   fluidRow(
     # Input stock symbols
-    column(width=2, selectInput("sym_bol", label="Symbol to Trade",
+    column(width=2, selectInput("sym_bol", label="Symbol for Reference",
                                 choices=rutils::etf_env$sym_bols, selected="VTI")),
     column(width=2, selectInput("design_symbol", label="Symbol for Design",
                                 choices=rutils::etf_env$sym_bols, selected="SVXY")),
-    column(width=2, selectInput("response_symbol", label="Symbol for Response",
+    column(width=2, selectInput("design_symbol2", label="Symbol for Design",
                                 choices=rutils::etf_env$sym_bols, selected="VXX")),
     # Input VIX symbol
     # column(width=2, selectInput("symbol_vix", label="Symbol VIX",
@@ -77,18 +77,18 @@ ser_ver <- function(input, output) {
     
     sym_bol <- input$sym_bol
     design_symbol <- input$design_symbol
-    response_symbol <- input$response_symbol
+    design_symbol2 <- input$design_symbol2
     cat("Loading the data for ", sym_bol, "\n")
     
     # Load the data
-    sym_bols <- c(sym_bol, design_symbol, response_symbol)
+    sym_bols <- c(sym_bol, design_symbol, design_symbol2)
 
     na.omit(rutils::etf_env$re_turns[, sym_bols])
     # na.omit(mget(sym_bols, rutils::etf_env$re_turns))
     # na.omit(cbind(
     #   get(sym_bol, rutils::etf_env$re_turns),
     #   get(design_symbol, rutils::etf_env$re_turns),
-    #   get(response_symbol, rutils::etf_env$re_turns)))
+    #   get(design_symbol2, rutils::etf_env$re_turns)))
     
   })  # end Load the data
   
@@ -100,16 +100,16 @@ ser_ver <- function(input, output) {
     
     # Calculate the res_ponse and de_sign
     re_turns <- re_turns()
-    res_ponse <- re_turns[, 2]
-    de_sign <- re_turns[, -(1:2)]
+    res_ponse <- re_turns[, 1]
+    de_sign <- re_turns[, -1]
 
     # Calculate the trailing z-scores
     # z_scores <- drop(HighFreq::roll_zscores(response=res_ponse, design=de_sign, look_back=look_back))
     z_scores <- HighFreq::run_zscores(response=res_ponse, design=de_sign, lambda=lamb_da)
-    z_scores <- z_scores[, 1, drop=FALSE]
+    # z_scores <- z_scores[, 1, drop=FALSE]
     # z_scores[1:look_back] <- 0
-    z_scores[is.infinite(z_scores)] <- 0
-    z_scores[is.na(z_scores)] <- 0
+    # z_scores[is.infinite(z_scores)] <- 0
+    # z_scores[is.na(z_scores)] <- 0
     z_scores
     
   })  # end Load the data
@@ -126,10 +126,10 @@ ser_ver <- function(input, output) {
     lagg <- input$lagg
     lamb_da <- input$lamb_da
     
-    re_turns <- re_turns()[, 1]
+    re_turns <- re_turns()
     z_scores <- z_scores()
     # re_turns <- re_turns/sd(re_turns)
-    cum_rets <- cumsum(re_turns)
+    cum_rets <- xts::xts(cumsum(rowSums(re_turns)), zoo::index(re_turns))
     n_rows <- NROW(re_turns)
 
     # Calculate rolling volatility
@@ -145,24 +145,29 @@ ser_ver <- function(input, output) {
     thresh_old <- input$thresh_old
     
     # Scale the thresh_old by the volatility of the z_scores
-    vari_ance <- HighFreq::run_var(tseries=HighFreq::diff_it(z_scores), lambda=lamb_da)
+    vari_ance <- HighFreq::run_var(tseries=HighFreq::diff_it(z_scores[, 1, drop=FALSE]), lambda=lamb_da)
     vari_ance <- HighFreq::lag_it(tseries=vari_ance)
     thresh_old <- vari_ance*thresh_old
     
     # z_scores <- z_scores/sqrt(look_back)
     in_dic <- rep(NA_integer_, n_rows)
     in_dic[1] <- 0
-    in_dic[z_scores > thresh_old] <- co_eff
-    in_dic[z_scores < (-thresh_old)] <- (-co_eff)
+    in_dic[z_scores[, 1] > thresh_old] <- co_eff
+    in_dic[z_scores[, 1] < (-thresh_old)] <- (-co_eff)
     in_dic <- zoo::na.locf(in_dic, na.rm=FALSE)
-    indic_sum <- HighFreq::roll_vec(tseries=matrix(in_dic), look_back=lagg)
-    indic_sum[1:lagg] <- 0
-    position_s <- rep(NA_integer_, n_rows)
-    position_s[1] <- 0
-    position_s <- ifelse(indic_sum == lagg, 1, position_s)
-    position_s <- ifelse(indic_sum == (-lagg), -1, position_s)
-    position_s <- zoo::na.locf(position_s, na.rm=FALSE)
-    position_s[1:lagg] <- 0
+    # indic_sum <- HighFreq::roll_vec(tseries=matrix(in_dic), look_back=lagg)
+    # indic_sum[1:lagg] <- 0
+    # Define z-score weights
+    n_cols <- (NCOL(z_scores)-1)/2
+    weight_s <- matrix(rep(NA_integer_, n_cols*n_rows), ncol=n_cols)
+    weight_s[1, ] <- 1
+    beta_s <- z_scores[, 2:(n_cols+1)]
+    se_lect <- (z_scores[, 1] > thresh_old)
+    weight_s[se_lect, ] <- co_eff*beta_s[se_lect, ]
+    se_lect <- (z_scores[, 1] < (-thresh_old))
+    weight_s[se_lect, ] <- -co_eff*beta_s[se_lect, ]
+    weight_s <- cbind(rep(1, n_rows), weight_s)
+    weight_s <- zoo::na.locf(weight_s, na.rm=FALSE)
     # positions_svxy <- position_s
     
     # Calculate trailing z-scores of VXX
@@ -190,7 +195,7 @@ ser_ver <- function(input, output) {
     # position_s <- positions_svxy + position_s
     
     # Calculate indicator of flipping the positions
-    in_dic <- rutils::diff_it(position_s)
+    in_dic <- rutils::diff_it(in_dic)
     # Calculate number of trades
     value_s$n_trades <- sum(abs(in_dic)>0)
     
@@ -198,21 +203,21 @@ ser_ver <- function(input, output) {
     indic_buy <- (in_dic > 0)
     indic_sell <- (in_dic < 0)
     
-    # Lag the positions to trade in next period
-    position_s <- rutils::lag_it(position_s, lagg=1)
+    # Lag the weights to trade in next period
+    weight_s <- rutils::lag_it(weight_s, lagg=1)
     
     # Calculate strategy pnl_s
-    pnl_s <- position_s*re_turns
+    pnl_s <- rowSums(weight_s*re_turns)
     
     # Calculate transaction costs
     cost_s <- 0.5*input$bid_offer*abs(in_dic)
     pnl_s <- (pnl_s - cost_s)
 
     # Scale the pnl_s so they have same SD as re_turns
-    pnl_s <- pnl_s*sd(re_turns[re_turns<0])/sd(pnl_s[pnl_s<0])
+    pnl_s <- pnl_s*sd(re_turns[re_turns[, 1]<0, 1])/sd(pnl_s[pnl_s<0])
     
     # Bind together strategy pnl_s
-    pnl_s <- cbind(re_turns, pnl_s)
+    pnl_s <- cbind(re_turns[, 1], pnl_s)
     
     # Calculate Sharpe ratios
     sharp_e <- sqrt(252)*sapply(pnl_s, function(x) mean(x)/sd(x[x<0]))

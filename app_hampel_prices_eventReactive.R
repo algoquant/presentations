@@ -3,7 +3,7 @@
 # using the Hampel filter over prices.
 # It uses reactive code to avoid unnecessary calculations.
 # It flips the position only if the indicator persists over several 
-# consectutive periods equal to lagg.
+# consecutive periods equal to lagg.
 # This is the best performing version.
 # 
 # Just press the "Run App" button on upper right of this panel.
