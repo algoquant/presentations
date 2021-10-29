@@ -1,7 +1,7 @@
 ##############################
-# This is a shiny app for simulating a rolling portfolio 
-# optimization strategy, which produces an interactive 
-# dygraphs plot.
+# This is a shiny app for calculating the returns of 
+# a portfolio of ETFs defined by the weights input
+# by the user.
 # Just press the "Run App" button on upper right of this panel.
 ##############################
 
@@ -15,26 +15,25 @@ library(dygraphs)
 ## Model and data setup
 
 # Find ETFs with largest variance ratios
-re_turns <- rutils::etf_env$re_turns
-sym_bols <- colnames(re_turns)
+price_s <- log(rutils::etf_env$price_s)
+sym_bols <- colnames(price_s)
 sym_bols <- sym_bols[!(sym_bols %in% c("VXX", "SVXY", "MTUM", "IEF"))]
-re_turns <- re_turns[, sym_bols]
-n_weights <- NROW(sym_bols)
-re_turns <- rutils::etf_env$re_turns[, sym_bols]
+price_s <- price_s[, sym_bols]
 lagg <- 5
-vr_s <- sapply(re_turns, function(re_turn) {
-  re_turn <- na.omit(re_turn)
-  if (NROW(re_turn) > 100)
-    HighFreq::calc_var(re_turn, lagg)/HighFreq::calc_var(re_turn)/lagg
+ratio_s <- sapply(price_s, function(x) {
+  cat("x=", names(x), "\n")
+  x <- na.omit(x)
+  if (NROW(x) > 100)
+    drop(HighFreq::calc_var_ag(x, lagg)/HighFreq::calc_var_ag(x)/lagg)
   else NULL
 })  # end sapply
-vr_s <- sort(unlist(vr_s), decreasing=TRUE)
-sym_bols <- names(vr_s)
+ratio_s <- sort(unlist(ratio_s), decreasing=TRUE)
+sym_bols <- names(ratio_s)
 
 # Select ETFs with largest variance ratios
 n_cols <- 4
-name_s <- names(vr_s)[1:n_cols]
-re_turns <- re_turns[, name_s]
+name_s <- names(ratio_s)[1:n_cols]
+re_turns <- rutils::etf_env$re_turns[, name_s]
 re_turns <- na.omit(re_turns)
 
 
@@ -52,8 +51,6 @@ calc_hurst_rets <- function(rets, end_p) {
   median(na.omit(range_ratios))
 }  # end calc_hurst_rets
 
-
-
 # End setup code
 
 
@@ -61,7 +58,7 @@ calc_hurst_rets <- function(rets, end_p) {
 inter_face <- shiny::fluidPage(
   titlePanel(paste("Portfolio Optimization for", n_cols, "ETFs")),
   
-  # create single row with two slider inputs
+  # Create single row with two slider inputs
   fluidRow(
     # Input weights
     column(width=2, sliderInput("weight1", label=paste0("Weight for ", name_s[1], ":"),
@@ -74,7 +71,7 @@ inter_face <- shiny::fluidPage(
                                 min=-10, max=10, value=0, step=0.1))
   ),  # end fluidRow
   
-  # create output plot panel
+  # Create output plot panel
   mainPanel(dygraphs::dygraphOutput("dy_graph"), width=12)
 )  # end fluidPage interface
 
@@ -94,11 +91,11 @@ ser_ver <- function(input, output) {
     (re_turns %*% weight_s)
   })  # end reactive code
   
-  # return to output argument a dygraph plot with two y-axes
+  # Return to output argument a dygraph plot with two y-axes
   output$dy_graph <- dygraphs::renderDygraph({
     pnl_s <- da_ta()
     # Variance ratio
-    # tre_nd <- HighFreq::calc_var(pnl_s, lagg)/HighFreq::calc_var(pnl_s)/lagg
+    # tre_nd <- HighFreq::calc_var_ag(pnl_s, lagg)/HighFreq::calc_var_ag(pnl_s)/lagg
     # Hurst
     tre_nd <- calc_hurst_rets(pnl_s, end_p)
     # Autocorrelation

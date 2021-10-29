@@ -22,7 +22,7 @@ library(dygraphs)
 # load("C:/Develop/data/returns_100.RData")
 # cat("sp500 init load \n")
 data_name_old <- NULL
-load("C:/Develop/lecture_slides/data/sp500_returns.RData")
+load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
 
 
 
@@ -63,7 +63,7 @@ inter_face <- shiny::fluidPage(
     column(width=2, sliderInput("expo_nent", label="Variance exponent:",
                                 min=0.25, max=1.5, value=1.0, step=0.05)),
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=2, numericInput("max_eigen", "Number of eigenvalues", value=11)),
+    column(width=2, numericInput("eigen_max", "Number of eigenvalues", value=11)),
     # Input the shrinkage intensity
     column(width=2, sliderInput("al_pha", label="Shrinkage intensity",
                                 min=0.01, max=0.99, value=0.01, step=0.05)),
@@ -92,7 +92,7 @@ ser_ver <- function(input, output) {
     # get model parameters from input argument
     data_name <- isolate(input$data_name)
     inter_val <- isolate(input$inter_val)
-    max_eigen <- isolate(input$max_eigen)
+    eigen_max <- isolate(input$eigen_max)
     look_back <- isolate(input$look_back)
     lamb_da <- isolate(input$lamb_da)
     expo_nent <- isolate(input$expo_nent)
@@ -124,7 +124,7 @@ ser_ver <- function(input, output) {
              # model_type <- "max_sharpe"
              # look_back <- 8
              # look_back_max <- 71
-             # max_eigen <- 5
+             # eigen_max <- 5
              # al_pha <- 0.01
              # ret_s <- ret_s["2001-06-02/"]
            },
@@ -147,7 +147,7 @@ ser_ver <- function(input, output) {
              # model_type <- "rank"
              # look_back <- 5
              # look_back_max <- 50
-             # max_eigen <- 35
+             # eigen_max <- 35
              # al_pha <- 0.01
            }
     )  # end switch
@@ -292,15 +292,15 @@ ser_ver <- function(input, output) {
       pnl_s <- rowMeans(pnl_s)
     } else if (inter_val == "days") {
       # Rerun the strategy with fixed start date
-      pnl_s <- HighFreq::back_test(ex_cess=ex_cess,
-                                   re_turns=ret_s,
-                                   start_points=start_points-1,
-                                   end_points=end_points-1,
-                                   pro_b=pro_b,
-                                   max_eigen=max_eigen,
-                                   al_pha=al_pha,
-                                   model_type=model_type,
-                                   co_eff=co_eff)
+      pnl_s <- HighFreq::back_test(excess=ex_cess,
+                                   returns=ret_s,
+                                   startp=start_points-1,
+                                   endp=end_points-1,
+                                   con_fi=pro_b,
+                                   eigen_max=eigen_max,
+                                   alpha=al_pha,
+                                   method=model_type,
+                                   coeff=co_eff)
       pnl_s[which(is.na(pnl_s)), ] <- 0
     } else {
       # Rerun the strategy with multiple start dates
@@ -315,7 +315,7 @@ ser_ver <- function(input, output) {
       #                                start_points=sp_new-1,
       #                                end_points=ep_new-1,
       #                                pro_b=pro_b,
-      #                                max_eigen=max_eigen, 
+      #                                eigen_max=eigen_max, 
       #                                al_pha=al_pha, 
       #                                model_type=model_type,
       #                                co_eff=co_eff)
@@ -329,15 +329,15 @@ ser_ver <- function(input, output) {
       
       # cat("HighFreq::back_test() \n")
       # Rerun the strategy with fixed start date
-      pnl_s <- HighFreq::back_test(ex_cess=ex_cess,
-                                   re_turns=ret_s,
-                                   start_points=start_points-1,
-                                   end_points=end_points-1,
-                                   pro_b=pro_b,
-                                   max_eigen=max_eigen,
-                                   al_pha=al_pha,
-                                   model_type=model_type,
-                                   co_eff=co_eff)
+      pnl_s <- HighFreq::back_test(excess=ex_cess,
+                                   returns=ret_s,
+                                   startp=start_points-1,
+                                   endp=end_points-1,
+                                   con_fi=pro_b,
+                                   eigen_max=eigen_max,
+                                   alpha=al_pha,
+                                   method=model_type,
+                                   coeff=co_eff)
       pnl_s[which(is.na(pnl_s)), ] <- 0
     }  # end if
   
