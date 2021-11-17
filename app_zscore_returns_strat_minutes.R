@@ -24,8 +24,7 @@ library(dygraphs)
 sym_bols <- c("SPY", "VXX", "LODE", "GME")
 sym_bol <- "SPY"
 
-cap_tion <- paste("Contrarian Strategy Using the Hampel Filter Over Prices")
-# cap_tion <- paste("Contrarian Strategy for", sym_bol, "Using the Hampel Filter Over Prices")
+cap_tion <- paste("Regression Z-score of SVXY Versus VXX")
 
 ## End setup code
 
@@ -52,12 +51,12 @@ inter_face <- shiny::fluidPage(
     # Input short look-back interval
     # column(width=2, sliderInput("short_back", label="Short lookback", min=3, max=30, value=3, step=1)),
     # Input long look-back interval
-    column(width=2, sliderInput("long_back", label="Long lookback", min=10, max=100, value=100, step=1)),
-    column(width=2, sliderInput("lamb_da", label="lamb_da:", min=0.001, max=0.3, value=0.25, step=0.001)),
+    # column(width=2, sliderInput("long_back", label="Long lookback", min=10, max=100, value=100, step=1)),
+    column(width=2, sliderInput("lamb_da", label="lamb_da:", min=0.01, max=0.9, value=0.25, step=0.01)),
     # Input lag trade parameter
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=1, step=1)),
     # Input threshold level
-    column(width=2, sliderInput("thresh_old", label="threshold", min=0.5, max=6.0, value=1.0, step=0.1)),
+    column(width=2, sliderInput("thresh_old", label="threshold", min=0.01, max=2.0, value=0.1, step=0.05)),
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False"))
     # Input the weight decay parameter
@@ -115,7 +114,7 @@ ser_ver <- function(input, output) {
            "SPY" = {
              ## SPY ETF 1-minute bars
              # oh_lc <- HighFreq::SPY["2012"]["T09:31:00/T15:59:00"]
-             load(file="C:/Develop/data/polygon/spy_minutes.RData")
+             load(file="/Volumes/external/Develop/data/polygon/spy_minutes.RData")
              # n_rows <- NROW(oh_lc)
              # log(Cl(oh_lc))
              oh_lc["T09:00:00/T16:30:00"]
@@ -123,14 +122,14 @@ ser_ver <- function(input, output) {
            "VXX" = {
              ## SPY ETF 1-minute bars
              # oh_lc <- HighFreq::SPY["2012"]["T09:31:00/T15:59:00"]
-             load(file="C:/Develop/data/polygon/vxx_minutes.RData")
+             load(file="/Volumes/external/Develop/data/polygon/vxx_minutes.RData")
              # n_rows <- NROW(oh_lc)
              # log(Cl(oh_lc))
              oh_lc["T09:00:00/T16:30:00"]
            },
            "LODE" = {
              ## LODE 1-minute bars
-             oh_lc <- data.table::fread(file="C:/Develop/predictive/data/lode_oneminutebars.csv", sep=",")
+             oh_lc <- data.table::fread(file="/Volumes/external/Develop/predictive/data/lode_oneminutebars.csv", sep=",")
              oh_lc <- oh_lc[, c(4, 6, 7, 5, 2)]
              colnames(oh_lc) <- c("Open", "High", "Low", "Close", "Volume")
              n_rows <- NROW(oh_lc)
@@ -139,7 +138,7 @@ ser_ver <- function(input, output) {
            },
            "GME" = {
              ## GME 1-minute bars
-             oh_lc <- data.table::fread(file="C:/Develop/predictive/data/gme_oneminutebars.csv", sep=",")
+             oh_lc <- data.table::fread(file="/Volumes/external/Develop/predictive/data/gme_oneminutebars.csv", sep=",")
              oh_lc <- oh_lc[, c(4, 6, 7, 5, 2)]
              colnames(oh_lc) <- c("Open", "High", "Low", "Close", "Volume")
              n_rows <- NROW(oh_lc)
@@ -166,16 +165,16 @@ ser_ver <- function(input, output) {
   z_scores <- reactive({
     cat("Calculating z_scores\n")
     # short_back <- input$short_back
-    long_back <- input$long_back
+    # long_back <- input$long_back
     lamb_da <- input$lamb_da
     
     # Calculate EWMA weights
     # weight_s <- exp(-lamb_da*1:long_back)
     # weight_s <- weight_s/sum(weight_s)
 
-    foo <- rep(1, NROW(re_turns()))
+    predic_tor <- matrix(rep(1, NROW(re_turns())))
     # This need update
-    z_scores <- HighFreq::run_zscores(coredata(cbind(re_turns(), foo)), lambda=lamb_da)
+    z_scores <- HighFreq::run_zscores(re_turns(), predic_tor, lambda=lamb_da, demean=FALSE)
     z_scores <- z_scores[, 1, drop=FALSE]
     z_scores <- HighFreq::lag_it(z_scores, pad_zeros=TRUE)
     
@@ -234,7 +233,7 @@ ser_ver <- function(input, output) {
     # mad_zscores[1:(long_back), ] <- 0
     # ifelse(mad_zscores != 0, (z_scores - med_zscores)/mad_zscores, 0)
     # Standardize the z_scores - HighFreq::roll_scale() is fastest
-    z_scores <- HighFreq::roll_scale(z_scores, look_back=long_back, use_median=TRUE)
+    # z_scores <- HighFreq::roll_scale(z_scores, look_back=long_back, use_median=TRUE)
     z_scores[is.na(z_scores) | is.infinite(z_scores)] <- 0
     z_scores
   })  # end reactive

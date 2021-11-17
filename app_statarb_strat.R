@@ -5,6 +5,7 @@
 # The strategy invests in a portfolio with weights equal to the betas. 
 # The model flips the position only if the indicator persists over 
 # several consecutive periods equal to lagg.
+# This is the new version which uses run_reg()
 # It uses reactive code to avoid unnecessary calculations.
 #
 # Just press the "Run App" button on upper right of this panel.
@@ -19,7 +20,7 @@ library(dygraphs)
 
 ## Model and data setup
 
-cap_tion <- paste("Stat-arb Portfolio Strategy")
+cap_tion <- paste("Stat-arb Portfolio Strategy app_statarb_strat.R")
 
 ## End setup code
 
@@ -32,9 +33,9 @@ inter_face <- shiny::fluidPage(
     # Input stock symbols
     column(width=2, selectInput("sym_bol", label="Symbol for Reference",
                                 choices=rutils::etf_env$sym_bols, selected="VTI")),
-    column(width=2, selectInput("design_symbol", label="Symbol for Design",
+    column(width=2, selectInput("predictor1", label="Predictor1",
                                 choices=rutils::etf_env$sym_bols, selected="SVXY")),
-    column(width=2, selectInput("design_symbol2", label="Symbol for Design",
+    column(width=2, selectInput("predictor2", label="Predictor2",
                                 choices=rutils::etf_env$sym_bols, selected="VXX")),
     # Input VIX symbol
     # column(width=2, selectInput("symbol_vix", label="Symbol VIX",
@@ -48,9 +49,9 @@ inter_face <- shiny::fluidPage(
   fluidRow(
     # Input look-back interval
     # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=50, step=1)),
-    column(width=3, sliderInput("lamb_da", label="lamb_da:", min=0.01, max=0.9, value=0.25, step=0.01)),
+    column(width=3, sliderInput("lamb_da", label="lamb_da:", min=0.01, max=0.9, value=0.59, step=0.01)),
     # Input threshold interval
-    column(width=3, sliderInput("thresh_old", label="Threshold", min=0.5, max=4.0, value=1.0, step=0.1)),
+    column(width=3, sliderInput("thresh_old", label="Threshold", min=0.3, max=2.0, value=0.8, step=0.05)),
     # Input the strategy coefficient: co_eff=1 for momentum, and co_eff=-1 for contrarian
     column(width=2, selectInput("co_eff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),
@@ -76,41 +77,41 @@ ser_ver <- function(input, output) {
   re_turns <- reactive({
     
     sym_bol <- input$sym_bol
-    design_symbol <- input$design_symbol
-    design_symbol2 <- input$design_symbol2
+    predictor1 <- input$predictor1
+    predictor2 <- input$predictor2
     cat("Loading the data for ", sym_bol, "\n")
     
     # Load the data
-    sym_bols <- c(sym_bol, design_symbol, design_symbol2)
+    sym_bols <- c(sym_bol, predictor1, predictor2)
 
     na.omit(rutils::etf_env$re_turns[, sym_bols])
     # na.omit(mget(sym_bols, rutils::etf_env$re_turns))
     # na.omit(cbind(
     #   get(sym_bol, rutils::etf_env$re_turns),
-    #   get(design_symbol, rutils::etf_env$re_turns),
-    #   get(design_symbol2, rutils::etf_env$re_turns)))
+    #   get(predictor1, rutils::etf_env$re_turns),
+    #   get(predictor2, rutils::etf_env$re_turns)))
     
   })  # end Load the data
   
-  ## Calculate the z-scores
-  z_scores <- reactive({
+  ## Calculate the rolling regressions
+  regdata <- reactive({
     
     cat("Calculating the z-scores", "\n")
     lamb_da <- input$lamb_da
     
-    # Calculate the res_ponse and de_sign
+    # Calculate the res_ponse and predic_tor
     re_turns <- re_turns()
     res_ponse <- re_turns[, 1]
-    de_sign <- re_turns[, -1]
+    predic_tor <- re_turns[, -1]
 
     # Calculate the trailing z-scores
-    # z_scores <- drop(HighFreq::roll_zscores(response=res_ponse, design=de_sign, look_back=look_back))
-    z_scores <- HighFreq::run_zscores(response=res_ponse, design=de_sign, lambda=lamb_da)
-    # z_scores <- z_scores[, 1, drop=FALSE]
-    # z_scores[1:look_back] <- 0
-    # z_scores[is.infinite(z_scores)] <- 0
-    # z_scores[is.na(z_scores)] <- 0
-    z_scores
+    # regdata <- drop(HighFreq::roll_zscores(response=res_ponse, predictor=predic_tor, look_back=look_back))
+    regdata <- HighFreq::run_reg(response=res_ponse, predictor=predic_tor, lambda=lamb_da, method="scale")
+    # regdata <- regdata[, 1, drop=FALSE]
+    # regdata[1:look_back] <- 0
+    # regdata[is.infinite(regdata)] <- 0
+    # regdata[is.na(regdata)] <- 0
+    regdata
     
   })  # end Load the data
   
@@ -127,11 +128,12 @@ ser_ver <- function(input, output) {
     lamb_da <- input$lamb_da
     
     re_turns <- re_turns()
-    z_scores <- z_scores()
+    regdata <- regdata()
     # re_turns <- re_turns/sd(re_turns)
     cum_rets <- xts::xts(cumsum(rowSums(re_turns)), zoo::index(re_turns))
     n_rows <- NROW(re_turns)
-
+    n_cols <- NCOL(regdata)
+    
     # Calculate rolling volatility
     # vari_ance <- HighFreq::roll_var_ohlc(ohlc=vt_i, look_back=look_back, scale=FALSE)
 
@@ -145,35 +147,36 @@ ser_ver <- function(input, output) {
     thresh_old <- input$thresh_old
     
     # Scale the thresh_old by the volatility of the z_scores
-    vari_ance <- HighFreq::run_var(tseries=HighFreq::diff_it(z_scores[, 1, drop=FALSE]), lambda=lamb_da)
+    z_scores <- regdata[, 1, drop=FALSE]
+    vari_ance <- HighFreq::run_var(tseries=HighFreq::diff_it(z_scores), lambda=lamb_da)
     vari_ance <- HighFreq::lag_it(tseries=vari_ance)
     thresh_old <- vari_ance*thresh_old
     
     # z_scores <- z_scores/sqrt(look_back)
     in_dic <- rep(NA_integer_, n_rows)
     in_dic[1] <- 0
-    in_dic[z_scores[, 1] > thresh_old] <- co_eff
-    in_dic[z_scores[, 1] < (-thresh_old)] <- (-co_eff)
+    in_dic[z_scores > thresh_old] <- co_eff
+    in_dic[z_scores < (-thresh_old)] <- (-co_eff)
     in_dic <- zoo::na.locf(in_dic, na.rm=FALSE)
     # indic_sum <- HighFreq::roll_vec(tseries=matrix(in_dic), look_back=lagg)
     # indic_sum[1:lagg] <- 0
     # Define z-score weights
-    n_cols <- (NCOL(z_scores)-1)/2
-    weight_s <- matrix(rep(NA_integer_, n_cols*n_rows), ncol=n_cols)
+    # n_cols <- (NCOL(z_scores)-1)/2
+    weight_s <- matrix(rep(NA_integer_, (n_cols-2)*n_rows), ncol=(n_cols-2))
     weight_s[1, ] <- 1
-    beta_s <- z_scores[, 2:(n_cols+1)]
-    se_lect <- (z_scores[, 1] > thresh_old)
+    beta_s <- regdata[, 3:n_cols]
+    se_lect <- (z_scores > thresh_old)
     weight_s[se_lect, ] <- co_eff*beta_s[se_lect, ]
-    se_lect <- (z_scores[, 1] < (-thresh_old))
+    se_lect <- (z_scores < (-thresh_old))
     weight_s[se_lect, ] <- -co_eff*beta_s[se_lect, ]
     weight_s <- cbind(rep(1, n_rows), weight_s)
     weight_s <- zoo::na.locf(weight_s, na.rm=FALSE)
     # positions_svxy <- position_s
     
     # Calculate trailing z-scores of VXX
-    # de_sign <- cbind(sqrt(vari_ance), svx_y, vti_close)
+    # predic_tor <- cbind(sqrt(vari_ance), svx_y, vti_close)
     # res_ponse <- vx_x
-    # z_scores <- drop(HighFreq::roll_zscores(response=res_ponse, design=de_sign, look_back=look_back))
+    # z_scores <- drop(HighFreq::roll_zscores(response=res_ponse, design=predic_tor, look_back=look_back))
     # z_scores[1:look_back] <- 0
     # z_scores[is.infinite(z_scores)] <- 0
     # z_scores[is.na(z_scores)] <- 0

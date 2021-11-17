@@ -1,6 +1,6 @@
 ##############################
 # This is a shiny app for calculating the returns of 
-# a portfolio of ETFs defined by the weights input
+# a static portfolio of ETFs defined by the weights input
 # by the user.
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -102,7 +102,7 @@ ser_ver <- function(input, output) {
     # pnl_s <- (pnl_s - mean(pnl_s))
     # tre_nd <- mean(pnl_s*rutils::lag_it(pnl_s))/drop(var(pnl_s))
     pnl_s <- xts::xts(cumsum(pnl_s), zoo::index(re_turns))
-    dygraphs::dygraph(pnl_s, main=paste("Portfolio Optimization for", n_cols, "ETFs", 
+    dygraphs::dygraph(pnl_s, main=paste("Static Portfolio for", n_cols, "ETFs", 
                                         "Trend indicator =", round(tre_nd, 4)))
     # col_names <- colnames(da_ta())
     # dygraphs::dygraph(da_ta(), main="ETF Portfolio Optimization") %>%

@@ -113,9 +113,9 @@ ser_ver <- function(input, output) {
     thresh_old <- input$thresh_old
     
     # Calculate trailing z-scores of SVXY
-    de_sign <- cbind(sqrt(vari_ance), vx_x, vti_close)
+    predic_tor <- cbind(sqrt(vari_ance), vx_x, vti_close)
     res_ponse <- svx_y
-    z_scores <- drop(HighFreq::roll_zscores(response=res_ponse, design=de_sign, look_back=look_back))
+    z_scores <- drop(HighFreq::roll_zscores(response=res_ponse, predictor=predic_tor, look_back=look_back))
     z_scores[1:look_back] <- 0
     z_scores[is.infinite(z_scores)] <- 0
     z_scores[is.na(z_scores)] <- 0
@@ -136,9 +136,9 @@ ser_ver <- function(input, output) {
     # positions_svxy <- position_s
     
     # Calculate trailing z-scores of VXX
-    # de_sign <- cbind(sqrt(vari_ance), svx_y, vti_close)
+    # predic_tor <- cbind(sqrt(vari_ance), svx_y, vti_close)
     # res_ponse <- vx_x
-    # z_scores <- drop(HighFreq::roll_zscores(response=res_ponse, design=de_sign, look_back=look_back))
+    # z_scores <- drop(HighFreq::roll_zscores(response=res_ponse, predictor=predic_tor, look_back=look_back))
     # z_scores[1:look_back] <- 0
     # z_scores[is.infinite(z_scores)] <- 0
     # z_scores[is.na(z_scores)] <- 0
@@ -162,7 +162,7 @@ ser_ver <- function(input, output) {
     # Calculate indicator of flipping the positions
     in_dic <- rutils::diff_it(position_s)
     # Calculate number of trades
-    value_s$n_trades <- sum(abs(in_dic)>0)
+    value_s$n_trades <- sum(abs(in_dic) > 0)
     
     # Add buy/sell indicators for annotations
     indic_buy <- (in_dic > 0)

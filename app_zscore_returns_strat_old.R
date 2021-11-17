@@ -4,7 +4,8 @@
 # HighFreq::run_zscores(). 
 # The model flips the position only if the indicator persists over 
 # several consecutive periods equal to lagg.
-# This is the new version which uses run_reg()
+
+# This is an old version which uses run_zscores()
 # It uses reactive code to avoid unnecessary calculations.
 # This is the best performing univariate strategy.
 #
@@ -61,9 +62,9 @@ inter_face <- shiny::fluidPage(
   fluidRow(
     # Input look-back interval
     # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=50, step=1)),
-    column(width=3, sliderInput("lamb_da", label="lamb_da:", min=0.01, max=0.99, value=0.85, step=0.01)),
+    column(width=3, sliderInput("lamb_da", label="lamb_da:", min=0.01, max=0.9, value=0.7, step=0.01)),
     # Input threshold interval
-    column(width=3, sliderInput("thresh_old1", label="Threshold1", min=0.0, max=2.0, value=0.65, step=0.05)),
+    column(width=3, sliderInput("thresh_old1", label="Threshold1", min=0, max=1, value=0.0, step=0.1)),
     # column(width=3, sliderInput("thresh_old2", label="Threshold2", min=(-1), max=0, value=(-0.3), step=0.1)),
     # Input the strategy coefficient: co_eff=1 for momentum, and co_eff=-1 for contrarian
     column(width=2, selectInput("co_eff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
@@ -119,7 +120,7 @@ ser_ver <- function(input, output) {
 
     # Calculate the trailing z-scores
     # z_scores <- drop(HighFreq::roll_zscores(response=res_ponse, predictor=predic_tor, look_back=look_back))
-    z_scores <- HighFreq::run_reg(response=res_ponse, predictor=predic_tor, lambda=lamb_da, method="scale")
+    z_scores <- HighFreq::run_zscores(response=res_ponse, predictor=predic_tor, lambda=lamb_da, demean=FALSE)
     z_scores <- z_scores[, 1, drop=FALSE]
     # z_scores[1:look_back] <- 0
     z_scores[is.infinite(z_scores)] <- 0
