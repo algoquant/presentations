@@ -1,9 +1,10 @@
 ##############################
 # This is a shiny app for simulating a contrarian strategy based 
-# on the z-scores from regressions of returns, using function 
-# HighFreq::run_reg(). 
+# on the z-scores from running regressions of minutes returns, 
+# using function HighFreq::run_reg(). 
 # The model flips the position only if the indicator persists over 
 # several consecutive periods equal to lagg.
+# This is the new version which uses run_reg()
 # It uses reactive code to avoid unnecessary calculations.
 # This is the best performing univariate strategy.
 #
@@ -19,19 +20,30 @@ library(dygraphs)
 
 ## Model and data setup
 
-cap_tion <- paste("Regression Z-score of SVXY Versus VXX")
+# Load the data
+load(file="/Volumes/external/Develop/data/polygon/spy_minutes.RData")
+load(file="/Volumes/external/Develop/data/polygon/vxx_minutes.RData")
+load(file="/Volumes/external/Develop/data/polygon/svxy_minutes.RData")
+spyohlc <- log(spyohlc)
+vxxohlc <- log(vxxohlc)
+svxyohlc <- log(svxyohlc)
 
-# Variables for testing
-predictor_symbol <- "SVXY"
-response_symbol <- "VXX"
-sym_bol <- "VTI"
-sym_bols <- c(sym_bol, predictor_symbol, response_symbol)
-lamb_da <- 0.8
-thresh_old1 <- 1
-thresh_old2 <- (-1)
-co_eff <- (-1)
-lagg <- 1
-re_turns <- na.omit(rutils::etf_env$re_turns[, sym_bols])
+cap_tion <- paste("Running Z-score of SVXY Prices Versus VXX app_runreg_minutes_strat.R")
+
+# Variable setup for testing
+# sym_bol <- "VTI"
+# predictor_symbol <- "VXX"
+# response_symbol <- "SVXY"
+# sym_bols <- c(response_symbol, sym_bol, predictor_symbol)
+# lamb_da <- 0.8
+# thresh_old1 <- 1
+# thresh_old2 <- (-1)
+# co_eff <- (-1)
+# lagg <- 1
+# price_s <- log(na.omit(rutils::etf_env$price_s[, sym_bols]))
+# re_turns <- rutils::diff_it(price_s[, 2])
+# Or
+# re_turns <- na.omit(rutils::etf_env$re_turns[, sym_bols])
 
 ## End setup code
 
@@ -60,9 +72,9 @@ inter_face <- shiny::fluidPage(
   fluidRow(
     # Input look-back interval
     # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=50, step=1)),
-    column(width=3, sliderInput("lamb_da", label="lamb_da:", min=0.01, max=0.9, value=0.7, step=0.01)),
+    column(width=3, sliderInput("lamb_da", label="lamb_da:", min=0.01, max=0.99, value=0.2, step=0.01)),
     # Input threshold interval
-    column(width=3, sliderInput("thresh_old1", label="Threshold1", min=0, max=1, value=0.0, step=0.1)),
+    column(width=3, sliderInput("thresh_old1", label="Threshold1", min=(0.1), max=1.3, value=0.8, step=0.02)),
     # column(width=3, sliderInput("thresh_old2", label="Threshold2", min=(-1), max=0, value=(-0.3), step=0.1)),
     # Input the strategy coefficient: co_eff=1 for momentum, and co_eff=-1 for contrarian
     column(width=2, selectInput("co_eff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
@@ -82,27 +94,21 @@ inter_face <- shiny::fluidPage(
 ser_ver <- function(input, output) {
 
   ## Create an empty list of reactive values.
-  value_s <- reactiveValues()
+  globals <- reactiveValues()
 
   
   ## Calculate the returns
   re_turns <- reactive({
     
     sym_bol <- input$sym_bol
-    predictor_symbol <- input$predictor_symbol
     response_symbol <- input$response_symbol
+    predictor_symbol <- input$predictor_symbol
     cat("Loading the data for ", sym_bol, "\n")
     
-    # Load the data
-    sym_bols <- c(sym_bol, predictor_symbol, response_symbol)
+    # sym_bols <- c(response_symbol, sym_bol, predictor_symbol)
+    # na.omit(rutils::etf_env$re_turns[, sym_bols])
+    rutils::diff_it(na.omit(cbind(quantmod::Cl(svxyohlc), quantmod::Cl(spyohlc), quantmod::Cl(vxxohlc))))["2015/"]
 
-    na.omit(rutils::etf_env$re_turns[, sym_bols])
-    # na.omit(mget(sym_bols, rutils::etf_env$re_turns))
-    # na.omit(cbind(
-    #   get(sym_bol, rutils::etf_env$re_turns),
-    #   get(predictor_symbol, rutils::etf_env$re_turns),
-    #   get(response_symbol, rutils::etf_env$re_turns)))
-    
   })  # end Load the data
   
   ## Calculate the z-scores
@@ -111,14 +117,27 @@ ser_ver <- function(input, output) {
     cat("Calculating the z-scores", "\n")
     lamb_da <- input$lamb_da
     
-    # Calculate the res_ponse and de_sign
+    # Calculate the res_ponse and predic_tor
     re_turns <- re_turns()
-    res_ponse <- re_turns[, 1]
-    de_sign <- re_turns[, -(1:2)]
+    res_ponse <- re_turns[, 1, drop=FALSE]
+    predic_tor <- re_turns[, -1, drop=FALSE]
 
+    sym_bol <- input$sym_bol
+    # oh_lc <- log(get(sym_bol, rutils::etf_env))
+    vari_ance <- HighFreq::run_var_ohlc(spyohlc[zoo::index(re_turns)], lambda=lamb_da)
+    vari_ance[vari_ance == 0] <- 1
+    vari_ance <- rutils::diff_it(vari_ance)
+    predic_tor <- cbind(predic_tor, vari_ance)
+
+    predictor_symbol <- input$predictor_symbol
+    vari_ance <- HighFreq::run_var_ohlc(svxyohlc[zoo::index(re_turns)], lambda=lamb_da)
+    vari_ance[vari_ance == 0] <- 1
+    vari_ance <- rutils::diff_it(vari_ance)
+    predic_tor <- cbind(predic_tor, vari_ance)
+    
     # Calculate the trailing z-scores
-    # z_scores <- drop(HighFreq::roll_zscores(response=res_ponse, predictor=de_sign, look_back=look_back))
-    z_scores <- HighFreq::run_reg(response=res_ponse, predictor=de_sign, lambda=lamb_da, method="scale")
+    # z_scores <- drop(HighFreq::roll_zscores(response=res_ponse, predictor=predic_tor, look_back=look_back))
+    z_scores <- HighFreq::run_reg(response=res_ponse, predictor=predic_tor, lambda=lamb_da, method="standardize")
     z_scores <- z_scores[, 1, drop=FALSE]
     # z_scores[1:look_back] <- 0
     z_scores[is.infinite(z_scores)] <- 0
@@ -142,9 +161,9 @@ ser_ver <- function(input, output) {
     # look_back <- input$look_back
     co_eff <- as.numeric(input$co_eff)
     lagg <- input$lagg
-    lamb_da <- input$lamb_da
+    # lamb_da <- input$lamb_da
     
-    re_turns <- re_turns()[, 1]
+    re_turns <- re_turns()[, 2]
     z_scores <- z_scores()
     # re_turns <- re_turns/sd(re_turns)
     cum_rets <- cumsum(re_turns)
@@ -170,27 +189,27 @@ ser_ver <- function(input, output) {
     
     # z_scores <- ifelse(vari_ance > 0, z_scores/sqrt(vari_ance), 0)
     ##
-    # in_dic <- rep(NA_integer_, n_rows)
-    # in_dic[1] <- 0
-    # in_dic[z_scores > thresh_old1] <- co_eff
-    # in_dic[z_scores < (thresh_old1)] <- (-co_eff)
-    # in_dic <- zoo::na.locf(in_dic, na.rm=FALSE)
-    # indic_sum <- HighFreq::roll_vec(tseries=matrix(in_dic), look_back=lagg)
-    # indic_sum[1:lagg] <- 0
-    # position_s <- rep(NA_integer_, n_rows)
-    # position_s[1] <- 0
-    # position_s <- ifelse(indic_sum == lagg, 1, position_s)
-    # position_s <- ifelse(indic_sum == (-lagg), -1, position_s)
-    # position_s <- zoo::na.locf(position_s, na.rm=FALSE)
-    # position_s[1:lagg] <- 0
+    in_dic <- rep(NA_integer_, n_rows)
+    in_dic[1] <- 0
+    in_dic[z_scores > thresh_old1] <- co_eff
+    in_dic[z_scores < (thresh_old1)] <- (-co_eff)
+    in_dic <- zoo::na.locf(in_dic, na.rm=FALSE)
+    indic_sum <- HighFreq::roll_vec(tseries=matrix(in_dic), look_back=lagg)
+    indic_sum[1:lagg] <- 0
+    position_s <- rep(NA_integer_, n_rows)
+    position_s[1] <- 0
+    position_s <- ifelse(indic_sum == lagg, 1, position_s)
+    position_s <- ifelse(indic_sum == (-lagg), -1, position_s)
+    position_s <- zoo::na.locf(position_s, na.rm=FALSE)
+    position_s[1:lagg] <- 0
 
     # positions_svxy <- position_s
-    position_s <- -sign(z_scores+thresh_old1)
+    # position_s <- -sign(z_scores+thresh_old1)
 
     # Calculate trailing z-scores of VXX
-    # de_sign <- cbind(sqrt(vari_ance), svx_y, vti_close)
+    # predic_tor <- cbind(sqrt(vari_ance), svx_y, vti_close)
     # res_ponse <- vx_x
-    # z_scores <- drop(HighFreq::roll_zscores(response=res_ponse, predictor=de_sign, look_back=look_back))
+    # z_scores <- drop(HighFreq::roll_zscores(response=res_ponse, predictor=predic_tor, look_back=look_back))
     # z_scores[1:look_back] <- 0
     # z_scores[is.infinite(z_scores)] <- 0
     # z_scores[is.na(z_scores)] <- 0
@@ -214,7 +233,7 @@ ser_ver <- function(input, output) {
     # Calculate indicator of flipping the positions
     in_dic <- rutils::diff_it(position_s)
     # Calculate number of trades
-    value_s$n_trades <- sum(abs(in_dic)>0)
+    globals$n_trades <- sum(abs(in_dic)>0)
     
     # Add buy/sell indicators for annotations
     indic_buy <- (in_dic > 0)
@@ -237,8 +256,8 @@ ser_ver <- function(input, output) {
     pnl_s <- cbind(re_turns, pnl_s)
     
     # Calculate Sharpe ratios
-    sharp_e <- sqrt(252)*sapply(pnl_s, function(x) mean(x)/sd(x[x<0]))
-    value_s$sharp_e <- round(sharp_e, 3)
+    sharp_e <- sqrt(252*6.5*60)*sapply(pnl_s, function(x) mean(x)/sd(x[x<0]))
+    globals$sharp_e <- round(sharp_e, 3)
 
     # Bind with indicators
     pnl_s <- cumsum(pnl_s)
@@ -257,50 +276,53 @@ ser_ver <- function(input, output) {
     cat("Plotting for ", input$sym_bol, "\n")
 
     # Get the z_scores
-    z_scores <- z_scores()
-    re_turns <- re_turns()[, 1]
+    # z_scores <- z_scores()
+    # re_turns <- re_turns()[, 1]
     
     # Get the pnl_s
-    # pnl_s <- pnl_s()
-    # col_names <- colnames(pnl_s)
+    pnl_s <- pnl_s()
+    col_names <- colnames(pnl_s)
     
     # Get Sharpe ratios
-    # sharp_e <- value_s$sharp_e
+    sharp_e <- globals$sharp_e
     # Get number of trades
-    # n_trades <- value_s$n_trades
+    n_trades <- globals$n_trades
     
-    # cap_tion <- paste("Strategy for", input$sym_bol, "Regression Z-score / \n",
-    #                   paste0(c("Index SR=", "Strategy SR="), sharp_e, collapse=" / "), "/ \n",
-    #                   "Number of trades=", n_trades)
+    cap_tion <- paste("Strategy for", input$sym_bol, "Regression Z-score / \n",
+                      paste0(c("Index SR=", "Strategy SR="), sharp_e, collapse=" / "), "/ \n",
+                      "Number of trades=", n_trades)
     
     # Plot with annotations
     add_annotations <- input$add_annotations
     
-    # if (add_annotations == "True") {
-    #   dygraphs::dygraph(pnl_s, main=cap_tion) %>%
-    #     dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
-    #     dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
-    #     dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=1, col="blue") %>%
-    #     dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=1, col="red") %>%
-    #     dySeries(name=col_names[3], axis="y", label=col_names[3], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
-    #     dySeries(name=col_names[4], axis="y", label=col_names[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
-    # } else if (add_annotations == "False") {
-    #   dygraphs::dygraph(pnl_s[, 1:2], main=cap_tion) %>%
-    #     dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
-    #     dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
-    #     dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=1, col="blue") %>%
-    #     dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=1, col="red")
-    # }  # end if
+    indeks <- 60*(1:(NROW(pnl_s) %/% 60))
+    pnl_s <- pnl_s[indeks, ]
     
-    # dygraph(xts(z_scores, index(re_turns)), main="VXX Zscores")
-    da_ta <- cbind(cumsum(re_turns), z_scores)
-    colnames(da_ta) <- c("VTI", "Zscores")
-    col_names <- colnames(da_ta)
-    dygraphs::dygraph(da_ta, main="VXX Zscores") %>%
+    if (add_annotations == "True") {
+      dygraphs::dygraph(pnl_s, main=cap_tion) %>%
+        dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
+        dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
+        dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=1, col="blue") %>%
+        dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=1, col="red") %>%
+        dySeries(name=col_names[3], axis="y", label=col_names[3], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
+        dySeries(name=col_names[4], axis="y", label=col_names[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
+    } else if (add_annotations == "False") {
+      dygraphs::dygraph(pnl_s[, 1:2], main=cap_tion) %>%
         dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
         dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=1, col="blue") %>%
         dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=1, col="red")
+    }  # end if
+    
+    # da_ta <- cbind(cumsum(re_turns), z_scores)
+    # colnames(da_ta) <- c("VTI", "Zscores")
+    # col_names <- colnames(da_ta)
+    # dygraphs::dygraph(da_ta, main="VXX Zscores") %>%
+    #     dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
+    #     dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
+    #     dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=1, col="blue") %>%
+    #     dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=1, col="red")
+    # dygraph(xts(z_scores, index(re_turns)), main="VXX Zscores")
 
   })  # end output plot
 

@@ -50,7 +50,7 @@ inter_face <- shiny::fluidPage(
     # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=50, step=1)),
     column(width=3, sliderInput("lamb_da", label="lamb_da:", min=0.01, max=0.9, value=0.25, step=0.01)),
     # Input threshold interval
-    column(width=3, sliderInput("thresh_old", label="Threshold", min=0.5, max=4.0, value=1.0, step=0.1)),
+    column(width=3, sliderInput("thresh_old", label="Threshold", min=0.1, max=2.0, value=1.0, step=0.1)),
     # Input the strategy coefficient: co_eff=1 for momentum, and co_eff=-1 for contrarian
     column(width=2, selectInput("co_eff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),

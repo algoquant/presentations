@@ -26,6 +26,21 @@ vti_close <- quantmod::Cl(vt_i)
 
 cap_tion <- paste("Regression Z-score of VXX and SVXY Prices Versus VTI Volatility")
 
+# Variable setup for testing
+# sym_bol <- "VTI"
+# oh_lc <- log(get(sym_bol, rutils::etf_env)[date_s])
+# lamb_da <- 0.85
+# bid_offer <- 0.0
+# look_back <- 41
+# thresh_old <- 0.03
+# co_eff <- (-1)
+# lagg <- 1
+# clos_e <- quantmod::Cl(oh_lc)
+# re_turns <- rutils::diff_it(clos_e)
+# cum_rets <- cumsum(re_turns)
+# n_rows <- NROW(re_turns)
+
+
 ## End setup code
 
 
@@ -43,15 +58,15 @@ inter_face <- shiny::fluidPage(
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the bid-offer spread
-    column(width=2, numericInput("bid_offer", label="Bid-offer:", value=0.0000, step=0.0001))
+    column(width=2, numericInput("bid_offer", label="Bid-offer:", value=0.0, step=0.0001))
   ),  # end fluidRow
 
   fluidRow(
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=50, step=1)),
+    column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=41, step=1)),
     column(width=3, sliderInput("lamb_da", label="lamb_da:", min=0.01, max=0.99, value=0.85, step=0.01)),
     # Input threshold interval
-    column(width=2, sliderInput("thresh_old", label="Threshold", min=0.001, max=0.1, value=0.02, step=0.001)),
+    column(width=2, sliderInput("thresh_old", label="Threshold", min=0.01, max=0.1, value=0.03, step=0.01)),
     # Input the strategy coefficient: co_eff=1 for momentum, and co_eff=-1 for contrarian
     column(width=2, selectInput("co_eff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),
@@ -78,7 +93,7 @@ ser_ver <- function(input, output) {
     sym_bol <- input$sym_bol
     cat("Loading data for ", sym_bol, "\n")
     
-    get(sym_bol, rutils::etf_env)[date_s]
+    log(get(sym_bol, rutils::etf_env)[date_s])
 
   })  # end Load the data
   
@@ -96,7 +111,7 @@ ser_ver <- function(input, output) {
 
     # Calculate cumulative returns
     oh_lc <- oh_lc()
-    clos_e <- log(quantmod::Cl(oh_lc))
+    clos_e <- quantmod::Cl(oh_lc)
     re_turns <- rutils::diff_it(clos_e)
     # re_turns <- re_turns/sd(re_turns)
     cum_rets <- cumsum(re_turns)
@@ -104,7 +119,9 @@ ser_ver <- function(input, output) {
 
     # Calculate rolling volatility
     vari_ance <- HighFreq::run_var_ohlc(vt_i, lambda=lamb_da)
-
+    # vari_ance <- HighFreq::roll_var_ohlc(ohlc=vt_i, look_back=look_back, scale=FALSE)
+    vari_ance[vari_ance == 0] <- 1
+    
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the in_dic and its recent past values are the same.
     # Otherwise keep previous position.
@@ -118,12 +135,14 @@ ser_ver <- function(input, output) {
     predic_tor <- cbind(sqrt(vari_ance), vx_x, vti_close)
     res_ponse <- svx_y
     # z_scores <- drop(HighFreq::roll_reg(response=res_ponse, predictor=predic_tor, look_back=look_back))
-    z_scores <- HighFreq::run_reg(response=res_ponse, predictor=predic_tor, lambda=lamb_da, method="scale")
-    z_scores <- z_scores[, 1, drop=TRUE]
+    rollreg <- HighFreq::roll_reg(response=res_ponse, predictor=predic_tor, intercept=TRUE, look_back=look_back)
+    z_scores <- rollreg[, NCOL(rollreg), drop=TRUE]
+    # z_scores <- HighFreq::run_reg(response=res_ponse, predictor=predic_tor, lambda=lamb_da, method="scale")
+    # z_scores <- z_scores[, 1, drop=TRUE]
     # z_scores[1:look_back] <- 0
-    z_scores[is.infinite(z_scores)] <- 0
-    z_scores[is.na(z_scores)] <- 0
-    z_scores <- z_scores/sqrt(look_back)
+    # z_scores[is.infinite(z_scores)] <- 0
+    # z_scores[is.na(z_scores)] <- 0
+    # z_scores <- z_scores/sqrt(look_back)
     in_dic <- rep(NA_integer_, n_rows)
     in_dic[1] <- 0
     in_dic[z_scores > thresh_old] <- co_eff

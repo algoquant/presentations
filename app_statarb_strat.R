@@ -1,11 +1,10 @@
 ##############################
 # This is a shiny app for simulating a contrarian stat-arb portfolio strategy
 # based on the z-scores from regressions of returns, using function
-# HighFreq::run_zscores(). 
+# HighFreq::run_reg(). 
 # The strategy invests in a portfolio with weights equal to the betas. 
 # The model flips the position only if the indicator persists over 
 # several consecutive periods equal to lagg.
-# This is the new version which uses run_reg()
 # It uses reactive code to avoid unnecessary calculations.
 #
 # Just press the "Run App" button on upper right of this panel.
@@ -49,9 +48,9 @@ inter_face <- shiny::fluidPage(
   fluidRow(
     # Input look-back interval
     # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=50, step=1)),
-    column(width=3, sliderInput("lamb_da", label="lamb_da:", min=0.01, max=0.9, value=0.59, step=0.01)),
+    column(width=3, sliderInput("lamb_da", label="lamb_da:", min=0.01, max=0.9, value=0.83, step=0.01)),
     # Input threshold interval
-    column(width=3, sliderInput("thresh_old", label="Threshold", min=0.3, max=2.0, value=0.8, step=0.05)),
+    column(width=3, sliderInput("thresh_old", label="Threshold", min=0.3, max=2.0, value=0.45, step=0.05)),
     # Input the strategy coefficient: co_eff=1 for momentum, and co_eff=-1 for contrarian
     column(width=2, selectInput("co_eff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),
