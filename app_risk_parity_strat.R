@@ -14,10 +14,10 @@ library(dygraphs)
 # Model and data setup
 
 # Calculate dollar and percentage returns for VTI and IEF
-price_s <- rutils::etf_env$price_s[, c("VTI", "IEF")]
-price_s <- na.omit(price_s)
-rets_dollar <- rutils::diff_it(price_s)
-rets_percent <- rets_dollar/rutils::lag_it(price_s, lagg=1, pad_zeros=FALSE)
+prices <- rutils::etfenv$prices[, c("VTI", "IEF")]
+prices <- na.omit(prices)
+rets_dollar <- rutils::diffit(prices)
+rets_percent <- rets_dollar/rutils::lagit(prices, lagg=1, pad_zeros=FALSE)
 
 cap_tion <- "Risk Parity Strategy"
 
@@ -25,7 +25,7 @@ cap_tion <- "Risk Parity Strategy"
 
 
 ## Create elements of the user interface
-inter_face <- shiny::fluidPage(
+uiface <- shiny::fluidPage(
   titlePanel(cap_tion),
   
   # fluidRow(
@@ -42,23 +42,23 @@ inter_face <- shiny::fluidPage(
     # Input exponent for variance
     column(width=2, sliderInput("expo_nent", label="Std Dev exponent:",
                                 min=0.25, max=2.5, value=1.0, step=0.05)),
-    # Input weight_s
-    column(width=2, sliderInput("weight_s", label="VTI weight:",
+    # Input weights
+    column(width=2, sliderInput("weights", label="VTI weight:",
                                 min=0.01, max=0.99, value=0.5, step=0.05))
     # Input lag trade parameter
     # column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=2, step=1)),
     # Input threshold interval
-    # column(width=2, sliderInput("thresh_old", label="threshold", min=0.5, max=3.0, value=1.0, step=0.1))
+    # column(width=2, sliderInput("threshold", label="threshold", min=0.5, max=3.0, value=1.0, step=0.1))
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dy_graph"), width=12)
+  mainPanel(dygraphs::dygraphOutput("dyplot"), width=12)
   
 )  # end fluidPage interface
 
 
 ## Define the server code
-ser_ver <- function(input, output) {
+servfunc <- function(input, output) {
   
   # Calculate rolling percentage volatility
   vo_l <- reactive({
@@ -78,47 +78,47 @@ ser_ver <- function(input, output) {
   
   
   # Calculate wealths
-  weal_th <- reactive({
+  wealth <- reactive({
     cat("Calculating the wealths\n")
     
     # Get model parameters from input argument
-    weight_s <- input$weight_s
+    weights <- input$weights
 
     # Calculate wealth of fixed ratio of dollar amounts
-    weight_s <- c(weight_s, 1-weight_s)
-    rets_weighted <- rets_percent %*% weight_s
+    weights <- c(weights, 1-weights)
+    rets_weighted <- rets_percent %*% weights
     wealth_fixed_ratio <- cumprod(1 + rets_weighted)
     
     # Calculate standardized prices and portfolio allocations
     vo_l <- vo_l()
-    allocation_s <- lapply(1:NCOL(price_s), 
-                           function(x) weight_s[x]/vo_l[, x])
+    allocation_s <- lapply(1:NCOL(prices), 
+                           function(x) weights[x]/vo_l[, x])
     allocation_s <- do.call(cbind, allocation_s)
     # Scale allocations to 1 dollar total
     allocation_s <- allocation_s/rowSums(allocation_s)
     # Lag the allocations
-    allocation_s <- rutils::lag_it(allocation_s)
+    allocation_s <- rutils::lagit(allocation_s)
     # Calculate wealth of risk parity
     rets_weighted <- rowSums(rets_percent*allocation_s)
     wealth_risk_parity <- cumprod(1 + rets_weighted)
     
     # Calculate log wealths
-    weal_th <- log(cbind(wealth_fixed_ratio, wealth_risk_parity))
-    weal_th <- xts(weal_th, index(price_s))
+    wealth <- log(cbind(wealth_fixed_ratio, wealth_risk_parity))
+    wealth <- xts(wealth, index(prices))
     # Calculate Sharpe ratios
-    sharp_e <- sqrt(252)*sapply(rutils::diff_it(weal_th), function (x) mean(x)/sd(x))
-    colnames(weal_th) <- paste(c("Fixed Ratio", "Risk Parity"), 
+    sharp_e <- sqrt(252)*sapply(rutils::diffit(wealth), function (x) mean(x)/sd(x))
+    colnames(wealth) <- paste(c("Fixed Ratio", "Risk Parity"), 
                                round(sharp_e, 3), sep="=")
-    weal_th
+    wealth
     
   })  # end reactive code
   
   
   # Return to the output argument a dygraph plot with two y-axes
-  output$dy_graph <- dygraphs::renderDygraph({
-    weal_th <- weal_th()
+  output$dyplot <- dygraphs::renderDygraph({
+    wealth <- wealth()
     # Plot log wealths
-    dygraphs::dygraph(weal_th, main="Log Wealth of Risk Parity vs Fixed Dollar Ratios") %>%
+    dygraphs::dygraph(wealth, main="Log Wealth of Risk Parity vs Fixed Dollar Ratios") %>%
       dyOptions(colors=c("blue","red"), strokeWidth=2) %>%
       dyLegend(show="always", width=500)
   })  # end output plot
@@ -126,4 +126,4 @@ ser_ver <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=inter_face, server=ser_ver)
+shiny::shinyApp(ui=uiface, server=servfunc)

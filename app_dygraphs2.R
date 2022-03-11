@@ -10,13 +10,13 @@ library(rutils)
 
 
 # Define elements of the UI user interface
-inter_face <- shiny::shinyUI(fluidPage(
+uiface <- shiny::shinyUI(fluidPage(
   
   titlePanel("VTI prices"),
   
   sidebarLayout(
     sidebarPanel(
-      sliderInput("lamb_da", label="lambda:",
+      sliderInput("lambdav", label="lambda:",
                   min=0.001, max=0.1, value=0.02, step=0.01),
       numericInput("wid_th", label="wid_th:", min=51, max=301, value=151)
     ),
@@ -28,32 +28,32 @@ inter_face <- shiny::shinyUI(fluidPage(
 
 
 # Define the server code
-ser_ver <- function(input, output) {
+servfunc <- function(input, output) {
 
   # source the model function
   source("/Users/jerzy/Develop/lecture_slides/scripts/ewma_model.R")
   
   # Calculate the data for plotting
-  da_ta <- reactive({
+  datav <- reactive({
     # get model parameters from input
-    lamb_da <- input$lamb_da
+    lambdav <- input$lambdav
     wid_th <- input$wid_th
     # calculate close prices
-    clos_e <- quantmod::Cl(rutils::etf_env$VTI["2007/2010"])
+    closep <- quantmod::Cl(rutils::etfenv$VTI["2007/2010"])
     # calculate EWMA prices
-    weight_s <- exp(-lamb_da*(1:wid_th))
-    weight_s <- weight_s/sum(weight_s)
-    ew_ma <- .Call(stats:::C_cfilter, clos_e, filter=weight_s, sides=1, circular=FALSE)
-    # ew_ma <- filter(clos_e, filter=weight_s, sides=1)
+    weights <- exp(-lambdav*(1:wid_th))
+    weights <- weights/sum(weights)
+    ew_ma <- .Call(stats:::C_cfilter, closep, filter=weights, sides=1, circular=FALSE)
+    # ew_ma <- filter(closep, filter=weights, sides=1)
     ew_ma[1:(wid_th-1)] <- ew_ma[wid_th]
-    ew_ma <- xts(cbind(clos_e, ew_ma), order.by=index(clos_e))
+    ew_ma <- xts(cbind(closep, ew_ma), order.by=index(closep))
     colnames(ew_ma) <- c("VTI", "VTI_EWMA")
     ew_ma  # return data for plotting
   })  # end reactive data
   
   # Define the output plot
   output$dygraph <- dygraphs::renderDygraph({
-    dygraph(da_ta(), main="VTI prices") %>%
+    dygraph(datav(), main="VTI prices") %>%
       dySeries("VTI", name="VTI", strokeWidth=1.5, color="blue") %>%
       dySeries("VTI_EWMA", name="VTI_EWMA", strokeWidth=1.5, color="red")
   })  # end output plot
@@ -61,4 +61,4 @@ ser_ver <- function(input, output) {
 }  # end server code
 
 # Return a Shiny app object
-shiny::shinyApp(ui=inter_face, server=ser_ver)
+shiny::shinyApp(ui=uiface, server=servfunc)

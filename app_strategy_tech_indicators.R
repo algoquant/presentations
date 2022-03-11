@@ -20,7 +20,7 @@ source(file="C:/Develop/R/scripts/technical_indicators.R")
 
 
 ## Create elements of the user interface
-inter_face <- shiny::fluidPage(
+uiface <- shiny::fluidPage(
   titlePanel("Strategy with Static Betas Times OHLC Technical Indicators"),
   
   # create single row with four slider inputs
@@ -32,18 +32,18 @@ inter_face <- shiny::fluidPage(
     column(width=4, sliderInput("beta_vol", label="vol beta:",
                                 min=-20.0, max=20.0, value=20.0, step=0.1)),
     # input the skew beta
-    column(width=4, sliderInput("beta_skew", label="skew beta:",
+    column(width=4, sliderInput("betaskew", label="skew beta:",
                                 min=-20.0, max=20.0, value=-20.0, step=0.1)),
     # # input the momentum beta
-    # column(width=4, sliderInput("beta_moment", label="momentum beta:",
+    # column(width=4, sliderInput("betamoment", label="momentum beta:",
     #                             min=-5.0, max=5.0, value=-5.0, step=0.1)),
-    # # input the op_en-hi_gh beta
-    # column(width=4, sliderInput("beta_ophi", label="op_en-hi_gh beta:",
+    # # input the openp-highp beta
+    # column(width=4, sliderInput("beta_ophi", label="openp-highp beta:",
     #                             min=-5.0, max=5.0, value=-5.0, step=0.1)),
-    # # input the clos_e-hi_gh beta
-    # column(width=4, sliderInput("beta_clhi", label="clos_e-hi_gh beta:",
+    # # input the closep-highp beta
+    # column(width=4, sliderInput("beta_clhi", label="closep-highp beta:",
     #                             min=-5.0, max=5.0, value=-5.0, step=0.1)),
-    # input the clos_e-hi_gh beta
+    # input the closep-highp beta
     column(width=4, sliderInput("beta_zscore", label="zscore beta:",
                                 min=-20.0, max=20.0, value=0.0, step=0.1))
   ),  # end fluidRow
@@ -54,32 +54,32 @@ inter_face <- shiny::fluidPage(
 
 
 ## Define the server code
-ser_ver <- shiny::shinyServer(function(input, output) {
+servfunc <- shiny::shinyServer(function(input, output) {
 
   # Recalculate the data and rerun the model
-  da_ta <- reactive({
+  datav <- reactive({
     # get model parameters from input argument
     beta_ret <- input$beta_ret
     beta_vol <- input$beta_vol
-    beta_skew <- input$beta_skew
-    # beta_moment <- input$beta_moment
+    betaskew <- input$betaskew
+    # betamoment <- input$betamoment
     # beta_ophi <- input$beta_ophi
     # beta_clhi <- input$beta_clhi
     beta_zscore <- input$beta_zscore
-    weight_s <- c(beta_ret, beta_vol, beta_skew, beta_zscore)
-    # weight_s <- c(beta_ret, beta_vol, beta_skew, beta_moment, beta_ophi, beta_clhi)
+    weights <- c(beta_ret, beta_vol, betaskew, beta_zscore)
+    # weights <- c(beta_ret, beta_vol, betaskew, betamoment, beta_ophi, beta_clhi)
     
     # simulate strategy
-    sig_nal <- xts(indicator_s %*% weight_s, order.by=index(oh_lc))
-    sig_nal <- rutils::lag_it(sig_nal)
-    pnl_s <- cumsum(sig_nal*re_turns)
-    colnames(pnl_s) <- "strategy"
-    pnl_s
+    sig_nal <- xts(indicator_s %*% weights, order.by=index(ohlc))
+    sig_nal <- rutils::lagit(sig_nal)
+    pnls <- cumsum(sig_nal*returns)
+    colnames(pnls) <- "strategy"
+    pnls
   })  # end reactive code
   
   # return the dygraph plot to output argument
   output$dygraph <- dygraphs::renderDygraph({
-    dygraphs::dygraph(cbind(clos_e, da_ta()), main="OHLC Technicals Strategy") %>%
+    dygraphs::dygraph(cbind(closep, datav()), main="OHLC Technicals Strategy") %>%
       dyAxis("y", label="VTI", independentTicks=TRUE) %>%
       dyAxis("y2", label="strategy", independentTicks=TRUE) %>%
       dySeries("strategy", axis="y2", col=c("blue", "red"))
@@ -88,4 +88,4 @@ ser_ver <- shiny::shinyServer(function(input, output) {
 })  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=inter_face, server=ser_ver)
+shiny::shinyApp(ui=uiface, server=servfunc)

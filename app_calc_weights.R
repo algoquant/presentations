@@ -16,22 +16,22 @@ library(dygraphs)
 # source("C:/Develop/lecture_slides/scripts/roll_portf_new.R")
 # max_eigen <- 2
 load("C:/Develop/lecture_slides/data/sp500_prices.RData")
-# re_turns <- returns_100
-re_turns <- re_turns[, !is.na(re_turns[NROW(re_turns), ])]
-re_turns <- re_turns[, !is.na(re_turns[NROW(re_turns)-1000, ])]
-re_turns <- na.omit(re_turns)
-n_weights <- NCOL(re_turns)
-# risk_free <- 0.03/260
-# ex_cess <- (re_turns - risk_free)
+# returns <- returns100
+returns <- returns[, !is.na(returns[NROW(returns), ])]
+returns <- returns[, !is.na(returns[NROW(returns)-1000, ])]
+returns <- na.omit(returns)
+nweights <- NCOL(returns)
+# riskf <- 0.03/260
+# excess <- (returns - riskf)
 # calculate returns on equal weight portfolio
-# in_dex <- xts(cumsum(re_turns %*% rep(1/sqrt(n_weights), n_weights)), index(re_turns))
+# indeks <- xts(cumsum(returns %*% rep(1/sqrt(nweights), nweights)), index(returns))
 
 
 # End setup code
 
 
 ## Create elements of the user interface
-inter_face <- shiny::fluidPage(
+uiface <- shiny::fluidPage(
   titlePanel("Visualize Weights for S&P500 Portfolio"),
   
   # create single row with two slider inputs
@@ -39,7 +39,7 @@ inter_face <- shiny::fluidPage(
     # Input number of eigenvalues for regularized matrix inverse
     column(width=4, numericInput("max_eigen", "Number of eigenvalues:", value=5)),
     # Input end points interval
-    # column(width=4, selectInput("inter_val", label="End points Interval",
+    # column(width=4, selectInput("interval", label="End points Interval",
     #             choices=c("weeks", "months", "years"), selected="months")),
     # Input look-back interval
     # column(width=4, sliderInput("look_back", label="Lookback interval:",
@@ -48,60 +48,60 @@ inter_face <- shiny::fluidPage(
     # column(width=4, sliderInput("end_stub", label="End_stub interval:",
     #                             min=1, max=90, value=30, step=1)),
     # Input the shrinkage intensity
-    # column(width=4, sliderInput("al_pha", label="Shrinkage intensity:",
+    # column(width=4, sliderInput("alpha", label="Shrinkage intensity:",
     #                             min=0.01, max=0.99, value=0.1, step=0.05))
   ),  # end fluidRow
   
   # create output plot panel
-  mainPanel(plotOutput("plo_t"), width=12)
+  mainPanel(plotOutput("plotobj"), width=12)
 )  # end fluidPage interface
 
 
 ## Define the server code
-ser_ver <- function(input, output) {
+servfunc <- function(input, output) {
 
   # Recalculate the data and rerun the model
-  da_ta <- reactive({
+  datav <- reactive({
     # get model parameters from input argument
-    # inter_val <- input$inter_val
+    # interval <- input$interval
     max_eigen <- input$max_eigen
     # look_back <- input$look_back
     # end_stub <- input$end_stub
-    # al_pha <- input$al_pha
+    # alpha <- input$alpha
     
     # Define end points
-    # end_points <- rutils::calc_endpoints(re_turns, inter_val=inter_val)
-    # end_points <- ifelse(end_points<(n_weights+1), n_weights+1, end_points)
-    # end_points <- end_points[end_points > (n_weights+1)]
-    # len_gth <- NROW(end_points)
-    # Define start_points
-    # start_points <- c(rep_len(1, look_back-1), end_points[1:(len_gth-look_back+1)])
+    # endpoints <- rutils::calc_endpoints(returns, interval=interval)
+    # endpoints <- ifelse(endpoints<(nweights+1), nweights+1, endpoints)
+    # endpoints <- endpoints[endpoints > (nweights+1)]
+    #.n_rows <- NROW(endpoints)
+    # Define startpoints
+    # startpoints <- c(rep_len(1, look_back-1), endpoints[1:.n_rows-look_back+1)])
     # rerun the model
-    weight_s = HighFreq::calc_weights(re_turns, max_eigen=max_eigen);
+    weights = HighFreq::calc_weights(returns, max_eigen=max_eigen);
     
-    # pnl_s <- roll_portf_n(ex_cess=re_turns, 
-    #                               re_turns=re_turns,
-    #                               start_points=start_points-1,
-    #                               end_points=end_points-1,
+    # pnls <- roll_portf_n(excess=returns, 
+    #                               returns=returns,
+    #                               startpoints=startpoints-1,
+    #                               endpoints=endpoints-1,
     #                       max_eigen=max_eigen, 
-    #                       al_pha=al_pha,
+    #                       alpha=alpha,
     #                       min_var=FALSE)
-    # pnl_s[which(is.na(pnl_s)), ] <- 0
-    # pnl_s <- roll_portf_r(ex_cess, re_turns, start_points, end_points, al_pha, max_eigen, end_stub)
-    # pnl_s <- sd(rutils::diff_it(in_dex))*pnl_s/sd(rutils::diff_it(pnl_s))
-    # pnl_s <- cumsum(pnl_s)
-    # pnl_s <- cbind(pnl_s, in_dex)
-    # colnames(pnl_s) <- c("Strategy", "Index")
-    # pnl_s[c(1, end_points), ]
-    sort(weight_s)
+    # pnls[which(is.na(pnls)), ] <- 0
+    # pnls <- roll_portf_r(excess, returns, startpoints, endpoints, alpha, max_eigen, end_stub)
+    # pnls <- sd(rutils::diffit(indeks))*pnls/sd(rutils::diffit(pnls))
+    # pnls <- cumsum(pnls)
+    # pnls <- cbind(pnls, indeks)
+    # colnames(pnls) <- c("Strategy", "Index")
+    # pnls[c(1, endpoints), ]
+    sort(weights)
   })  # end reactive code
   
   # return to output argument a dygraph plot with two y-axes
-  output$plo_t <- shiny::renderPlot({
-    plot(da_ta())
+  output$plotobj <- shiny::renderPlot({
+    plot(datav())
   })  # end renderPlot
   
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=inter_face, server=ser_ver)
+shiny::shinyApp(ui=uiface, server=servfunc)

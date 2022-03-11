@@ -16,27 +16,27 @@ library(rutils)
 # source the model function
 source("C:/Develop/lecture_slides/scripts/roll_portf.R")
 max_eigen <- 2
-sym_bols <- colnames(rutils::etf_env$re_turns)
-sym_bols <- sym_bols[!((sym_bols=="VXX")|(sym_bols=="SVXY"))]
-n_weights <- NROW(sym_bols)
-re_turns <- rutils::etf_env$re_turns[, sym_bols]
-re_turns <- zoo::na.locf(re_turns)
-re_turns <- na.omit(re_turns)
-risk_free <- 0.03/260
-ex_cess <- re_turns - risk_free
+symbolv <- colnames(rutils::etfenv$returns)
+symbolv <- symbolv[!((symbolv=="VXX")|(symbolv=="SVXY"))]
+nweights <- NROW(symbolv)
+returns <- rutils::etfenv$returns[, symbolv]
+returns <- zoo::na.locf(returns)
+returns <- na.omit(returns)
+riskf <- 0.03/260
+excess <- returns - riskf
 # calculate equal weight portfolio
-in_dex <- cumsum(re_turns %*% rep(1/sqrt(NCOL(re_turns)), NCOL(re_turns)))
+indeks <- cumsum(returns %*% rep(1/sqrt(NCOL(returns)), NCOL(returns)))
 
-# Define end_points
-end_points <- rutils::calc_endpoints(re_turns, inter_val="months")
-end_points <- end_points[end_points > (n_weights+1)]
-len_gth <- NROW(end_points)
+# Define endpoints
+endpoints <- rutils::calc_endpoints(returns, interval="months")
+endpoints <- endpoints[endpoints > (nweights+1)]
+nrows <- NROW(endpoints)
 
 # End setup code
 
 
 ## Create elements of the user interface
-inter_face <- shiny::fluidPage(
+uiface <- shiny::fluidPage(
   titlePanel("Rolling Portfolio Optimization Strategy for 19 ETFs"),
   
   # create single row with two slider inputs
@@ -45,40 +45,40 @@ inter_face <- shiny::fluidPage(
     column(width=5, sliderInput("look_back", label="lookback interval (months):",
                                 min=6, max=30, value=12, step=1)),
     # input the shrinkage intensity
-    column(width=5, sliderInput("al_pha", label="shrinkage intensity alpha:",
+    column(width=5, sliderInput("alpha", label="shrinkage intensity alpha:",
                                 min=0.01, max=0.99, value=0.1, step=0.05))
   ),  # end fluidRow
   
   # create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dy_graph"), width=12)
+  mainPanel(dygraphs::dygraphOutput("dyplot"), width=12)
 )  # end fluidPage interface
 
 
 ## Define the server code
-ser_ver <- function(input, output) {
+servfunc <- function(input, output) {
 
   # Recalculate the data and rerun the model
-  da_ta <- reactive({
+  datav <- reactive({
     # get model parameters from input argument
     look_back <- input$look_back
-    al_pha <- input$al_pha
-    # define start_points
-    start_points <- c(rep_len(1, look_back-1), end_points[1:(len_gth-look_back+1)])
+    alpha <- input$alpha
+    # define startpoints
+    startpoints <- c(rep_len(1, look_back-1), endpoints[1:.n_rows-look_back+1)])
     # rerun the model
-    pnl_s <- cbind(
-      roll_portf_r(ex_cess, re_turns, start_points, end_points, al_pha, max_eigen), 
-      in_dex)  # end cbind
-    colnames(pnl_s) <- c("strategy", "equal weight")
-    pnl_s
+    pnls <- cbind(
+      roll_portf_r(excess, returns, startpoints, endpoints, alpha, max_eigen), 
+      indeks)  # end cbind
+    colnames(pnls) <- c("strategy", "equal weight")
+    pnls
   })  # end reactive code
   
   # return the dygraph plot to output argument
-  output$dy_graph <- dygraphs::renderDygraph({
-    dygraph(da_ta(), main="Rolling Portfolio Optimization Strategy") %>%
+  output$dyplot <- dygraphs::renderDygraph({
+    dygraph(datav(), main="Rolling Portfolio Optimization Strategy") %>%
       dySeries("strategy", label="strategy", strokeWidth=1, color="red")
   })  # end output plot
   
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=inter_face, server=ser_ver)
+shiny::shinyApp(ui=uiface, server=servfunc)

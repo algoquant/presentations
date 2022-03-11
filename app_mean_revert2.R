@@ -17,75 +17,75 @@ library(rutils)
 source("C:/Develop/R/scripts/backtest_functions.R")
 # Calculate indicator_s matrix of OHLC technical indicators
 # source(file="C:/Develop/R/scripts/load_technical_indicators.R")
-# vol_at[which.max(vol_at)] <- 0
-# vol_at[which.max(vol_at)] <- 0
+# volat[which.max(volat)] <- 0
+# volat[which.max(volat)] <- 0
 
 
-# oh_lc <- HighFreq::SPY
+# ohlc <- HighFreq::SPY
 
-# oh_lc <- HighFreq::SPY["2010"]
-# oh_lc <- rutils::etf_env$VTI
+# ohlc <- HighFreq::SPY["2010"]
+# ohlc <- rutils::etfenv$VTI
 # load recent ES1 futures data
 # load(file="C:/Develop/data/ES1.RData")
-# sym_bol <- "SPY"
+# symbol <- "SPY"
 
 # load recent combined futures data
 load(file="C:/Develop/data/combined.RData")
 
 # plot daily closing prices
-# dygraphs::dygraph(oh_lc[endpoints(oh_lc, on="days"), c("ES1.Close", "TY1.Close")], 
+# dygraphs::dygraph(ohlc[endpoints(ohlc, on="days"), c("ES1.Close", "TY1.Close")], 
 #                   main="ES1 versus TY1 prices") %>%
 #   dyAxis("y", label="ES1.Close", independentTicks=TRUE) %>%
 #   dyAxis("y2", label="TY1.Close", independentTicks=TRUE) %>%
 #   dySeries("TY1.Close", axis="y2", col=c("blue", "red"))
 
 # set up data for signal
-sym_bol <- "ES1"
-oh_lc <- com_bo[, paste(sym_bol, c("Open", "High", "Low", "Close"), sep=".")]
-# oh_lc <- xts::to.period(oh_lc, period="minutes", k=5)
+symbol <- "ES1"
+ohlc <- com_bo[, paste(symbol, c("Open", "High", "Low", "Close"), sep=".")]
+# ohlc <- xts::to.period(ohlc, period="minutes", k=5)
 # create random time series of minutely OHLC prices
-# oh_lc <- HighFreq::random_ohlc(vol_at = 1e-03, 
-#   in_dex=seq(from=(Sys.time()-5e6), length.out=5e6, by="1 sec"))
-ohlc_log <- log(oh_lc)
-clos_e <- Cl(ohlc_log)
-close_num <- drop(clos_e)
-hi_gh <- Hi(ohlc_log)
-lo_w <- Lo(ohlc_log)
-close_high <- (close_num == drop(hi_gh))
+# ohlc <- HighFreq::random_ohlc(volat = 1e-03, 
+#   indeks=seq(from=(Sys.time()-5e6), length.out=5e6, by="1 sec"))
+ohlc_log <- log(ohlc)
+closep <- Cl(ohlc_log)
+close_num <- drop(closep)
+highp <- Hi(ohlc_log)
+lowp <- Lo(ohlc_log)
+close_high <- (close_num == drop(highp))
 # close_high_count <- HighFreq::roll_count(close_high)
-close_low <- (close_num == drop(lo_w))
+close_low <- (close_num == drop(lowp))
 # close_low_count <- HighFreq::roll_count(close_low)
-# re_turns <- rutils::diff_it(clos_e)
-# colnames(re_turns) <- "returns"
-date_s <- 1:NROW(oh_lc)
-# date_s <- xts::.index(oh_lc)
-de_sign <- matrix(date_s, nc=1)
-# date_s <- xts::.index(oh_lc)
-# de_sign <- matrix(xts::.index(oh_lc), nc=1)
-# indicator_s <- cbind(re_turns, z_scores, vol_at, sk_ew)
+# returns <- rutils::diffit(closep)
+# colnames(returns) <- "returns"
+dates <- 1:NROW(ohlc)
+# dates <- xts::.index(ohlc)
+design <- matrix(dates, nc=1)
+# dates <- xts::.index(ohlc)
+# design <- matrix(xts::.index(ohlc), nc=1)
+# indicator_s <- cbind(returns, z_scores, volat, skew)
 
 # set up data for trading
-sym_bol <- "ES1"
-clos_e <- com_bo[, paste(sym_bol, "Close", sep=".")]
-re_turns <- rutils::diff_it(log(clos_e))
+symbol <- "ES1"
+closep <- com_bo[, paste(symbol, "Close", sep=".")]
+returns <- rutils::diffit(log(closep))
 # create random time series of minutely OHLC prices
-# ohlc_trade <- HighFreq::random_ohlc(vol_at = 1e-03, 
-#   in_dex=seq(from=(Sys.time()-5e6), length.out=5e6, by="1 sec"))
-# close_num <- drop(clos_e)
-# hi_gh <- Hi(ohlc_trade)
-# lo_w <- Lo(ohlc_trade)
-# close_high_trade <- (close_num == drop(hi_gh))
-# close_low_trade <- (close_num == drop(lo_w))
-# re_turns <- rutils::diff_it(clos_e)
-colnames(re_turns) <- "returns"
+# ohlc_trade <- HighFreq::random_ohlc(volat = 1e-03, 
+#   indeks=seq(from=(Sys.time()-5e6), length.out=5e6, by="1 sec"))
+# close_num <- drop(closep)
+# highp <- Hi(ohlc_trade)
+# lowp <- Lo(ohlc_trade)
+# close_high_trade <- (close_num == drop(highp))
+# close_low_trade <- (close_num == drop(lowp))
+# returns <- rutils::diffit(closep)
+colnames(returns) <- "returns"
 
 
 # End setup code
 
 
 ## Create elements of the user interface
-inter_face <- shiny::fluidPage(
-  titlePanel(paste(sym_bol, "Strategy Using OHLC Technical Indicators")),
+uiface <- shiny::fluidPage(
+  titlePanel(paste(symbol, "Strategy Using OHLC Technical Indicators")),
   
   # create single row with four slider inputs
   fluidRow(
@@ -112,16 +112,16 @@ inter_face <- shiny::fluidPage(
     # column(width=4, sliderInput("beta_vol", label="vol beta:",
     #                             min=0.01, max=1.0, value=0.5, step=0.01)),
     # input the skew beta
-    # column(width=4, sliderInput("beta_skew", label="skew beta:",
+    # column(width=4, sliderInput("betaskew", label="skew beta:",
     #                             min=-20.0, max=20.0, value=-20.0, step=0.1)),
     # # input the momentum beta
-    # column(width=4, sliderInput("beta_moment", label="momentum beta:",
+    # column(width=4, sliderInput("betamoment", label="momentum beta:",
     #                             min=-5.0, max=5.0, value=-5.0, step=0.1)),
-    # # input the op_en-hi_gh beta
-    # column(width=4, sliderInput("beta_ophi", label="op_en-hi_gh beta:",
+    # # input the openp-highp beta
+    # column(width=4, sliderInput("beta_ophi", label="openp-highp beta:",
     #                             min=-5.0, max=5.0, value=-5.0, step=0.1)),
-    # # input the clos_e-hi_gh beta
-    # column(width=4, sliderInput("beta_clhi", label="clos_e-hi_gh beta:",
+    # # input the closep-highp beta
+    # column(width=4, sliderInput("beta_clhi", label="closep-highp beta:",
     #                             min=-5.0, max=5.0, value=-5.0, step=0.1)),
   ),  # end fluidRow
   
@@ -131,24 +131,24 @@ inter_face <- shiny::fluidPage(
 
 
 ## Define the server code
-ser_ver <- shiny::shinyServer(function(input, output) {
+servfunc <- shiny::shinyServer(function(input, output) {
 
   ## Recalculate the model with new parameters
-  da_ta <- reactive({
+  datav <- reactive({
     # get model parameters from input argument
     # beta_ret <- input$beta_ret
     en_ter <- input$en_ter
     ex_it <- input$ex_it
     # beta_vol <- input$beta_vol
-    # beta_skew <- input$beta_skew
-    # beta_moment <- input$beta_moment
+    # betaskew <- input$betaskew
+    # betamoment <- input$betamoment
     # beta_ophi <- input$beta_ophi
     # beta_clhi <- input$beta_clhi
     look_short <- input$look_short
     look_long <- input$look_long
     trade_lag <- input$trade_lag
-    # weight_s <- c(beta_ret, en_ter, beta_vol, beta_skew)
-    # weight_s <- c(beta_ret, beta_vol, beta_skew, beta_moment, beta_ophi, beta_clhi)
+    # weights <- c(beta_ret, en_ter, beta_vol, betaskew)
+    # weights <- c(beta_ret, beta_vol, betaskew, betamoment, beta_ophi, beta_clhi)
     
     ## Simulate strategy
     # calculate max_min signals
@@ -157,92 +157,92 @@ ser_ver <- shiny::shinyServer(function(input, output) {
     # close_low_count <- (close_num == max_min[, 2])
     
     # calculate signal
-    # sig_nal <- clos_e
+    # sig_nal <- closep
     # trending signal
-    # signal_trend <- calc_signal(ohlc=ohlc_log, clos_e=close_num,
-    #                             design=de_sign,
+    # signal_trend <- calc_signal(ohlc=ohlc_log, closep=close_num,
+    #                             design=design,
     #                             look_short=look_short, look_long=look_long, high_freq=FALSE)
-    # signal_trend <- calc_ma(ohlc=ohlc_log, clos_e=close_num,
-    #                         design=de_sign,
+    # signal_trend <- calc_ma(ohlc=ohlc_log, closep=close_num,
+    #                         design=design,
     #                         look_back=look_long, high_freq=FALSE)
     
     # mean reverting signal
     # signal_revert <- ohlc_log[, 1]  # dummy signal
-    signal_revert <- calc_signal(ohlc=ohlc_log, clos_e=close_num,
-                                design=de_sign,
+    signal_revert <- calc_signal(ohlc=ohlc_log, closep=close_num,
+                                design=design,
                                 look_short=look_short)
     # signal_revert <- HighFreq::roll_zscores(response=close_num, 
-    #                         design=de_sign, 
+    #                         design=design, 
     #                         look_back=look_short)
     # sig_nal[1:look_short, ] <- 0
     # scale sig_nal using HighFreq::roll_scale()
     # sig_nal <- roll::roll_scale(data=sig_nal, width=look_short, min_obs=1)
-    # sig_nal <- HighFreq::roll_scale(mat_rix=sig_nal, look_back=look_short, use_median=TRUE)
+    # sig_nal <- HighFreq::roll_scale(matrixv=sig_nal, look_back=look_short, use_median=TRUE)
     # sig_nal[1:look_short, ] <- 0
     # sig_nal[is.infinite(sig_nal), ] <- 0
-    # sig_nal <- rutils::lag_it(sig_nal, lagg=1)
+    # sig_nal <- rutils::lagit(sig_nal, lagg=1)
     # calculate positions, either: -1, 0, or 1
     # po_sit <- -sign(sig_nal)
     # calculate positions, either: -1, 0, or 1
-    # po_sit <- rep(NA_integer_, NROW(oh_lc))
+    # po_sit <- rep(NA_integer_, NROW(ohlc))
     # po_sit[1] <- 0
     # po_sit[(sig_nal < (-en_ter)) & close_low] <- 1
     # po_sit[(sig_nal > en_ter) & close_high] <- (-1)
     # po_sit[abs(sig_nal) < ex_it] <- 0
     # po_sit <- na.locf(po_sit)
-    # po_sit <- rutils::lag_it(po_sit, lagg=1)
-    # # po_sit <- po_sit + rutils::lag_it(po_sit, lagg=1) + rutils::lag_it(po_sit, lagg=2)
-    # po_sit <- rutils::lag_it(po_sit, lagg=trade_lag)
+    # po_sit <- rutils::lagit(po_sit, lagg=1)
+    # # po_sit <- po_sit + rutils::lagit(po_sit, lagg=1) + rutils::lagit(po_sit, lagg=2)
+    # po_sit <- rutils::lagit(po_sit, lagg=trade_lag)
 
     # trending signal
-    # sig_nal <- HighFreq::roll_zscores(response=clos_e, 
-    #                         design=de_sign, 
+    # sig_nal <- HighFreq::roll_zscores(response=closep, 
+    #                         design=design, 
     #                         look_back=look_long)
     # sig_nal[1:look_long, ] <- 0
-    # sig_nal <- rutils::lag_it(sig_nal)
+    # sig_nal <- rutils::lagit(sig_nal)
     # calculate positions, either: -1, 0, or 1
     # po_sit <- po_sit + sign(sig_nal)
-    # po_sit <- rep(NA_integer_, NROW(oh_lc))
+    # po_sit <- rep(NA_integer_, NROW(ohlc))
     # po_sit[1] <- 0
     # po_sit[sig_nal<beta_vol] <- (-1)
     # po_sit[sig_nal>beta_vol] <- 1
     # po_sit <- na.locf(po_sit)
-    # pnl_s <- signal_revert
-    # pnl_s <- cumsum(po_sit*re_turns)
-    # colnames(pnl_s) <- "strategy"
+    # pnls <- signal_revert
+    # pnls <- cumsum(po_sit*returns)
+    # colnames(pnls) <- "strategy"
     
-    pnl_s <- sim_revert(signal_revert, re_turns, close_high, close_high_count, close_low, close_low_count, en_ter, ex_it, trade_lag)
+    pnls <- sim_revert(signal_revert, returns, close_high, close_high_count, close_low, close_low_count, en_ter, ex_it, trade_lag)
     
-    # sim_trend(signal_trend, re_turns, en_ter, ex_it, close_high_trade, close_low_trade, trade_lag)
+    # sim_trend(signal_trend, returns, en_ter, ex_it, close_high_trade, close_low_trade, trade_lag)
     
-    # sim_trend(signal_trend, re_turns, close_high, close_low, en_ter, ex_it, trade_lag)
-    # sim_revert_trending(signal_revert, signal_trend, re_turns, en_ter, ex_it, close_high_trade, close_low_trade, trade_lag)
-    # po_sit <- xts(po_sit, index(oh_lc))
-    pnl_s <- cbind(clos_e, pnl_s)[xts::endpoints(pnl_s, on="days")]
-    # pnl_s <- xts::to.daily(cbind(clos_e, pnl_s))
-    # colnames(pnl_s) <- c("asset", "strategy")
-    colnames(pnl_s) <- c(sym_bol, "strategy")
-    pnl_s
+    # sim_trend(signal_trend, returns, close_high, close_low, en_ter, ex_it, trade_lag)
+    # sim_revert_trending(signal_revert, signal_trend, returns, en_ter, ex_it, close_high_trade, close_low_trade, trade_lag)
+    # po_sit <- xts(po_sit, index(ohlc))
+    pnls <- cbind(closep, pnls)[xts::endpoints(pnls, on="days")]
+    # pnls <- xts::to.daily(cbind(closep, pnls))
+    # colnames(pnls) <- c("asset", "strategy")
+    colnames(pnls) <- c(symbol, "strategy")
+    pnls
   })  # end reactive code
   
   # return the dygraph plot to output argument
   output$dygraph <- dygraphs::renderDygraph({
     # plot daily closing prices
-    # dygraphs::dygraph(cbind(clos_e, da_ta())[endpoints(clos_e, on="days")], main=paste(sym_bol, "Strategy Using OHLC Technical Indicators")) %>%
+    # dygraphs::dygraph(cbind(closep, datav())[endpoints(closep, on="days")], main=paste(symbol, "Strategy Using OHLC Technical Indicators")) %>%
       # plot daily closing ES1 prices
-    dygraphs::dygraph(da_ta(), main=paste(colnames(da_ta())[1], "Strategy Using OHLC Technical Indicators")) %>%
+    dygraphs::dygraph(datav(), main=paste(colnames(datav())[1], "Strategy Using OHLC Technical Indicators")) %>%
       # plot a few days with all the minute bars
-      # dygraphs::dygraph(cbind(clos_e, da_ta())["2018-02-01/2018-02-07"], main=paste(sym_bol, "Strategy Using OHLC Technical Indicators")) %>%
+      # dygraphs::dygraph(cbind(closep, datav())["2018-02-01/2018-02-07"], main=paste(symbol, "Strategy Using OHLC Technical Indicators")) %>%
       # plot a few days with all the ES1 minute bars
-      # dygraphs::dygraph(cbind(Cl(ohlc_trade), da_ta())["2018-02-01/2018-02-07"], main=paste(sym_bol, "Strategy Using OHLC Technical Indicators")) %>%
-      dyAxis("y", label=colnames(da_ta())[1], independentTicks=TRUE) %>%
+      # dygraphs::dygraph(cbind(Cl(ohlc_trade), datav())["2018-02-01/2018-02-07"], main=paste(symbol, "Strategy Using OHLC Technical Indicators")) %>%
+      dyAxis("y", label=colnames(datav())[1], independentTicks=TRUE) %>%
       dyAxis("y2", label="strategy", independentTicks=TRUE) %>%
       dySeries("strategy", axis="y2", col=c("blue", "red"))
   })  # end output plot
 
-  # output$hist <- hist(da_ta())  # end output hist
+  # output$hist <- hist(datav())  # end output hist
   
 })  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=inter_face, server=ser_ver)
+shiny::shinyApp(ui=uiface, server=servfunc)

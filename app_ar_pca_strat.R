@@ -21,13 +21,13 @@ cap_tion <- paste("Autoregressive Strategy Using the Principal Components")
 
 
 ## Create elements of the user interface
-inter_face <- shiny::fluidPage(
+uiface <- shiny::fluidPage(
   titlePanel(cap_tion),
 
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("sym_bol", label="Symbol",
-                                choices=rutils::etf_env$sym_bols, selected="VTI")),
+    column(width=2, selectInput("symbol", label="Symbol",
+                                choices=rutils::etfenv$symbolv, selected="VTI")),
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the bid-offer spread
@@ -38,7 +38,7 @@ inter_face <- shiny::fluidPage(
     # Input the look-back interval
     column(width=2, sliderInput("max_back", label="Max Look-back", min=3, max=50, value=10, step=1)),
     # Input the response look-back interval
-    column(width=2, sliderInput("n_agg", label="Aggregation Interval", min=2, max=20, value=5, step=1)),
+    column(width=2, sliderInput("numagg", label="Aggregation Interval", min=2, max=20, value=5, step=1)),
     # Input the look-back interval
     column(width=2, sliderInput("max_eigen", label="Max Eigen", min=2, max=20, value=3, step=1))
     # Input the trade lag
@@ -46,181 +46,181 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dy_graph", width="100%", height="600px"), height=10, width=12)
+  mainPanel(dygraphs::dygraphOutput("dyplot", width="100%", height="600px"), height=10, width=12)
 
 )  # end fluidPage interface
 
 
 ## Define the server code
-ser_ver <- function(input, output) {
+servfunc <- function(input, output) {
 
   # Create an empty list of reactive values.
   value_s <- reactiveValues()
 
   # Load the data
-  da_ta <- reactive({
+  datav <- reactive({
     
-    sym_bol <- input$sym_bol
-    cat("Loading Data For ", sym_bol, "\n")
+    symbol <- input$symbol
+    cat("Loading Data For ", symbol, "\n")
     
-    oh_lc <- get(sym_bol, rutils::etf_env)
-    n_rows <- NROW(oh_lc)
-    clos_e <- log(quantmod::Cl(oh_lc))
-    re_turns <- rutils::diff_it(clos_e)
-    re_turns <- re_turns/sd(re_turns)
+    ohlc <- get(symbol, rutils::etfenv)
+   .n_rows <- NROW(ohlc)
+    closep <- log(quantmod::Cl(ohlc))
+    returns <- rutils::diffit(closep)
+    returns <- returns/sd(returns)
 
     ## Divide the returns by the volume - use trading time (volume clock)
     # Need to scale the volume by the rolling average volume
-    # vol_ume <- quantmod::Vo(oh_lc)
-    # vol_ume[vol_ume == 0] <- NA
-    # vol_ume <- zoo::na.locf(vol_ume)
+    # volumes <- quantmod::Vo(ohlc)
+    # volumes[volumes == 0] <- NA
+    # volumes <- zoo::na.locf(volumes)
     # look_back <- 11
-    # volume_rolling <- roll::roll_mean(vol_ume, width=look_back, min_obs=1)
+    # volume_rolling <- roll::roll_mean(volumes, width=look_back, min_obs=1)
     # volume_rolling <- zoo::na.locf(volume_rolling, fromLast=TRUE)
-    # vol_ume <- vol_ume/volume_rolling
+    # volumes <- volumes/volume_rolling
     
     # Divide  the returns by the volume - use trading time (volume clock)
-    # rets_scaled <- ifelse(vol_ume > 0, re_turns/vol_ume, 0)
-    # rets_scaled <- re_turns/vol_ume
+    # rets_scaled <- ifelse(volumes > 0, returns/volumes, 0)
+    # rets_scaled <- returns/volumes
     # rets_scaled <- rets_scaled/sd(rets_scaled)
 
     # Don't scale by the volume
-    rets_scaled <- re_turns
+    rets_scaled <- returns
     
-    cbind(re_turns, rets_scaled)
+    cbind(returns, rets_scaled)
     
   })  # end Load the data
   
 
   # Recalculate the design
-  de_sign <- reactive({
+  design <- reactive({
     
-    cat("Recalculating PCA Predictor For ", input$sym_bol, "\n")
+    cat("Recalculating PCA Predictor For ", input$symbol, "\n")
     
     # Get model parameters from input argument
     max_back <- input$max_back
     # lagg <- input$lagg
 
     # Calculate cumulative returns
-    re_turns <- da_ta()[, 1]
-    rets_scaled <- da_ta()[, 2]
-    date_s <- zoo::index(re_turns)
-    n_rows <- NROW(re_turns)
+    returns <- datav()[, 1]
+    rets_scaled <- datav()[, 2]
+    dates <- zoo::index(returns)
+   .n_rows <- NROW(returns)
     
-    # res_ponse <- rutils::lag_it(de_sign[, max_back], lagg=(-max_back))
-    n_agg <- input$n_agg
-    res_ponse <- sqrt(n_agg)*roll::roll_mean(re_turns, n_agg, min_obs=1)
-    # res_ponse[1:(n_agg-1)] <- 0
+    # response <- rutils::lagit(design[, max_back], lagg=(-max_back))
+    numagg <- input$numagg
+    response <- sqrt(numagg)*roll::roll_mean(returns, numagg, min_obs=1)
+    # response[1:(numagg-1)] <- 0
     
-    look_backs <- n_agg*(1:max_back)
-    # de_sign <- lapply(look_backs, function(x) sqrt(x)*roll::roll_mean(rets_scaled, x, min_obs=1))
-    de_sign <- lapply(look_backs, rutils::lag_it, in_put=res_ponse)
-    de_sign <- do.call(cbind, de_sign)
-    # de_sign[1, ] <- 0
-    # de_sign <- zoo::na.locf(de_sign)
-    # sum(is.na(de_sign))
-    de_sign <- cbind(res_ponse, de_sign)
+    look_backs <- numagg*(1:max_back)
+    # design <- lapply(look_backs, function(x) sqrt(x)*roll::roll_mean(rets_scaled, x, min_obs=1))
+    design <- lapply(look_backs, rutils::lagit, input=response)
+    design <- do.call(cbind, design)
+    # design[1, ] <- 0
+    # design <- zoo::na.locf(design)
+    # sum(is.na(design))
+    design <- cbind(response, design)
     
-    res_ponse <- rutils::lag_it(res_ponse, lagg=(-n_agg))
+    response <- rutils::lagit(response, lagg=(-numagg))
     
-    ## Define predictors as the principal components of de_sign
-    # Calculate covariance matrix of de_sign
-    # cov_mat <- cov(de_sign)
+    ## Define predictors as the principal components of design
+    # Calculate covariance matrix of design
+    # covmat <- cov(design)
     # Calculate eigenvectors and eigenvalues
-    # ei_gen <- eigen(cov_mat)
+    # eigend <- eigen(covmat)
     
-    # Define predictors as the principal components of de_sign
-    # eigen_vec <- ei_gen$vectors
-    # de_sign <- xts::xts(de_sign %*% ei_gen$vectors, order.by=date_s)
-    # colnames(de_sign) <- paste0("pc", 1:NCOL(de_sign))
-    # round(cov(de_sign), 3)
-    cbind(res_ponse, rep(1, n_rows), de_sign)
+    # Define predictors as the principal components of design
+    # eigen_vec <- eigend$vectors
+    # design <- xts::xts(design %*% eigend$vectors, order.by=dates)
+    # colnames(design) <- paste0("pc", 1:NCOL(design))
+    # round(cov(design), 3)
+    cbind(response, rep(1,.n_rows), design)
 
   })  # end Recalculate the design
   
   
   # Recalculate the strategy
-  pnl_s <- reactive({
+  pnls <- reactive({
     
-    cat("Recalculating Strategy For ", input$sym_bol, "\n")
+    cat("Recalculating Strategy For ", input$symbol, "\n")
     
     # Get model parameters from input argument
     max_eigen <- input$max_eigen
 
-    res_ponse <- de_sign()[, 1]
-    predic_tor <- de_sign()[, -1]
-    re_turns <- da_ta()[, 1]
-    # max_eigen <- min(max_eigen, NCOL(predic_tor))
-    max_eigen <- NCOL(predic_tor)
+    response <- design()[, 1]
+    predictor <- design()[, -1]
+    returns <- datav()[, 1]
+    # max_eigen <- min(max_eigen, NCOL(predictor))
+    max_eigen <- NCOL(predictor)
     
-    n_rows <- NROW(re_turns)
-    in_sample <- 1:(n_rows %/% 2)
-    out_sample <- (n_rows %/% 2 + 1):n_rows
+   .n_rows <- NROW(returns)
+    in_sample <- 1:.n_rows %/% 2)
+    out_sample <- .n_rows %/% 2 + 1).n_rows
     
     # Calculate in-sample fitted coefficients
-    in_verse <- MASS::ginv(predic_tor[in_sample, 1:max_eigen])
-    coeff_fit <- drop(in_verse %*% res_ponse[in_sample])
+    inverse <- MASS::ginv(predictor[in_sample, 1:max_eigen])
+    coeff_fit <- drop(inverse %*% response[in_sample])
     
-    # Calculate out-sample forecasts of re_turns
-    # forecast_s <- drop(predic_tor[out_sample, 1:3] %*% coeff_fit[1:3])
-    forecast_s <- drop(predic_tor[out_sample, 1:max_eigen] %*% coeff_fit)
+    # Calculate out-sample forecasts of returns
+    # forecasts <- drop(predictor[out_sample, 1:3] %*% coeff_fit[1:3])
+    forecasts <- drop(predictor[out_sample, 1:max_eigen] %*% coeff_fit)
     # Lag the positions to trade in next period
-    position_s <- sign(rutils::lag_it(forecast_s))
+    position_s <- sign(rutils::lagit(forecasts))
     
     # Calculate indicator of flipping the positions
-    in_dic <- rutils::diff_it(position_s)
+    indic <- rutils::diffit(position_s)
     # Calculate number of trades
-    value_s$n_trades <- sum(abs(in_dic) > 0)
+    value_s$n_trades <- sum(abs(indic) > 0)
     
     # Add buy/sell indicators for annotations
-    indic_buy <- (in_dic > 0)
-    indic_sell <- (in_dic < 0)
+    indic_buy <- (indic > 0)
+    indic_sell <- (indic < 0)
     
-    # Calculate strategy pnl_s
-    re_turns <- re_turns[out_sample]
-    pnl_s <- position_s*re_turns
+    # Calculate strategy pnls
+    returns <- returns[out_sample]
+    pnls <- position_s*returns
     
     # Calculate transaction costs
-    cost_s <- 0.5*input$bid_offer*abs(in_dic)
-    pnl_s <- (pnl_s - cost_s)
+    costs <- 0.5*input$bid_offer*abs(indic)
+    pnls <- (pnls - costs)
     
-    # Scale the pnl_s so they have same SD as re_turns
-    pnl_s <- pnl_s*sd(re_turns[re_turns<0])/sd(pnl_s[pnl_s<0])
+    # Scale the pnls so they have same SD as returns
+    pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
     
-    # Bind together strategy pnl_s
-    pnl_s <- cbind(re_turns, pnl_s)
+    # Bind together strategy pnls
+    pnls <- cbind(returns, pnls)
     
     # Calculate Sharpe ratios
-    sharp_e <- sqrt(252)*sapply(pnl_s, function(x) mean(x)/sd(x[x<0]))
+    sharp_e <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
     value_s$sharp_e <- round(sharp_e, 3)
     
     # Bind with indicators
-    pnl_s <- cumsum(pnl_s)
+    pnls <- cumsum(pnls)
     if (value_s$n_trades > 1) {
-      cum_rets <- cumsum(re_turns)
-      pnl_s <- cbind(pnl_s, cum_rets[indic_buy], cum_rets[indic_sell])
-      colnames(pnl_s) <- c(paste(input$sym_bol, "Returns"), "Strategy", "Buy", "Sell")
+      cum_rets <- cumsum(returns)
+      pnls <- cbind(pnls, cum_rets[indic_buy], cum_rets[indic_sell])
+      colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
     }  # end if
     
-    pnl_s
+    pnls
     
   })  # end Recalculate the strategy
   
   
   # Plot the cumulative scaled returns
   # Return to the output argument a dygraph plot with two y-axes
-  output$dy_graph <- dygraphs::renderDygraph({
+  output$dyplot <- dygraphs::renderDygraph({
     
-    # Get the pnl_s
-    pnl_s <- pnl_s()
-    col_names <- colnames(pnl_s)
+    # Get the pnls
+    pnls <- pnls()
+    colnamev <- colnames(pnls)
     
     # Get Sharpe ratios
     sharp_e <- value_s$sharp_e
     # Get number of trades
     n_trades <- value_s$n_trades
     
-    cap_tion <- paste("Strategy for", input$sym_bol, "Returns Scaled by the Trading Volumes / \n", 
+    cap_tion <- paste("Strategy for", input$symbol, "Returns Scaled by the Trading Volumes / \n", 
                       paste0(c("Index SR=", "Strategy SR="), sharp_e, collapse=" / "), "/ \n",
                       "Number of trades=", n_trades)
     
@@ -228,19 +228,19 @@ ser_ver <- function(input, output) {
     add_annotations <- input$add_annotations
     
     if (add_annotations == "True") {
-      dygraphs::dygraph(pnl_s, main=cap_tion) %>%
-        dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
-        dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
-        dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=1, col="blue") %>%
-        dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=1, col="red") %>%
-        dySeries(name=col_names[3], axis="y", label=col_names[3], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
-        dySeries(name=col_names[4], axis="y", label=col_names[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
+      dygraphs::dygraph(pnls, main=cap_tion) %>%
+        dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
+        dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
+        dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%
+        dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="red") %>%
+        dySeries(name=colnamev[3], axis="y", label=colnamev[3], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
+        dySeries(name=colnamev[4], axis="y", label=colnamev[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
     } else if (add_annotations == "False") {
-      dygraphs::dygraph(pnl_s[, 1:2], main=cap_tion) %>%
-        dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
-        dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
-        dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=1, col="blue") %>%
-        dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=1, col="red")
+      dygraphs::dygraph(pnls[, 1:2], main=cap_tion) %>%
+        dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
+        dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
+        dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%
+        dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="red")
     }  # end if
     
   })  # end output plot
@@ -248,4 +248,4 @@ ser_ver <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=inter_face, server=ser_ver)
+shiny::shinyApp(ui=uiface, server=servfunc)

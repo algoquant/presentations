@@ -16,13 +16,13 @@ library(dygraphs)
 
 # Model and data setup
 
-# sym_bols <- names(data_env)
-sym_bols <- rutils::etf_env$sym_bols
-# sym_bols <- sym_bols[!(sym_bols %in% c("TLT", "IEF", "MTUM", "QUAL", "VLUE", "USMV"))]
-# re_turns <- rutils::etf_env$re_turns[, sym_bols]
+# symbolv <- names(data_env)
+symbolv <- rutils::etfenv$symbolv
+# symbolv <- symbolv[!(symbolv %in% c("TLT", "IEF", "MTUM", "QUAL", "VLUE", "USMV"))]
+# returns <- rutils::etfenv$returns[, symbolv]
 
 # load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
-# sym_bols <- sort(colnames(re_turns))
+# symbolv <- sort(colnames(returns))
 
 
 cap_tion <- paste("Trend Following and Mean Reverting Strategies")
@@ -31,7 +31,7 @@ cap_tion <- paste("Trend Following and Mean Reverting Strategies")
 
 
 ## Create elements of the user interface
-inter_face <- shiny::fluidPage(
+uiface <- shiny::fluidPage(
   titlePanel(cap_tion),
   
   # fluidRow(
@@ -44,8 +44,8 @@ inter_face <- shiny::fluidPage(
   # Create single row with inputs
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("sym_bol", label="Symbol",
-                                choices=sym_bols, selected="VTI")),
+    column(width=2, selectInput("symbol", label="Symbol",
+                                choices=symbolv, selected="VTI")),
     # Input data type Boolean
     column(width=2, selectInput("data_type", label="Select data type", choices=c("Returns", "OHLC"), selected="Returns")),
     # Input data type Boolean
@@ -64,24 +64,24 @@ inter_face <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dy_graph", width="100%", height="600px"), height=10, width=12)
+  mainPanel(dygraphs::dygraphOutput("dyplot", width="100%", height="600px"), height=10, width=12)
 
 )  # end fluidPage interface
 
 
 ## Define the server code
-ser_ver <- function(input, output) {
+servfunc <- function(input, output) {
   
   # Recalculate the data and rerun the model
-  # da_ta <- reactive({
+  # datav <- reactive({
   # Get model parameters from input argument
   # max_eigen <- isolate(input$max_eigen)
   # look_lag <- isolate(input$look_lag
-  # lamb_da <- isolate(input$lamb_da)
-  # typ_e <- isolate(input$typ_e)
-  # al_pha <- isolate(input$al_pha)
+  # lambdav <- isolate(input$lambdav)
+  # typev <- isolate(input$typev)
+  # alpha <- isolate(input$alpha)
   # percen_tile <- isolate(input$percen_tile)
-  # co_eff <- as.numeric(isolate(input$co_eff))
+  # coeff <- as.numeric(isolate(input$coeff))
   # bid_offer <- isolate(input$bid_offer)
   # Model is recalculated when the add_annotations variable is updated
   # input$add_annotations
@@ -93,32 +93,32 @@ ser_ver <- function(input, output) {
   # Create an empty list of reactive values.
   globals <- reactiveValues()
   
-  # Calculate re_turns and variance
-  da_ta <- reactive({
+  # Calculate returns and variance
+  datav <- reactive({
     # Get model parameters from input argument
     data_type <- input$data_type
-    sym_bol <- input$sym_bol
+    symbol <- input$symbol
     look_back <- input$look_back
     
     # Load data if needed
     switch(data_type,
            "Returns" = {
              cat("Loading Returns data \n")
-             re_turns <- na.omit(rutils::etf_env$re_turns[, sym_bol])
-             cumrets <- HighFreq::roll_sum(re_turns, look_back=look_back)
-             variance <- HighFreq::roll_var(re_turns, look_back=look_back)
+             returns <- na.omit(rutils::etfenv$returns[, symbol])
+             cumrets <- HighFreq::roll_sum(returns, look_back=look_back)
+             variance <- HighFreq::roll_var(returns, look_back=look_back)
            },
            "OHLC" = {
-             oh_lc <- get(sym_bol, envir=rutils::etf_env)
-             re_turns <- rutils::diff_it(log(quantmod::Cl(oh_lc)))
-             cumrets <- HighFreq::roll_sum(re_turns, look_back=look_back)
-             variance <- HighFreq::roll_var_ohlc(log(oh_lc), look_back=look_back)
+             ohlc <- get(symbol, envir=rutils::etfenv)
+             returns <- rutils::diffit(log(quantmod::Cl(ohlc)))
+             cumrets <- HighFreq::roll_sum(returns, look_back=look_back)
+             variance <- HighFreq::roll_var_ohlc(log(ohlc), look_back=look_back)
            }
     )  # end switch
     
-    da_ta <- cbind(re_turns, cumrets, variance)
-    colnames(da_ta) <- c(sym_bol, "cumrets", "variance")
-    da_ta
+    datav <- cbind(returns, cumrets, variance)
+    colnames(datav) <- c(symbol, "cumrets", "variance")
+    datav
     
   })  # end Load the data
 
@@ -132,17 +132,17 @@ ser_ver <- function(input, output) {
     # Calculate the predictor
     switch(predictor_type,
            "Returns" = {
-             da_ta()[, 2]
+             datav()[, 2]
            },
            "Sharpe" = {
-             variance <- da_ta()[, 3]
-             ifelse(variance > 0, da_ta()[, 2]/sqrt(variance), 0)
+             variance <- datav()[, 3]
+             ifelse(variance > 0, datav()[, 2]/sqrt(variance), 0)
            },
            "Volatility" = {
-             sqrt(da_ta()[, 3])
+             sqrt(datav()[, 3])
            },
            "Skew" = {
-             sqrt(da_ta()[, 3])
+             sqrt(datav()[, 3])
            }
     )  # end switch
     
@@ -155,54 +155,54 @@ ser_ver <- function(input, output) {
   # x11(width=6, height=5)
   # hist(predictor, xlim=c(quantile(predictor, 0.05), quantile(predictor, 0.95)), breaks=50, main=paste("Z-scores for", "look_back =", look_back))
   
-  # Calculate pnl_s
-  pnl_s <- reactive({
-    cat("Calculating pnl_s\n")
+  # Calculate pnls
+  pnls <- reactive({
+    cat("Calculating pnls\n")
     lambda <- input$lambda
     trend <- as.numeric(input$trend)
     
     position_s <- tanh(lambda*predictor())
-    position_s <- rutils::lag_it(position_s, lagg=1)
-    pnl_s <- trend*position_s*da_ta()[, 1, drop=FALSE]
-    colnames(pnl_s) <- "Strategy"
-    pnl_s
+    position_s <- rutils::lagit(position_s, lagg=1)
+    pnls <- trend*position_s*datav()[, 1, drop=FALSE]
+    colnames(pnls) <- "Strategy"
+    pnls
     
-  })  # end Calculate pnl_s
+  })  # end Calculate pnls
   
 
   # Plot dygraph
-  dy_graph <- reactive({
-    cat("Plotting pnl_s\n")
+  dyplot <- reactive({
+    cat("Plotting pnls\n")
     
-    da_ta <- cbind(da_ta()[, 1, drop=FALSE], pnl_s())
-    col_names <- colnames(da_ta)
+    datav <- cbind(datav()[, 1, drop=FALSE], pnls())
+    colnamev <- colnames(datav)
 
     # Calculate Sharpe ratios
-    sharp_e <- sqrt(252)*sapply(da_ta, function(x) mean(x)/sd(x[x<0]))
+    sharp_e <- sqrt(252)*sapply(datav, function(x) mean(x)/sd(x[x<0]))
     sharp_e <- round(sharp_e, 3)
 
-    # cap_tion <- paste("Contrarian Strategy for", input$sym_bol, "Using the Hampel Filter Over Prices")
+    # cap_tion <- paste("Contrarian Strategy for", input$symbol, "Using the Hampel Filter Over Prices")
     if (input$trend == "1") {
-      cap_tion <- paste("Trending Strategy for", input$sym_bol, "Over ", input$data_type, "/ \n", 
+      cap_tion <- paste("Trending Strategy for", input$symbol, "Over ", input$data_type, "/ \n", 
                         paste0(c("Index SR=", "Strategy SR="), sharp_e, collapse=" / "))
     } else if (input$trend == "-1") {
-      cap_tion <- paste("Mean Reverting Strategy for", input$sym_bol, "Over ", input$data_type, "/ \n", 
+      cap_tion <- paste("Mean Reverting Strategy for", input$symbol, "Over ", input$data_type, "/ \n", 
                         paste0(c("Index SR=", "Strategy SR="), sharp_e, collapse=" / "))
     }  # end if
     
-    dygraphs::dygraph(cumsum(da_ta), main=cap_tion) %>%
-      dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
-      dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
-      dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=1, col="blue") %>%
-      dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=1, col="red")
+    dygraphs::dygraph(cumsum(datav), main=cap_tion) %>%
+      dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
+      dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
+      dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%
+      dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="red")
 
   })  # end reactive
 
-  # Render the dy_graph object
+  # Render the dyplot object
   # Return to the output argument a dygraph plot with two y-axes
-  output$dy_graph <- dygraphs::renderDygraph(dy_graph())
+  output$dyplot <- dygraphs::renderDygraph(dyplot())
     
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=inter_face, server=ser_ver)
+shiny::shinyApp(ui=uiface, server=servfunc)

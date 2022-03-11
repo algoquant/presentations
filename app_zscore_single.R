@@ -17,119 +17,119 @@ source("C:/Develop/R/scripts/backtest_functions.R")
 
 
 ## Set up ETF data
-# if (!("etf_env" %in% search()))
-#   attach(etf_env)
-# if (!("etf_env" %in% ls()))
+# if (!("etfenv" %in% search()))
+#   attach(etfenv)
+# if (!("etfenv" %in% ls()))
 #   load(file="C:/Develop/lecture_slides/data/etf_data.RData")
-# data_env <- "etf_env"
-# sym_bols <- etf_env$sym_bols
-# sym_bol <- "SVXY"
-# re_turns <- etf_env$re_turns
+# data_env <- "etfenv"
+# symbolv <- etfenv$symbolv
+# symbol <- "SVXY"
+# returns <- etfenv$returns
 
-data_env <- rutils::etf_env
-sym_bols <- get("sym_bols", data_env)
-sym_bol <- "VXX"
-# sym_bols <- rutils::etf_env$sym_bols
+data_env <- rutils::etfenv
+symbolv <- get("symbolv", data_env)
+symbol <- "VXX"
+# symbolv <- rutils::etfenv$symbolv
 
 
 ## Set up S&P500 data
-# if (!("sp500_env" %in% search()))
-#   attach(sp500_env)
-# if (!("sp500_env" %in% ls())) {
+# if (!("sp500env" %in% search()))
+#   attach(sp500env)
+# if (!("sp500env" %in% ls())) {
 #   load(file="C:/Develop/lecture_slides/data/sp500.RData")
 # }  # end if
-# data_env <- sp500_env
-# sym_bols <- names(data_env)
-# # sym_bols <- c("PG", "CDNS", "YUM", "YUMC", "KHC", "SNPS", "ODFL", "CHRW", "AWK", "SO", "EA", "FIS", "DG", "BAX", "HRL", "MSFT", "XOM", "BSX", "JNJ", "CLX", "CL", "MCD", "WMT", "SBUX", "LLY", "ADM", "BIO", "XLNX", "ATVI", "DISH", "K", "SHW", "SIG", "CSCO", "INTU", "VRTX", "FB", "ORCL", "DUK", "KSS", "ROP", "AKAM", "MXIM", "TXN", "NEM", "COST", "EL", "JWN", "ACN", "FISV", "KLAC", "PFE", "TYL", "BIIB", "MCHP", "BBBY", "DRE", "PEP", "LIN", "NKE", "TROW", "LEN", "HOLX", "NVR", "UDR", "WEC", "DHI", "NI")
-# sym_bol <- "YUM"
+# data_env <- sp500env
+# symbolv <- names(data_env)
+# # symbolv <- c("PG", "CDNS", "YUM", "YUMC", "KHC", "SNPS", "ODFL", "CHRW", "AWK", "SO", "EA", "FIS", "DG", "BAX", "HRL", "MSFT", "XOM", "BSX", "JNJ", "CLX", "CL", "MCD", "WMT", "SBUX", "LLY", "ADM", "BIO", "XLNX", "ATVI", "DISH", "K", "SHW", "SIG", "CSCO", "INTU", "VRTX", "FB", "ORCL", "DUK", "KSS", "ROP", "AKAM", "MXIM", "TXN", "NEM", "COST", "EL", "JWN", "ACN", "FISV", "KLAC", "PFE", "TYL", "BIIB", "MCHP", "BBBY", "DRE", "PEP", "LIN", "NKE", "TROW", "LEN", "HOLX", "NVR", "UDR", "WEC", "DHI", "NI")
+# symbol <- "YUM"
 
 
 ## End setup code
 
 
 ## Create elements of the user interface
-inter_face <- shiny::fluidPage(
+uiface <- shiny::fluidPage(
   titlePanel("Z-Scores Strategy"),
   
   # create single row with four slider inputs
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("sym_bol", label="Symbol",
-                                choices=sym_bols, selected=sym_bol)),
+    column(width=2, selectInput("symbol", label="Symbol",
+                                choices=symbolv, selected=symbol)),
     # Input look-back interval
     column(width=2, sliderInput("look_back", label="Lookback interval",
                                 min=1, max=150, value=15, step=1)),
     # Input lag trade parameter
     column(width=2, sliderInput("lagg", label="Confirmation signals", min=1, max=5, value=2, step=1)),
     # Input lag trade parameter
-    column(width=2, sliderInput("thresh_old", label="Threshold", min=0.01, max=1.5, value=0.3, step=0.1)),
+    column(width=2, sliderInput("threshold", label="Threshold", min=0.01, max=1.5, value=0.3, step=0.1)),
     # Input trending or reverting (contrarian) strategy
-    column(width=2, selectInput("co_eff", label="Trend (1) Revert (-1)",
+    column(width=2, selectInput("coeff", label="Trend (1) Revert (-1)",
                                 choices=c(1, -1), selected=(-1)))
   ),  # end fluidRow
   
   # create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dy_graph", width="100%", height="600px"), height=10, width=12)
-  # mainPanel(dygraphs::dygraphOutput("dy_graph"), width=12)
+  mainPanel(dygraphs::dygraphOutput("dyplot", width="100%", height="600px"), height=10, width=12)
+  # mainPanel(dygraphs::dygraphOutput("dyplot"), width=12)
 )  # end fluidPage interface
 
 
 ## Define the server code
-ser_ver <- shiny::shinyServer(function(input, output) {
+servfunc <- shiny::shinyServer(function(input, output) {
 
   # Create an empty list of reactive values.
   value_s <- reactiveValues()
   
   # Recalculate the data and rerun the model
-  da_ta <- reactive({
+  datav <- reactive({
     # Get model parameters from input argument
-    sym_bol <- input$sym_bol
+    symbol <- input$symbol
     look_back <- input$look_back
     lagg <- input$lagg
-    thresh_old <- input$thresh_old
-    co_eff <- as.numeric(input$co_eff)
+    threshold <- input$threshold
+    coeff <- as.numeric(input$coeff)
 
     # Prepare data
-    oh_lc <- get(sym_bol, data_env)
-    clos_e <- log(quantmod::Cl(oh_lc))
-    star_t <- as.numeric(clos_e[1, ])
-    # rang_e <- (log(quantmod::Hi(oh_lc)) - log(quantmod::Lo(oh_lc)))
+    ohlc <- get(symbol, data_env)
+    closep <- log(quantmod::Cl(ohlc))
+    startd <- as.numeric(closep[1, ])
+    # rangev <- (log(quantmod::Hi(ohlc)) - log(quantmod::Lo(ohlc)))
     # Run model
-    pnl_s <- backtest_zscores(oh_lc, look_back=look_back, lagg=lagg, thresh_old=thresh_old, co_eff=co_eff)
-    position_s <- pnl_s[ ,"positions"]
+    pnls <- backtest_zscores(ohlc, look_back=look_back, lagg=lagg, threshold=threshold, coeff=coeff)
+    position_s <- pnls[ ,"positions"]
     
     # Calculate number of trades
-    value_s$n_trades <- sum(abs(rutils::diff_it(position_s)) > 0)
+    value_s$n_trades <- sum(abs(rutils::diffit(position_s)) > 0)
     # Calculate Sharpe ratios
-    sharp_e <- sqrt(252)*sapply(cbind(rutils::diff_it(clos_e), pnl_s[ ,"pnls"]), function(x) mean(x)/sd(x[x<0]))
+    sharp_e <- sqrt(252)*sapply(cbind(rutils::diffit(closep), pnls[ ,"pnls"]), function(x) mean(x)/sd(x[x<0]))
     value_s$sharp_e <- round(sharp_e, 3)
     
-    pnl_s <- star_t + cumsum(pnl_s[ ,"pnls"])
-    # pnl_s <- cbind(clos_e, pnl_s, clos_e + co_eff*position_s*rang_e)
-    # colnames(pnl_s) <- c(sym_bol, "Strategy", "Positions")
-    pnl_s <- cbind(clos_e, pnl_s)
-    colnames(pnl_s) <- c(sym_bol, "Strategy")
-    pnl_s
+    pnls <- startd + cumsum(pnls[ ,"pnls"])
+    # pnls <- cbind(closep, pnls, closep + coeff*position_s*rangev)
+    # colnames(pnls) <- c(symbol, "Strategy", "Positions")
+    pnls <- cbind(closep, pnls)
+    colnames(pnls) <- c(symbol, "Strategy")
+    pnls
   })  # end reactive code
   
   # return the dygraph plot to output argument
-  output$dy_graph <- dygraphs::renderDygraph({
-    pnl_s <- da_ta()
-    col_names <- colnames(pnl_s)
+  output$dyplot <- dygraphs::renderDygraph({
+    pnls <- datav()
+    colnamev <- colnames(pnls)
     
-    cap_tion <- paste("Strategy for", input$sym_bol, "Regression Z-score / \n", 
+    cap_tion <- paste("Strategy for", input$symbol, "Regression Z-score / \n", 
                       paste0(c("Index SR=", "Strategy SR="), value_s$sharp_e, collapse=" / "), "/ \n",
                       "Number of trades=", value_s$n_trades)
     
-    dygraphs::dygraph(pnl_s, main=cap_tion) %>%
-      dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
-      dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
-      dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=2, col="blue") %>%
-      # dySeries(name=col_names[3], axis="y", label=col_names[3], strokeWidth=2, col="green") %>%
-      dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=2, col="red")
+    dygraphs::dygraph(pnls, main=cap_tion) %>%
+      dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
+      dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
+      dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=2, col="blue") %>%
+      # dySeries(name=colnamev[3], axis="y", label=colnamev[3], strokeWidth=2, col="green") %>%
+      dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=2, col="red")
   })  # end output plot
 
 })  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=inter_face, server=ser_ver)
+shiny::shinyApp(ui=uiface, server=servfunc)

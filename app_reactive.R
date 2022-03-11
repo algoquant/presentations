@@ -21,21 +21,21 @@ library(dygraphs)
 
 
 ## Define the User Interface
-inter_face <- shiny::fluidPage(
+uiface <- shiny::fluidPage(
   titlePanel("View mtcars Data Frame"),
   fluidRow(
     # Input stock symbol
-    column(width=4, numericInput("n_rows", "Enter number of rows of data: ", value=5)),
+    column(width=4, numericInput(.n_rows", "Enter number of rows of data: ", value=5)),
     column(width=4, actionButton("but_ton", "Press to Show Data")),  # end column
   ),  # end fluidRow
   
-  column(8, tableOutput("tabl_e"))
+  column(8, tableOutput("tablev"))
   
 )  # end fluidPage interface
 
 
 ## Define the server function
-ser_ver <- function(input, output) {
+servfunc <- function(input, output) {
   
   ##############################
   # The function reactiveValues() creates a list for storing 
@@ -60,10 +60,10 @@ ser_ver <- function(input, output) {
   # depend on each other.
   
   # Get input parameters from the user interface.
-  n_rows <- reactive({
-    # Add n_rows to list of reactive values.
-    value_s$n_rows <- input$n_rows
-    input$n_rows
+ .n_rows <- reactive({
+    # Add.n_rows to list of reactive values.
+    value_s.n_rows <- input.n_rows
+    input.n_rows
   })  # end reactive code
   
   
@@ -109,29 +109,29 @@ ser_ver <- function(input, output) {
   # the function.
   
   # Send the data when the button is pressed.
-  da_ta <- eventReactive(eventExpr=input$but_ton, valueExpr={
+  datav <- eventReactive(eventExpr=input$but_ton, valueExpr={
     # eventReactive() executes on input$but_ton, but
-    # not on n_rows() or input$n_rows.
-    cat("Sending", n_rows(), "rows of data\n")
-    da_ta <- head(mtcars, input$n_rows)
-    value_s$mpg <- mean(da_ta$mpg)
-    da_ta
+    # not on.n_rows() or input.n_rows.
+    cat("Sending",.n_rows(), "rows of data\n")
+    datav <- head(mtcars, input.n_rows)
+    value_s$mpg <- mean(datav$mpg)
+    datav
   })  # end eventReactive
-  #   da_ta
+  #   datav
   
   
   # Draw table of the data when the button is pressed.
   observeEvent(eventExpr=input$but_ton, handlerExpr={
-    da_ta <- da_ta()
-    cat("Received", value_s$n_rows, "rows of data\n")
+    datav <- datav()
+    cat("Received", value_s.n_rows, "rows of data\n")
     cat("Average mpg = ", value_s$mpg, "\n")
     cat("Drawing table\n")
-    output$tabl_e <- renderTable(da_ta) 
+    output$tablev <- renderTable(datav) 
   })  # end observeEvent
   
 }  # end server code
 
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=inter_face, server=ser_ver)
+shiny::shinyApp(ui=uiface, server=servfunc)
 

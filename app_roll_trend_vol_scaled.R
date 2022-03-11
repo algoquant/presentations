@@ -7,7 +7,7 @@
 ##############################
 
 # Best parameters - these are stale and don't work
-# typ_e inter_val look_back max_eigen al_pha
+# typev interval look_back max_eigen alpha
 # max_sharpe  days 15-35  6-7
 # min_var  days 15-35  6-7
 # max_sharpe  weeks 3-6  5-9
@@ -38,45 +38,45 @@ library(dygraphs)
 
 
 # Load ETF data
-# sym_bols <- rutils::etf_env$sym_bols
+# symbolv <- rutils::etfenv$symbolv
 # ETFs with smallest Hurst
-# sym_bols <- c("XLP", "XLU", "VNQ", "XLV", "XLF", "XLB", "XLE", "XLY", "XLI", "XLK")
+# symbolv <- c("XLP", "XLU", "VNQ", "XLV", "XLF", "XLB", "XLE", "XLY", "XLI", "XLK")
 # ETFs with largest Hurst
-# sym_bols <- c("DBC", "IEF", "VTI", "XLB", "XLE", "XLF", "XLI", "XLK", "XLP", "XLU", "XLV", "XLY")
-# sym_bols <- c("VYM", "VEU", "DBC", "IEF", "VTI", "IWF", "IWD", "IWB")
-# sym_bols <- c("XLU", "XLE", "XLK", "IWD", "VYM", "IWF", "XLI", "IEF", "VNQ", "DBC")
-# sym_bols <- c("VYM", "VEU", "DBC", "IEF", "VTI", "IWF", "IWD", "IWB", "XLU", "XLE", "XLK", "XLI", "VNQ")
-# sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "IEF", "VEU", "SVXY", "VXX")
-# sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "IEF", "VEU")
-# sym_bols <- c("VEU", "GLD", "EEM", "DBC", "VYM", "USO", "IWB", "IWD", "VTI")
-# sym_bols <- c("TLT", "IEF", "USO", "GLD", "DBC", "XLY", "XLI", "XLB", "XLV", "XLE", "XLU", "XLK", "XLP", "IWD")
+# symbolv <- c("DBC", "IEF", "VTI", "XLB", "XLE", "XLF", "XLI", "XLK", "XLP", "XLU", "XLV", "XLY")
+# symbolv <- c("VYM", "VEU", "DBC", "IEF", "VTI", "IWF", "IWD", "IWB")
+# symbolv <- c("XLU", "XLE", "XLK", "IWD", "VYM", "IWF", "XLI", "IEF", "VNQ", "DBC")
+# symbolv <- c("VYM", "VEU", "DBC", "IEF", "VTI", "IWF", "IWD", "IWB", "XLU", "XLE", "XLK", "XLI", "VNQ")
+# symbolv <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "IEF", "VEU", "SVXY", "VXX")
+# symbolv <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "IEF", "VEU")
+# symbolv <- c("VEU", "GLD", "EEM", "DBC", "VYM", "USO", "IWB", "IWD", "VTI")
+# symbolv <- c("TLT", "IEF", "USO", "GLD", "DBC", "XLY", "XLI", "XLB", "XLV", "XLE", "XLU", "XLK", "XLP", "IWD")
 
-sym_bols <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "VEU", "SVXY", "VXX")
+symbolv <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "VEU", "SVXY", "VXX")
 
-n_weights <- NROW(sym_bols)
-re_turns <- rutils::etf_env$re_turns[, sym_bols]
+nweights <- NROW(symbolv)
+returns <- rutils::etfenv$returns[, symbolv]
 # Select rows with IEF data
-# re_turns <- re_turns[index(rutils::etf_env$IEF)]
+# returns <- returns[index(rutils::etfenv$IEF)]
 # 
 # Or
 # Calculate the first non-NA values and their positions.
-first_non_na <- sapply(re_turns, function(x_ts) {
-  match(TRUE, !is.na(x_ts))
+first_non_na <- sapply(returns, function(xtes) {
+  match(TRUE, !is.na(xtes))
 })  # end sapply
 # Find first row containing at least 3 non-NA values.
 sort(first_non_na)[3]
 # Select rows containing at least 3 non-NA values.
-re_turns <- re_turns[(sort(first_non_na)[3]):NROW(re_turns)]
-# re_turns <- re_turns[-(1:(sort(first_non_na)[7]-1))]
+returns <- returns[(sort(first_non_na)[3]):NROW(returns)]
+# returns <- returns[-(1:(sort(first_non_na)[7]-1))]
 
 
 # Calculate the volumes
-# volume_s <- lapply(sym_bols, function(sym_bol) {
-#   quantmod::Vo(get(x=sym_bol, envir=rutils::etf_env))
+# volume_s <- lapply(symbolv, function(symbol) {
+#   quantmod::Vo(get(x=symbol, envir=rutils::etfenv))
 # })  # end lapply
 # volume_s <- rutils::do_call(cbind, volume_s)
-# colnames(volume_s) <- sym_bols
-# volume_s <- volume_s[index(re_turns)]
+# colnames(volume_s) <- symbolv
+# volume_s <- volume_s[index(returns)]
 # volume_s[volume_s == 0] <- NA
 # volume_s <- zoo::na.locf(volume_s, na.rm=FALSE)
 # volume_s <- zoo::na.locf(volume_s, fromLast=TRUE)
@@ -86,42 +86,42 @@ re_turns <- re_turns[(sort(first_non_na)[3]):NROW(re_turns)]
 ############
 # S&P100
 # load("C:/Develop/lecture_slides/data/sp500_returns.RData")
-# re_turns <- re_turns["2000-01-01/"]
-# sym_bols <- colnames(re_turns)
-# n_weights <- NROW(sym_bols)
+# returns <- returns["2000-01-01/"]
+# symbolv <- colnames(returns)
+# nweights <- NROW(symbolv)
 
 
 # Copy over NA values with zeros
-re_turns[1, is.na(re_turns[1, ])] <- 0
-re_turns <- zoo::na.locf(re_turns, na.rm=FALSE)
-# sum(is.na(re_turns))
-# ex_cess <- matrixStats::rowRanks(re_turns)
-# ex_cess <- (ex_cess - rowMeans(ex_cess))
-# Scale re_turns by the volumes
-# ex_cess <- re_turns/sqrt(volume_s)
-ex_cess <- re_turns
+returns[1, is.na(returns[1, ])] <- 0
+returns <- zoo::na.locf(returns, na.rm=FALSE)
+# sum(is.na(returns))
+# excess <- matrixStats::rowRanks(returns)
+# excess <- (excess - rowMeans(excess))
+# Scale returns by the volumes
+# excess <- returns/sqrt(volume_s)
+excess <- returns
 
 # Benchmark index
-# in_dex <- xts(cumsum(rowMeans(re_turns)), index(re_turns))
-# in_dex <- Cl(rutils::etf_env$VTI)[index(re_turns)]
-in_dex <- rutils::etf_env$re_turns[index(re_turns), "VTI"]
-in_dex[1] <- 0
-in_dex <- zoo::na.locf(in_dex, na.rm=FALSE)
-in_dex <- cumsum(in_dex)
+# indeks <- xts(cumsum(rowMeans(returns)), index(returns))
+# indeks <- Cl(rutils::etfenv$VTI)[index(returns)]
+indeks <- rutils::etfenv$returns[index(returns), "VTI"]
+indeks[1] <- 0
+indeks <- zoo::na.locf(indeks, na.rm=FALSE)
+indeks <- cumsum(indeks)
 
 
 # Portfolio with largest Hurst
-# weight_s <- read.csv(file="C:/Develop/lecture_slides/data/etf_hurst_weights.csv", stringsAsFactors=FALSE)
-# weight_s <- structure(as.numeric(weight_s$x), names=weight_s$X)
-# portf_hurst <- -drop(re_turns %*% weight_s)
-# portf_hurst <- sd(ex_cess$VTI)/sd(portf_hurst)*portf_hurst
+# weights <- read.csv(file="C:/Develop/lecture_slides/data/etf_hurst_weights.csv", stringsAsFactors=FALSE)
+# weights <- structure(as.numeric(weights$x), names=weights$X)
+# portf_hurst <- -drop(returns %*% weights)
+# portf_hurst <- sd(excess$VTI)/sd(portf_hurst)*portf_hurst
 
 
 # End setup code
 
 
 ## Create elements of the user interface
-inter_face <- shiny::fluidPage(
+uiface <- shiny::fluidPage(
   titlePanel("Rolling Portfolio Optimization Strategy for ETFs"),
   
   fluidRow(
@@ -134,12 +134,12 @@ inter_face <- shiny::fluidPage(
   # Create single row with two slider inputs
   fluidRow(
     # Input end points interval
-    column(width=2, selectInput("inter_val", label="End points Interval",
+    column(width=2, selectInput("interval", label="End points Interval",
                 choices=c("days", "weeks", "months", "years"), selected="weeks")),
     # Input look-back interval
     column(width=2, sliderInput("look_back", label="Lookback interval",
                                 min=1, max=100, value=18, step=1)),
-    column(width=2, sliderInput("lamb_da", label="Weight decay:",
+    column(width=2, sliderInput("lambdav", label="Weight decay:",
                                 min=0.01, max=0.99, value=0.01, step=0.05)),
     # Input end points interval
     column(width=2, selectInput("model_type", label="Weights type",
@@ -147,89 +147,89 @@ inter_face <- shiny::fluidPage(
     # Input number of eigenvalues for regularized matrix inverse
     column(width=2, numericInput("max_eigen", "Number of eigenvalues", value=6)),
     # Input the shrinkage intensity
-    column(width=2, sliderInput("al_pha", label="Shrinkage intensity",
+    column(width=2, sliderInput("alpha", label="Shrinkage intensity",
                                 min=0.01, max=0.99, value=0.01, step=0.05)),
     # Input the quantile
-    column(width=2, sliderInput("pro_b", label="Confidence level",
+    column(width=2, sliderInput("probv", label="Confidence level",
                                 min=0.01, max=0.49, value=0.25, step=0.01)),
-    # If co_eff=1 then trending, If co_eff=(-1) then contrarian
-    # column(width=2, numericInput("co_eff", "Trend coefficient:", value=1)),
-    column(width=2, selectInput("co_eff", label="Trend coefficient",
+    # If coeff=1 then trending, If coeff=(-1) then contrarian
+    # column(width=2, numericInput("coeff", "Trend coefficient:", value=1)),
+    column(width=2, selectInput("coeff", label="Trend coefficient",
                                 choices=c(1, -1), selected=1))
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dy_graph"), width=12)
+  mainPanel(dygraphs::dygraphOutput("dyplot"), width=12)
 )  # end fluidPage interface
 
 
 ## Define the server code
-ser_ver <- function(input, output) {
+servfunc <- function(input, output) {
 
   # Recalculate the data and rerun the model
-  da_ta <- reactive({
+  datav <- reactive({
     # get model parameters from input argument
-    inter_val <- isolate(input$inter_val)
+    interval <- isolate(input$interval)
     max_eigen <- isolate(input$max_eigen)
     look_back <- isolate(input$look_back)
-    lamb_da <- isolate(input$lamb_da)
+    lambdav <- isolate(input$lambdav)
     model_type <- isolate(input$model_type)
-    al_pha <- isolate(input$al_pha)
-    pro_b <- isolate(input$pro_b)
-    co_eff <- as.numeric(isolate(input$co_eff))
+    alpha <- isolate(input$alpha)
+    probv <- isolate(input$probv)
+    coeff <- as.numeric(isolate(input$coeff))
     # Model is recalculated when the re_calculate variable is updated
     input$re_calculate
 
     # Define end points
-    end_p <- rutils::calc_endpoints(re_turns, inter_val=inter_val)
-    # end_p <- ifelse(end_p<(n_weights+1), n_weights+1, end_p)
-    end_p <- end_p[end_p > 2*n_weights]
-    n_rows <- NROW(end_p)
+    endp <- rutils::calc_endpoints(returns, interval=interval)
+    # endp <- ifelse(endp<(nweights+1), nweights+1, endp)
+    endp <- endp[endp > 2*nweights]
+   .n_rows <- NROW(endp)
     # Define start points
-    start_p <- c(rep_len(1, look_back-1), end_p[1:(n_rows-look_back+1)])
+    startp <- c(rep_len(1, look_back-1), endp[1:.n_rows-look_back+1)])
     
-    # Calculate the weight_s
-    # weight_s <- exp(-lamb_da*(1:look_back))
-    # weight_s <- weight_s/sum(weight_s)
-    # weight_s <- matrix(weight_s, nc=1)
-    # Calculate smoothed ex_cess returns
-    # ex_cess <- HighFreq::roll_conv(ex_cess, weight_s=weight_s)
-    # ex_cess <- HighFreq::lag_it(ex_cess, lagg=1)
+    # Calculate the weights
+    # weights <- exp(-lambdav*(1:look_back))
+    # weights <- weights/sum(weights)
+    # weights <- matrix(weights, nc=1)
+    # Calculate smoothed excess returns
+    # excess <- HighFreq::roll_conv(excess, weights=weights)
+    # excess <- HighFreq::lagit(excess, lagg=1)
     
     # needs more work: Shrink to portfolio with largest Hurst
-    # ex_cess <- (1-al_pha)*ex_cess + al_pha*portf_hurst
+    # excess <- (1-alpha)*excess + alpha*portf_hurst
     
     
     # Rerun the model
-    pnl_s <- HighFreq::back_test(ex_cess=ex_cess, 
-                                 re_turns=re_turns,
-                                 start_points=start_p-1,
-                                 end_points=end_p-1,
-                                 pro_b=pro_b,
+    pnls <- HighFreq::back_test(excess=excess, 
+                                 returns=returns,
+                                 startpoints=startp-1,
+                                 endpoints=endp-1,
+                                 probv=probv,
                                  max_eigen=max_eigen, 
-                                 al_pha=al_pha, 
+                                 alpha=alpha, 
                                  model_type=model_type,
-                                 co_eff=co_eff)
-    pnl_s[which(is.na(pnl_s)), ] <- 0
-    pnl_s <- cumsum(pnl_s)
-    # pnl_s <- cumprod(1 + pnl_s)
-    pnl_s <- cbind(pnl_s, in_dex)
-    colnames(pnl_s) <- c("Strategy", "Index")
-    pnl_s[c(1, end_p), ]
+                                 coeff=coeff)
+    pnls[which(is.na(pnls)), ] <- 0
+    pnls <- cumsum(pnls)
+    # pnls <- cumprod(1 + pnls)
+    pnls <- cbind(pnls, indeks)
+    colnames(pnls) <- c("Strategy", "Index")
+    pnls[c(1, endp), ]
   })  # end reactive code
   
   # return to output argument a dygraph plot with two y-axes
 
-    output$dy_graph <- dygraphs::renderDygraph({
-    col_names <- colnames(da_ta())
-    dygraphs::dygraph(da_ta(), main="Rolling Portfolio Optimization Strategy") %>%
-      dyAxis("y", label=col_names[1], independentTicks=TRUE) %>%
-      dyAxis("y2", label=col_names[2], independentTicks=TRUE) %>%
-      dySeries(name=col_names[1], axis="y", label=col_names[1], strokeWidth=1, col="red") %>%
-      dySeries(name=col_names[2], axis="y2", label=col_names[2], strokeWidth=1, col="blue")
+    output$dyplot <- dygraphs::renderDygraph({
+    colnamev <- colnames(datav())
+    dygraphs::dygraph(datav(), main="Rolling Portfolio Optimization Strategy") %>%
+      dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
+      dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
+      dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="red") %>%
+      dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="blue")
   })  # end output plot
   
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=inter_face, server=ser_ver)
+shiny::shinyApp(ui=uiface, server=servfunc)

@@ -14,13 +14,13 @@
 library(shiny)
 
 # Simulate random data
-da_ta <- rnorm(1e3)
+datav <- rnorm(1e3)
 
 ## End setup code
 
 
 # Define user interface for application that draws a histogram
-inter_face <- fluidPage(
+uiface <- fluidPage(
 
     # Application title
     titlePanel("Example of Controlling Recalculation Using isolate()"),
@@ -58,15 +58,15 @@ serv_er <- function(input, output) {
         # Model is recalculated when the re_calculate variable is updated
         input$re_calculate
         # Calculate breaks based on input$bins from ui.R
-        break_s <- seq(min(da_ta), max(da_ta), length.out=n_bins+1)
+        break_s <- seq(min(datav), max(datav), length.out=n_bins+1)
 
         # Plot the histogram with the specified number of breaks
-        hist(da_ta, breaks=break_s, col="darkgray", border="white",
+        hist(datav, breaks=break_s, col="darkgray", border="white",
              main="Histogram of random data")
     })  # end renderPlot
     
 }  # end serv_er
 
 # Run the Shiny application 
-shinyApp(ui=inter_face, server=serv_er)
+shinyApp(ui=uiface, server=serv_er)
 

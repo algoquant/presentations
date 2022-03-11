@@ -18,14 +18,14 @@
 # Define Vasicek loss distribution density function 
 # (vectorized version with error handling for x)
 
-portf_loss <- function(x, def_thresh=-2, rh_o=0.1, l_gd=0.4) {
-  q_norm <- ifelse(x/l_gd < 0.999, qnorm(x/l_gd), 3.1)
-  sqrt((1-rh_o)/rh_o)*exp(-(sqrt(1-rh_o)*q_norm - def_thresh)^2/(2*rh_o) + q_norm^2/2)/l_gd
+portf_loss <- function(x, def_thresh=-2, rho=0.1, lgd=0.4) {
+  q_norm <- ifelse(x/lgd < 0.999, qnorm(x/lgd), 3.1)
+  sqrt((1-rho)/rho)*exp(-(sqrt(1-rho)*q_norm - def_thresh)^2/(2*rho) + q_norm^2/2)/lgd
 }  # end portf_loss
 
 # Define cumulative default probability function
-cum_loss <- function(x, def_thresh=(-2), rh_o=0.2, l_gd=0.4)
-  pnorm((sqrt(1-rh_o)*qnorm(x/l_gd) - def_thresh)/sqrt(rh_o))
+cum_loss <- function(x, def_thresh=(-2), rho=0.2, lgd=0.4)
+  pnorm((sqrt(1-rho)*qnorm(x/lgd) - def_thresh)/sqrt(rho))
 
 
 # End setup code
@@ -35,16 +35,16 @@ cum_loss <- function(x, def_thresh=(-2), rh_o=0.2, l_gd=0.4)
 ##############################
 ## Define the user interface
 
-inter_face <- shiny::fluidPage(
+uiface <- shiny::fluidPage(
   titlePanel("CDO Tranche Losses"),
   
   # Create four slider inputs with parameters to portf_loss()
   fluidRow(
-    column(width=4, sliderInput("rh_o", label="Correlation:",
+    column(width=4, sliderInput("rho", label="Correlation:",
                                 min=0.0, max=0.9, value=0.2, step=0.01)),
     column(width=4, sliderInput("def_prob", label="Default probability:",
                                 min=0.0, max=0.9, value=0.2, step=0.01)),
-    column(width=4, sliderInput("l_gd", label="Loss severity:",
+    column(width=4, sliderInput("lgd", label="Loss severity:",
                                 min=0.0, max=0.9, value=0.4, step=0.01)),
     column(width=4, sliderInput("at_tach", label="Tranche attachment:",
                                 min=0.0, max=0.5, value=0.15, step=0.01)),
@@ -59,30 +59,30 @@ inter_face <- shiny::fluidPage(
 
 ##############################
 ## Define the server code
-# The function ser_ver() accepts the arguments "input" and "output".
+# The function servfunc() accepts the arguments "input" and "output".
 
-ser_ver <- function(input, output) {
+servfunc <- function(input, output) {
 
   ## Recalculate the model with new parameters
   # The function reactive() accepts a block of expressions
   # which calculate the model, and returns the model output.
-  da_ta <- reactive({
+  datav <- reactive({
     
     # Extract model parameters from the argument "input"
     at_tach <- input$at_tach
     de_tach <- input$de_tach
     def_prob <- input$def_prob
-    rh_o <- input$rh_o
-    l_gd <- input$l_gd
-    exp_loss <- l_gd*def_prob
+    rho <- input$rho
+    lgd <- input$lgd
+    exp_loss <- lgd*def_prob
     def_thresh <- qnorm(def_prob)
     
     # Calculate tranche losses
     round(
       integrate(function(x, at_tach) (x-at_tach)*portf_loss(x, 
-                def_thresh=def_thresh, rh_o=rh_o, l_gd=l_gd), 
+                def_thresh=def_thresh, rho=rho, lgd=lgd), 
                 low=at_tach, up=de_tach, at_tach=at_tach)$value / (de_tach-at_tach) + 
-        (1-cum_loss(x=de_tach, def_thresh=def_thresh, rh_o=rh_o, l_gd=l_gd)), 
+        (1-cum_loss(x=de_tach, def_thresh=def_thresh, rho=rho, lgd=lgd)), 
       digits=5)
   })  # end reactive code
   
@@ -95,18 +95,18 @@ ser_ver <- function(input, output) {
     at_tach <- input$at_tach
     de_tach <- input$de_tach
     def_prob <- input$def_prob
-    rh_o <- input$rh_o
-    l_gd <- input$l_gd
-    exp_loss <- l_gd*def_prob
+    rho <- input$rho
+    lgd <- input$lgd
+    exp_loss <- lgd*def_prob
     def_thresh <- qnorm(def_prob)
     
     # Calculate max x-axis range
     x_max <- max(3*exp_loss, de_tach)
     # Calculate max density of portfolio losses (for y-axis scale)
-    y_max <- max(sapply(seq(fr=0.01, to=l_gd/2, length.out=10), portf_loss, def_thresh=def_thresh, rh_o=rh_o, l_gd=l_gd))
+    y_max <- max(sapply(seq(fr=0.01, to=lgd/2, length.out=10), portf_loss, def_thresh=def_thresh, rho=rho, lgd=lgd))
     
     # Plot density of portfolio losses
-    curve(expr=portf_loss(x, def_thresh=def_thresh, rh_o=rh_o, l_gd=l_gd),
+    curve(expr=portf_loss(x, def_thresh=def_thresh, rho=rho, lgd=lgd),
           type="l", xlim=c(0, x_max), 
           xlab="loss percentage", ylab="density", lwd=3,
           col="orange", main="CDO Tranche Losses")
@@ -126,21 +126,21 @@ ser_ver <- function(input, output) {
     # Calculate tranche shading for CVaR
     va_r <- at_tach; var_max <- de_tach
     var_s <- seq(va_r, var_max, length=100)
-    densi_ty <- sapply(var_s, portf_loss, def_thresh=def_thresh, rh_o=rh_o, l_gd=l_gd)
+    densv <- sapply(var_s, portf_loss, def_thresh=def_thresh, rho=rho, lgd=lgd)
     # Draw shaded polygon
     polygon(c(va_r, var_s, var_max),
-            c(-1, densi_ty, -1), col="red", border=NA, density=10)
+            c(-1, densv, -1), col="red", border=NA, density=10)
     # text(x=0.045, y=0, labels="CVaR", lwd=2, pos=3)
     
     # Text with tranche attachment
     text(x_max-0.01, y_max, 
          lab=paste0(
            "Default probability = ", format(100*def_prob, digits=3), "%", "\n",
-           "Loss severity = ", format(100*l_gd, digits=3), "%", "\n",
-           "Correlation = ", format(100*rh_o, digits=3), "%", "\n",
+           "Loss severity = ", format(100*lgd, digits=3), "%", "\n",
+           "Correlation = ", format(100*rho, digits=3), "%", "\n",
            "Tranche attachment = ", format(100*at_tach, digits=3), "%", "\n",
            "Tranche detachment = ", format(100*de_tach, digits=3), "%", "\n",
-           "Tranche loss = ", 100*da_ta(), "%"), 
+           "Tranche loss = ", 100*datav(), "%"), 
          adj=c(1, 1), cex=1.2, lwd=2)
   })  # end output plot
 
@@ -150,4 +150,4 @@ ser_ver <- function(input, output) {
 ##############################
 ## Return a Shiny app object
 
-shiny::shinyApp(ui=inter_face, server=ser_ver)
+shiny::shinyApp(ui=uiface, server=servfunc)
