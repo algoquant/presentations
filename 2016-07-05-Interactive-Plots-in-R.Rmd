@@ -17,17 +17,17 @@ devtools::install_github(repo="algoquant/rutils")
 library(rutils)
 ```
 
-The *rutils* package contains a dataset of daily *OHLC* time series in *xts* format, for a portfolio of stock symbols.  The time series are contained in an environment called *etf_env*.  The data is set up for lazy loading, so it doesn't require calling `data(etf_data)` to load it before being able to call it.  
+The *rutils* package contains a dataset of daily *OHLC* time series in *xts* format, for a portfolio of stock symbols.  The time series are contained in an environment called *etfenv*.  The data is set up for lazy loading, so it doesn't require calling `data(etf_data)` to load it before being able to call it.  
 
 Now we can create interactive plots using the time series data from package *rutils*.  Below is an example of an interactive time series plot produced using the *dygraphs* package.  Left-click on the plot and drag your mouse, to select a date range, then double-click to return to the original range.
 
 ```{r eval=TRUE, fig.width=7, fig.height=4}
-# load rutils which contains etf_env dataset
+# load rutils which contains etfenv dataset
 suppressMessages(suppressWarnings(library(rutils)))
 suppressMessages(suppressWarnings(library(dygraphs)))
-x_ts <- etf_env$price_s[, c("VTI", "IEF")]
+xtes <- etfenv$prices[, c("VTI", "IEF")]
 # plot dygraph with date range selector
-dygraph(x_ts, main="VTI and IEF prices") %>%
+dygraph(xtes, main="VTI and IEF prices") %>%
   dyOptions(colors=c("blue","green")) %>%
   dyRangeSelector()
 ```
@@ -42,13 +42,13 @@ But *pdf* documents can't run *JavaScript* code, so they can't display interacti
 Below is an example of an interactive time series plot produced using the *plotly* package.  Left-click on the plot and drag your mouse, to select a date range, then double-click to return to the original range.
 
 ```{r eval=TRUE, fig.width=7, fig.height=4}
-# load rutils which contains etf_env dataset
+# load rutils which contains etfenv dataset
 suppressMessages(suppressWarnings(library(rutils)))
 suppressMessages(suppressWarnings(library(plotly)))
 # create data frame of time series
 data_frame <-
-  data.frame(dates=index(etf_env$price_s),
-    coredata(etf_env$price_s[, c("VTI", "IEF")]))
+  data.frame(dates=index(etfenv$prices),
+    coredata(etfenv$prices[, c("VTI", "IEF")]))
 # plotly syntax using pipes
 data_frame %>% 
   plot_ly(x=~dates, y=~VTI, fill="tozeroy", name="VTI", type="scatter", mode="lines") %>% 

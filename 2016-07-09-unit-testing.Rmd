@@ -154,19 +154,19 @@ test_that("value must be VTI", {
 
 <br>
 
-+ Below is unit test code for the function *end_points()* from package *rutils*:
++ Below is unit test code for the function *endpoints()* from package *rutils*:
 
 ```{r eval=FALSE}
 library(testthat)
 library(rutils)
-# define context for tests of function end_points()
-context("test end_points")
-# test the type returned by end_points()
-test_that("end_points must be integer", {
-  expect_match(typeof(end_points(env_etf$VTI)), "integer")
+# define context for tests of function endpoints()
+context("test endpoints")
+# test the type returned by endpoints()
+test_that("endpoints must be integer", {
+  expect_match(typeof(endpoints(env_etf$VTI)), "integer")
 })
-# test the value returned by end_points()
-test_that("end_points value", expect_false(last(end_points(env_etf$VTI)) > NROW(env_etf$VTI)))
+# test the value returned by endpoints()
+test_that("endpoints value", expect_false(last(endpoints(env_etf$VTI)) > NROW(env_etf$VTI)))
 ```
 
 <br>

@@ -9,6 +9,7 @@
 ## Below is the setup code that runs once when the shiny app is started
 
 # Load packages
+library(rutils)
 library(shiny)
 library(shinythemes)
 library(highcharter)
@@ -52,7 +53,7 @@ server <- function(input, output) {
   output$hchart <- renderHighchart({
     
     # ohlc <- get(input$symbol, rutils::etfenv)
-    ohlc <- getpoly(symbol=input$symbol, startd=startd, tspan=tspan, apikey=apikey)
+    ohlc <- rutils::getpoly(symbol=input$symbol, startd=startd, tspan=tspan, apikey=apikey)
     highcharter::highchart(type="stock") %>% hc_add_series(ohlc, type="candlestick")
 
   })

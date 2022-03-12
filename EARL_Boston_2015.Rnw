@@ -97,8 +97,8 @@ knit_theme$set(thm)
         {\mathrm{d}w}^3 \frac{1}{3!} \frac{\mathrm{d}^3u}{\mathrm{d}w^3} + {\mathrm{d}w}^4 \frac{1}{4!} \frac{\mathrm{d}^4u}{\mathrm{d}w^4} + \ldots
       \end{multline*}
       \begin{multline*}
-        \mathrm{d}E[u] = \alpha_1 mean + \alpha_1 variance + \\
-        \alpha_1 skew + \alpha_4 kurtosis + \ldots
+        \mathrm{d}E[u] = \alpha1 mean + \alpha1 variance + \\
+        \alpha1 skew + \alpha4 kurtosis + \ldots
       \end{multline*}
       mean: $\bar{w}=\frac{1}{k} \sum_{i=1}^{k} w_i$
       \vskip1ex
@@ -143,26 +143,26 @@ Eugene Fama and Kenneth French, \href{http://papers.ssrn.com/sol3/papers.cfm?abs
       <<echo=(-(1:6)),eval=TRUE>>=
 # load package "HighFreq"
 library(HighFreq)
-sym_bol <- "SPY"  # define sym_bol
+symbol <- "SPY"  # define symbol
 # load OHLC data
 output_dir <- "C:/Develop/data/hfreq/scrub/"
-sym_bol <- load(file.path(output_dir, paste0(sym_bol, ".RData")))
-re_turns <- calc_rets(xts_data=to.daily(get(sym_bol)))
-len_rets <- nrow(re_turns)  # number of observations
-mean_rets <- mean(re_turns[, 1])  # calculate mean
-sd_rets <- sd(re_turns[, 1])  # calculate standard deviation
+symbol <- load(file.path(output_dir, paste0(symbol, ".RData")))
+returns <- calc_rets(xts_data=to.daily(get(symbol)))
+len_rets <- nrow(returns)  # number of observations
+mean_rets <- mean(returns[, 1])  # calculate mean
+sd_rets <- sd(returns[, 1])  # calculate standard deviation
 # calculate skew and kurtosis
-(sum(((re_turns[, 1] - mean_rets)/sd_rets)^3))/len_rets
-(sum(((re_turns[, 1] - mean_rets)/sd_rets)^4))/len_rets
+(sum(((returns[, 1] - mean_rets)/sd_rets)^3))/len_rets
+(sum(((returns[, 1] - mean_rets)/sd_rets)^4))/len_rets
       @
       \vspace{-3em}
       <<earl_ret_hist,echo=TRUE,eval=FALSE,fig.width=7,fig.height=6,fig.show='hide'>>=
 library(PerformanceAnalytics)
-chart.Histogram(re_turns[, 1], main="", 
+chart.Histogram(returns[, 1], main="", 
   xlim=c(-6e-5, 6e-5), 
   methods = c("add.density", "add.normal"))
 # add title
-title(main=paste(sym_bol, 
+title(main=paste(symbol, 
          "density"), line=-1)
       @
   \end{columns}
@@ -205,17 +205,17 @@ library(HighFreq)
 # set data directories
 data_dir <- "C:/Develop/data/hfreq/src/"
 output_dir <- "C:/Develop/data/hfreq/scrub/"
-# define sym_bol
-sym_bol <- "SPY"
+# define symbol
+symbol <- "SPY"
 # load a single day of TAQ data
-sym_bol <- load(
+symbol <- load(
   file.path(data_dir, 
-            paste0(sym_bol, "/2014.05.02.", 
-                   sym_bol, ".RData")))
+            paste0(symbol, "/2014.05.02.", 
+                   symbol, ".RData")))
 # scrub, aggregate single day of TAQ data to OHLC
-ohlc_data <- scrub_agg(taq_data=get(sym_bol))
+ohlc_data <- scrub_agg(taq_data=get(symbol))
 # aggregate TAQ data for symbol, save to file
-save_scrub_agg(sym_bol, 
+save_scrub_agg(symbol, 
                data_dir=data_dir, 
                output_dir=output_dir, 
                period="minutes")
@@ -237,17 +237,17 @@ save_scrub_agg(sym_bol,
       <<earl_ohlc_chart,echo=TRUE,eval=FALSE,fig.width=7,fig.height=6,fig.show='hide'>>=
 # load package "HighFreq"
 library(HighFreq)
-# define sym_bol
-sym_bol <- "SPY"
+# define symbol
+symbol <- "SPY"
 # load OHLC data
 output_dir <- "C:/Develop/data/hfreq/scrub/"
-sym_bol <- load(
+symbol <- load(
   file.path(output_dir, 
-            paste0(sym_bol, ".RData")))
-date_s <- 
+            paste0(symbol, ".RData")))
+dates <- 
   "2013-11-11 09:30:00/2013-11-11 10:30:00"
-chart_Series(get(sym_bol)[date_s], 
-            name=sym_bol)
+chart_Series(get(symbol)[dates], 
+            name=symbol)
       @
     \column{0.5\textwidth}
       \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_ohlc_chart-1}
@@ -285,15 +285,15 @@ chart_Series(get(sym_bol)[date_s],
 par(mfrow=c(2,1))  # set plot panels
 library(quantmod)
 library(TTR)
-date_s <- "2013-11-11/2013-11-15"
-vol_at <- volatility(OHLC=get(sym_bol), 
+dates <- "2013-11-11/2013-11-15"
+volat <- volatility(OHLC=get(symbol), 
                      calc="yang.zhang", n=20)
-chart_Series(vol_at[date_s], 
-            name=paste(sym_bol, "vol w/ ON spikes"))
-vol_at <- volatility(OHLC=get(sym_bol), 
+chart_Series(volat[dates], 
+            name=paste(symbol, "vol w/ ON spikes"))
+volat <- volatility(OHLC=get(symbol), 
                      calc="rogers.satchell", n=20)
-chart_Series(vol_at[date_s], 
-            name=paste(sym_bol, "vol w/o ON spikes"))
+chart_Series(volat[dates], 
+            name=paste(symbol, "vol w/o ON spikes"))
       @
     \column{0.5\textwidth}
       \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_ttr_runvol-1}
@@ -315,23 +315,23 @@ chart_Series(vol_at[date_s],
       \begin{multline*}
         \hskip-1em {s}^3=\frac{1}{n} \sum_{i=1}^{n} ((H_{i}-O_{i})(H_{i}-C_{i})(H_{i}-0.5(O_{i}+C_{i})) +\\ (L_{i}-O_{i})(L_{i}-C_{i})(L_{i}-0.5(O_{i}+C_{i}))
       \end{multline*}
-      The function \texttt{run\_moment\_ohlc()} calculates running, volume weighted moment estimators,
+      The function \texttt{run\moment\_ohlc()} calculates running, volume weighted moment estimators,
       <<earl_highfreq_runskew,eval=FALSE,echo=(-(1:1)),fig.width=7,fig.height=8,fig.show='hide'>>=
 par(mfrow=c(2,1))  # set plot panels
 library(HighFreq)  # load package "HighFreq"
 # running volatility
-vol_at <- run_moment_ohlc(ohlc=get(sym_bol))
+volat <- runmoment_ohlc(ohlc=get(symbol))
 # running skew
-sk_ew <- run_moment_ohlc(ohlc=get(sym_bol), 
+skew <- runmoment_ohlc(ohlc=get(symbol), 
                          mom_fun="skew_ohlc")
-sk_ew <- sk_ew/(vol_at)^(1.5)
-sk_ew[1, ] <- 0
-sk_ew <- na.locf(sk_ew)
-date_s <- "2013-11-11/2013-11-15"
-chart_Series(vol_at[date_s], 
-            name=paste(sym_bol, "volatility"))
-chart_Series(sk_ew[date_s],
-            name=paste(sym_bol, "Skew"), 
+skew <- skew/(volat)^(1.5)
+skew[1, ] <- 0
+skew <- na.locf(skew)
+dates <- "2013-11-11/2013-11-15"
+chart_Series(volat[dates], 
+            name=paste(symbol, "volatility"))
+chart_Series(skew[dates],
+            name=paste(symbol, "Skew"), 
             ylim=c(-1, 1))
       @
     \column{0.5\textwidth}
@@ -352,27 +352,27 @@ chart_Series(sk_ew[date_s],
       The function \texttt{moment\_ohlc()} calculates the volume weighted moment of a \emph{OHLC} time series,
       <<earl_dailyskew,eval=FALSE,echo=(-(1:6)),fig.width=7,fig.height=8,fig.show='hide'>>=
 par(mfrow=c(2,1))  # set plot panels
-# define sym_bol
-sym_bol <- "SPY"
+# define symbol
+symbol <- "SPY"
 # load OHLC data
 output_dir <- "C:/Develop/data/hfreq/scrub/"
-sym_bol <- load(file.path(output_dir, paste0(sym_bol, ".RData")))
+symbol <- load(file.path(output_dir, paste0(symbol, ".RData")))
 library(HighFreq)  # load package "HighFreq"
 # daily volatility and skew
-daily_var <- apply.daily(x=get(sym_bol), 
+daily_var <- apply.daily(x=get(symbol), 
                          FUN=moment_ohlc)
 colnames(daily_var) <- 
-  paste(sym_bol, "vol", sep=".")
-daily_skew <- apply.daily(x=get(sym_bol), 
+  paste(symbol, "vol", sep=".")
+daily_skew <- apply.daily(x=get(symbol), 
               FUN=moment_ohlc, mom_fun="skew_ohlc")
 daily_skew <- daily_skew/(daily_var)^(1.5)
 colnames(daily_skew) <- 
-  paste(sym_bol, "skew", sep=".")
-date_s <- "2013-06-01/"
-chart_Series(daily_var[date_s], 
-             name=paste(sym_bol, "volatility"))
-chart_Series(daily_skew[date_s],
-             name=paste(sym_bol, "skew"))
+  paste(symbol, "skew", sep=".")
+dates <- "2013-06-01/"
+chart_Series(daily_var[dates], 
+             name=paste(symbol, "volatility"))
+chart_Series(daily_skew[dates],
+             name=paste(symbol, "skew"))
       @
     \column{0.5\textwidth}
       \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_dailyskew-1}
@@ -398,29 +398,29 @@ chart_Series(daily_skew[date_s],
       \vspace{-1em}
       <<earl_crash,eval=FALSE,echo=(-(1:8)),fig.width=7,fig.height=9,fig.show='hide'>>=
 par(mfrow=c(3,1))  # set plot panels
-# define sym_bol
-sym_bol <- "SPY"
+# define symbol
+symbol <- "SPY"
 # load OHLC data
 output_dir <- "C:/Develop/data/hfreq/scrub/"
-sym_bol <- load(file.path(output_dir, paste0(sym_bol, ".RData")))
+symbol <- load(file.path(output_dir, paste0(symbol, ".RData")))
 library(HighFreq)  # load package "HighFreq"
 # daily volatility and volume
-daily_var <- apply.daily(x=get(sym_bol), 
+daily_var <- apply.daily(x=get(symbol), 
                          FUN=moment_ohlc)
 colnames(daily_var) <- 
-  paste(sym_bol, "vol", sep=".")
-daily_volu <- apply.daily(x=get(sym_bol), 
-              FUN=function(da_ta) sum(Vo(da_ta)))
+  paste(symbol, "vol", sep=".")
+daily_volu <- apply.daily(x=get(symbol), 
+              FUN=function(datav) sum(Vo(datav)))
 colnames(daily_volu) <- 
-  paste(sym_bol, "volume", sep=".")
-date_s <- "2010"
-chart_Series(sqrt(daily_var[date_s]), 
-             name=paste(sym_bol, "std dev"))
-chart_Series(daily_volu[date_s],
-             name=paste(sym_bol, "volume"))
+  paste(symbol, "volume", sep=".")
+dates <- "2010"
+chart_Series(sqrt(daily_var[dates]), 
+             name=paste(symbol, "std dev"))
+chart_Series(daily_volu[dates],
+             name=paste(symbol, "volume"))
 chart_Series(
-  sqrt(daily_var[date_s]/daily_volu[date_s]),
-  name=paste(sym_bol, "illiquidity"))
+  sqrt(daily_var[dates]/daily_volu[dates]),
+  name=paste(symbol, "illiquidity"))
 @
     \column{0.5\textwidth}
       \vspace{-1em}
@@ -442,28 +442,28 @@ chart_Series(
       \vspace{-1em}
       <<eval=TRUE,echo=(-(1:1))>>=
 # skew scatterplot
-re_turns <- calc_rets(xts_data=get(sym_bol))
-sk_ew <- skew_ohlc(log_ohlc=log(get(sym_bol)[, -5]))
-colnames(sk_ew) <- paste(sym_bol, "skew", sep=".")
-lag_skew <- lag(sk_ew)
+returns <- calc_rets(xts_data=get(symbol))
+skew <- skew_ohlc(log_ohlc=log(get(symbol)[, -5]))
+colnames(skew) <- paste(symbol, "skew", sep=".")
+lag_skew <- lag(skew)
 lag_skew[1, ] <- 0
-da_ta <- cbind(re_turns[, 1], sign(lag_skew))
-for_mula <- as.formula(paste(colnames(da_ta)[1], 
-          paste(paste(colnames(da_ta)[-1], 
+datav <- cbind(returns[, 1], sign(lag_skew))
+formulav <- as.formula(paste(colnames(datav)[1], 
+          paste(paste(colnames(datav)[-1], 
             collapse=" + "), "- 1"), sep="~"))
-for_mula
-l_m <- lm(for_mula, data=as.data.frame(da_ta))
+formulav
+l_m <- lm(formulav, data=as.data.frame(datav))
 summary(l_m)$coef
-summary(lm(for_mula, data=
-             as.data.frame(da_ta["/2011-01-01"])))$coef
-summary(lm(for_mula, data=
-             as.data.frame(da_ta["2011-01-01/"])))$coef
+summary(lm(formulav, data=
+             as.data.frame(datav["/2011-01-01"])))$coef
+summary(lm(formulav, data=
+             as.data.frame(datav["2011-01-01/"])))$coef
       @
     \column{0.5\textwidth}
-      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_skew_scatter-1}
-      <<earl_skew_scatter,eval=FALSE,echo=TRUE,fig.width=7,fig.height=6,fig.show='hide'>>=
-date_s <- "2013-12-01/"
-plot(for_mula, data=da_ta[date_s], 
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_skewscatter-1}
+      <<earl_skewscatter,eval=FALSE,echo=TRUE,fig.width=7,fig.height=6,fig.show='hide'>>=
+dates <- "2013-12-01/"
+plot(formulav, data=datav[dates], 
      xlim=c(-2e-09, 2e-09), 
      cex=0.6, xlab="skew", ylab="rets")
 abline(l_m, col="blue", lwd=2)
@@ -494,20 +494,20 @@ abline(l_m, col="blue", lwd=2)
 position_s <- -sign(lag_skew)
 position_s[1, ] <- 0
 # cumulative PnL
-cumu_pnl <- cumsum(position_s*re_turns[, 1])
+cumu_pnl <- cumsum(position_s*returns[, 1])
 # calculate frequency of trades
-50*sum(abs(sign(sk_ew)-sign(lag_skew)))/nrow(sk_ew)
+50*sum(abs(sign(skew)-sign(lag_skew)))/nrow(skew)
 # calculate transaction costs
 bid_offer <- 0.001  # 10 bps for liquid ETFs
-bid_offer*sum(abs(sign(sk_ew)-sign(lag_skew)))
+bid_offer*sum(abs(sign(skew)-sign(lag_skew)))
 @
     \column{0.5\textwidth}
-      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_skew_strat-1}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_skewstrat-1}
       \vspace{-1em}
-      <<earl_skew_strat,eval=FALSE,echo=TRUE,fig.width=7,fig.height=6,fig.show='hide'>>=
+      <<earl_skewstrat,eval=FALSE,echo=TRUE,fig.width=7,fig.height=6,fig.show='hide'>>=
 chart_Series(
   cumu_pnl[endpoints(cumu_pnl, on="hours"), ], 
-  name=paste(sym_bol, "contrarian skew strategy pnl"))
+  name=paste(symbol, "contrarian skew strategy pnl"))
 @
   \end{columns}
 \end{block}
@@ -529,26 +529,26 @@ chart_Series(
       <<earl_vwap_plot,echo=(-(1:1)),eval=FALSE,fig.width=7,fig.height=6,fig.show='hide'>>=
 # vwap plot
 vwap_short <- 
-  v_wap(x_ts=get(sym_bol), win_dow=70)
+  vwapv(xtes=get(symbol), win_dow=70)
 vwap_long <- 
-  v_wap(x_ts=get(sym_bol), win_dow=225)
+  vwapv(xtes=get(symbol), win_dow=225)
 vwap_diff <- vwap_short - vwap_long
 colnames(vwap_diff) <- 
-  paste(sym_bol, "vwap", sep=".")
-date_s <- "2010-05-05/2010-05-07"
+  paste(symbol, "vwap", sep=".")
+dates <- "2010-05-05/2010-05-07"
 invisible(
-  chart_Series(x=Cl(get(sym_bol)[date_s]), 
-               name=paste(sym_bol, "plus VWAP")))
+  chart_Series(x=Cl(get(symbol)[dates]), 
+               name=paste(symbol, "plus VWAP")))
 invisible(
-  add_TA(vwap_short[date_s], 
+  add_TA(vwap_short[dates], 
          on=1, col="red", lwd=2))
 invisible(
-  add_TA(vwap_long[date_s], 
+  add_TA(vwap_long[dates], 
          on=1, col="blue", lwd=2))
 invisible(
-  add_TA(vwap_diff[date_s] > 0, on=-1, 
+  add_TA(vwap_diff[dates] > 0, on=-1, 
          col="lightgreen", border="lightgreen"))
-add_TA(vwap_diff[date_s] < 0, on=-1, 
+add_TA(vwap_diff[dates] < 0, on=-1, 
        col="lightgrey", border="lightgrey")
       @
     \column{0.5\textwidth}
@@ -570,31 +570,31 @@ add_TA(vwap_diff[date_s] < 0, on=-1,
       \vspace{-1em}
       <<eval=TRUE,echo=(-(1:6))>>=
 # vwap scatterplot
-re_turns <- calc_rets(xts_data=get(sym_bol))
-vwap_short <- v_wap(x_ts=get(sym_bol), win_dow=70)
-vwap_long <- v_wap(x_ts=get(sym_bol), win_dow=225)
+returns <- calc_rets(xts_data=get(symbol))
+vwap_short <- vwapv(xtes=get(symbol), win_dow=70)
+vwap_long <- vwapv(xtes=get(symbol), win_dow=225)
 vwap_diff <- vwap_short - vwap_long
-colnames(vwap_diff) <- paste(sym_bol, "vwap", sep=".")
+colnames(vwap_diff) <- paste(symbol, "vwap", sep=".")
 lag_vwap <- lag(vwap_diff)
 lag_vwap[1, ] <- 0
-da_ta <- cbind(re_turns[, 1], sign(lag_vwap))
-for_mula <- as.formula(paste(colnames(da_ta)[1], 
-          paste(paste(colnames(da_ta)[-1], 
+datav <- cbind(returns[, 1], sign(lag_vwap))
+formulav <- as.formula(paste(colnames(datav)[1], 
+          paste(paste(colnames(datav)[-1], 
             collapse=" + "), "- 1"), sep="~"))
-for_mula
-l_m <- lm(for_mula, data=as.data.frame(da_ta))
+formulav
+l_m <- lm(formulav, data=as.data.frame(datav))
 summary(l_m)$coef
-summary(lm(for_mula, 
-     data=as.data.frame(da_ta["/2011-01-01"])))$coef
-summary(lm(for_mula, 
-     data=as.data.frame(da_ta["2011-01-01/"])))$coef
+summary(lm(formulav, 
+     data=as.data.frame(datav["/2011-01-01"])))$coef
+summary(lm(formulav, 
+     data=as.data.frame(datav["2011-01-01/"])))$coef
       @
     \column{0.5\textwidth}
     \vspace{-1em}
       \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_vwap_scatter-1}
       <<earl_vwap_scatter,eval=FALSE,echo=TRUE,fig.width=7,fig.height=6,fig.show='hide'>>=
-date_s <- "2013-12-01/"
-plot(for_mula, data=cbind(re_turns[, 1], lag_vwap)[date_s], 
+dates <- "2013-12-01/"
+plot(formulav, data=cbind(returns[, 1], lag_vwap)[dates], 
      cex=0.6, xlab="skew", ylab="rets")
 abline(l_m, col="blue", lwd=2)
       @
@@ -621,7 +621,7 @@ abline(l_m, col="blue", lwd=2)
       <<eval=TRUE,echo=(-(1:1))>>=
 # momentum trading strategy
 # cumulative PnL
-cumu_pnl <- cumsum(sign(lag_vwap)*re_turns[, 1])
+cumu_pnl <- cumsum(sign(lag_vwap)*returns[, 1])
 # calculate frequency of trades
 50*sum(abs(sign(vwap_diff)-sign(lag_vwap)))/nrow(vwap_diff)
 # calculate transaction costs
@@ -634,7 +634,7 @@ bid_offer*sum(abs(sign(vwap_diff)-sign(lag_vwap)))
       <<earl_vwap_strat,eval=FALSE,echo=TRUE,fig.width=7,fig.height=6,fig.show='hide'>>=
 chart_Series(
   cumu_pnl[endpoints(cumu_pnl, on="hours"), ], 
-  name=paste(sym_bol, "VWAP momentum strategy pnl"))
+  name=paste(symbol, "VWAP momentum strategy pnl"))
 @
   \end{columns}
 \end{block}
