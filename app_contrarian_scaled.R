@@ -27,7 +27,7 @@ library(dygraphs)
 data_type <- "otherbars"
 switch(data_type,
        "spybars" = {
-         cap_tion <- "Strategy for 1-minute SPY Bars"
+         captiont <- "Strategy for 1-minute SPY Bars"
          model_type <- "sharpe_ohlc"
          # Load 1-minute SPY bars
          symbol <- "SPY"
@@ -35,7 +35,7 @@ switch(data_type,
          ohlc <- HighFreq::SPY
          # Data setup
          dates <- index(ohlc)
-        .n_rows <- NROW(ohlc)
+         nrows <- NROW(ohlc)
          endpoints <- xts::endpoints(ohlc, on="hours")
          prices <- log(Cl(ohlc))
          returns <- rutils::diffit(prices)
@@ -43,14 +43,14 @@ switch(data_type,
          # prices <- prices[endpoints]
        },
        "otherbars" = {
-         cap_tion <- "Strategy for 1-minute LODE Bars"
+         captiont <- "Strategy for 1-minute LODE Bars"
          symbol <- "LODE"
          symbolv <- symbol
          model_type <- "zscore"
-         ohlc <- data.table::fread(file="C:/Develop/predictive/data/lode_oneminutebars.csv", sep=",")
-        .n_rows <- NROW(ohlc)
+         ohlc <- data.table::fread(file="/Volumes/external/Develop/Predictive/data/lode_oneminutebars.csv", sep=",")
+         nrows <- NROW(ohlc)
          closep <- log(ohlc$close)
-         dates <- seq.POSIXt(from=as.POSIXct("2021-03-10 09:30:00", origin="1970-01-01"), by="min", length.out.n_rows)
+         dates <- seq.POSIXt(from=as.POSIXct("2021-03-10 09:30:00", origin="1970-01-01"), by="min", length.out=nrows)
          closep <- xts::xts(closep, dates)
          returns <- rutils::diffit(closep)
          stdev <- sd(returns[returns<0])
@@ -62,15 +62,15 @@ switch(data_type,
          ohlc <- as.matrix(ohlc)
        },
        "tick_data" = {
-         cap_tion <- "Strategy for AAPL Tick Data"
+         captiont <- "Strategy for AAPL Tick Data"
          model_type <- "sharpe_ticks"
          # Load AAPL tick data
          symbol <- "AAPL"
          symbolv <- symbol
-         raw_ticks <- data.table::fread(file="C:/Develop/predictive/data/aapl20201102.csv", sep=",")
+         raw_ticks <- data.table::fread(file="/Volumes/external/Develop/Predictive/data/aapl20201102.csv", sep=",")
          raw_ticks <- raw_ticks[, .(timestamp=V8, seconds=V3, price=V1, volume=V2)]
          # Bind additional pieces of data together
-         foo <- data.table::fread(file="C:/Develop/predictive/data/aapl20201030.csv", sep="\t")
+         foo <- data.table::fread(file="/Volumes/external/Develop/Predictive/data/aapl20201030.csv", sep="\t")
          foo <- foo[, c(1:3, 8)]
          colnames(foo) <- c("price", "volume", "seconds", "timestamp")
          foo <- foo[, .(timestamp, seconds, price, volume)]
@@ -80,20 +80,20 @@ switch(data_type,
          big_ticks <- raw_ticks[volume >= 400]
          prices <- log(big_ticks$price)
          returns <- HighFreq::diff_vec(prices)
-        .n_rows <- NROW(returns)
+         nrows <- NROW(returns)
          stdev <- sd(returns[returns<0])
-         #.n_rows <- NROW(returns)
-         # dim(returns) <- c.n_rows, 1)
+         # nrows <- NROW(returns)
+         # dim(returns) <- c(nrows, 1)
          # Make dates unique:
          # dates <- as.POSIXct(big_ticks$seconds, origin="1970-01-01")
          # dates <- xts::make.index.unique(dates)
-         endpoints <- 100*(1:.n_rows %/% 100))
-         dates <- seq.POSIXt(from=as.POSIXct("2020-01-01", origin="1970-01-01"), by="sec", length.out.n_rows)
+         endpoints <- 100*(1:(nrows %/% 100))
+         dates <- seq.POSIXt(from=as.POSIXct("2020-01-01", origin="1970-01-01"), by="sec", length.out=nrows)
          returns <- xts::xts(returns, dates)
        },
        "futures" = {
          # Load the 5-second ES futures bar data collected from IB.
-         cap_tion <- "Strategy for Futures"
+         captiont <- "Strategy for Futures"
          model_type <- "sharpe_ohlc"
          data_dir <- "C:/Develop/data/ib_data/"
          # symbol <- "ES"  # S&P500 Emini futures
@@ -102,26 +102,26 @@ switch(data_type,
          load(paste0(data_dir, symbol, "_ohlc.RData"))
          # Data setup
          dates <- index(ohlc)
-        .n_rows <- NROW(ohlc)
+         nrows <- NROW(ohlc)
          endpoints <- xts::endpoints(ohlc, on="hours")
          prices <- log(Cl(ohlc))
          returns <- rutils::diffit(prices)
          stdev <- sd(returns[returns<0])
          # prices <- prices[endpoints]
          # returns <- c(0, returns)
-         cap_tion <- paste("Contrarian Strategy for", symbol, "Bars")
+         captiont <- paste("Contrarian Strategy for", symbol, "Bars")
        },
        "etf" = {
-         cap_tion <- "Strategy for ETFs"
+         captiont <- "Strategy for ETFs"
          model_type <- "sharpe_ohlc"
-         # cap_tion <- paste("Contrarian Strategy for", symbol, "Using the Hampel Filter Over Prices")
+         # captiont <- paste("Contrarian Strategy for", symbol, "Using the Hampel Filter Over Prices")
          symbolv <- rutils::etfenv$symbolv
          symbol <- "VTI"
          data_env <- rutils::etfenv
          ohlc <- get(symbol, data_env)
          # Data setup
          dates <- index(ohlc)
-        .n_rows <- NROW(ohlc)
+         nrows <- NROW(ohlc)
          endpoints <- xts::endpoints(ohlc, on="days")
          prices <- log(Cl(ohlc))
          returns <- rutils::diffit(prices)
@@ -129,11 +129,11 @@ switch(data_type,
          # prices <- prices[endpoints]
        },
        "sp500" = {
-         cap_tion <- "Strategy for S&P500 Stocks"
+         captiont <- "Strategy for S&P500 Stocks"
          model_type <- "sharpe_ohlc"
          # Load S&P500 stocks
          # load("C:/Develop/data/returns100.RData")
-         load("C:/Develop/lecture_slides/data/sp500.RData")
+         load("/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
          # Select the columns with non-zero returns
          data_env <- sp500env
          symbolv <- ls(data_env)
@@ -141,7 +141,7 @@ switch(data_type,
          ohlc <- get(symbol, data_env)
          # Data setup
          dates <- index(ohlc)
-        .n_rows <- NROW(ohlc)
+         nrows <- NROW(ohlc)
          endpoints <- xts::endpoints(ohlc, on="days")
          prices <- log(Cl(ohlc))
          returns <- rutils::diffit(prices)
@@ -151,14 +151,14 @@ switch(data_type,
 )  # end switch
 
 
-# cap_tion <- paste("Contrarian Strategy for", symbol, "Using the Returns Scaled by the Price Range")
+# captiont <- paste("Contrarian Strategy for", symbol, "Using the Returns Scaled by the Price Range")
 
 ## End setup code
 
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel(cap_tion),
+  titlePanel(captiont),
 
   fluidRow(
     # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
@@ -191,7 +191,7 @@ uiface <- shiny::fluidPage(
     # Input minimum trade volume for filtering ticks
     column(width=2, sliderInput("volumes", label="Big tick volume", min=50, max=1000, value=400, step=50)),
     # Input the weight decay parameter
-    # column(width=2, sliderInput("lambdav", label="Weight decay:",
+    # column(width=2, sliderInput("lambda", label="Weight decay:",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input model weights type
     # column(width=2, selectInput("typev", label="Portfolio weights type",
@@ -202,7 +202,7 @@ uiface <- shiny::fluidPage(
     # column(width=2, sliderInput("alpha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input the percentile
-    # column(width=2, sliderInput("percen_tile", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
+    # column(width=2, sliderInput("quant", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     # column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # Input the bid-offer spread
@@ -234,10 +234,10 @@ servfunc <- function(input, output) {
     threshold <- isolate(input$threshold)
     volumes <- isolate(input$volumes)
     # look_lag <- isolate(input$look_lag
-    # lambdav <- isolate(input$lambdav)
+    # lambda <- isolate(input$lambda)
     # typev <- isolate(input$typev)
     # alpha <- isolate(input$alpha)
-    # percen_tile <- isolate(input$percen_tile)
+    # quant <- isolate(input$quant)
     # coeff <- as.numeric(isolate(input$coeff))
     bid_offer <- isolate(input$bid_offer)
     coeff <- as.numeric(isolate(input$coeff))
@@ -248,12 +248,12 @@ servfunc <- function(input, output) {
     # Select the data: "spybars", "etf" or "sp500"
     switch(data_type,
            "etf" = {
-             # cap_tion <- "Rolling Portfolio Optimization Strategy for ETF Portfolio"
-             # cap_tion <- paste("Contrarian Strategy for", symbol, "Using the Hampel Filter Over Prices")
+             # captiont <- "Rolling Portfolio Optimization Strategy for ETF Portfolio"
+             # captiont <- paste("Contrarian Strategy for", symbol, "Using the Hampel Filter Over Prices")
              ohlc <- get(symbol, data_env)
              # Data setup
              dates <- index(ohlc)
-            .n_rows <- NROW(ohlc)
+             nrows <- NROW(ohlc)
              endpoints <- xts::endpoints(ohlc, on="days")
              prices <- log(Cl(ohlc))
              returns <- rutils::diffit(prices)
@@ -261,11 +261,11 @@ servfunc <- function(input, output) {
              # prices <- prices[endpoints]
            },
            "sp500" = {
-             # cap_tion <- "Rolling Portfolio Optimization Strategy for Sub-Portfolio of S&P500 Stocks"
+             # captiont <- "Rolling Portfolio Optimization Strategy for Sub-Portfolio of S&P500 Stocks"
              ohlc <- get(symbol, data_env)
              # Data setup
              dates <- index(ohlc)
-            .n_rows <- NROW(ohlc)
+             nrows <- NROW(ohlc)
              endpoints <- xts::endpoints(ohlc, on="days")
              prices <- log(Cl(ohlc))
              returns <- rutils::diffit(prices)
@@ -277,10 +277,10 @@ servfunc <- function(input, output) {
              prices <- log(big_ticks$price)
              returns <- HighFreq::diff_vec(prices)
              stdev <- sd(returns[returns<0])
-            .n_rows <- NROW(returns)
-             # dim(returns) <- c.n_rows, 1)
-             endpoints <- 100*(1:.n_rows %/% 100))
-             dates <- seq.POSIXt(from=as.POSIXct("2020-01-01", origin="1970-01-01"), by="sec", length.out.n_rows)
+             nrows <- NROW(returns)
+             # dim(returns) <- c(nrows, 1)
+             endpoints <- 100*(1:(nrows %/% 100))
+             dates <- seq.POSIXt(from=as.POSIXct("2020-01-01", origin="1970-01-01"), by="sec", length.out=nrows)
              returns <- xts::xts(returns, dates)
            }
     )  # end switch
@@ -302,19 +302,19 @@ servfunc <- function(input, output) {
              # re_scaled <- ifelse(volumes>0, returns/sqrt(volumes), 0)
              # re_scaled <- re_scaled/sd(re_scaled)
              ## Backtest strategy for flipping if two consecutive positive and negative returns
-             position_s <- rep(NA_integer_,.n_rows)
-             position_s[1] <- 0
+             posit <- rep(NA_integer_, nrows)
+             posit[1] <- 0
              # Flip position if the scaled returns exceed threshold
-             position_s[re_scaled > threshold] <- 1
-             position_s[re_scaled < (-threshold)] <- (-1)
+             posit[re_scaled > threshold] <- 1
+             posit[re_scaled < (-threshold)] <- (-1)
              # LOCF
-             position_s <- zoo::na.locf(position_s, na.rm=FALSE)
-             position_s <- rutils::lagit(position_s, lagg=lagg)
+             posit <- zoo::na.locf(posit, na.rm=FALSE)
+             posit <- rutils::lagit(posit, lagg=lagg)
            },
            "sharpe_ohlc" = {  # For OHLC data
              # Scale the cumulative returns by the trailing volatility
              rangev <- HighFreq::roll_sum(returns, look_back=look_back)
-             var_rolling <- sqrt(HighFreq::roll_var_ohlc(ohlc, look_back=look_back, scalit=FALSE))
+             var_rolling <- sqrt(HighFreq::roll_var_ohlc(ohlc, look_back=look_back, scale=FALSE))
              look_back <- sqrt(look_back)
              re_scaled <- ifelse((var_rolling==0) | (rangev==0),
                                  0.0,
@@ -322,23 +322,23 @@ servfunc <- function(input, output) {
              # Colnames(re_scaled) <- paste0(rutils::get_name(colnames(ohlc)[1]), ".Hurst")
              re_scaled <- rutils::na_locf(re_scaled)
              # quantiles are calculated over first decile to avoid snooping
-             quantiles <- quantile(re_scaled[1:.n_rows %/% 10), ], c(1-threshold, threshold))
+             quantiles <- quantile(re_scaled[1:(nrows %/% 10), ], c(1-threshold, threshold))
              # quantiles <- quantile(re_scaled, c(1-threshold, threshold))
-             position_s <- rep(NA_integer_,.n_rows)
-             position_s[1] <- 0
+             posit <- rep(NA_integer_, nrows)
+             posit[1] <- 0
 
              if (confirm == "False") {
-               position_s <- ifelse(re_scaled > quantiles[2], 1, position_s)
-               position_s <- ifelse(re_scaled < quantiles[1], -1, position_s)
+               posit <- ifelse(re_scaled > quantiles[2], 1, posit)
+               posit <- ifelse(re_scaled < quantiles[1], -1, posit)
              } else if (confirm == "True") {
                # Flip only if two consecutive signals in same direction
                lagg_ed <- rutils::lagit(re_scaled, 1)
-               position_s <- ifelse((re_scaled > quantiles[2]) & (lagg_ed > quantiles[2]), 1, position_s)
-               position_s <- ifelse((re_scaled < quantiles[1]) & (lagg_ed < quantiles[1]), -1, position_s)
+               posit <- ifelse((re_scaled > quantiles[2]) & (lagg_ed > quantiles[2]), 1, posit)
+               posit <- ifelse((re_scaled < quantiles[1]) & (lagg_ed < quantiles[1]), -1, posit)
              }  # end if
              
-             position_s <- zoo::na.locf(position_s)
-             position_s <- rutils::lagit(position_s, lagg)
+             posit <- zoo::na.locf(posit)
+             posit <- rutils::lagit(posit, lagg)
              
            },
            "rescaled_ohlc" = {  # For OHLC data
@@ -350,7 +350,7 @@ servfunc <- function(input, output) {
              re_scaled <- (ma_x - medi_an)/medi_an
              re_scaled <- c(rep(1, look_back-1), re_scaled)
              # rangev <- returns
-             # var_rolling <- sqrt(HighFreq::roll_var_ohlc(ohlc, look_back=look_back, scalit=FALSE))
+             # var_rolling <- sqrt(HighFreq::roll_var_ohlc(ohlc, look_back=look_back, scale=FALSE))
              # look_back <- sqrt(look_back)
              # re_scaled <- ifelse((var_rolling==0) | (rangev==0),
              #                     0.0,
@@ -358,23 +358,23 @@ servfunc <- function(input, output) {
              # Colnames(re_scaled) <- paste0(rutils::get_name(colnames(ohlc)[1]), ".Hurst")
              re_scaled <- rutils::na_locf(re_scaled)
              # quantiles are calculated over first decile to avoid snooping
-             quantiles <- quantile(re_scaled[1:.n_rows %/% 10), ], c(1-threshold, threshold))
+             quantiles <- quantile(re_scaled[1:(nrows %/% 10), ], c(1-threshold, threshold))
              # quantiles <- quantile(re_scaled, c(1-threshold, threshold))
-             position_s <- rep(NA_integer_,.n_rows)
-             position_s[1] <- 0
+             posit <- rep(NA_integer_, nrows)
+             posit[1] <- 0
              
              if (confirm == "False") {
-               position_s <- ifelse(re_scaled > quantiles[2], 1, position_s)
-               position_s <- ifelse(re_scaled < quantiles[1], -1, position_s)
+               posit <- ifelse(re_scaled > quantiles[2], 1, posit)
+               posit <- ifelse(re_scaled < quantiles[1], -1, posit)
              } else if (confirm == "True") {
                # Flip only if two consecutive signals in same direction
                lagg_ed <- rutils::lagit(re_scaled, 1)
-               position_s <- ifelse((re_scaled > quantiles[2]) & (lagg_ed > quantiles[2]), 1, position_s)
-               position_s <- ifelse((re_scaled < quantiles[1]) & (lagg_ed < quantiles[1]), -1, position_s)
+               posit <- ifelse((re_scaled > quantiles[2]) & (lagg_ed > quantiles[2]), 1, posit)
+               posit <- ifelse((re_scaled < quantiles[1]) & (lagg_ed < quantiles[1]), -1, posit)
              }  # end if
              
-             position_s <- zoo::na.locf(position_s)
-             position_s <- rutils::lagit(position_s, lagg)
+             posit <- zoo::na.locf(posit)
+             posit <- rutils::lagit(posit, lagg)
            },
            "sharpe_ticks" = {
              # Scale the cumulative returns by the trailing volatility
@@ -386,70 +386,71 @@ servfunc <- function(input, output) {
                                  rangev/var_rolling/look_back)
              re_scaled <- rutils::na_locf(re_scaled)
              # quantiles are calculated over first decile to avoid snooping
-             quantiles <- quantile(re_scaled[1:.n_rows %/% 10), ], c(1-threshold, threshold))
-             position_s <- rep(NA_integer_,.n_rows)
-             position_s[1] <- 0
+             quantiles <- quantile(re_scaled[1:(nrows %/% 10), ], c(1-threshold, threshold))
+             posit <- rep(NA_integer_, nrows)
+             posit[1] <- 0
              
              if (confirm == "False") {
-               position_s <- ifelse(re_scaled > quantiles[2], 1, position_s)
-               position_s <- ifelse(re_scaled < quantiles[1], -1, position_s)
+               posit <- ifelse(re_scaled > quantiles[2], 1, posit)
+               posit <- ifelse(re_scaled < quantiles[1], -1, posit)
              } else if (confirm == "True") {
                # Flip only if two consecutive signals in same direction
                lagg_ed <- rutils::lagit(re_scaled, 1)
-               position_s <- ifelse((re_scaled > quantiles[2]) & (lagg_ed > quantiles[2]), 1, position_s)
-               position_s <- ifelse((re_scaled < quantiles[1]) & (lagg_ed < quantiles[1]), -1, position_s)
+               posit <- ifelse((re_scaled > quantiles[2]) & (lagg_ed > quantiles[2]), 1, posit)
+               posit <- ifelse((re_scaled < quantiles[1]) & (lagg_ed < quantiles[1]), -1, posit)
              }  # end if
 
-             position_s <- zoo::na.locf(position_s)
-             position_s <- rutils::lagit(position_s, lagg)
+             posit <- zoo::na.locf(posit)
+             posit <- rutils::lagit(posit, lagg)
            },
            "volatility" = {  # For OHLC data
              # Calculate trailing volatilities
-             var_rolling <- sqrt(HighFreq::roll_var_ohlc(ohlc, look_back=look_back, scalit=FALSE))
+             var_rolling <- sqrt(HighFreq::roll_var_ohlc(ohlc, look_back=look_back, scale=FALSE))
              # quantiles <- quantile(var_rolling, c(1-threshold, threshold))
-             quantiles <- quantile(var_rolling[1:.n_rows %/% 10), ], c(1-threshold, threshold))
-             position_s <- rep(NA_integer_,.n_rows)
-             position_s[1] <- 0
-             position_s <- ifelse(var_rolling > quantiles[2], 1, position_s)
-             position_s <- ifelse(var_rolling < quantiles[1], -1, position_s)
-             position_s <- zoo::na.locf(position_s)
-             position_s <- rutils::lagit(position_s, lagg)
+             quantiles <- quantile(var_rolling[1:(nrows %/% 10), ], c(1-threshold, threshold))
+             posit <- rep(NA_integer_, nrows)
+             posit[1] <- 0
+             posit <- ifelse(var_rolling > quantiles[2], 1, posit)
+             posit <- ifelse(var_rolling < quantiles[1], -1, posit)
+             posit <- zoo::na.locf(posit)
+             posit <- rutils::lagit(posit, lagg)
            },
            "zscore" = {
              # Calculate trailing z-scores
-             # design <- matrix(1.n_rows, nc=1)
-             design <- matrix(1.n_rows, nc=1)
-             z_scores <- HighFreq::roll_zscores(response=returns, design=design, look_back=look_back)
-             # colnames(z_scores) <- "zscore"
-             z_scores[1:look_back] <- 0
-             z_scores[is.infinite(z_scores)] <- 0
-             z_scores[is.na(z_scores)] <- 0
-             quantiles <- quantile(z_scores[1:.n_rows %/% 10), ], c(1-threshold, threshold))
-             # quantiles <- quantile(z_scores, c(1-threshold, threshold))
-             position_s <- rep(NA_integer_,.n_rows)
-             position_s[1] <- 0
+             # predictor <- matrix(1:nrows, nc=1)
+             predictor <- matrix(1:nrows, nc=1)
+             zscores <- HighFreq::roll_reg(response=returns, predictor=predictor, look_back=look_back)
+             zscores <- zscores[, NCOL(zscores), drop=FALSE]
+             # colnames(zscores) <- "zscore"
+             zscores[1:look_back] <- 0
+             zscores[is.infinite(zscores)] <- 0
+             zscores[is.na(zscores)] <- 0
+             quantiles <- quantile(zscores[1:(nrows %/% 10), ], c(1-threshold, threshold))
+             # quantiles <- quantile(zscores, c(1-threshold, threshold))
+             posit <- rep(NA_integer_, nrows)
+             posit[1] <- 0
              
              if (confirm == "False") {
-               position_s <- ifelse(z_scores > quantiles[2], 1, position_s)
-               position_s <- ifelse(z_scores < quantiles[1], -1, position_s)
+               posit <- ifelse(zscores > quantiles[2], 1, posit)
+               posit <- ifelse(zscores < quantiles[1], -1, posit)
              } else if (confirm == "True") {
                # Flip only if two consecutive signals in same direction
-               lagg_ed <- rutils::lagit(z_scores, 1)
-               position_s <- ifelse((z_scores > quantiles[2]) & (lagg_ed > quantiles[2]), 1, position_s)
-               position_s <- ifelse((z_scores < quantiles[1]) & (lagg_ed < quantiles[1]), -1, position_s)
+               lagg_ed <- rutils::lagit(zscores, 1)
+               posit <- ifelse((zscores > quantiles[2]) & (lagg_ed > quantiles[2]), 1, posit)
+               posit <- ifelse((zscores < quantiles[1]) & (lagg_ed < quantiles[1]), -1, posit)
              }  # end if
              
-             position_s <- zoo::na.locf(position_s)
-             position_s <- rutils::lagit(position_s, lagg)
+             posit <- zoo::na.locf(posit)
+             posit <- rutils::lagit(posit, lagg)
            }
     )  # end switch
 
     # Calculate position turnover
-    turn_over <- abs(rutils::diffit(position_s)) / 2
+    turn_over <- abs(rutils::diffit(posit)) / 2
     # Calculate number of trades
-    # sum(turn_over)/NROW(position_s)
+    # sum(turn_over)/NROW(posit)
     # Calculate strategy pnls
-    pnls <- (coeff*position_s*returns)
+    pnls <- (coeff*posit*returns)
 
     # Calculate transaction costs
     costs <- bid_offer*turn_over
@@ -457,21 +458,21 @@ servfunc <- function(input, output) {
 
     pnls <- stdev*pnls/sd(pnls[pnls<0])
     pnls <- cbind(pnls, returns)
-    # sharp_e <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x))
-    sharp_e <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
-    sharp_e <- round(sharp_e, 3)
+    # sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x))
+    sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
+    sharper <- round(sharper, 3)
     pnls <- cumsum(pnls)
 
     ## Coerce pnls to xts
     # pnls <- xts(pnls, dates)
-    colnames(pnls) <- paste0(c("Strategy SR=", "Index SR="), sharp_e)
+    colnames(pnls) <- paste0(c("Strategy SR=", "Index SR="), sharper)
     pnls[c(1, endpoints), ]
   })  # end reactive code
 
   # Return to the output argument a dygraph plot with two y-axes
   output$dyplot <- dygraphs::renderDygraph({
     colnamev <- colnames(datav())
-    dygraphs::dygraph(datav(), main=cap_tion) %>%
+    dygraphs::dygraph(datav(), main=captiont) %>%
       dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
       dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
       dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="red") %>%

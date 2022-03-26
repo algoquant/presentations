@@ -22,14 +22,14 @@ library(dygraphs)
 symbolv <- rutils::etfenv$symbolv
 symbol <- "VTI"
 
-cap_tion <- paste("Histogram of Returns Scaled by the Trading Volumes")
+captiont <- paste("Histogram of Returns Scaled by the Trading Volumes")
 
 ## End setup code
 
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel(cap_tion),
+  titlePanel(captiont),
   
   # fluidRow(
   # The Shiny App is recalculated when the actionButton is clicked and the add_annotations variable is updated
@@ -54,12 +54,12 @@ uiface <- shiny::fluidPage(
     # Input lag trade parameter
     # column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=2, step=1)),
     # Input exponent of volume
-    column(width=2, sliderInput("expo_nent", label="Exponent of Volume", min=0.25, max=2.0, value=1.0, step=0.1)),
+    column(width=2, sliderInput("exponent", label="Exponent of Volume", min=0.25, max=2.0, value=1.0, step=0.1)),
     # column(width=2, sliderInput("threshold", label="threshold", min=0.5, max=3.0, value=0.9, step=0.1)),
     # Input add annotations Boolean
     # column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False"))
     # Input the weight decay parameter
-    # column(width=2, sliderInput("lambdav", label="Weight decay:",
+    # column(width=2, sliderInput("lambda", label="Weight decay:",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input model weights type
     # column(width=2, selectInput("typev", label="Portfolio weights type",
@@ -70,7 +70,7 @@ uiface <- shiny::fluidPage(
     # column(width=2, sliderInput("alpha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input the percentile
-    # column(width=2, sliderInput("percen_tile", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
+    # column(width=2, sliderInput("quant", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     # column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # Input the bid-offer spread
@@ -91,17 +91,17 @@ servfunc <- function(input, output) {
   # Get model parameters from input argument
   # max_eigen <- isolate(input$max_eigen)
   # look_lag <- isolate(input$look_lag
-  # lambdav <- isolate(input$lambdav)
+  # lambda <- isolate(input$lambda)
   # typev <- isolate(input$typev)
   # alpha <- isolate(input$alpha)
-  # percen_tile <- isolate(input$percen_tile)
+  # quant <- isolate(input$quant)
   # coeff <- as.numeric(isolate(input$coeff))
   # bid_offer <- isolate(input$bid_offer)
   # Model is recalculated when the add_annotations variable is updated
   # input$add_annotations
   
   # Create an empty list of reactive values.
-  # value_s <- reactiveValues()
+  # values <- reactiveValues()
   
   ## Calculate log returns
   returns <- reactive({
@@ -127,7 +127,7 @@ servfunc <- function(input, output) {
     volumes <- short_back*volumes/HighFreq::roll_sum(volumes, look_back=short_back)
     # returns <- rutils::diffit(closep())
     # Calculate the cumulative returns scaled by the rolling volume
-    scaled <- ifelse(volumes > 0, returns/(volumes^input$expo_nent), 0)
+    scaled <- ifelse(volumes > 0, returns/(volumes^input$exponent), 0)
     scaled[is.na(scaled) | is.infinite(scaled)] <- 0
 
     scaled <- cbind(returns, scaled)
@@ -147,33 +147,33 @@ servfunc <- function(input, output) {
     scaled <- scaled()$scaled
     
     # Calculate kurtosis of the returns
-   .n_rows <- NROW(returns)
-    kurto_sis <- sum((returns/sd(returns))^4).n_rows
-    kurtosis_scaled <- sum((scaled/sd(scaled))^4).n_rows
+    nrows <- NROW(returns)
+    kurto_sis <- sum((returns/sd(returns))^4) nrows
+    kurtosis_scaled <- sum((scaled/sd(scaled))^4) nrows
     pacfd <- pacf(returns, lag=10, plot=FALSE)
     pacfd <- sum(drop(pacfd$acf))
     pacf_scaled <- pacf(scaled, lag=10, plot=FALSE)
     pacf_scaled <- sum(drop(pacf_scaled$acf))
     
     # Calculate breaks based on input$bins from ui.R
-    ma_d <- mad(returns)
+    madv <- mad(returns)
     break_s <- seq(min(returns), max(returns), length.out=n_bins+1)
     # Calculate the kernel density using density()
     # b_w <- mad(rutils::diffit(returns, lagg=10))/10
-    densityv <- density(returns, bw=ma_d/10)
+    densityv <- density(returns, bw=madv/10)
     
     # Plot the histogram with the specified number of breaks
-    cap_tion <- paste("Histogram of", symbol, "Returns Scaled by the Trading Volumes \n", 
+    captiont <- paste("Histogram of", symbol, "Returns Scaled by the Trading Volumes \n", 
                       "kurtosis=", round(kurto_sis, 2), "kurtosis scaled=", round(kurtosis_scaled, 2), "\n", 
                       "pacf=", round(pacfd, 2), "pacf scaled=", round(pacf_scaled, 2))
-    hist(returns, breaks=break_s, main=cap_tion, 
-         xlim=c(-5*ma_d, 5*ma_d), ylim=1.05*range(densityv$y),  
+    hist(returns, breaks=break_s, main=captiont, 
+         xlim=c(-5*madv, 5*madv), ylim=1.05*range(densityv$y),  
          xlab="returns", ylab="", 
          freq=FALSE, col="darkgray", border="white")
     # Draw kernel density of returns
     lines(densityv, col="blue", lwd=3)
     # Draw kernel density of scaled
-    lines(density(scaled, bw=ma_d/10), col="red", lwd=3)
+    lines(density(scaled, bw=madv/10), col="red", lwd=3)
     # Add density of normal distribution
     curve(expr=dnorm(x, mean=mean(returns), sd=sd(returns)),
           add=TRUE, lwd=2, col="green")

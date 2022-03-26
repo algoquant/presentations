@@ -23,14 +23,14 @@ library(dygraphs)
 symbolv <- c("SPY", "LODE", "GME")
 symbol <- "LODE"
 
-cap_tion <- paste("Contrarian Strategy Using the Hampel Filter")
+captiont <- paste("Contrarian Strategy Using the Hampel Filter")
 
 ## End setup code
 
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel(cap_tion),
+  titlePanel(captiont),
   
   # fluidRow(
   # The Shiny App is recalculated when the actionButton is clicked and the add_annotations variable is updated
@@ -76,10 +76,10 @@ servfunc <- function(input, output) {
   # Get model parameters from input argument
   # max_eigen <- isolate(input$max_eigen)
   # look_lag <- isolate(input$look_lag
-  # lambdav <- isolate(input$lambdav)
+  # lambda <- isolate(input$lambda)
   # typev <- isolate(input$typev)
   # alpha <- isolate(input$alpha)
-  # percen_tile <- isolate(input$percen_tile)
+  # quant <- isolate(input$quant)
   # coeff <- as.numeric(isolate(input$coeff))
   # bid_offer <- isolate(input$bid_offer)
   # Model is recalculated when the add_annotations variable is updated
@@ -90,7 +90,7 @@ servfunc <- function(input, output) {
   # half_window <- look_back %/% 2
 
   # Create an empty list of reactive values.
-  value_s <- reactiveValues()
+  values <- reactiveValues()
   
   # Load data
   closep <- reactive({
@@ -102,22 +102,22 @@ servfunc <- function(input, output) {
            "SPY" = {
              ## SPY ETF 1-minute bars
              ohlc <- HighFreq::SPY["2011"]["T09:31:00/T15:59:00"]
-             #.n_rows <- NROW(ohlc)
+             # nrows <- NROW(ohlc)
              log(Cl(ohlc))
            },
            "LODE" = {
              ## LODE 1-minute bars
-             ohlc <- data.table::fread(file="C:/Develop/predictive/data/lode_oneminutebars.csv", sep=",")
-            .n_rows <- NROW(ohlc)
-             dates <- seq.POSIXt(from=as.POSIXct("2021-03-10 09:30:00", origin="1970-01-01"), by="min", length.out.n_rows)
+             ohlc <- data.table::fread(file="/Volumes/external/Develop/Predictive/data/lode_oneminutebars.csv", sep=",")
+             nrows <- NROW(ohlc)
+             dates <- seq.POSIXt(from=as.POSIXct("2021-03-10 09:30:00", origin="1970-01-01"), by="min", length.out=nrows)
              closep <- log(ohlc$close)
              xts::xts(closep, dates)
            },
            "GME" = {
              ## GME 1-minute bars
-             ohlc <- data.table::fread(file="C:/Develop/predictive/data/gme_oneminutebars.csv", sep=",")
-            .n_rows <- NROW(ohlc)
-             dates <- seq.POSIXt(from=as.POSIXct("2021-03-10 09:30:00", origin="1970-01-01"), by="min", length.out.n_rows)
+             ohlc <- data.table::fread(file="/Volumes/external/Develop/Predictive/data/gme_oneminutebars.csv", sep=",")
+             nrows <- NROW(ohlc)
+             dates <- seq.POSIXt(from=as.POSIXct("2021-03-10 09:30:00", origin="1970-01-01"), by="min", length.out=nrows)
              closep <- log(ohlc$close)
              xts::xts(closep, dates)
            }
@@ -125,9 +125,9 @@ servfunc <- function(input, output) {
 
   })  # end reactive
   
-  # Calculate z_scores if new there's look_back value
-  z_scores <- reactive({
-    cat("Calculating z_scores\n")
+  # Calculate zscores if new there's look_back value
+  zscores <- reactive({
+    cat("Calculating zscores\n")
     look_back <- input$look_back
     data_type <- input$data_type
     
@@ -141,84 +141,84 @@ servfunc <- function(input, output) {
       # cat("Calculating prices\n")
       datav <- closep()
     }  # end if
-    # Calculate the z_scores
+    # Calculate the zscores
     # datav <- rutils::diffit(closep())
     medi_an <- roll::roll_median(datav, width=look_back)
     medi_an[1:look_back, ] <- 1
-    # Don't divide z_scores by the ma_d because it's redundant since z_scores is divided by the mad_zscores.
+    # Don't divide zscores by the madv because it's redundant since zscores is divided by the mad_zscores.
     # Old code:
-    # ma_d <- TTR::runMAD(datav, n=look_back)
-    # ma_d[1:look_back, ] <- 1
-    # z_scores <- ifelse(ma_d != 0, (datav-medi_an)/ma_d, 0)
+    # madv <- TTR::runMAD(datav, n=look_back)
+    # madv[1:look_back, ] <- 1
+    # zscores <- ifelse(madv != 0, (datav-medi_an)/madv, 0)
     # Calculate cumulative return
-    z_scores <- (datav - medi_an)
-    # Standardize the z_scores
+    zscores <- (datav - medi_an)
+    # Standardize the zscores
     # Old code:
-    # z_scores[1:look_back, ] <- 0
-    # med_zscores <- TTR::runMedian(z_scores, n=long_back)
+    # zscores[1:look_back, ] <- 0
+    # med_zscores <- TTR::runMedian(zscores, n=long_back)
     # med_zscores[1:(long_back), ] <- 0
-    # mad_zscores <- TTR::runMAD(z_scores, n=long_back)
+    # mad_zscores <- TTR::runMAD(zscores, n=long_back)
     # mad_zscores[1:(long_back), ] <- 0
-    # ifelse(mad_zscores != 0, (z_scores - med_zscores)/mad_zscores, 0)
-    # Standardize the z_scores - HighFreq::roll_scale() is fastest
-    z_scores <- HighFreq::roll_scale(z_scores, look_back=look_back, use_median=TRUE)
-    z_scores[is.na(z_scores)] <- 0
-    z_scores[is.infinite(z_scores)] <- 0
-    z_scores
+    # ifelse(mad_zscores != 0, (zscores - med_zscores)/mad_zscores, 0)
+    # Standardize the zscores - HighFreq::roll_scale() is fastest
+    zscores <- HighFreq::roll_scale(zscores, look_back=look_back, use_median=TRUE)
+    zscores[is.na(zscores)] <- 0
+    zscores[is.infinite(zscores)] <- 0
+    zscores
   })  # end reactive
   
-  # Plot histogram of z_scores
-  # range(z_scores)
-  # z_scores <- z_scores[z_scores > quantile(z_scores, 0.05)]
-  # z_scores <- z_scores[z_scores < quantile(z_scores, 0.95)]
+  # Plot histogram of zscores
+  # range(zscores)
+  # zscores <- zscores[zscores > quantile(zscores, 0.05)]
+  # zscores <- zscores[zscores < quantile(zscores, 0.95)]
   # x11(width=6, height=5)
-  # hist(z_scores, xlim=c(quantile(z_scores, 0.05), quantile(z_scores, 0.95)), breaks=50, main=paste("Z-scores for", "look_back =", look_back))
+  # hist(zscores, xlim=c(quantile(zscores, 0.05), quantile(zscores, 0.95)), breaks=50, main=paste("Z-scores for", "look_back =", look_back))
   
-  # Calculate position_s and pnls if there's new threshold value
+  # Calculate posit and pnls if there's new threshold value
   pnls <- reactive({
-    cat("Calculating position_s and pnls\n")
+    cat("Calculating posit and pnls\n")
     threshold <- input$threshold
     lagg <- input$lagg
     returns <- rutils::diffit(closep())
-   .n_rows <- NROW(closep())
-    # Determine if the z_scores have exceeded the threshold
-    indic <- rep(0,.n_rows)
+    nrows <- NROW(closep())
+    # Determine if the zscores have exceeded the threshold
+    indic <- rep(0, nrows)
     # indic[1] <- 0
-    indic <- ifelse(z_scores() > threshold, -1, indic)
-    indic <- ifelse(z_scores() < (-threshold), 1, indic)
+    indic <- ifelse(zscores() > threshold, -1, indic)
+    indic <- ifelse(zscores() < (-threshold), 1, indic)
     # Calculate number of consecutive indicators in same direction.
-    # This is designed to avoid trading on microstructure noise.
+    # This is predictored to avoid trading on microstructure noise.
     # indic <- ifelse(indic == indic_lag, indic, indic)
     indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
     indic_sum[1:lagg] <- 0
     
-    # Calculate position_s and pnls from indic_sum.
-    # position_s <- rep(NA_integer_,.n_rows)
-    # position_s[1] <- 0
-    # threshold <- 3*mad(z_scores)
+    # Calculate posit and pnls from indic_sum.
+    # posit <- rep(NA_integer_, nrows)
+    # posit[1] <- 0
+    # threshold <- 3*mad(zscores)
     # Flip position only if the indic_sum is at least equal to lagg.
     # Otherwise keep previous position.
-    position_s <- rep(NA_integer_,.n_rows)
-    position_s[1] <- 0
-    position_s <- ifelse(indic_sum >= lagg, 1, position_s)
-    position_s <- ifelse(indic_sum <= (-lagg), -1, position_s)
-    # position_s <- ifelse(z_scores > threshold, -1, position_s)
-    # position_s <- ifelse(z_scores < (-threshold), 1, position_s)
-    position_s <- zoo::na.locf(position_s, na.rm=FALSE)
+    posit <- rep(NA_integer_, nrows)
+    posit[1] <- 0
+    posit <- ifelse(indic_sum >= lagg, 1, posit)
+    posit <- ifelse(indic_sum <= (-lagg), -1, posit)
+    # posit <- ifelse(zscores > threshold, -1, posit)
+    # posit <- ifelse(zscores < (-threshold), 1, posit)
+    posit <- zoo::na.locf(posit, na.rm=FALSE)
     
     # Calculate indicator of flipping the positions
-    indic <- rutils::diffit(position_s)
+    indic <- rutils::diffit(posit)
     # Calculate number of trades
-    value_s$n_trades <- sum(abs(indic)>0)
+    values$ntrades <- sum(abs(indic)>0)
     
     # Add buy/sell indicators for annotations
     indic_buy <- (indic > 0)
     indic_sell <- (indic < 0)
     
     # Lag the positions to trade in next period
-    position_s <- rutils::lagit(position_s, lagg=1)
+    posit <- rutils::lagit(posit, lagg=1)
     # Calculate strategy pnls
-    pnls <- cumsum(position_s*returns)
+    pnls <- cumsum(posit*returns)
     
     # Bind together strategy pnls
     cum_rets <- cumsum(returns)
@@ -228,35 +228,35 @@ servfunc <- function(input, output) {
     pnls <- cbind(pnls, cum_rets[indic_buy], cum_rets[indic_sell])
     colnames(pnls)[3:4] <- c("Buy", "Sell")
     pnls
-    # list(caption=cap_tion, pnls=pnls)
+    # list(caption=captiont, pnls=pnls)
   })  # end reactive
   
 
-  # Calculate position_s if there's new threshold value
+  # Calculate posit if there's new threshold value
   dyplot <- reactive({
     
     cat("Plotting pnls\n")
-    # cap_tion <- pnls()$caption
+    # captiont <- pnls()$caption
     pnls <- pnls()
     colnamev <- colnames(pnls)
     # cat(paste("colnamev\n", colnamev, "\n"))
     # cat(paste("pnls\n", tail(pnls), "\n"))
     
     # Calculate Sharpe ratios
-    sharp_e <- sqrt(252)*sapply(rutils::diffit(pnls[, 1:2]), function(x) mean(x)/sd(x[x<0]))
-    sharp_e <- round(sharp_e, 3)
+    sharper <- sqrt(252)*sapply(rutils::diffit(pnls[, 1:2]), function(x) mean(x)/sd(x[x<0]))
+    sharper <- round(sharper, 3)
 
-    # cap_tion <- paste("Contrarian Strategy for", input$symbol, "Using the Hampel Filter Over Prices")
-    cap_tion <- paste("Strategy for", input$symbol, "Over ", input$data_type, "/ \n", 
-                      paste0(c("Index SR=", "Strategy SR="), sharp_e, collapse=" / "), "/ \n",
-                      "Number of trades=", value_s$n_trades)
+    # captiont <- paste("Contrarian Strategy for", input$symbol, "Using the Hampel Filter Over Prices")
+    captiont <- paste("Strategy for", input$symbol, "Over ", input$data_type, "/ \n", 
+                      paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
+                      "Number of trades=", values$ntrades)
     
     
     # Plot with annotations
     add_annotations <- input$add_annotations
     
     if (add_annotations == "True") {
-      dygraphs::dygraph(pnls, main=cap_tion) %>%
+      dygraphs::dygraph(pnls, main=captiont) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
         dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%
@@ -264,7 +264,7 @@ servfunc <- function(input, output) {
         dySeries(name=colnamev[3], axis="y", label=colnamev[3], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
         dySeries(name=colnamev[4], axis="y", label=colnamev[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
     } else if (add_annotations == "False") {
-        dygraphs::dygraph(pnls[, 1:2], main=cap_tion) %>%
+        dygraphs::dygraph(pnls[, 1:2], main=captiont) %>%
           dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
           dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
           dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%

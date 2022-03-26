@@ -17,35 +17,35 @@ The probability of selecting the wrong coin depends on the number of coin flips,
 
 ```{r eval=TRUE, echo=TRUE, fig.width=6, fig.height=5}
 # Calculate the probability of selecting the correct coin, as a function of the number of coin flips.
-confi_dence <- function(nu_m, pro_b=0.6) {
+confi_dence <- function(nu_m, probv=0.6) {
   # use normal approximation for the binomial coefficients.
-  bi_nom <- dnorm(0:nu_m, mean=nu_m*pro_b, sd=sqrt(nu_m*pro_b*(1-pro_b)))
+  bi_nom <- dnorm(0:nu_m, mean=nu_m*probv, sd=sqrt(nu_m*probv*(1-probv)))
   bi_nom_even <- dnorm(0:nu_m, mean=0.5*nu_m, sd=sqrt(0.25*nu_m))
   choos_e <- (bi_nom > bi_nom_even)
   1 - 0.5*(sum(bi_nom[!choos_e]) + sum(bi_nom_even[choos_e]))
 }  # end confi_dence
 
 # Calculate the probability of selecting the correct coin after 200 coin flips
-confi_dence(200, pro_b=0.6)
+confi_dence(200, probv=0.6)
 
 # Calculate vector of probabilities of selecting the correct coin
 num_flips <- 250:270
-prob_s <- sapply(num_flips, confi_dence, pro_b=0.6)
+probs <- sapply(num_flips, confi_dence, probv=0.6)
 
 # Calculate the number of coin flips needed to select the correct coin, with 95% confidence
-min_num_flips <- num_flips[findInterval(0.95, prob_s)]
+min_num_flips <- num_flips[findInterval(0.95, probs)]
 min_num_flips
 
 # Plot vector of probabilities of selecting the correct coin
 # Load plotly
 suppressMessages(suppressWarnings(library(plotly)))
 # Create data frame
-da_ta <- data.frame(num_flips=num_flips, probs=prob_s)
+datav <- data.frame(num_flips=num_flips, probs=probs)
 # Plot with plotly using pipes syntax
-da_ta %>% 
+datav %>% 
   plot_ly(x=~num_flips, y=~probs, type="scatter", mode="lines + markers", name="probability") %>% 
   add_trace(x=range(num_flips), y=0.95, mode="lines", line=list(color="red"), name="95% confidence") %>% 
-  add_trace(x=min_num_flips, y=range(prob_s), mode="lines", line=list(color="green"), name=paste(min_num_flips, "coin flips")) %>% 
+  add_trace(x=min_num_flips, y=range(probs), mode="lines", line=list(color="green"), name=paste(min_num_flips, "coin flips")) %>% 
   layout(title="Number of Coin Flips Needed to Identify Biased Coin", 
          xaxis=list(title="coin flips"),
          yaxis=list(title="probabilities"),

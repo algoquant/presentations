@@ -16,7 +16,7 @@ library(rutils)
 # Calculate indicator_s matrix of OHLC technical indicators
 source(file="C:/Develop/R/scripts/load_technical_indicators.R")
 
-indicator_s <- cbind(returns, z_scores, volat, skew)
+indicator_s <- cbind(returns, zscores, volat, skew)
 
 # End setup code
 
@@ -77,19 +77,19 @@ servfunc <- function(input, output) {
     
     ## Simulate strategy
     # calculate signal
-    sig_nal <- indicator_s %*% weights
-    # scale sig_nal using roll_scale()
-    sig_nal <- roll::roll_scale(sig_nal, width=look_back, min_obs=1)
-    sig_nal[1,] <- 0
-    sig_nal <- rutils::lagit(sig_nal)
+    score <- indicator_s %*% weights
+    # scale score using roll_scale()
+    score <- roll::roll_scale(score, width=look_back, min_obs=1)
+    score[1,] <- 0
+    score <- rutils::lagit(score)
     # calculate positions, either: -1, 0, or 1
-    po_sit <- rep(NA_integer_, NROW(ohlc))
-    po_sit[1] <- 0
-    po_sit[sig_nal<(-1.5)] <- 1
-    po_sit[sig_nal>1.5] <- (-1)
-    po_sit <- na.locf(po_sit)
-    # po_sit <- xts(po_sit, order.by=index(ohlc))
-    pnls <- cumsum(po_sit*returns)
+    posit <- rep(NA_integer_, NROW(ohlc))
+    posit[1] <- 0
+    posit[score<(-1.5)] <- 1
+    posit[score>1.5] <- (-1)
+    posit <- na.locf(posit)
+    # posit <- xts(posit, order.by=index(ohlc))
+    pnls <- cumsum(posit*returns)
     colnames(pnls) <- "strategy"
     pnls
   })  # end reactive code

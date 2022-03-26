@@ -58,18 +58,18 @@ serv_er <- function(input, output) {
     # Subset 100 columns to reduce computations
     returns <- returns[, sample(1:NCOL(returns), 100)]
     stock_symbols <- colnames(returns)
-   .n_cols <- NCOL(returns)
+    ncols <- NCOL(returns)
     endpoints <- rutils::calc_endpoints(returns, interval="weeks")
-    endpoints <- endpoints[endpoints > .n_cols+1)]
-   .n_rows <- NROW(endpoints)
+    endpoints <- endpoints[endpoints > (ncols+1)]
+    nrows <- NROW(endpoints)
     # Calculate returns on equal weight portfolio
-    indeks <- xts(cumsum(returns %*% rep(1/sqrt.n_cols),.n_cols)), index(returns))
+    indeks <- xts(cumsum(returns %*% rep(1/sqrt ncols), ncols)), index(returns))
     
     # Define the strategy function
     run_strategy <- function(returns, look_back, alpha, max_eigen, lagg) {
         # browser()
         # cat("look_back =", look_back, "\nalpha =", alpha, "\nmax_eigen =", max_eigen, "\nlagg =", lagg, "\n")
-        startpoints <- c(rep_len(1, look_back-1), endpoints[1:.n_rows-look_back+1)])
+        startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
         # Perform backtest in RcppArmadillo
         pnls <- HighFreq::back_test(excess=returns, 
                                      returns=returns,

@@ -25,7 +25,7 @@ uiface <- shiny::fluidPage(
   titlePanel("View mtcars Data Frame"),
   fluidRow(
     # Input stock symbol
-    column(width=4, numericInput(.n_rows", "Enter number of rows of data: ", value=5)),
+    column(width=4, numericInput( nrows", "Enter number of rows of data: ", value=5)),
     column(width=4, actionButton("but_ton", "Press to Show Data")),  # end column
   ),  # end fluidRow
   
@@ -44,7 +44,7 @@ servfunc <- function(input, output) {
   # where they are called.
   
   # Create an empty list of reactive values.
-  value_s <- reactiveValues()
+  values <- reactiveValues()
   
   
   ##############################
@@ -60,10 +60,10 @@ servfunc <- function(input, output) {
   # depend on each other.
   
   # Get input parameters from the user interface.
- .n_rows <- reactive({
-    # Add.n_rows to list of reactive values.
-    value_s.n_rows <- input.n_rows
-    input.n_rows
+  nrows <- reactive({
+    # Add nrows to list of reactive values.
+    values$nrows <- input nrows
+    input nrows
   })  # end reactive code
   
   
@@ -111,10 +111,10 @@ servfunc <- function(input, output) {
   # Send the data when the button is pressed.
   datav <- eventReactive(eventExpr=input$but_ton, valueExpr={
     # eventReactive() executes on input$but_ton, but
-    # not on.n_rows() or input.n_rows.
-    cat("Sending",.n_rows(), "rows of data\n")
-    datav <- head(mtcars, input.n_rows)
-    value_s$mpg <- mean(datav$mpg)
+    # not on nrows() or input nrows.
+    cat("Sending", nrows(), "rows of data\n")
+    datav <- head(mtcars, input nrows)
+    values$mpg <- mean(datav$mpg)
     datav
   })  # end eventReactive
   #   datav
@@ -123,8 +123,8 @@ servfunc <- function(input, output) {
   # Draw table of the data when the button is pressed.
   observeEvent(eventExpr=input$but_ton, handlerExpr={
     datav <- datav()
-    cat("Received", value_s.n_rows, "rows of data\n")
-    cat("Average mpg = ", value_s$mpg, "\n")
+    cat("Received", values$nrows, "rows of data\n")
+    cat("Average mpg = ", values$mpg, "\n")
     cat("Drawing table\n")
     output$tablev <- renderTable(datav) 
   })  # end observeEvent

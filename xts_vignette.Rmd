@@ -248,7 +248,7 @@ Instructions
 
 
 ```{r}
-tmp_file <- "http://s3.amazonaws.com/assets.datacamp.com/production/course_1127/datasets/tmp_file.csv"
+tmp_file <- "http://s3.amazonaws.com/assets.datacamp.com/production/course1127/datasets/tmp_file.csv"
 ```
 
 ```{r}
@@ -341,14 +341,14 @@ For this exercise you will create a simple but very common query. Extract a rang
 Let's find some time!
 
 Instructions
- - Using xts-style time subsetting, select only the year 2016 from the x time series, and call  - this x_2016.
+ - Using xts-style time subsetting, select only the year 2016 from the x time series, and call  - this x2016.
  - Using an explicit start and end date string, get all data from January 1, 2016 through March  - 22, 2016. Call this jan_march.
  - To ensure that you subset all 82 rows, use the length function.
  
  
 ```{r}
 # Select all of 2016 from x
-x_2016 <- x["2016"]
+x2016 <- x["2016"]
 
 # Select January 1, 2016 to March 22, 2016
 jan_march <- x["20160101/20160322"]
@@ -361,7 +361,7 @@ jan_march <- x["20160101/20160322"]
 
 The most common time series data "in the wild" is daily. On occasion, you may find yourself working with intraday data, which contains both dates and times. In this case it is sometimes necessary to view only a subset of time for each day over multiple days. Using xts, you can slice days easily by using special notation in the i = argument to the single bracket extraction (i.e. [i, j]).
 
-As you learned in the previous exercise, the trick to this is to not specify explicit dates, but rather to use the special T/T notation designed for intraday repeating intervals.
+As you learned in the previous exercise, the trick to this is to not specify explicit dates, but rather to use the special T/T notation predictored for intraday repeating intervals.
 
 Intraday times for all days
 NYSE["T09:30/T16:00"] 
@@ -369,15 +369,15 @@ NYSE["T09:30/T16:00"]
 In this exercise, you will extract recurring morning hours from the time series irreg, which holds irregular data from the month of January 2010. Remember, you can always use the R console to experiment with irreg or to view the help pages with ?xts.
 
 Instructions
-Using the irregular time series irreg, assign all observations between 8AM and 10AM to morn_2010.
-Using morn_2010, extract only those observations from the morning of January 13th, 2010.
+Using the irregular time series irreg, assign all observations between 8AM and 10AM to morn2010.
+Using morn2010, extract only those observations from the morning of January 13th, 2010.
 
 ```{r}
 # Extract all data from irreg between 8AM and 10AM
-morn_2010 <- irreg["T08:00/T10:00"]
+morn2010 <- irreg["T08:00/T10:00"]
 
-# Extract the observations in morn_2010 for January 13th, 2010
-morn_2010["20100113"]
+# Extract the observations in morn2010 for January 13th, 2010
+morn2010["20100113"]
 ```
 
 ## Alternative extraction techniques - Video
@@ -476,7 +476,7 @@ first(last(first(temps, "2 weeks"), "1 week"), "3 days")
 
 ### Matrix arithmetic - add, subtract, multiply, and divide in time!
 
-xts objects respect time. By design when you perform any binary operation using two xts objects, these objects are first aligned using the intersection of the indexes. This may be surprising when first encountered.
+xts objects respect time. By predictor when you perform any binary operation using two xts objects, these objects are first aligned using the intersection of the indexes. This may be surprising when first encountered.
 
 The reason for this is that you want to preserve the point-in-time aspect of your data, assuring that you don't introduce accidental look ahead (or look behind!) bias into your calculations.
 
@@ -853,19 +853,19 @@ Note that these functions will always find the dates that are in the closed inte
 Using the slides and video examples as a reference, find the last observation for each week in our temps data.
 
 Instructions
-Use the split()-lapply()-rbind() paradigm, given for you in the script, to find the last observation in each week in temps. It is stored in temps_1.
+Use the split()-lapply()-rbind() paradigm, given for you in the script, to find the last observation in each week in temps. It is stored in temps1.
 Use endpoints() to find the last days of the week in temps. Store the resulting vector in last_day_of_weeks.
-Create temps_2 by subsetting temps using last_day_of_weeks.
+Create temps2 by subsetting temps using last_day_of_weeks.
 
 ```{r}
 # Use the proper combination of split, lapply and rbind
-temps_1 <- do.call(rbind, lapply(split(temps, "weeks"), function(w) last(w, n = "1 day")))
+temps1 <- do.call(rbind, lapply(split(temps, "weeks"), function(w) last(w, n = "1 day")))
 
 # Create last_day_of_weeks using endpoints()
 last_day_of_weeks <- endpoints(temps, "weeks")
 
 # Subset temps using last_day_of_weeks 
-temps_2 <- temps[last_day_of_weeks]
+temps2 <- temps[last_day_of_weeks]
 
 ```
 
@@ -1136,7 +1136,7 @@ nyears(edhec)
 
 ### Secret index tools
 
-xts uses a very special attribute called index to provide time support to your objects. For performance and design reasons, the index is stored in a special way. This means that regardless of the class of your index (e.g. Date or yearmon) everything internally looks the same to xts. The raw index is actually a simple vector of fractional seconds since the UNIX epoch.
+xts uses a very special attribute called index to provide time support to your objects. For performance and predictor reasons, the index is stored in a special way. This means that regardless of the class of your index (e.g. Date or yearmon) everything internally looks the same to xts. The raw index is actually a simple vector of fractional seconds since the UNIX epoch.
 
 Normally you want to access the times you stored. index() does this magically for you by using your indexClass. To get to the raw vector of the index, you can use .index(). Note the critical dot before the function name.
 

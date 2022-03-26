@@ -1,5 +1,5 @@
 ---
-title: "Identify turning points from SPY_design data"
+title: "Identify turning points from SPY_predictor data"
 author_no_print: "Jerzy Pawlowski"
 affiliation: NYU Tandon School of Engineering
 abstract: "Shiny app allows changing betas for a static betas strategy, and displays the buy signals."
@@ -12,10 +12,10 @@ runtime: shiny
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
 library(HighFreq)  # load package HighFreq
-load("C:/Develop/data/SPY_design.RData")
-# returns_running <- 60*HighFreq::run_returns(x_ts=HighFreq::SPY)
+load("C:/Develop/data/SPY_predictor.RData")
+# returns_running <- 60*HighFreq::run_returns(xtes=HighFreq::SPY)
 # colnames(returns_running) <- "returns"
-ran_ge <- match(index(SPY_design["2009-03-10/2009-03-13"]), index(SPY_design))
+rangev <- match(index(SPY_predictor["2009-03-10/2009-03-13"]), index(SPY_predictor))
 # source("C:/Develop/R/scripts/ewma_model.R")
 ```
 
@@ -38,14 +38,14 @@ renderPlot({
   skew <- input$skew
   hurst <- input$hurst
 
-  beta_s <- c(returns, variance, skew, hurst)
-  bu_y <- xts(SPY_design %*% beta_s[1:NCOL(SPY_design)], order.by=index(SPY_design))
-  # se_ll <- xts(SPY_design %*% beta_s[(NCOL(SPY_design)+1):(2*NCOL(SPY_design))], order.by=index(SPY_design))
+  betas <- c(returns, variance, skew, hurst)
+  bu_y <- xts(SPY_predictor %*% betas[1:NCOL(SPY_predictor)], order.by=index(SPY_predictor))
+  # se_ll <- xts(SPY_predictor %*% betas[(NCOL(SPY_predictor)+1):(2*NCOL(SPY_predictor))], order.by=index(SPY_predictor))
 
-  # plot(as.numeric(HighFreq::SPY[ran_ge, 4]), t="l", xlab="", ylab="")
-  ch_ob <- chart_Series(HighFreq::SPY[ran_ge, 4])
-  plot(ch_ob)
-  abline(v=which(bu_y[ran_ge] < -1), col="red", lwd=1)
+  # plot(as.numeric(HighFreq::SPY[rangev, 4]), t="l", xlab="", ylab="")
+  chobj <- chart_Series(HighFreq::SPY[rangev, 4])
+  plot(chobj)
+  abline(v=which(bu_y[rangev] < -1), col="red", lwd=1)
 
 })  # end renderPlot
 ```

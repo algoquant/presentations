@@ -15,7 +15,7 @@ library(dygraphs)
 ## Model and data setup
 
 # symbol <- "CAN"
-# ohlc <- data.table::fread(file="C:/Develop/predictive/data/outfile_can.csv", sep=",")
+# ohlc <- data.table::fread(file="/Volumes/external/Develop/Predictive/data/outfile_can.csv", sep=",")
 
 # volumes <- ohlc$volume
 # plot(volumes, t="l", ylim=c(0, 1e2))
@@ -27,7 +27,7 @@ library(dygraphs)
 # closep <- log(ohlc$close_p)
 
 symbol <- "LODE"
-ohlc <- data.table::fread(file="C:/Develop/predictive/data/lode_oneminutebars.csv", sep=",")
+ohlc <- data.table::fread(file="/Volumes/external/Develop/Predictive/data/lode_oneminutebars.csv", sep=",")
 nrows <- NROW(ohlc)
 closep <- log(ohlc$close)
 
@@ -52,7 +52,7 @@ cumsumv <- cumsum(returns)
 
 
 
-dates <- seq.POSIXt(from=as.POSIXct("2021-03-10 09:30:00", origin="1970-01-01"), by="min", length.out.n_rows)
+dates <- seq.POSIXt(from=as.POSIXct("2021-03-10 09:30:00", origin="1970-01-01"), by="min", length.out=nrows)
 # closep <- xts::xts(closep, dates)
 # dygraphs::dygraph(closep)
 
@@ -72,15 +72,15 @@ dates <- seq.POSIXt(from=as.POSIXct("2021-03-10 09:30:00", origin="1970-01-01"),
 # plot(closep, t="l")
 
 
-cap_tion <- paste("Contrarian Strategy for", symbol, "Using Two EWMAs")
-# cap_tion <- paste("Contrarian Strategy for", symbol, "Using the Returns Scaled by the Price Range")
+captiont <- paste("Contrarian Strategy for", symbol, "Using Two EWMAs")
+# captiont <- paste("Contrarian Strategy for", symbol, "Using the Returns Scaled by the Price Range")
 
 ## End setup code
 
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel(cap_tion),
+  titlePanel(captiont),
 
   fluidRow(
     # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
@@ -113,7 +113,7 @@ uiface <- shiny::fluidPage(
     # Input minimum trade volume for filtering ticks
     # column(width=2, sliderInput("volumes", label="Big tick volume", min=50, max=1000, value=400, step=50)),
     # Input the weight decay parameter
-    # column(width=2, sliderInput("lambdav", label="Weight decay:",
+    # column(width=2, sliderInput("lambda", label="Weight decay:",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input model weights type
     # column(width=2, selectInput("typev", label="Portfolio weights type",
@@ -124,7 +124,7 @@ uiface <- shiny::fluidPage(
     # column(width=2, sliderInput("alpha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input the percentile
-    # column(width=2, sliderInput("percen_tile", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
+    # column(width=2, sliderInput("quant", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     # column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # Input the bid-offer spread
@@ -158,10 +158,10 @@ servfunc <- function(input, output) {
     # threshold <- isolate(input$threshold)
     # volumes <- isolate(input$volumes)
     # look_lag <- isolate(input$look_lag
-    # lambdav <- isolate(input$lambdav)
+    # lambda <- isolate(input$lambda)
     # typev <- isolate(input$typev)
     # alpha <- isolate(input$alpha)
-    # percen_tile <- isolate(input$percen_tile)
+    # quant <- isolate(input$quant)
     # coeff <- as.numeric(isolate(input$coeff))
     bid_offer <- isolate(input$bid_offer)
     coeff <- as.numeric(isolate(input$coeff))
@@ -185,47 +185,47 @@ servfunc <- function(input, output) {
     # Older code
     # trade_dates <- (rutils::diffit(indic) != 0)
     # trade_dates <- which(trade_dates)
-    # trade_dates <- trade_dates[trade_dates <.n_rows]
-    # position_s <- rep(NA_integer_,.n_rows)
-    # position_s[1] <- 0
+    # trade_dates <- trade_dates[trade_dates < nrows]
+    # posit <- rep(NA_integer_, nrows)
+    # posit[1] <- 0
     # Flip position if the scaled returns exceed threshold
-    # position_s[re_scaled > threshold] <- 1
-    # position_s[re_scaled < (-threshold)] <- (-1)
+    # posit[re_scaled > threshold] <- 1
+    # posit[re_scaled < (-threshold)] <- (-1)
     # LOCF
-    # position_s <- zoo::na.locf(position_s, na.rm=FALSE)
-    # position_s <- rutils::lagit(position_s, lagg=lagg)
+    # posit <- zoo::na.locf(posit, na.rm=FALSE)
+    # posit <- rutils::lagit(posit, lagg=lagg)
     # Calculate positions, either: -1, 0, or 1
-    # position_s <- rep(NA_integer_, NROW(closep))
-    # position_s[1] <- 0
-    # position_s[trade_dates] <- indic[trade_dates]
-    # position_s[trade_dates] <- rutils::lagit(indic)[trade_dates]
-    # position_s <- na.locf(position_s)
-    # position_s <- rutils::lagit(position_s)
+    # posit <- rep(NA_integer_, NROW(closep))
+    # posit[1] <- 0
+    # posit[trade_dates] <- indic[trade_dates]
+    # posit[trade_dates] <- rutils::lagit(indic)[trade_dates]
+    # posit <- na.locf(posit)
+    # posit <- rutils::lagit(posit)
     
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
-    # This is designed to prevent whipsaws and over-trading.
-    # position_s <- ifelse(indic == indic_lag, indic, position_s)
+    # This is predictored to prevent whipsaws and over-trading.
+    # posit <- ifelse(indic == indic_lag, indic, posit)
     indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
     indic_sum[1:lagg] <- 0
-    position_s <- rep(NA_integer_,.n_rows)
-    position_s[1] <- 0
-    position_s <- ifelse(indic_sum == lagg, 1, position_s)
-    position_s <- ifelse(indic_sum == (-lagg), -1, position_s)
-    position_s <- zoo::na.locf(position_s, na.rm=FALSE)
-    # position_s[1:lagg] <- 0
+    posit <- rep(NA_integer_, nrows)
+    posit[1] <- 0
+    posit <- ifelse(indic_sum == lagg, 1, posit)
+    posit <- ifelse(indic_sum == (-lagg), -1, posit)
+    posit <- zoo::na.locf(posit, na.rm=FALSE)
+    # posit[1:lagg] <- 0
     # Lag the positions to trade in next period
-    position_s <- rutils::lagit(position_s, lagg=1)
+    posit <- rutils::lagit(posit, lagg=1)
     
     # Calculate strategy pnls
-    pnls <- (coeff*position_s*returns)
+    pnls <- (coeff*posit*returns)
 
     # Calculate position turnover
-    turn_over <- abs(rutils::diffit(position_s))/2
-    n_trades <- sum(2*turn_over)# /.n_rows
+    turn_over <- abs(rutils::diffit(posit))/2
+    ntrades <- sum(2*turn_over)# / nrows
     # Calculate number of trades
-    # sum(turn_over).n_rows
+    # sum(turn_over) nrows
     # Calculate transaction costs
     costs <- bid_offer*turn_over
     pnls <- (pnls - costs)
@@ -235,20 +235,20 @@ servfunc <- function(input, output) {
     # Coerce pnls to xts
     pnls <- xts::xts(pnls, dates)
     
-    # sharp_e <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x))
-    sharp_e <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
-    sharp_e <- round(sharp_e, 3)
+    # sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x))
+    sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
+    sharper <- round(sharper, 3)
     # pnls <- apply(pnls, MARGIN=2, cumsum)
     pnls <- cumsum(pnls)
     pnls <- cbind(pnls, fast_ewma, slow_ewma)
-    colnames(pnls) <- c(paste0(c("Strategy SR=", "Index SR="), sharp_e), "fast", "slow")
+    colnames(pnls) <- c(paste0(c("Strategy SR=", "Index SR="), sharper), "fast", "slow")
     pnls
   })  # end reactive code
 
   # Return to the output argument a dygraph plot with two y-axes
   output$dyplot <- dygraphs::renderDygraph({
     colnamev <- colnames(datav())
-    dygraphs::dygraph(datav(), main=cap_tion) %>%
+    dygraphs::dygraph(datav(), main=captiont) %>%
       dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
       dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
       dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="red") %>%

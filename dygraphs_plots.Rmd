@@ -29,25 +29,25 @@ Double-click your mouse to restore the plot.
 
 ```{r echo=FALSE}
 # extract the closing prices into a list of xts time series
-price_s <- lapply(rutils::etf_env$sym_bols, function(sym_bol) {
-  quantmod::Cl(get(sym_bol, envir=rutils::etf_env))
+prices <- lapply(rutils::etfenv$symbols, function(symbol) {
+  quantmod::Cl(get(symbol, envir=rutils::etfenv))
 })  # end lapply
 
 # flatten (cbind) list of prices into single xts series
-price_s <- rutils::do_call(cbind, price_s)
+prices <- rutils::do_call(cbind, prices)
 
 # overwrite NA values
-price_s <- rutils::na_locf(price_s)
-price_s <- rutils::na_locf(price_s, from_last=TRUE)
+prices <- rutils::na_locf(prices)
+prices <- rutils::na_locf(prices, from_last=TRUE)
 
 # make nice column names
-colnames(price_s) <- rutils::do_call_rbind(strsplit(colnames(price_s), split="[.]"))[, 1]
+colnames(prices) <- rutils::do_call_rbind(strsplit(colnames(prices), split="[.]"))[, 1]
 
 # create a list of dygraphs objects in loop
-dy_graphs <- lapply(price_s, function(pric_e) {
+dyplots <- lapply(prices, function(pric_e) {
   dygraphs::dygraph(pric_e, main=paste("Plot of:", colnames(pric_e)), width=600, height=400)
 })  # end lapply
 
 # render the dygraphs objects
-htmltools::tagList(dy_graphs)
+htmltools::tagList(dyplots)
 ```

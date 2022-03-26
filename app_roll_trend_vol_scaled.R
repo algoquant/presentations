@@ -85,7 +85,7 @@ returns <- returns[(sort(first_non_na)[3]):NROW(returns)]
 
 ############
 # S&P100
-# load("C:/Develop/lecture_slides/data/sp500_returns.RData")
+# load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
 # returns <- returns["2000-01-01/"]
 # symbolv <- colnames(returns)
 # nweights <- NROW(symbolv)
@@ -111,7 +111,7 @@ indeks <- cumsum(indeks)
 
 
 # Portfolio with largest Hurst
-# weights <- read.csv(file="C:/Develop/lecture_slides/data/etf_hurst_weights.csv", stringsAsFactors=FALSE)
+# weights <- read.csv(file="/Users/jerzy/Develop/lecture_slides/data/etf_hurst_weights.csv", stringsAsFactors=FALSE)
 # weights <- structure(as.numeric(weights$x), names=weights$X)
 # portf_hurst <- -drop(returns %*% weights)
 # portf_hurst <- sd(excess$VTI)/sd(portf_hurst)*portf_hurst
@@ -139,11 +139,11 @@ uiface <- shiny::fluidPage(
     # Input look-back interval
     column(width=2, sliderInput("look_back", label="Lookback interval",
                                 min=1, max=100, value=18, step=1)),
-    column(width=2, sliderInput("lambdav", label="Weight decay:",
+    column(width=2, sliderInput("lambda", label="Weight decay:",
                                 min=0.01, max=0.99, value=0.01, step=0.05)),
     # Input end points interval
     column(width=2, selectInput("model_type", label="Weights type",
-                                choices=c("max_sharpe", "max_sharpe_median", "min_var", "min_varpca", "rank", "rankrob", "quan_tile"), selected="max_sharpe")),
+                                choices=c("max_sharpe", "max_sharpe_median", "min_var", "min_varpca", "rank", "rankrob", "quantilev"), selected="max_sharpe")),
     # Input number of eigenvalues for regularized matrix inverse
     column(width=2, numericInput("max_eigen", "Number of eigenvalues", value=6)),
     # Input the shrinkage intensity
@@ -172,7 +172,7 @@ servfunc <- function(input, output) {
     interval <- isolate(input$interval)
     max_eigen <- isolate(input$max_eigen)
     look_back <- isolate(input$look_back)
-    lambdav <- isolate(input$lambdav)
+    lambda <- isolate(input$lambda)
     model_type <- isolate(input$model_type)
     alpha <- isolate(input$alpha)
     probv <- isolate(input$probv)
@@ -184,12 +184,12 @@ servfunc <- function(input, output) {
     endp <- rutils::calc_endpoints(returns, interval=interval)
     # endp <- ifelse(endp<(nweights+1), nweights+1, endp)
     endp <- endp[endp > 2*nweights]
-   .n_rows <- NROW(endp)
+    nrows <- NROW(endp)
     # Define start points
-    startp <- c(rep_len(1, look_back-1), endp[1:.n_rows-look_back+1)])
+    startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
     
     # Calculate the weights
-    # weights <- exp(-lambdav*(1:look_back))
+    # weights <- exp(-lambda*(1:look_back))
     # weights <- weights/sum(weights)
     # weights <- matrix(weights, nc=1)
     # Calculate smoothed excess returns

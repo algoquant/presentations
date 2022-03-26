@@ -1,5 +1,5 @@
 ---
-title: "Identify turning points from SPY_design data"
+title: "Identify turning points from SPY_predictor data"
 author_no_print: "Jerzy Pawlowski"
 affiliation: NYU Tandon School of Engineering
 abstract: "Shiny app for trading rule: buy and hold for a fixed interval, and then revert to short, allows changing betas and plots cumulative PnL."
@@ -12,60 +12,60 @@ runtime: shiny
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
 library(HighFreq)  # load package HighFreq
-load("C:/Develop/data/SPY_design.RData")
-returns_running <- 60*HighFreq::run_returns(x_ts=HighFreq::SPY)
+load("C:/Develop/data/SPY_predictor.RData")
+returns_running <- 60*HighFreq::run_returns(xtes=HighFreq::SPY)
 # colnames(returns_running) <- "returns"
-# ran_ge <- match(index(SPY_design["2009-03-10/2009-03-13"]), index(SPY_design))
+# rangev <- match(index(SPY_predictor["2009-03-10/2009-03-13"]), index(SPY_predictor))
 # source("C:/Develop/R/scripts/ewma_model.R")
 ```
 
 ```{r ewma_model, echo=FALSE}
 inputPanel(
-  sliderInput("re_turns", label="returns:",
+  sliderInput("returns", label="returns:",
               min=-2.0, max=5.0, value=2.0, step=0.01),
-  sliderInput("vari_ance", label="variance:",
+  sliderInput("variance", label="variance:",
               min=-2.0, max=2.0, value=0.0, step=0.01),
   sliderInput("ske_w", label="skew:",
               min=-2.0, max=2.0, value=0.0, step=0.01),
   sliderInput("hu_rst", label="hurst:",
               min=-2.0, max=2.0, value=2.0, step=0.01),
-  sliderInput("inter_val", label="interval:",
+  sliderInput("interval", label="interval:",
               min=1.0, max=200.0, value=60, step=1.0)
 )  # end inputPanel
 
 renderPlot({
 
-  re_turns <- input$re_turns
-  vari_ance <- input$vari_ance
+  returns <- input$returns
+  variance <- input$variance
   ske_w <- input$ske_w
   hu_rst <- input$hu_rst
-  inter_val <- input$inter_val
+  interval <- input$interval
 
-  beta_s <- c(re_turns, vari_ance, ske_w, hu_rst)
-  n_col <- NCOL(SPY_design)
-  position_s <- rep.int(NA, NROW(SPY_design))
-  position_s[1] <- 0
+  betas <- c(returns, variance, ske_w, hu_rst)
+  n_col <- NCOL(SPY_predictor)
+  posit <- rep.int(NA, NROW(SPY_predictor))
+  posit[1] <- 0
   # buy signal
-  bu_y <- (SPY_design %*% beta_s[1:n_col] < -1)
-  position_s[bu_y] <- 1.0
-  se_ll <- as.logical(rutils::lag_it(bu_y, lag=inter_val))
+  bu_y <- (SPY_predictor %*% betas[1:n_col] < -1)
+  posit[bu_y] <- 1.0
+  se_ll <- as.logical(rutils::lagit(bu_y, lag=interval))
   # sell signal
-  position_s[se_ll] <- -1.0
-  position_s[bu_y] <- 1.0
-  position_s <- zoo::na.locf(position_s)
+  posit[se_ll] <- -1.0
+  posit[bu_y] <- 1.0
+  posit <- zoo::na.locf(posit)
   # Lag the positions
-  position_s <- c(0, position_s[-NROW(position_s)])
-  # pnl_s <- position_s*re_turns
-  # be_ta <- (sum(pnl_s * re_turns) - sum(pnl_s) * sum(re_turns)) / (sum(pnl_s * pnl_s) - sum(pnl_s)^2 )
-  # -(exp(sum(pnl_s) - be_ta * sum(re_turns)) - 1)
-  # -(exp(sum(position_s*re_turns))-1) # / (sum(abs(rutils::diff_it(position_s))) / 2/ 1e5) / abs(sum(position_s>0) - sum(position_s<0))
-  # pnl_s <- xts(exp(cumsum((position_s * returns_running)))-1, order.by=index(SPY_design))
-  chart_Series((exp(cumsum((position_s * returns_running)))-1)[endpoints(SPY_design[, 1], on="days")], name="Backtest of static beta strategy for SPY")
+  posit <- c(0, posit[-NROW(posit)])
+  # pnls <- posit*returns
+  # betav <- (sum(pnls * returns) - sum(pnls) * sum(returns)) / (sum(pnls * pnls) - sum(pnls)^2 )
+  # -(exp(sum(pnls) - betav * sum(returns)) - 1)
+  # -(exp(sum(posit*returns))-1) # / (sum(abs(rutils::diffit(posit))) / 2/ 1e5) / abs(sum(posit>0) - sum(posit<0))
+  # pnls <- xts(exp(cumsum((posit * returns_running)))-1, order.by=index(SPY_predictor))
+  chart_Series((exp(cumsum((posit * returns_running)))-1)[endpoints(SPY_predictor[, 1], on="days")], name="Backtest of static beta strategy for SPY")
 
-  # plot(exp(cumsum((position_s * returns_running)))-1, t="l", xlab="", ylab="")
-  # ch_ob <- chart_Series(HighFreq::SPY[ran_ge, 4])
-  # plot(ch_ob)
-  # abline(v=which(bu_y[ran_ge] < -1), col="red", lwd=1)
+  # plot(exp(cumsum((posit * returns_running)))-1, t="l", xlab="", ylab="")
+  # chobj <- chart_Series(HighFreq::SPY[rangev, 4])
+  # plot(chobj)
+  # abline(v=which(bu_y[rangev] < -1), col="red", lwd=1)
 
 })  # end renderPlot
 ```

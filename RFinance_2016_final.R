@@ -13,8 +13,8 @@ nrows <- nrow(returns)  # number of observations
 mean_rets <- mean(returns[, 1])  # calculate mean
 sd_rets <- sd(returns[, 1])  # calculate standard deviation
 # calculate skew and kurtosis
-(sum(((returns[, 1] - mean_rets)/sd_rets)^3)).n_rows
-(sum(((returns[, 1] - mean_rets)/sd_rets)^4)).n_rows
+(sum(((returns[, 1] - mean_rets)/sd_rets)^3)) nrows
+(sum(((returns[, 1] - mean_rets)/sd_rets)^4)) nrows
 library(PerformanceAnalytics)
 chart.Histogram(returns[, 1], main="", 
   xlim=c(-6e-5, 6e-5), 
@@ -232,10 +232,10 @@ plot(formulav, data=datav[interval],
 abline(l_m, col="blue", lwd=2)
 # contrarian skew trading strategy
 # lag the skew to get positions
-position_s <- -sign(lag_skew)
-position_s[1, ] <- 0
+posit <- -sign(lag_skew)
+posit[1, ] <- 0
 # cumulative PnL
-cumu_pnl <- cumsum(position_s*returns[, 1])
+cumu_pnl <- cumsum(posit*returns[, 1])
 # calculate frequency of trades
 50*sum(abs(sign(skew)-sign(lag_skew)))/nrow(skew)
 # calculate transaction costs
@@ -246,9 +246,9 @@ chart_Series(
   name=paste(symbol, "contrarian skew strategy pnl"))
 # vwap plot
 vwap_short <-
-  vwapv(xtes=SPY, win_dow=70)
+  vwapv(xtes=SPY, look_back=70)
 vwap_long <-
-  vwapv(xtes=SPY, win_dow=225)
+  vwapv(xtes=SPY, look_back=225)
 vwap_diff <- vwap_short - vwap_long
 colnames(vwap_diff) <- paste0(symbol, ".vwap")
 interval <- "2010-05-05/2010-05-07"
@@ -268,8 +268,8 @@ add_TA(vwap_diff[interval] < 0, on=-1,
  col="lightgrey", border="lightgrey")
 # vwap scatterplot
 # returns <- calc_rets(xts_data=SPY)
-vwap_short <- vwapv(xtes=SPY, win_dow=70)
-vwap_long <- vwapv(xtes=SPY, win_dow=225)
+vwap_short <- vwapv(xtes=SPY, look_back=70)
+vwap_long <- vwapv(xtes=SPY, look_back=225)
 vwap_diff <- vwap_short - vwap_long
 colnames(vwap_diff) <- paste0(symbol, ".vwap")
 lag_vwap <- lag(vwap_diff)

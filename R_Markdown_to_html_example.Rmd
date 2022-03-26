@@ -46,10 +46,10 @@ y_var <- dnorm(x_var, mean=1.0, sd=2.0)
 plot(x_var, y_var, type="l", lty="solid",
      xlab="", ylab="")
 title(main="Normal Density Function", line=0.5)
-star_t <- 3; fin_ish <- 5  # set lower and upper bounds
+startd <- 3; fin_ish <- 5  # set lower and upper bounds
 # set polygon base
-are_a <- ((x_var >= star_t) & (x_var <= fin_ish))
-polygon(c(star_t, x_var[are_a], fin_ish),  # draw polygon
+are_a <- ((x_var >= startd) & (x_var <= fin_ish))
+polygon(c(startd, x_var[are_a], fin_ish),  # draw polygon
         c(-1, y_var[are_a], -1), col="red")
 ```
 

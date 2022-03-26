@@ -18,14 +18,14 @@ symbol <- "VTI"
 prices <- Cl(rutils::etfenv$VTI)
 returns <- rutils::diffit(log(prices))
 
-cap_tion <- paste("Strategy for", symbol, "Using Weekly and Monthly Returns")
+captiont <- paste("Strategy for", symbol, "Using Weekly and Monthly Returns")
 
 ## End setup code
 
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel(cap_tion),
+  titlePanel(captiont),
 
   fluidRow(
     # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
@@ -47,7 +47,7 @@ uiface <- shiny::fluidPage(
     # Input look-back lag interval
     column(width=2, sliderInput("look_back2", label="Lookback long", min=10, max=50, value=25, step=1))
     # Input the weight decay parameter
-    # column(width=2, sliderInput("lambdav", label="Weight decay:",
+    # column(width=2, sliderInput("lambda", label="Weight decay:",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input model weights type
     # column(width=2, selectInput("typev", label="Portfolio weights type",
@@ -58,7 +58,7 @@ uiface <- shiny::fluidPage(
     # column(width=2, sliderInput("alpha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input the percentile
-    # column(width=2, sliderInput("percen_tile", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
+    # column(width=2, sliderInput("quant", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     # column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # Input the bid-offer spread
@@ -82,10 +82,10 @@ servfunc <- function(input, output) {
     look_back1 <- input$look_back1
     look_back2 <- input$look_back2
     # look_lag <- isolate(input$look_lag
-    # lambdav <- isolate(input$lambdav)
+    # lambda <- isolate(input$lambda)
     # typev <- isolate(input$typev)
     # alpha <- isolate(input$alpha)
-    # percen_tile <- isolate(input$percen_tile)
+    # quant <- isolate(input$quant)
     # coeff <- as.numeric(isolate(input$coeff))
     # bid_offer <- isolate(input$bid_offer)
     # Model is recalculated when the re_calculate variable is updated
@@ -98,8 +98,8 @@ servfunc <- function(input, output) {
     month_ly <- as.numeric(month_ly)
     
     # Rerun the model
-    position_s <- sign(wei_ght*week_ly + (1-wei_ght)*month_ly)
-    positions_lag <- rutils::lagit(position_s, lagg=2)
+    posit <- sign(wei_ght*week_ly + (1-wei_ght)*month_ly)
+    positions_lag <- rutils::lagit(posit, lagg=2)
     pnls <- -cumsum(positions_lag*returns)
     pnls <- cbind(pnls, cumsum(returns))
     colnames(pnls) <- c("Strategy", "Index")
@@ -110,7 +110,7 @@ servfunc <- function(input, output) {
   # Return to output argument a dygraph plot with two y-axes
   output$dyplot <- dygraphs::renderDygraph({
     colnamev <- colnames(datav())
-    dygraphs::dygraph(datav(), main=cap_tion) %>%
+    dygraphs::dygraph(datav(), main=captiont) %>%
       dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
       dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
       dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="red") %>%

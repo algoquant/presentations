@@ -23,21 +23,21 @@ library(dygraphs)
 # if (!("sp500env" %in% search()))
 #   attach(sp500env)
 if (!("sp500env" %in% ls())) {
-  load(file="C:/Develop/lecture_slides/data/sp500.RData")
+  load(file="/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
 }  # end if
 data_env <- sp500env
 # symbolv <- names(data_env)
 symbolv <- c("PG", "CDNS", "YUM", "YUMC", "KHC", "SNPS", "ODFL", "CHRW", "AWK", "SO", "EA", "FIS", "DG", "BAX", "HRL", "MSFT", "XOM", "BSX", "JNJ", "CLX", "CL", "MCD", "WMT", "SBUX", "LLY", "ADM", "BIO", "XLNX", "ATVI", "DISH", "K", "SHW", "SIG", "CSCO", "INTU", "VRTX", "FB", "ORCL", "DUK", "KSS", "ROP", "AKAM", "MXIM", "TXN", "NEM", "COST", "EL", "JWN", "ACN", "FISV", "KLAC", "PFE", "TYL", "BIIB", "MCHP", "BBBY", "DRE", "PEP", "LIN", "NKE", "TROW", "LEN", "HOLX", "NVR", "UDR", "WEC", "DHI", "NI")
 symbol <- "YUM"
 
-cap_tion <- "Contrarian Strategy for S&P500 Stocks Using the Hampel Filter Over Prices"
+captiont <- "Contrarian Strategy for S&P500 Stocks Using the Hampel Filter Over Prices"
 
 ## End setup code
 
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel(cap_tion),
+  titlePanel(captiont),
   
   fluidRow(
     # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
@@ -61,7 +61,7 @@ uiface <- shiny::fluidPage(
     # Input threshold interval
     column(width=2, sliderInput("threshold", label="threshold", min=1.0, max=10.0, value=1.8, step=0.2))
     # Input the weight decay parameter
-    # column(width=2, sliderInput("lambdav", label="Weight decay:",
+    # column(width=2, sliderInput("lambda", label="Weight decay:",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input model weights type
     # column(width=2, selectInput("typev", label="Portfolio weights type",
@@ -72,7 +72,7 @@ uiface <- shiny::fluidPage(
     # column(width=2, sliderInput("alpha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input the percentile
-    # column(width=2, sliderInput("percen_tile", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
+    # column(width=2, sliderInput("quant", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     # column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # Input the bid-offer spread
@@ -101,7 +101,7 @@ servfunc <- function(input, output) {
   
   
   # Recalculate the data and rerun the model
-  z_scores <- reactive({
+  zscores <- reactive({
 
     cat("Calculating the zscores\n")
     
@@ -112,14 +112,14 @@ servfunc <- function(input, output) {
     # Rerun the model
     medi_an <- TTR::runMedian(prices, n=look_back)
     medi_an[1:look_back, ] <- 1
-    # ma_d <- TTR::runMAD(prices, n=look_back)
-    # ma_d[1:look_back, ] <- 1
-    # z_scores <- ifelse(ma_d!=0, (prices-medi_an)/ma_d, 0)
-    z_scores <- (prices-medi_an)
-    mad_zscores <- TTR::runMAD(z_scores, n=look_back)
+    # madv <- TTR::runMAD(prices, n=look_back)
+    # madv[1:look_back, ] <- 1
+    # zscores <- ifelse(madv!=0, (prices-medi_an)/madv, 0)
+    zscores <- (prices-medi_an)
+    mad_zscores <- TTR::runMAD(zscores, n=look_back)
     mad_zscores[1:look_back, ] <- 0
     
-    ifelse(mad_zscores > 0, z_scores/mad_zscores, 0)
+    ifelse(mad_zscores > 0, zscores/mad_zscores, 0)
 
   })  # end reactive code
   
@@ -132,17 +132,17 @@ servfunc <- function(input, output) {
     lagg <- input$lagg
     threshold <- input$threshold
 
-    z_scores <- z_scores()
-    # Calculate position_s and pnls from z-scores and rangev
-    position_s <- rep(NA_integer_, NROW(z_scores))
-    position_s[1] <- 0
-    position_s <- ifelse(z_scores > threshold, -1, position_s)
-    position_s <- ifelse(z_scores < (-threshold), 1, position_s)
-    position_s <- zoo::na.locf(position_s, na.rm=FALSE)
-    position_s <- rutils::lagit(position_s, lagg=lagg)
+    zscores <- zscores()
+    # Calculate posit and pnls from z-scores and rangev
+    posit <- rep(NA_integer_, NROW(zscores))
+    posit[1] <- 0
+    posit <- ifelse(zscores > threshold, -1, posit)
+    posit <- ifelse(zscores < (-threshold), 1, posit)
+    posit <- zoo::na.locf(posit, na.rm=FALSE)
+    posit <- rutils::lagit(posit, lagg=lagg)
     
     returns <- rutils::diffit(prices())
-    pnls <- cumsum(position_s*returns)
+    pnls <- cumsum(posit*returns)
     pnls <- cbind(pnls, cumsum(returns))
     colnames(pnls) <- c("Strategy", symbol)
     
@@ -153,9 +153,9 @@ servfunc <- function(input, output) {
   
   # Return to the output argument a dygraph plot with two y-axes
   output$dyplot <- dygraphs::renderDygraph({
-    cap_tion <- paste("Contrarian Strategy for", input$symbol, "Using the Hampel Filter Over Prices")
+    captiont <- paste("Contrarian Strategy for", input$symbol, "Using the Hampel Filter Over Prices")
     colnamev <- colnames(datav())
-    dygraphs::dygraph(datav(), main=cap_tion) %>%
+    dygraphs::dygraph(datav(), main=captiont) %>%
       dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
       dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
       dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="red") %>%

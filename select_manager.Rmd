@@ -25,48 +25,48 @@ The annual return is equal to $250*(2*p-1)$, while the annual standard deviation
 
 ```{r eval=TRUE, echo=TRUE, fig.width=5.5, fig.height=3.5}
 # Sharpe ratio as function of daily probability
-# sharpe_ratio <- sqrt(250)*(2*pro_b-1)
+# sharpe_ratio <- sqrt(250)*(2*probv-1)
 
 # Daily probability as function of Sharpe ratio
 sharpe_ratio <- 0.4
-pro_b <- (sharpe_ratio/sqrt(250)+1)/2
+probv <- (sharpe_ratio/sqrt(250)+1)/2
 
 # Calculate probability of selecting skilled manager.
 # Use normal approximation for the binomial coefficient.
 confi_dence <- function(nu_m, p1, p2) {
   if (p1^nu_m > 1e-10)
-    binom_1 <- choose(nu_m, 0:nu_m) * p1^(0:nu_m) * (1-p1)^(nu_m:0)
+    binom1 <- choose(nu_m, 0:nu_m) * p1^(0:nu_m) * (1-p1)^(nu_m:0)
   else
-    binom_1 <- dnorm(0:nu_m, mean=nu_m*p1, sd=sqrt(nu_m*p1*(1-p1)))
+    binom1 <- dnorm(0:nu_m, mean=nu_m*p1, sd=sqrt(nu_m*p1*(1-p1)))
   if (p2^nu_m > 1e-10)
-    binom_2 <- choose(nu_m, 0:nu_m) * p2^(0:nu_m) * (1-p2)^(nu_m:0)
+    binom2 <- choose(nu_m, 0:nu_m) * p2^(0:nu_m) * (1-p2)^(nu_m:0)
   else
-    binom_2 <- dnorm(0:nu_m, mean=nu_m*p2, sd=sqrt(nu_m*p2*(1-p2)))
-  cum_binom_2 <- cumsum(binom_2)
-  cum_binom_2 <- c(0, cum_binom_2[-NROW(cum_binom_2)])
-  sum(binom_1 * (cum_binom_2 + binom_2/2))
+    binom2 <- dnorm(0:nu_m, mean=nu_m*p2, sd=sqrt(nu_m*p2*(1-p2)))
+  cum_binom2 <- cumsum(binom2)
+  cum_binom2 <- c(0, cum_binom2[-NROW(cum_binom2)])
+  sum(binom1 * (cum_binom2 + binom2/2))
 }  # end confi_dence
 
 # Probability of selecting skilled manager with 20 years of data
-confi_dence(20*250, pro_b, 0.5)
+confi_dence(20*250, probv, 0.5)
 
 # Annual probabilities of selecting skilled manager
-year_s <- 1:50
-prob_s <- sapply(250*year_s, confi_dence, p1=pro_b, p2=0.5)
+years <- 1:50
+probs <- sapply(250*years, confi_dence, p1=probv, p2=0.5)
 
 # Years of data needed to select the skilled manager, with 95% confidence
-num_years <- findInterval(0.95, prob_s)
+num_years <- findInterval(0.95, probs)
 num_years
 
 # Load plotly
 suppressMessages(suppressWarnings(library(plotly)))
 # Create data frame
-da_ta <- data.frame(years=year_s, probs=prob_s)
+datav <- data.frame(years=years, probs=probs)
 # Plot with plotly using pipes syntax
-da_ta %>% 
+datav %>% 
   plot_ly(x=~years, y=~probs, type="scatter", mode="lines + markers", name="probability") %>% 
-  add_trace(x=range(year_s), y=0.95, mode="lines", line=list(color="red"), name="95% confidence") %>% 
-  add_trace(x=num_years, y=range(prob_s), mode="lines", line=list(color="green"), name=paste(num_years, "years")) %>% 
+  add_trace(x=range(years), y=0.95, mode="lines", line=list(color="red"), name="95% confidence") %>% 
+  add_trace(x=num_years, y=range(probs), mode="lines", line=list(color="green"), name=paste(num_years, "years")) %>% 
   layout(title="Probability of selecting skilled manager", 
          xaxis=list(title="years"),
          yaxis=list(title="probabilities"),

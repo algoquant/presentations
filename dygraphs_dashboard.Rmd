@@ -29,43 +29,43 @@ Uses the package *dygraphs* to create the dygraphs objects in a loop, and then u
 # create new environment for data
 data_env <- new.env()
 dir_data <- "C:/Develop/data/bbg_records"
-# sym_bols <- c("SPX", "VIX")
-# file_names <- paste0(sym_bols, ".csv")
+# symbols <- c("SPX", "VIX")
+# file_names <- paste0(symbols, ".csv")
 file_names <- dir(dir_data)
-sym_bols <- rutils::get_name(file_names)
+symbols <- rutils::get_name(file_names)
 
 # load data from csv files into the environment
-out <- rutils::get_data(sym_bols=sym_bols,
+out <- rutils::get_data(symbols=symbols,
                         data_dir=dir_data,
                         data_env=data_env,
-                        e_cho=FALSE)
+                        echo=FALSE)
 
 
 ## Extract the closing prices into a single xts time series
 
-# price_s <- lapply(as.list(data_env)[sym_bols], quantmod::Cl)
+# prices <- lapply(as.list(data_env)[symbols], quantmod::Cl)
 # flatten (cbind) prices into single xts series
-# price_s <- rutils::do_call(cbind, price_s)
+# prices <- rutils::do_call(cbind, prices)
 
-price_s <- rutils::get_col(oh_lc=ls(data_env), 
+prices <- rutils::get_col(ohlc=ls(data_env), 
                            data_env=data_env)
 # remove NA values
-price_s <- rutils::na_locf(price_s)
-price_s <- rutils::na_locf(price_s, from_last=TRUE)
+prices <- rutils::na_locf(prices)
+prices <- rutils::na_locf(prices, from_last=TRUE)
 # save column names
-col_names <- colnames(price_s)
+colnamevs <- colnames(prices)
 
 
 cat("\n")
 # create a list of dygraphs objects in loop
-dy_graphs <- lapply(1:NCOL(price_s), function(i) {
-  # cat("Plot of: ", sym_bols[i], "\n")
-  # plot(zoo::coredata(price_s[, i]), main=paste("Plot of:", sym_bols[i]), t="l")
-  # plot(quantmod::chart_Series(price_s[, i], name=paste("Plot of:", sym_bols[i])))
+dyplots <- lapply(1:NCOL(prices), function(i) {
+  # cat("Plot of: ", symbols[i], "\n")
+  # plot(zoo::coredata(prices[, i]), main=paste("Plot of:", symbols[i]), t="l")
+  # plot(quantmod::chart_Series(prices[, i], name=paste("Plot of:", symbols[i])))
   # the fig.width and fig.height chunck options are ignored by dygraphs, so need to use the width and height parameters directly
-  dygraphs::dygraph(price_s[, i], main=paste("Plot of:", col_names[i]), width=600, height=400)
+  dygraphs::dygraph(prices[, i], main=paste("Plot of:", colnamevs[i]), width=600, height=400)
 })  # end lapply
 
 # render the dygraphs objects
-htmltools::tagList(dy_graphs)
+htmltools::tagList(dyplots)
 ```

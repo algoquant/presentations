@@ -16,22 +16,22 @@ library(dygraphs)
 ## Model and data setup
 
 # Load the VIX data
-svx_y <- log(quantmod::Cl(get("SVXY", rutils::etfenv)))
-dates <- zoo::index(svx_y)
-vx_x <- log(quantmod::Cl(get("VXX", rutils::etfenv)))
-vx_x <- vx_x[dates]
+svxy <- log(quantmod::Cl(get("SVXY", rutils::etfenv)))
+dates <- zoo::index(svxy)
+vxx <- log(quantmod::Cl(get("VXX", rutils::etfenv)))
+vxx <- vxx[dates]
 vtis <- log(get("VTI", rutils::etfenv))
 vtis <- vtis[dates]
 vti_close <- quantmod::Cl(vtis)
 
-cap_tion <- paste("Z-score of VXX Regression Versus VTI Volatility and SVXY Prices")
+captiont <- paste("Z-score of VXX Regression Versus VTI Volatility and SVXY Prices")
 
 ## End setup code
 
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel(cap_tion),
+  titlePanel(captiont),
 
   fluidRow(
     # Input stock symbol
@@ -69,7 +69,7 @@ uiface <- shiny::fluidPage(
 servfunc <- function(input, output) {
 
   # Create an empty list of reactive values.
-  value_s <- reactiveValues()
+  values <- reactiveValues()
 
   # Load the data
   ohlc <- reactive({
@@ -98,67 +98,68 @@ servfunc <- function(input, output) {
     returns <- rutils::diffit(closep)
     # returns <- returns/sd(returns)
     cum_rets <- cumsum(returns)
-   .n_rows <- NROW(returns)
+    nrows <- NROW(returns)
 
     # Calculate rolling volatility
-    variance <- HighFreq::roll_var_ohlc(ohlc=vtis, look_back=look_back, scalit=FALSE)
+    variance <- HighFreq::roll_var_ohlc(ohlc=vtis, look_back=look_back, scale=FALSE)
 
-    # Create design matrix
+    # Create predictor matrix
     if (symbol == "SVXY") {
       # If traded symbol is SVXY then regression of SVXY against VXX
-      design <- cbind(sqrt(variance), vx_x, vti_close)
-      response <- svx_y
+      predictor <- cbind(sqrt(variance), vxx, vti_close)
+      response <- svxy
     } else {
       # Regression of VXX against SVXY
-      design <- cbind(sqrt(variance), svx_y, vti_close)
-      response <- vx_x
+      predictor <- cbind(sqrt(variance), svxy, vti_close)
+      response <- vxx
     }  # end if
     
     # Calculate trailing z-scores
-    z_scores <- drop(HighFreq::roll_zscores(response=response, design=design, look_back=look_back))
-    # colnames(z_scores) <- "zscore"
-    z_scores[1:look_back] <- 0
-    z_scores[is.infinite(z_scores)] <- 0
-    z_scores[is.na(z_scores)] <- 0
+    zscores <- HighFreq::roll_reg(response=returns, predictor=predictor, look_back=look_back)
+    zscores <- zscores[, NCOL(zscores)]
+    # colnames(zscores) <- "zscore"
+    zscores[1:look_back] <- 0
+    zscores[is.infinite(zscores)] <- 0
+    zscores[is.na(zscores)] <- 0
 
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
-    # This is designed to prevent whipsaws and over-trading.
-    # position_s <- ifelse(indic == indic_lag, indic, position_s)
+    # This is predictored to prevent whipsaws and over-trading.
+    # posit <- ifelse(indic == indic_lag, indic, posit)
     
-    indic <- rep(NA_integer_,.n_rows)
+    indic <- rep(NA_integer_, nrows)
     indic[1] <- 0
     # Flip position if the scaled returns exceed threshold
     threshold <- input$threshold
-    indic[z_scores > threshold] <- coeff
-    indic[z_scores < (-threshold)] <- (-coeff)
+    indic[zscores > threshold] <- coeff
+    indic[zscores < (-threshold)] <- (-coeff)
     indic <- zoo::na.locf(indic, na.rm=FALSE)
 
     
     indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
     indic_sum[1:lagg] <- 0
-    position_s <- rep(NA_integer_,.n_rows)
-    position_s[1] <- 0
-    position_s <- ifelse(indic_sum == lagg, 1, position_s)
-    position_s <- ifelse(indic_sum == (-lagg), -1, position_s)
-    position_s <- zoo::na.locf(position_s, na.rm=FALSE)
-    position_s[1:lagg] <- 0
+    posit <- rep(NA_integer_, nrows)
+    posit[1] <- 0
+    posit <- ifelse(indic_sum == lagg, 1, posit)
+    posit <- ifelse(indic_sum == (-lagg), -1, posit)
+    posit <- zoo::na.locf(posit, na.rm=FALSE)
+    posit[1:lagg] <- 0
 
     # Calculate indicator of flipping the positions
-    indic <- rutils::diffit(position_s)
+    indic <- rutils::diffit(posit)
     # Calculate number of trades
-    value_s$n_trades <- sum(abs(indic)>0)
+    values$ntrades <- sum(abs(indic)>0)
     
     # Add buy/sell indicators for annotations
     indic_buy <- (indic > 0)
     indic_sell <- (indic < 0)
     
     # Lag the positions to trade in next period
-    position_s <- rutils::lagit(position_s, lagg=1)
+    posit <- rutils::lagit(posit, lagg=1)
     
     # Calculate strategy pnls
-    pnls <- position_s*returns
+    pnls <- posit*returns
     
     # Calculate transaction costs
     costs <- 0.5*input$bid_offer*abs(indic)
@@ -171,8 +172,8 @@ servfunc <- function(input, output) {
     pnls <- cbind(returns, pnls)
     
     # Calculate Sharpe ratios
-    sharp_e <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
-    value_s$sharp_e <- round(sharp_e, 3)
+    sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
+    values$sharper <- round(sharper, 3)
 
     # Bind with indicators
     pnls <- cumsum(pnls)
@@ -195,19 +196,19 @@ servfunc <- function(input, output) {
     colnamev <- colnames(pnls)
     
     # Get Sharpe ratios
-    sharp_e <- value_s$sharp_e
+    sharper <- values$sharper
     # Get number of trades
-    n_trades <- value_s$n_trades
+    ntrades <- values$ntrades
     
-    cap_tion <- paste("Strategy for", input$symbol, "Regression Z-score / \n", 
-                      paste0(c("Index SR=", "Strategy SR="), sharp_e, collapse=" / "), "/ \n",
-                      "Number of trades=", n_trades)
+    captiont <- paste("Strategy for", input$symbol, "Regression Z-score / \n", 
+                      paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
+                      "Number of trades=", ntrades)
     
     # Plot with annotations
     add_annotations <- input$add_annotations
     
     if (add_annotations == "True") {
-      dygraphs::dygraph(pnls, main=cap_tion) %>%
+      dygraphs::dygraph(pnls, main=captiont) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
         dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%
@@ -215,7 +216,7 @@ servfunc <- function(input, output) {
         dySeries(name=colnamev[3], axis="y", label=colnamev[3], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
         dySeries(name=colnamev[4], axis="y", label=colnamev[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
     } else if (add_annotations == "False") {
-      dygraphs::dygraph(pnls[, 1:2], main=cap_tion) %>%
+      dygraphs::dygraph(pnls[, 1:2], main=captiont) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
         dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%

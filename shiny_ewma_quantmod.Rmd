@@ -12,11 +12,11 @@ runtime: shiny
 knitr::opts_chunk$set(echo=TRUE)
 library(HighFreq)  # load package HighFreq
 # select OHLC data
-oh_lc <- rutils::etf_env$VTI["/2011"]
+ohlc <- rutils::etfenv$VTI["/2011"]
 # calculate close prices
-cl_ose <- Cl(oh_lc)
+closep <- Cl(ohlc)
 # define lookback window and decay parameter
-win_dow <- 51
+look_back <- 51
 plot_theme <- chart_theme()
 plot_theme$col$line.col <- c("orange", "blue")
 
@@ -25,27 +25,27 @@ plot_theme$col$line.col <- c("orange", "blue")
 
 ```{r ewma_model, echo=FALSE}
 inputPanel(
-  sliderInput("lamb_da", label="lambda:",
+  sliderInput("lambda", label="lambda:",
               min=0.01, max=0.2, value=0.1, step=0.01)
 )  # end inputPanel
 
 renderPlot({
   
-  lamb_da <- input$lamb_da
+  lambda <- input$lambda
   
   # calculate EWMA prices
-  weight_s <- exp(-lamb_da*1:win_dow)
-  weight_s <- weight_s/sum(weight_s)
-  ew_ma <- filter(cl_ose, filter=weight_s, sides=1)
-  ew_ma[1:(win_dow-1)] <- ew_ma[win_dow]
-  ew_ma <- xts(cbind(cl_ose, ew_ma),
-               order.by=index(oh_lc))
+  weightv <- exp(-lambda*1:look_back)
+  weightv <- weightv/sum(weightv)
+  ew_ma <- filter(closep, filter=weightv, sides=1)
+  ew_ma[1:(look_back-1)] <- ew_ma[look_back]
+  ew_ma <- xts(cbind(closep, ew_ma),
+               order.by=index(ohlc))
   colnames(ew_ma) <- c("VTI", "VTI EWMA")
   
   # plot EWMA prices
   # x11(width=12, height=9)
-  ch_ob <- chart_Series(ew_ma, theme=plot_theme, name="EWMA prices")
-  plot(ch_ob)
+  chobj <- chart_Series(ew_ma, theme=plot_theme, name="EWMA prices")
+  plot(chobj)
   legend("top", legend=colnames(ew_ma), 
          inset=0.1, bg="white", lty=c(1, 1), lwd=c(2, 2), 
          col=plot_theme$col$line.col, bty="n")

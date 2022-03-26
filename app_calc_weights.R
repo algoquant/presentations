@@ -15,7 +15,7 @@ library(dygraphs)
 # source the model function
 # source("C:/Develop/lecture_slides/scripts/roll_portf_new.R")
 # max_eigen <- 2
-load("C:/Develop/lecture_slides/data/sp500_prices.RData")
+load("/Users/jerzy/Develop/lecture_slides/data/sp500_prices.RData")
 # returns <- returns100
 returns <- returns[, !is.na(returns[NROW(returns), ])]
 returns <- returns[, !is.na(returns[NROW(returns)-1000, ])]
@@ -73,9 +73,9 @@ servfunc <- function(input, output) {
     # endpoints <- rutils::calc_endpoints(returns, interval=interval)
     # endpoints <- ifelse(endpoints<(nweights+1), nweights+1, endpoints)
     # endpoints <- endpoints[endpoints > (nweights+1)]
-    #.n_rows <- NROW(endpoints)
+    # nrows <- NROW(endpoints)
     # Define startpoints
-    # startpoints <- c(rep_len(1, look_back-1), endpoints[1:.n_rows-look_back+1)])
+    # startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
     # rerun the model
     weights = HighFreq::calc_weights(returns, max_eigen=max_eigen);
     

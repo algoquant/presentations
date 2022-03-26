@@ -49,7 +49,7 @@ symbolv <- unique(rutils::get_name(colnames(com_bo)))
 # UX1: close_high_thresh=2, close_low_thresh=2, lagg=1
 # UX1: close_high_thresh=3, close_low_thresh=3, lagg=1
 
-# cap_tion <- "Contrarian Strategy Using OHLC Technical Indicators"
+# captiont <- "Contrarian Strategy Using OHLC Technical Indicators"
 
 
 ## End setup code
@@ -101,8 +101,8 @@ servfunc <- shiny::shinyServer(function(input, output) {
     
     ## Extract model parameters from the argument "input"
     # beta_ret <- input$beta_ret
-    # en_ter <- input$en_ter
-    # ex_it <- input$ex_it
+    # enter <- input$enter
+    # exit <- input$exit
     # beta_vol <- input$beta_vol
     # betaskew <- input$betaskew
     # betamoment <- input$betamoment
@@ -115,7 +115,7 @@ servfunc <- shiny::shinyServer(function(input, output) {
     lagg <- input$lagg
     close_high_thresh <- input$close_high_thresh
     close_low_thresh <- input$close_low_thresh
-    # weights <- c(beta_ret, en_ter, beta_vol, betaskew)
+    # weights <- c(beta_ret, enter, beta_vol, betaskew)
     # weights <- c(beta_ret, beta_vol, betaskew, betamoment, beta_ophi, beta_clhi)
     
     ## Set up data for signal
@@ -152,23 +152,23 @@ servfunc <- shiny::shinyServer(function(input, output) {
 
     ## Simulate strategy
     
-    position_s <- rep(NA_integer_, NROW(ohlc))
-    position_s[1] <- 0
-    # position_s[close_high] <- (-1)
-    # position_s[close_low] <- 1
-    # position_s[open_low & close_high] <- (-1)
-    # position_s[open_high & close_low] <- 1
-    position_s[close_high_count > close_high_thresh] <- (-1)
-    position_s[close_low_count > close_low_thresh] <- 1
-    position_s <- zoo::na.locf(position_s)
-    position_s <- rutils::lagit(position_s, lagg=lagg)
+    posit <- rep(NA_integer_, NROW(ohlc))
+    posit[1] <- 0
+    # posit[close_high] <- (-1)
+    # posit[close_low] <- 1
+    # posit[open_low & close_high] <- (-1)
+    # posit[open_high & close_low] <- 1
+    posit[close_high_count > close_high_thresh] <- (-1)
+    posit[close_low_count > close_low_thresh] <- 1
+    posit <- zoo::na.locf(posit)
+    posit <- rutils::lagit(posit, lagg=lagg)
     # Calculate number of trades
-    # turn_over <- abs(rutils::diffit(position_s)) / 2
-    # sum(turn_over)/NROW(position_s)
-    # NROW(position_s)/sum(turn_over)
+    # turn_over <- abs(rutils::diffit(posit)) / 2
+    # sum(turn_over)/NROW(posit)
+    # NROW(posit)/sum(turn_over)
     
     # Calculate pnls
-    pnls <- cumsum(position_s*returns)
+    pnls <- cumsum(posit*returns)
     pnls <- cbind(closep, pnls)#[xts::endpoints(pnls, on="days")]
     # pnls <- xts::to.daily(cbind(closep, pnls))
     # colnames(pnls) <- c("asset", "strategy")
@@ -180,85 +180,85 @@ servfunc <- shiny::shinyServer(function(input, output) {
     # close_low_count <- (close_num == max_min[, 2])
     
     # calculate signal
-    # sig_nal <- closep
+    # score <- closep
     # trending signal
     # signal_trend <- calc_signal(ohlc=ohlc, closep=close_num,
-    #                             design=design,
+    #                             predictor=predictor,
     #                             look_short=look_short, look_long=look_long, high_freq=FALSE)
     # signal_trend <- calc_ma(ohlc=ohlc, closep=close_num,
-    #                         design=design,
+    #                         predictor=predictor,
     #                         look_back=look_long, high_freq=FALSE)
     
     # mean reverting signal
     # signal_revert <- ohlc[, 1]  # dummy signal
     # signal_revert <- calc_signal(ohlc=ohlc, closep=close_num,
-    #                             design=design,
+    #                             predictor=predictor,
     #                             look_short=look_short)
     # signal_revert <- HighFreq::roll_zscores(response=close_num, 
-    #                         design=design, 
+    #                         predictor=predictor, 
     #                         look_back=look_short)
-    # sig_nal[1:look_short, ] <- 0
-    # scale sig_nal using HighFreq::roll_scale()
-    # sig_nal <- roll::roll_scale(data=sig_nal, width=look_short, min_obs=1)
-    # sig_nal <- HighFreq::roll_scale(matrixv=sig_nal, look_back=look_short, use_median=TRUE)
-    # sig_nal[1:look_short, ] <- 0
-    # sig_nal[is.infinite(sig_nal), ] <- 0
-    # sig_nal <- rutils::lagit(sig_nal, lagg=1)
+    # score[1:look_short, ] <- 0
+    # scale score using HighFreq::roll_scale()
+    # score <- roll::roll_scale(data=score, width=look_short, min_obs=1)
+    # score <- HighFreq::roll_scale(matrixv=score, look_back=look_short, use_median=TRUE)
+    # score[1:look_short, ] <- 0
+    # score[is.infinite(score), ] <- 0
+    # score <- rutils::lagit(score, lagg=1)
     # calculate positions, either: -1, 0, or 1
-    # position_s <- -sign(sig_nal)
+    # posit <- -sign(score)
     # calculate positions, either: -1, 0, or 1
-    # position_s <- rep(NA_integer_, NROW(ohlc))
-    # position_s[1] <- 0
-    # position_s[(sig_nal < (-en_ter)) & close_low] <- 1
-    # position_s[(sig_nal > en_ter) & close_high] <- (-1)
-    # position_s[abs(sig_nal) < ex_it] <- 0
-    # position_s <- na.locf(position_s)
-    # position_s <- rutils::lagit(position_s, lagg=1)
-    # # position_s <- position_s + rutils::lagit(position_s, lagg=1) + rutils::lagit(position_s, lagg=2)
-    # position_s <- rutils::lagit(position_s, lagg=lagg)
+    # posit <- rep(NA_integer_, NROW(ohlc))
+    # posit[1] <- 0
+    # posit[(score < (-enter)) & close_low] <- 1
+    # posit[(score > enter) & close_high] <- (-1)
+    # posit[abs(score) < exit] <- 0
+    # posit <- na.locf(posit)
+    # posit <- rutils::lagit(posit, lagg=1)
+    # # posit <- posit + rutils::lagit(posit, lagg=1) + rutils::lagit(posit, lagg=2)
+    # posit <- rutils::lagit(posit, lagg=lagg)
 
     # trending signal
-    # sig_nal <- HighFreq::roll_zscores(response=closep, 
-    #                         design=design, 
+    # score <- HighFreq::roll_zscores(response=closep, 
+    #                         predictor=predictor, 
     #                         look_back=look_long)
-    # sig_nal[1:look_long, ] <- 0
-    # sig_nal <- rutils::lagit(sig_nal)
+    # score[1:look_long, ] <- 0
+    # score <- rutils::lagit(score)
     # calculate positions, either: -1, 0, or 1
-    # position_s <- position_s + sign(sig_nal)
-    # position_s <- rep(NA_integer_, NROW(ohlc))
-    # position_s[1] <- 0
-    # position_s[sig_nal<beta_vol] <- (-1)
-    # position_s[sig_nal>beta_vol] <- 1
-    # position_s <- na.locf(position_s)
+    # posit <- posit + sign(score)
+    # posit <- rep(NA_integer_, NROW(ohlc))
+    # posit[1] <- 0
+    # posit[score<beta_vol] <- (-1)
+    # posit[score>beta_vol] <- 1
+    # posit <- na.locf(posit)
     # pnls <- signal_revert
-    # pnls <- cumsum(position_s*returns)
+    # pnls <- cumsum(posit*returns)
     # colnames(pnls) <- "strategy"
     
-    # sim_revert(signal_revert, returns_trade, close_high, close_high_count, close_low, close_low_count, en_ter, ex_it, lagg)
+    # sim_revert(signal_revert, returns_trade, close_high, close_high_count, close_low, close_low_count, enter, exit, lagg)
     
-    # sim_trend(signal_trend, returns_trade, en_ter, ex_it, close_high_trade, close_low_trade, lagg)
+    # sim_trend(signal_trend, returns_trade, enter, exit, close_high_trade, close_low_trade, lagg)
     
-    # sim_trend(signal_trend, returns, close_high, close_low, en_ter, ex_it, lagg)
-    # sim_revert_trending(signal_revert, signal_trend, returns, en_ter, ex_it, close_high_trade, close_low_trade, lagg)
-    # position_s <- xts(position_s, index(ohlc))
-    # colnames(position_s) <- "strategy"
+    # sim_trend(signal_trend, returns, close_high, close_low, enter, exit, lagg)
+    # sim_revert_trending(signal_revert, signal_trend, returns, enter, exit, close_high_trade, close_low_trade, lagg)
+    # posit <- xts(posit, index(ohlc))
+    # colnames(posit) <- "strategy"
     # pnls
   })  # end reactive code
   
   # return the dygraph plot to output argument
   output$dygraph <- dygraphs::renderDygraph({
     colnamev <- colnames(datav())
-    cap_tion <- paste("Contrarian Strategy for", colnamev[1], "Using OHLC Technical Indicators")
+    captiont <- paste("Contrarian Strategy for", colnamev[1], "Using OHLC Technical Indicators")
     
     # plot daily closing prices
-    # dygraphs::dygraph(cbind(closep, datav())[endpoints(closep, on="days")], main=cap_tion) %>%
+    # dygraphs::dygraph(cbind(closep, datav())[endpoints(closep, on="days")], main=captiont) %>%
       # plot daily closing ES1 prices
-      # dygraphs::dygraph(datav(), main=cap_tion) %>%
-      dygraphs::dygraph(datav(), main=cap_tion) %>%
+      # dygraphs::dygraph(datav(), main=captiont) %>%
+      dygraphs::dygraph(datav(), main=captiont) %>%
       # plot a few days with all the minute bars
-      # dygraphs::dygraph(cbind(closep, datav())["2018-02-01/2018-02-07"], main=cap_tion) %>%
+      # dygraphs::dygraph(cbind(closep, datav())["2018-02-01/2018-02-07"], main=captiont) %>%
       # plot a few days with all the ES1 minute bars
-      # dygraphs::dygraph(cbind(Cl(ohlc_trade), datav())["2018-02-01/2018-02-07"], main=cap_tion) %>%
+      # dygraphs::dygraph(cbind(Cl(ohlc_trade), datav())["2018-02-01/2018-02-07"], main=captiont) %>%
       # dyAxis("y", label="asset", independentTicks=TRUE) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%

@@ -17,7 +17,7 @@ library(HighFreq)
 # Source the model function
 # Source("C:/Develop/lecture_slides/scripts/roll_portf_new.R")
 # max_eigen <- 2
-load("C:/Develop/lecture_slides/data/sp500_prices.RData")
+load("/Users/jerzy/Develop/lecture_slides/data/sp500_prices.RData")
 returns <- returns["2000/"]
 # Random data
 # returns <- xts(matrix(rnorm(NROW(returns100)*NCOL(returns100)), nc=NCOL(returns100)), 
@@ -54,7 +54,7 @@ uiface <- shiny::fluidPage(
     # Input look-back lag interval
     # column(width=2, sliderInput("look_lag", label="Lookback lag interval", min=1, max=10, value=2, step=1)),
     # Input the weight decay parameter
-    # column(width=2, sliderInput("lambdav", label="Weight decay:",
+    # column(width=2, sliderInput("lambda", label="Weight decay:",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input model weights type
     column(width=2, selectInput("typev", label="Portfolio weights type",
@@ -86,7 +86,7 @@ servfunc <- function(input, output) {
     max_eigen <- isolate(input$max_eigen)
     look_back <- isolate(input$look_back)
     # look_lag <- isolate(input$look_lag
-    lambdav <- isolate(input$lambdav)
+    lambda <- isolate(input$lambda)
     typev <- isolate(input$typev)
     alpha <- isolate(input$alpha)
     coeff <- as.numeric(isolate(input$coeff))
@@ -96,14 +96,14 @@ servfunc <- function(input, output) {
     
     # Define end points
     endpoints <- rutils::calc_endpoints(returns, interval=interval)
-    # endpoints <- ifelse(endpoints<.n_cols+1),.n_cols+1, endpoints)
-    endpoints <- endpoints[endpoints > .n_cols+1)]
-   .n_rows <- NROW(endpoints)
+    # endpoints <- ifelse(endpoints< ncols+1), ncols+1, endpoints)
+    endpoints <- endpoints[endpoints > (ncols+1)]
+    nrows <- NROW(endpoints)
     # Define startpoints
-    startpoints <- c(rep_len(1, look_back-1), endpoints[1:.n_rows-look_back+1)])
+    startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
     
     # Calculate the weights - commented out because it produces leak
-    # weights <- exp(-lambdav*1:look_back)
+    # weights <- exp(-lambda*1:look_back)
     # weights <- weights/sum(weights)
     # weights <- matrix(weights, nc=1)
     # excess <- HighFreq::roll_conv(returns, weights=weights)

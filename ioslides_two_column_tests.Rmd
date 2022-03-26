@@ -35,7 +35,7 @@ Below is an example of two-column layout using *CSS* code.
 The location of the break between columns is specified by the *CSS* style code in the file slides.css.  
 The left column is 40%, and the right is 60% of the page width.  
 
-<div class="column_left_40">
+<div class="column_left40">
 The left column contains *R* code that returns the summary of the *cars* data frame:  
 ```{r, sum_cars, eval=FALSE, echo=TRUE, results="hold"}
 summary(cars)
@@ -83,11 +83,11 @@ plot(x_var, y_var, type="l", lty="solid",
      xlab="", ylab="")
 title(main="Normal Density Function", line=0.5)
 # Set shading range
-star_t <- 3; fin_ish <- 5
+startd <- 3; fin_ish <- 5
 # Set polygon base
-are_a <- ((x_var >= star_t) & (x_var <= fin_ish))
+are_a <- ((x_var >= startd) & (x_var <= fin_ish))
 # Draw shaded area
-polygon(c(star_t, x_var[are_a], fin_ish),
+polygon(c(startd, x_var[are_a], fin_ish),
         c(-1, y_var[are_a], -1), col="red")
 ```
 

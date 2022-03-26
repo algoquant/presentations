@@ -17,35 +17,35 @@ library(HighFreq)
 # Source the model function
 # Source("C:/Develop/lecture_slides/scripts/roll_portf_new.R")
 # max_eigen <- 2
-load("C:/Develop/lecture_slides/data/sp500_returns.RData")
-ret_s <- returns100["2000/"]
-symbolv <- colnames(ret_s)
-ncols <- NCOL(ret_s)
+load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
+rets <- returns100["2000/"]
+symbolv <- colnames(rets)
+ncols <- NCOL(rets)
 # Copy over NA values
-ret_s[1, is.na(ret_s[1, ])] <- 0
-ret_s <- zoo::na.locf(ret_s, na.rm=FALSE)
+rets[1, is.na(rets[1, ])] <- 0
+rets <- zoo::na.locf(rets, na.rm=FALSE)
 # Calculate returns on equal weight portfolio
-indeks <- rowMeans(ret_s)
+indeks <- rowMeans(rets)
 stdev <- sd(indeks[indeks<0])
-# sharp_e <- sqrt(252)*mean(indeks)/stdev
-indeks <- xts(indeks, index(ret_s))
+# sharper <- sqrt(252)*mean(indeks)/stdev
+indeks <- xts(indeks, index(rets))
 
 # Calculate vector of monthly end points and start points
 look_back <- 12
-endpoints <- rutils::calc_endpoints(ret_s, interval="months")
-endpoints[endpoints<2.n_cols] <- 2.n_cols
+endpoints <- rutils::calc_endpoints(rets, interval="months")
+endpoints[endpoints<2*ncols] <- 2*ncols
 nrows <- NROW(endpoints)
 # sliding window
-startpoints <- c(rep_len(1, look_back-1), endpoints[1:.n_rows-look_back+1)])
+startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
 # OR expanding window
 # startpoints <- rep_len(1, NROW(endpoints))
 # riskf is the daily risk-free rate
 riskf <- 0.03/252
 # Calculate daily excess returns 
-excess <- ret_s - riskf
+excess <- rets - riskf
 
-percen_tile <- 0.1
-quan_tile <- round(percen_tile.n_cols)
+percent <- 0.1
+quantilev <- round(percent*ncols)
 
 ## End setup code
 
@@ -72,7 +72,7 @@ uiface <- shiny::fluidPage(
     # Input look-back lag interval
     # column(width=2, sliderInput("look_lag", label="Lookback lag interval", min=1, max=10, value=2, step=1)),
     # Input the weight decay parameter
-    # column(width=2, sliderInput("lambdav", label="Weight decay:",
+    # column(width=2, sliderInput("lambda", label="Weight decay:",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input model weights type
     # column(width=2, selectInput("typev", label="Portfolio weights type",
@@ -83,7 +83,7 @@ uiface <- shiny::fluidPage(
     # column(width=2, sliderInput("alpha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input the percentile
-    column(width=2, sliderInput("percen_tile", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
+    column(width=2, sliderInput("percent", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
     # Input the strategy factor: coeff=1 for momentum, and coeff=-1 for contrarian
     column(width=2, selectInput("coeff", "factor (1 momentum, -1 contrarian):", choices=c(-1, 1), selected=(-1))),
     # Input the bid-offer spread
@@ -106,60 +106,60 @@ servfunc <- function(input, output) {
     # max_eigen <- isolate(input$max_eigen)
     look_back <- isolate(input$look_back)
     # look_lag <- isolate(input$look_lag
-    # lambdav <- isolate(input$lambdav)
+    # lambda <- isolate(input$lambda)
     # typev <- isolate(input$typev)
     # alpha <- isolate(input$alpha)
-    percen_tile <- isolate(input$percen_tile)
+    percent <- isolate(input$percent)
     coeff <- as.numeric(isolate(input$coeff))
     bid_offer <- isolate(input$bid_offer)
     # Model is recalculated when the re_calculate variable is updated
     input$re_calculate
     
     # Define end points
-    endpoints <- rutils::calc_endpoints(ret_s, interval=interval)
-    # endpoints <- ifelse(endpoints<.n_cols+1),.n_cols+1, endpoints)
-    endpoints <- endpoints[endpoints > .n_cols+1)]
-   .n_rows <- NROW(endpoints)
+    endpoints <- rutils::calc_endpoints(rets, interval=interval)
+    # endpoints <- ifelse(endpoints< ncols+1), ncols+1, endpoints)
+    endpoints <- endpoints[endpoints > (ncols+1)]
+    nrows <- NROW(endpoints)
     # Define startpoints
-    startpoints <- c(rep_len(1, look_back-1), endpoints[1:.n_rows-look_back+1)])
+    startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
     
     # Define quantile
-    quan_tile <- round(percen_tile.n_cols)
+    quantilev <- round(percent*ncols)
     
     # Calculate the weights - commented out because it produces leak
-    # weights <- exp(-lambdav*1:look_back)
+    # weights <- exp(-lambda*1:look_back)
     # weights <- weights/sum(weights)
     # weights <- matrix(weights, nc=1)
-    # excess <- HighFreq::roll_conv(ret_s, weights=weights)
+    # excess <- HighFreq::roll_conv(rets, weights=weights)
     # excess <- rutils::lagit(excess, lagg=look_lag)
     
     # Rerun the model
-    pnls <- lapply(2.n_rows, function(it) {
+    pnls <- lapply(2:nrows, function(it) {
       # Subset the excess returns
       sub_excess <- excess[startpoints[it-1]:endpoints[it-1], ]
       # Calculate the signal as volatility
       stdev <- sapply(sub_excess, sd)
-      # sig_nal <- stdev
+      # score <- stdev
       # Calculate the signal as Sharpe ratio
-      sig_nal <- ifelse(is.na(stdev) | (stdev == 0), 0, colSums(sub_excess)/stdev)
+      score <- ifelse(is.na(stdev) | (stdev == 0), 0, colSums(sub_excess)/stdev)
       # Calculate the signal as beta
       # indeks <- indeks[startpoints[it-1]:endpoints[it-1], ]
       # indeks <- (indeks - mean(indeks))
       # sub_excess <- (sub_excess - colMeans(sub_excess))
-      # sig_nal <- mean(drop(coredata(indeks))*sub_excess)/sapply(sub_excess, var)
+      # score <- mean(drop(coredata(indeks))*sub_excess)/sapply(sub_excess, var)
       ## Calculate the portfolio weights as ranks
-      # weights <- coeff*sig_nal
+      # weights <- coeff*score
       ## Calculate the portfolio weights as quantiles
-      weights <- numeric.n_cols)
+      weights <- numeric(ncols)
       names(weights) <- symbolv
       # Calculate the signal order
-      ordern <- order(sig_nal)
-      weights[ordern[1:quan_tile]] <- (-coeff)
-      weights[ordern[.n_cols-quan_tile+1).n_cols]] <- coeff
+      ordern <- order(score)
+      weights[ordern[1:quantilev]] <- (-coeff)
+      weights[ordern[(ncols-quantilev+1):ncols]] <- coeff
       # Scale the weights
       weights <- weights/sum(abs(weights))
-      # Subset the ret_s
-      sub_returns <- ret_s[(endpoints[it-1]+1):endpoints[it], ]
+      # Subset the rets
+      sub_returns <- rets[(endpoints[it-1]+1):endpoints[it], ]
       # Calculate the out-of-sample portfolio returns
       xts(sub_returns %*% weights, index(sub_returns))
     }  # end anonymous function
@@ -169,10 +169,10 @@ servfunc <- function(input, output) {
     pnls <- rutils::do_call(rbind, pnls)
     pnls <- stdev*pnls/sd(pnls[pnls<0])
     pnls <- cbind(pnls, indeks[index(pnls)])
-    sharp_e <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
-    sharp_e <- round(sharp_e, 3)
+    sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
+    sharper <- round(sharper, 3)
     pnls <- cumsum(pnls)
-    colnames(pnls) <- paste0(c("Strategy SR=", "Index SR="), sharp_e)
+    colnames(pnls) <- paste0(c("Strategy SR=", "Index SR="), sharper)
     # pnls[c(1, endpoints), ]
     pnls
   })  # end reactive code

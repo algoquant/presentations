@@ -70,9 +70,9 @@ servfunc <- shiny::shinyServer(function(input, output) {
     # weights <- c(beta_ret, beta_vol, betaskew, betamoment, beta_ophi, beta_clhi)
     
     # simulate strategy
-    sig_nal <- xts(indicator_s %*% weights, order.by=index(ohlc))
-    sig_nal <- rutils::lagit(sig_nal)
-    pnls <- cumsum(sig_nal*returns)
+    score <- xts(indicator_s %*% weights, order.by=index(ohlc))
+    score <- rutils::lagit(score)
+    pnls <- cumsum(score*returns)
     colnames(pnls) <- "strategy"
     pnls
   })  # end reactive code

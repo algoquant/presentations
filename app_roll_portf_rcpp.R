@@ -18,7 +18,7 @@ library(HighFreq)
 # Compile Rcpp code from package HighFreq
 Rcpp::sourceCpp(file="C:/Develop/lecture_slides/assignments/rcpp_strat.cpp")
 # Model and data setup
-load("C:/Develop/lecture_slides/data/sp500_prices.RData")
+load("/Users/jerzy/Develop/lecture_slides/data/sp500_prices.RData")
 returns <- returns100
 nweights <- NCOL(returns)
 riskf <- 0.03/260
@@ -82,9 +82,9 @@ servfunc <- function(input, output) {
     endpoints <- rutils::calc_endpoints(returns, interval=interval)
     # endpoints <- ifelse(endpoints<(nweights+1), nweights+1, endpoints)
     endpoints <- endpoints[endpoints > (nweights+1)]
-   .n_rows <- NROW(endpoints)
+    nrows <- NROW(endpoints)
     # Define startpoints
-    startpoints <- c(rep_len(1, look_back-1), endpoints[1:.n_rows-look_back+1)])
+    startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
     # Rerun the model
     pnls <- back_test(excess=returns, 
                         returns=returns,

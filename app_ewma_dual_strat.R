@@ -1,7 +1,6 @@
 ##############################
-# This is a shiny app for simulating a contrarian regression 
-# z-score strategy for VXX prices versus the rolling volatility 
-# and SVXY prices.
+# This is a shiny app for simulating a dual EWMA moving average 
+# crossover strategy for ETFs.
 #
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -9,13 +8,13 @@
 ## Below is the setup code that runs once when the shiny app is started
 
 # Load R packages
-library(rutils)
+library(HighFreq)
 library(shiny)
 library(dygraphs)
 
 ## Model and data setup
 
-captiont <- paste("VXX Regression Z-score Versus VTI Volatility and SVXY Prices")
+captiont <- paste("Dual EWMA Moving Average Crossover Strategy")
 
 ## End setup code
 
@@ -26,11 +25,7 @@ uiface <- shiny::fluidPage(
 
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("symbol", label="Symbol to Trade",
-                                choices=rutils::etfenv$symbolv, selected="VTI")),
-    # Input VIX symbol
-    column(width=2, selectInput("symbol_vix", label="Symbol VIX",
-                                choices=c("VXX", "SVXY"), selected="VXX")),
+    column(width=2, selectInput("symbol", label="Symbol", choices=rutils::etfenv$symbolv, selected="VTI")),
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the bid-offer spread
@@ -38,20 +33,17 @@ uiface <- shiny::fluidPage(
   ),  # end fluidRow
 
   fluidRow(
-    # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Look-back", min=2, max=50, value=5, step=1)),
-    # Input threshold interval
-    column(width=2, sliderInput("threshold", label="Threshold", min=0.2, max=2.0, value=0.8, step=0.1)),
-    # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
-    column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
-    # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),
-    # column(width=2, sliderInput("slow_back", label="slow_back:", min=11, max=251, value=151, step=1)),
+    # Input the EWMA decays
+    column(width=2, sliderInput("fast_lambda", label="Fast lambda:", min=0.1, max=0.3, value=0.2, step=0.001)),
+    column(width=2, sliderInput("slow_lambda", label="Slow lambda:", min=0.0, max=0.2, value=0.1, step=0.001)),
+    # Input the look-back interval
+    column(width=2, sliderInput("look_back", label="Look-back", min=5, max=250, value=100, step=1)),
     # Input the trade lag
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=2, step=1))
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dyplot", width="100%", height="600px"), height=10, width=12)
+  dygraphs::dygraphOutput("dyplot", width="90%", height="550px")
 
 )  # end fluidPage interface
 
@@ -62,29 +54,20 @@ servfunc <- function(input, output) {
   # Create an empty list of reactive values.
   values <- reactiveValues()
 
-  # Load the VIX data
-  vi_x <- reactive({
-    
-    symbol <- input$symbol_vix
-    cat("Loading data for ", symbol, "\n")
-    
-    vi_x <- na.omit(cbind(
-      log(quantmod::Cl(get(symbol, rutils::etfenv))),
-      log(quantmod::Cl(get("SVXY", rutils::etfenv)))))
-    colnames(vi_x) <- c("VXX", "SVXY")
-    vi_x
-    
-  })  # end Load the data
-  
-  
   # Load the data
-  ohlc <- reactive({
+  datav <- reactive({
     
     symbol <- input$symbol
     cat("Loading data for ", symbol, "\n")
     
-    get(symbol, rutils::etfenv)
-
+    ohlc <- get(symbol, rutils::etfenv)
+    closep <- quantmod::Cl(ohlc)
+    returns <- rutils::diffit(log(closep))
+    returns <- returns/sd(returns)
+    # volumes <- quantmod::Vo(ohlc)
+    # cbind(returns, volumes)
+    returns
+    
   })  # end Load the data
   
 
@@ -93,47 +76,37 @@ servfunc <- function(input, output) {
     
     cat("Recalculating strategy for ", input$symbol, "\n")
     # Get model parameters from input argument
+    fast_lambda <- input$fast_lambda
+    slow_lambda <- input$slow_lambda
     look_back <- input$look_back
-    coeff <- as.numeric(input$coeff)
     lagg <- input$lagg
 
     # Calculate cumulative returns
-    svxy <- vi_x()$SVXY
-    dates <- zoo::index(svxy)
-    vxx <- vi_x()$VXX[dates]
-    ohlc <- ohlc()[dates]
-    closep <- log(quantmod::Cl(ohlc))
-
-    returns <- rutils::diffit(closep)
-    # returns <- returns/sd(returns)
+    returns <- datav()
     cum_rets <- cumsum(returns)
     nrows <- NROW(returns)
-
-    variance <- HighFreq::roll_var_ohlc(ohlc=ohlc, look_back=look_back, scale=FALSE)
     
-    # Calculate trailing z-scores
-    # predictor <- matrix(1:nrows, nc=1)
-    predictor <- cbind(sqrt(variance), svxy, closep)
-    zscores <- drop(HighFreq::roll_zscores(response=vxx, predictor=predictor, look_back=look_back))
-    # colnames(zscores) <- "zscore"
-    zscores[1:look_back] <- 0
-    zscores[is.infinite(zscores)] <- 0
-    zscores[is.na(zscores)] <- 0
-
+    # Calculate EWMA weights
+    fast_weights <- exp(-fast_lambda*1:look_back)
+    fast_weights <- fast_weights/sum(fast_weights)
+    slow_weights <- exp(-slow_lambda*1:look_back)
+    slow_weights <- slow_weights/sum(slow_weights)
+    
+    # Calculate EWMA prices by filtering with the weights
+    # cum_rets <- cumsum(rets_scaled)
+    fast_ewma <- .Call(stats:::C_cfilter, cum_rets, filter=fast_weights, sides=1, circular=FALSE)
+    fast_ewma[1:(look_back-1)] <- fast_ewma[look_back]
+    slow_ewma <- .Call(stats:::C_cfilter, cum_rets, filter=slow_weights, sides=1, circular=FALSE)
+    slow_ewma[1:(look_back-1)] <- slow_ewma[look_back]
+    
+    # Determine dates when the EWMAs have crossed
+    indic <- sign(fast_ewma - slow_ewma)
+    
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
     # This is predictored to prevent whipsaws and over-trading.
     # posit <- ifelse(indic == indic_lag, indic, posit)
-    
-    indic <- rep(NA_integer_, nrows)
-    indic[1] <- 0
-    # Flip position if the scaled returns exceed threshold
-    threshold <- input$threshold
-    indic[zscores > threshold] <- coeff
-    indic[zscores < (-threshold)] <- (-coeff)
-    indic <- zoo::na.locf(indic, na.rm=FALSE)
-
     
     indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
     indic_sum[1:lagg] <- 0
@@ -143,7 +116,7 @@ servfunc <- function(input, output) {
     posit <- ifelse(indic_sum == (-lagg), -1, posit)
     posit <- zoo::na.locf(posit, na.rm=FALSE)
     posit[1:lagg] <- 0
-
+    
     # Calculate indicator of flipping the positions
     indic <- rutils::diffit(posit)
     # Calculate number of trades
@@ -187,8 +160,6 @@ servfunc <- function(input, output) {
   # Return to the output argument a dygraph plot with two y-axes
   output$dyplot <- dygraphs::renderDygraph({
     
-    cat("Plotting for ", input$symbol, "\n")
-    
     # Get the pnls
     pnls <- pnls()
     colnamev <- colnames(pnls)
@@ -198,7 +169,7 @@ servfunc <- function(input, output) {
     # Get number of trades
     ntrades <- values$ntrades
     
-    captiont <- paste("Strategy for", input$symbol_vix, "Regression Z-score / \n", 
+    captiont <- paste("Strategy for", input$symbol, "Returns Scaled by the Trading Volumes / \n", 
                       paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
                       "Number of trades=", ntrades)
     

@@ -54,7 +54,7 @@ uiface <- shiny::fluidPage(
                                 min=0.0, max=4.0, value=1.0, step=0.01)),
     column(width=2, sliderInput("lagg", label="lag:",
                                 min=0, max=10, value=2, step=1)),
-    column(width=2, sliderInput("lambdav", label="lambda:",
+    column(width=2, sliderInput("lambda", label="lambda:",
                                 min=0.0, max=0.9, value=0.05, step=0.01)),
     column(width=2, sliderInput("invent_limit", label="inventory limit:",
                                 min=5, max=100, value=50, step=1)),
@@ -89,7 +89,7 @@ servfunc <- function(input, output) {
     #                      ohlc_lag=rutils::lagit(ohlc_data, lagg=input$lagg),
     #                      buy_spread=input$buy_spread,
     #                      sell_spread=input$buy_spread,
-    #                      lambdav=input$lambdav,
+    #                      lambda=input$lambda,
     #                      invent_limit=input$invent_limit,
     #                      warm_up=100)
 
@@ -97,7 +97,7 @@ servfunc <- function(input, output) {
     #                           ohlc_lag=rutils::lagit(ohlc_data, lagg=input$lagg),
     #                           buy_spread=input$buy_spread,
     #                           sell_spread=input$buy_spread,
-    #                           lambdav=input$lambdav,
+    #                           lambda=input$lambda,
     #                           invent_limit=input$invent_limit,
     #                           lagg=input$lagg,
     #                           warm_up=100)
@@ -108,7 +108,7 @@ servfunc <- function(input, output) {
                           threshold=input$threshold, 
                           buy_spread=input$buy_spread,
                           sell_spread=input$buy_spread,
-                          lambdav=input$lambdav,
+                          lambda=input$lambda,
                           invent_limit=input$invent_limit)
     
     # Output

@@ -15,51 +15,51 @@ source("C:/Develop/lecture_slides/scripts/ewma_model.R")
 
 ```{r ewma_model, echo=FALSE}
 inputPanel(
-  sliderInput("lambda_1", label="lambda_1:",
+  sliderInput("lambda1", label="lambda1:",
               min=0.01, max=0.5, value=0.25, step=0.01),
-  sliderInput("lambda_2", label="lambda_2:",
+  sliderInput("lambda2", label="lambda2:",
               min=0.01, max=0.5, value=0.05, step=0.01),
   numericInput("wid_th", label="wid_th:", min=10, max=201, value=51)
 )  # end inputPanel
 
 renderPlot({
   
-  lambda_1 <- input$lambda_1
-  lambda_2 <- input$lambda_2
+  lambda1 <- input$lambda1
+  lambda2 <- input$lambda2
   wid_th <- input$wid_th
 
   library(HighFreq)  # load package HighFreq
   # select OHLC data
-  oh_lc <- rutils::etf_env$VTI["/2011"]
+  ohlc <- rutils::etfenv$VTI["/2011"]
   # calculate close prices
-  cl_ose <- Cl(oh_lc)
+  closep <- Cl(ohlc)
 
   # simulate EWMA strategy
-  ewma_strat <- simu_ewma2(oh_lc=oh_lc, lambda_1=lambda_1, lambda_2=lambda_2, wid_th=wid_th)
+  ewma_strat <- simu_ewma2(ohlc=ohlc, lambda1=lambda1, lambda2=lambda2, wid_th=wid_th)
   
   # collect and combine output
-  ewma_1 <- ewma_strat[, "ewma_1"]
-  ewma_2 <- ewma_strat[, "ewma_2"]
-  po_sitions <- xts(ewma_strat[, "po_sitions"], order.by=index(oh_lc))
-  pn_l <- cumsum(ewma_strat[, "re_turns"])
-  pn_l <- cbind(cl_ose-as.numeric(cl_ose[1, ]), pn_l, ewma_1, ewma_2)
-  colnames(pn_l) <- c("VTI", "EWMA PnL", "ewma_1", "ewma_2")
-  re_turns <- rutils::diff_xts(cl_ose)
-  shar_pe <- sqrt(260)*sum(re_turns)/sd(re_turns)/NROW(re_turns)
-  re_turns <- ewma_strat[, "re_turns"]
-  sharpe_ewma <- sqrt(260)*sum(re_turns)/sd(re_turns)/NROW(re_turns)
+  ewma1 <- ewma_strat[, "ewma1"]
+  ewma2 <- ewma_strat[, "ewma2"]
+  positions <- xts(ewma_strat[, "positions"], order.by=index(ohlc))
+  pn_l <- cumsum(ewma_strat[, "returns"])
+  pn_l <- cbind(closep-as.numeric(closep[1, ]), pn_l, ewma1, ewma2)
+  colnames(pn_l) <- c("VTI", "EWMA PnL", "ewma1", "ewma2")
+  returns <- rutils::diffxts(closep)
+  shar_pe <- sqrt(260)*sum(returns)/sd(returns)/NROW(returns)
+  returns <- ewma_strat[, "returns"]
+  sharpe_ewma <- sqrt(260)*sum(returns)/sd(returns)/NROW(returns)
   
   # plot EWMA strategy with custom line colors and position shading
   plot_theme <- chart_theme()
   plot_theme$col$line.col <- c("orange", "blue", "yellow", "magenta2")
   
-  ch_ob <- chart_Series(pn_l, theme=plot_theme, 
+  chobj <- chart_Series(pn_l, theme=plot_theme, 
              name="Performance of Strategy with Two EWMAs")
-  add_TA(po_sitions > 0, on=-1,
+  add_TA(positions > 0, on=-1,
          col="lightgreen", border="lightgreen")
-  add_TA(po_sitions < 0, on=-1,
+  add_TA(positions < 0, on=-1,
          col="lightgrey", border="lightgrey")
-  plot(ch_ob)
+  plot(chobj)
   legend("bottomleft", 
          title=paste(c(paste0(colnames(pn_l)[1], " Sharpe ratio = ", format(shar_pe, digits=3)),
                        paste0("strategy Sharpe ratio = ", format(sharpe_ewma, digits=3))),

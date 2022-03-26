@@ -15,22 +15,22 @@ library(dygraphs)
 ## Model and data setup
 
 # Calculate SVXY and VXX prices
-svx_y <- log(get("SVXY", rutils::etfenv))
-svxy_close <- quantmod::Cl(svx_y)
-nrows <- NROW(svx_y)
-dates <- zoo::index(svx_y)
-vx_x <- log(get("VXX", rutils::etfenv))
-vx_x <- vx_x[dates]
-vxx_close <- quantmod::Cl(vx_x)
+svxy <- log(get("SVXY", rutils::etfenv))
+svxy_close <- quantmod::Cl(svxy)
+nrows <- NROW(svxy)
+dates <- zoo::index(svxy)
+vxx <- log(get("VXX", rutils::etfenv))
+vxx <- vxx[dates]
+vxx_close <- quantmod::Cl(vxx)
 
-cap_tion <- paste("Strategy for Oversold and Overbought Extreme Price Points")
+captiont <- paste("Strategy for Oversold and Overbought Extreme Price Points")
 
 ## End setup code
 
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel(cap_tion),
+  titlePanel(captiont),
 
   fluidRow(
     # Input stock symbol
@@ -80,7 +80,7 @@ uiface <- shiny::fluidPage(
 servfunc <- function(input, output) {
 
   # Create an empty list of reactive values.
-  value_s <- reactiveValues()
+  values <- reactiveValues()
 
   # Recalculate the strategy
   pnls <- reactive({
@@ -98,39 +98,43 @@ servfunc <- function(input, output) {
     returns <- rutils::diffit(closep)
     
     # Calculate SVXY z-scores
-    in_deks <- matrix(1.n_rows, nc=1)
-    svxy_scores <- drop(HighFreq::roll_zscores(response=svxy_close, design=in_deks, look_back=look_back))
+    in_deks <- matrix(1:nrows, nc=1)
+    svxy_scores <- HighFreq::roll_reg(response=svxy_close, predictor=in_deks, look_back=look_back)
+    svxy_scores <- svxy_scores[, NCOL(svxy_scores)]
     svxy_scores[1:look_back] <- 0
     svxy_scores[is.infinite(svxy_scores)] <- 0
     svxy_scores[is.na(svxy_scores)] <- 0
     svxy_scores <- svxy_scores/sqrt(look_back)
     # roll_svxy <- roll::roll_mean(svxy_close, width=look_back, min_obs=1)
-    # var_rolling <- sqrt(HighFreq::roll_var_ohlc(svx_y, look_back=look_back, scalit=FALSE))
+    # var_rolling <- sqrt(HighFreq::roll_var_ohlc(svxy, look_back=look_back, scale=FALSE))
     # svxy_scores <- (svxy_close - roll_svxy)/var_rolling
     
     # Calculate VXX z-scores
-    vxx_scores <- drop(HighFreq::roll_zscores(response=vxx_close, design=in_deks, look_back=look_back))
+    vxx_scores <- HighFreq::roll_reg(response=vxx_close, predictor=in_deks, look_back=look_back)
+    vxx_scores <- vxx_scores[, NCOL(vxx_scores)]
     vxx_scores[1:look_back] <- 0
     vxx_scores[is.infinite(vxx_scores)] <- 0
     vxx_scores[is.na(vxx_scores)] <- 0
     vxx_scores <- vxx_scores/sqrt(look_back)
     # roll_vxx <- roll::roll_mean(vxx_close, width=look_back, min_obs=1)
-    # var_rolling <- sqrt(HighFreq::roll_var_ohlc(vx_x, look_back=look_back, scalit=FALSE))
+    # var_rolling <- sqrt(HighFreq::roll_var_ohlc(vxx, look_back=look_back, scale=FALSE))
     # vxx_scores <- (vxx_close - roll_vxx)/var_rolling
     
     # Calculate stock z-scores
-    stock_scores <- drop(HighFreq::roll_zscores(response=closep, design=in_deks, look_back=look_back))
+    stock_scores <- HighFreq::roll_reg(response=closep, predictor=in_deks, look_back=look_back)
+    stock_scores <- stock_scores[, NCOL(stock_scores)]
     stock_scores[1:look_back] <- 0
     stock_scores[is.infinite(stock_scores)] <- 0
     stock_scores[is.na(stock_scores)] <- 0
     stock_scores <- stock_scores/sqrt(look_back)
     # roll_stock <- roll::roll_mean(closep, width=look_back, min_obs=1)
-    # var_rolling <- sqrt(HighFreq::roll_var_ohlc(ohlc, look_back=look_back, scalit=FALSE))
+    # var_rolling <- sqrt(HighFreq::roll_var_ohlc(ohlc, look_back=look_back, scale=FALSE))
     # stock_scores <- (closep - roll_stock)/var_rolling
 
     # Calculate volatility z-scores
     volat <- log(quantmod::Hi(ohlc))-log(quantmod::Lo(ohlc))
-    volat_scores <- drop(HighFreq::roll_zscores(response=volat, design=in_deks, look_back=look_back))
+    volat_scores <- HighFreq::roll_reg(response=volat, predictor=in_deks, look_back=look_back)
+    volat_scores <- volat_scores[, NCOL(volat_scores)]
     volat_scores[1:look_back] <- 0
     volat_scores[is.infinite(volat_scores)] <- 0
     volat_scores[is.na(volat_scores)] <- 0
@@ -141,7 +145,8 @@ servfunc <- function(input, output) {
     
     # Calculate volume z-scores
     volumes <- quantmod::Vo(ohlc)
-    volume_scores <- drop(HighFreq::roll_zscores(response=volumes, design=in_deks, look_back=look_back))
+    volume_scores <- HighFreq::roll_reg(response=volumes, predictor=in_deks, look_back=look_back)
+    volume_scores <- volume_scores[, NCOL(volume_scores)]
     volume_scores[1:look_back] <- 0
     volume_scores[is.infinite(volume_scores)] <- 0
     volume_scores[is.na(volume_scores)] <- 0
@@ -150,28 +155,28 @@ servfunc <- function(input, output) {
     # var_rolling <- sqrt(HighFreq::roll_var(rutils::diffit(volumes), look_back=look_back))
     # volume_scores <- (volumes - roll_volume)/var_rolling
     
-    # Define design matrix
-    design <- cbind(vxx_scores - svxy_scores, volat_scores, stock_scores, volume_scores)
-    colnames(design) <- c("vxx", "stock", "volat", "volume")
+    # Define predictor matrix
+    predictor <- cbind(vxx_scores - svxy_scores, volat_scores, stock_scores, volume_scores)
+    colnames(predictor) <- c("vxx", "stock", "volat", "volume")
     
     # Get weights parameters from input argument
     weights <- c(input$weight_vxx, input$weightstock, input$weight_volat, input$weight_volume)
     names(weights) <- c("vxx", "stock", "volat", "volume")
     
     # Simulate strategy
-    # sig_nal <- xts(design %*% weights, order.by=dates)
-    sig_nal <- drop(design %*% weights)
+    # score <- xts(predictor %*% weights, order.by=dates)
+    score <- drop(predictor %*% weights)
     # Calculate the vectors of tops and bottoms
-    top_s <- (sig_nal > input$thresh_top)
-    bottom_s <- (sig_nal < input$thresh_bot)
+    top_s <- (score > input$thresh_top)
+    bottom_s <- (score < input$thresh_bot)
 
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
-    # This is designed to prevent whipsaws and over-trading.
-    # position_s <- ifelse(indic == indic_lag, indic, position_s)
+    # This is predictored to prevent whipsaws and over-trading.
+    # posit <- ifelse(indic == indic_lag, indic, posit)
     
-    indic <- rep(NA_integer_,.n_rows)
+    indic <- rep(NA_integer_, nrows)
     indic[1] <- 0
     indic[bottom_s] <- coeff
     indic[top_s] <- (-coeff)
@@ -179,46 +184,46 @@ servfunc <- function(input, output) {
     indic_sum <- roll::roll_sum(indic, width=lagg, min_obs=1)
     indic_sum[1:lagg] <- 0
     
-    position_s <- rep(NA_integer_,.n_rows)
-    position_s[1] <- 0
-    position_s <- ifelse(indic_sum == lagg, 1, position_s)
-    position_s <- ifelse(indic_sum == (-lagg), -1, position_s)
-    position_s <- zoo::na.locf(position_s, na.rm=FALSE)
-    position_s[1:lagg] <- 0
+    posit <- rep(NA_integer_, nrows)
+    posit[1] <- 0
+    posit <- ifelse(indic_sum == lagg, 1, posit)
+    posit <- ifelse(indic_sum == (-lagg), -1, posit)
+    posit <- zoo::na.locf(posit, na.rm=FALSE)
+    posit[1:lagg] <- 0
 
     # Calculate indicator of flipping the positions
-    indic <- rutils::diffit(position_s)
+    indic <- rutils::diffit(posit)
     # Calculate number of trades
-    value_s$n_trades <- sum(abs(indic) > 0)
+    values$ntrades <- sum(abs(indic) > 0)
     
     # Add buy/sell indicators for annotations
     indic_buy <- (indic > 0)
     indic_sell <- (indic < 0)
     
     # Lag the positions to trade in next period
-    position_s <- rutils::lagit(position_s, lagg=1)
+    posit <- rutils::lagit(posit, lagg=1)
     
     # Calculate strategy pnls
-    pnls <- position_s*returns
+    pnls <- posit*returns
     
     # Calculate transaction costs
     costs <- 0.5*input$bid_offer*abs(indic)
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    if (value_s$n_trades > 0)
+    if (values$ntrades > 0)
       pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
     pnls <- cbind(returns, pnls)
     
     # Calculate Sharpe ratios
-    sharp_e <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
-    value_s$sharp_e <- round(sharp_e, 3)
+    sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
+    values$sharper <- round(sharper, 3)
 
     # Bind with indicators
     pnls <- cumsum(pnls)
-    if (value_s$n_trades > 1) {
+    if (values$ntrades > 1) {
       cum_rets <- cumsum(returns)
       pnls <- cbind(pnls, cum_rets[indic_buy], cum_rets[indic_sell])
       colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
@@ -240,19 +245,19 @@ servfunc <- function(input, output) {
     colnamev <- colnames(pnls)
     
     # Get Sharpe ratios
-    sharp_e <- value_s$sharp_e
+    sharper <- values$sharper
     # Get number of trades
-    # n_trades <- value_s$n_trades
+    # ntrades <- values$ntrades
     
-    cap_tion <- paste("Strategy for", input$symbol, "Regression Z-score / \n", 
-                      paste0(c("Index SR=", "Strategy SR="), sharp_e, collapse=" / "), "/ \n",
-                      "Number of trades=", value_s$n_trades)
+    captiont <- paste("Strategy for", input$symbol, "Regression Z-score / \n", 
+                      paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
+                      "Number of trades=", values$ntrades)
     
     # Plot with annotations
     add_annotations <- input$add_annotations
     
     if (add_annotations == "True") {
-      dygraphs::dygraph(pnls, main=cap_tion) %>%
+      dygraphs::dygraph(pnls, main=captiont) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
         dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%
@@ -260,7 +265,7 @@ servfunc <- function(input, output) {
         dySeries(name=colnamev[3], axis="y", label=colnamev[3], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
         dySeries(name=colnamev[4], axis="y", label=colnamev[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
     } else if (add_annotations == "False") {
-      dygraphs::dygraph(pnls[, 1:2], main=cap_tion) %>%
+      dygraphs::dygraph(pnls[, 1:2], main=captiont) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
         dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%

@@ -19,14 +19,14 @@ prices <- na.omit(prices)
 rets_dollar <- rutils::diffit(prices)
 rets_percent <- rets_dollar/rutils::lagit(prices, lagg=1, pad_zeros=FALSE)
 
-cap_tion <- "Risk Parity Strategy"
+captiont <- "Log Wealth of Risk Parity vs Fixed Dollar Ratios for VTI and IEF"
 
 ## End setup code
 
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel(cap_tion),
+  titlePanel(captiont),
   
   # fluidRow(
     # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
@@ -40,11 +40,10 @@ uiface <- shiny::fluidPage(
     # Input look-back interval
     column(width=2, sliderInput("look_back", label="Lookback", min=11, max=130, value=21, step=1)),
     # Input exponent for variance
-    column(width=2, sliderInput("expo_nent", label="Std Dev exponent:",
-                                min=0.25, max=2.5, value=1.0, step=0.05)),
+    # column(width=2, sliderInput("exponent", label="Std Dev exponent:",
+    #                             min=0.25, max=2.5, value=1.0, step=0.05)),
     # Input weights
-    column(width=2, sliderInput("weights", label="VTI weight:",
-                                min=0.01, max=0.99, value=0.5, step=0.05))
+    column(width=2, sliderInput("weights", label="VTI weight:", min=0.4, max=0.6, value=0.5, step=0.01))
     # Input lag trade parameter
     # column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=2, step=1)),
     # Input threshold interval
@@ -52,7 +51,7 @@ uiface <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dyplot"), width=12)
+  dygraphs::dygraphOutput("dyplot", width="80%", height="600px")
   
 )  # end fluidPage interface
 
@@ -60,20 +59,24 @@ uiface <- shiny::fluidPage(
 ## Define the server code
 servfunc <- function(input, output) {
   
+  # Create an empty list of reactive values.
+  values <- reactiveValues()
+  
   # Calculate rolling percentage volatility
-  vo_l <- reactive({
+  volat <- reactive({
     cat("Calculating the volatilities\n")
     
     # Get model parameters from input argument
     look_back <- input$look_back
-    expo_nent <- input$expo_nent
+    # exponent <- input$exponent
 
     # Calculate rolling percentage volatility
-    vo_l <- roll::roll_sd(rets_percent, width=look_back)
-    vo_l <- zoo::na.locf(vo_l, na.rm=FALSE)
-    vo_l <- zoo::na.locf(vo_l, fromLast=TRUE)
-    vo_l^expo_nent
-
+    volat <- roll::roll_sd(rets_percent, width=look_back)
+    volat <- zoo::na.locf(volat, na.rm=FALSE)
+    volat <- zoo::na.locf(volat, fromLast=TRUE)
+    # volat^exponent
+    volat
+    
   })  # end reactive code
   
   
@@ -90,25 +93,24 @@ servfunc <- function(input, output) {
     wealth_fixed_ratio <- cumprod(1 + rets_weighted)
     
     # Calculate standardized prices and portfolio allocations
-    vo_l <- vo_l()
-    allocation_s <- lapply(1:NCOL(prices), 
-                           function(x) weights[x]/vo_l[, x])
-    allocation_s <- do.call(cbind, allocation_s)
+    volat <- volat()
+    alloc <- lapply(1:NCOL(prices), function(x) weights[x]/volat[, x])
+    alloc <- do.call(cbind, alloc)
     # Scale allocations to 1 dollar total
-    allocation_s <- allocation_s/rowSums(allocation_s)
+    alloc <- alloc/rowSums(alloc)
     # Lag the allocations
-    allocation_s <- rutils::lagit(allocation_s)
+    alloc <- rutils::lagit(alloc)
     # Calculate wealth of risk parity
-    rets_weighted <- rowSums(rets_percent*allocation_s)
+    rets_weighted <- rowSums(rets_percent*alloc)
     wealth_risk_parity <- cumprod(1 + rets_weighted)
     
     # Calculate log wealths
     wealth <- log(cbind(wealth_fixed_ratio, wealth_risk_parity))
     wealth <- xts(wealth, index(prices))
     # Calculate Sharpe ratios
-    sharp_e <- sqrt(252)*sapply(rutils::diffit(wealth), function (x) mean(x)/sd(x))
-    colnames(wealth) <- paste(c("Fixed Ratio", "Risk Parity"), 
-                               round(sharp_e, 3), sep="=")
+    sharper <- sqrt(252)*sapply(rutils::diffit(wealth), function (x) mean(x)/sd(x[x<0]))
+    values$sharper <- round(sharper, 3)
+    colnames(wealth) <- c("Fixed Ratio", "Risk Parity")
     wealth
     
   })  # end reactive code
@@ -117,8 +119,12 @@ servfunc <- function(input, output) {
   # Return to the output argument a dygraph plot with two y-axes
   output$dyplot <- dygraphs::renderDygraph({
     wealth <- wealth()
+    colnamev <- colnames(wealth)
+    
+    captiont <- paste0("Sharpe ratios: ", paste0(paste0(colnamev, " = ", values$sharper), collapse=" / "))
+
     # Plot log wealths
-    dygraphs::dygraph(wealth, main="Log Wealth of Risk Parity vs Fixed Dollar Ratios") %>%
+    dygraphs::dygraph(wealth, main=captiont) %>%
       dyOptions(colors=c("blue","red"), strokeWidth=2) %>%
       dyLegend(show="always", width=500)
   })  # end output plot

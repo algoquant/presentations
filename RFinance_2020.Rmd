@@ -34,7 +34,7 @@ library(grid)
 
 ## Executing Real-time Trading Strategies  
 
-<div class="column_left_50">
+<div class="column_left50">
 
 - Real-time trading requires running a programmatic loop.  
 
@@ -50,7 +50,7 @@ library(grid)
 
 </div>
 
-<div class="column_right_50">
+<div class="column_right50">
 
 ```{r fig.width=7, echo=FALSE}
 img <- readPNG("figure/real_time_trading.png")
@@ -64,7 +64,7 @@ grid.raster(img, just="centre")
 
 ## The Package *IBrokers* for Interactive Brokers  
 
-<div class="column_left_50">
+<div class="column_left50">
 
 - The package <a href="https://cran.r-project.org/web/packages/IBrokers/index.html" target="_blank"><em>*IBrokers*</em></a> allows downloading live market data via the <a href="https://interactivebrokers.github.io/tws-api/" target="_blank">API of Interactive Brokers (IB API)</a>
 
@@ -74,11 +74,11 @@ grid.raster(img, just="centre")
 
 - `reqRealTimeBars()` relies on the functions `eWrapper.RealTimeBars.CSV()` and `twsCALLBACK` to process real-time market events (trades and quotes).  
 
-- The function `eWrapper.RealTimeBars.CSV()` creates an *eWrapper* object designed for processing *OHLC* price data.
+- The function `eWrapper.RealTimeBars.CSV()` creates an *eWrapper* object predictored for processing *OHLC* price data.
 
 </div>
 
-<div class="column_right_50">
+<div class="column_right50">
 
 ```{r, eval=FALSE, echo=TRUE}
 # Install and load package IBrokers
@@ -93,7 +93,7 @@ con_tract <- IBrokers::twsFuture(symbol="ES",
 IBrokers::reqContractDetails(conn=ib_connect, 
                              Contract=con_tract)
 # Open file connection for data download
-file_name <- "C:/Develop/data/ib_data/ES_ohlc_live.csv"
+file_name <- "C:/Develop/data/ib_data/ESohlc_live.csv"
 file_connect <- file(file_name, open="w")
 # Download live data to file
 IBrokers::reqRealTimeBars(conn=ib_connect,
@@ -112,19 +112,19 @@ close(file_connect)
 
 ## The *eWrapper* Object  
 
-<div class="column_left_50">
+<div class="column_left50">
 
 - An *eWrapper* object consists of a *data environment* and *handlers* (methods) for formatting and adding new data to the *data environment*.
 
 - The function `eWrapper()` creates a generic *eWrapper* object.
 
-- The function `eWrapper.RealTimeBars.CSV()` creates an *eWrapper* object designed for processing *OHLC* price data.
+- The function `eWrapper.RealTimeBars.CSV()` creates an *eWrapper* object predictored for processing *OHLC* price data.
 
-- The functionality of package *IBrokers* can easily be extended by writing new *eWrapper* objects, designed for processing different types of data and performing different tasks.
+- The functionality of package *IBrokers* can easily be extended by writing new *eWrapper* objects, predictored for processing different types of data and performing different tasks.
 
 </div>
 
-<div class="column_right_50">
+<div class="column_right50">
 
 ```{r fig.width=7, echo=FALSE}
 img <- readPNG("figure/eWrapper_object.png")
@@ -137,7 +137,7 @@ grid.raster(img, just="centre")
 
 ## Market Event Processing  
 
-<div class="column_left_50">
+<div class="column_left50">
 
 - Market events can be either *trade events* or *market quotes*.  
 
@@ -151,7 +151,7 @@ grid.raster(img, just="centre")
 
 </div>
 
-<div class="column_right_50">
+<div class="column_right50">
 
 ```{r fig.width=7, echo=FALSE}
 img <- readPNG("figure/market_event_processing2.png")
@@ -164,11 +164,11 @@ grid.raster(img, just="centre")
 
 ## The *trade_wrapper* Object  
 
-<div class="column_left_50">
+<div class="column_left50">
 
 - The functionality of package *IBrokers* can easily be extended to trading by writing a new *eWrapper* object.
 
-- The function `IBrokers2::trade_wrapper()` creates a *trade_wrapper* object (a modified *eWrapper*) designed for real-time trading.
+- The function `IBrokers2::trade_wrapper()` creates a *trade_wrapper* object (a modified *eWrapper*) predictored for real-time trading.
 
 - The *trade_wrapper* data environment contains buffers for *OHLC* market data, trading model parameters, instrument positions, open trade orders, etc.  
 
@@ -178,7 +178,7 @@ grid.raster(img, just="centre")
 
 </div>
 
-<div class="column_right_50">
+<div class="column_right50">
 
 ```{r fig.width=7, echo=FALSE}
 img <- readPNG("figure/trade_wrapper_object.png")
@@ -191,7 +191,7 @@ grid.raster(img, just="centre")
 
 ## Functions in Package *IBrokers2*  
 
-<div class="column_left_50">
+<div class="column_left50">
 
 - Most of the functions in package *IBrokers2* were derived from those in *IBrokers*.  
 
@@ -207,7 +207,7 @@ grid.raster(img, just="centre")
 
 </div>
 
-<div class="column_right_50">
+<div class="column_right50">
 
 ```{r fig.width=7, echo=FALSE}
 img <- readPNG("figure/functions_IBrokers2.png")
@@ -220,7 +220,7 @@ grid.raster(img, just="centre")
 
 ## Trade Processing Using Package *IBrokers2*  
 
-<div class="column_left_50">
+<div class="column_left50">
 
 - Trade processing using package *IBrokers2* uses a similar framework to that for downloading real-time *OHLC* market data using `IBrokers::reqRealTimeBars()`.  
 
@@ -228,7 +228,7 @@ grid.raster(img, just="centre")
 
 </div>
 
-<div class="column_right_50">
+<div class="column_right50">
 
 ```{r fig.width=7, echo=FALSE}
 img <- readPNG("figure/trade_processing.png")
@@ -241,7 +241,7 @@ grid.raster(img, just="centre")
 
 ## Real-time Trading Using Package *IBrokers2*  
 
-<div class="column_left_50">
+<div class="column_left50">
 
 - The function `trade_realtime()` accepts the `trade_wrapper()` and `call_back()` functions, and initiates real-time trading.
 
@@ -251,21 +251,21 @@ grid.raster(img, just="centre")
 
 - The instrument parameters specify the number of contracts, trade order types, etc.
 
-- The trading instruments and their parameters are specified as lists to allow trading multiple instruments simultaneously.
+- The trading instruments and their parameters are specified as listv to allow trading multiple instruments simultaneously.
 
 </div>
 
-<div class="column_right_50">
+<div class="column_right50">
 
 ```{r, eval=FALSE, echo=TRUE}
 # Install and load package IBrokers2
 devtools::install_github(repo="algoquant/IBrokers2")
 library(IBrokers2)
-# Define named lists for trading one contract
+# Define named listv for trading one contract
 con_tracts <- list(ES=IBrokers2::twsFuture(symbol="ES", exch="GLOBEX", expiry="201906"))
-trade_params <- list(ES=c(buy_spread=0.75, sell_spread=0.75, siz_e=1, lagg=2, lamb_da=0.05))
+trade_params <- list(ES=c(buy_spread=0.75, sell_spread=0.75, siz_e=1, lagg=2, lambda=0.05))
 # Open file connection for data download
-file_names <- "C:/Develop/data/ib_data/ES_ohlc_live.csv"
+file_names <- "C:/Develop/data/ib_data/ESohlc_live.csv"
 file_connects <- lapply(file_names, function(file_name) file(file_name, open="w"))
 # Open the IB connection to TWS
 ac_count <- "algoquant"
@@ -293,7 +293,7 @@ for (file_connect in file_connects) close(file_connect)
 
 ## Future Development of Package *IBrokers2*  
 
-<div class="column_left_50">
+<div class="column_left50">
 
 ### Current state  
 
@@ -309,7 +309,7 @@ for (file_connect in file_connects) close(file_connect)
 
 </div>
 
-<div class="column_right_50">
+<div class="column_right50">
 
 ### Applications  
 

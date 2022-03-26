@@ -69,9 +69,9 @@ servfunc <- function(input, output) {
     endpoints <- rutils::calc_endpoints(returns, interval=interval)
     # endpoints <- ifelse(endpoints<(nweights+1), nweights+1, endpoints)
     endpoints <- endpoints[endpoints > (nweights+1)]
-   .n_rows <- NROW(endpoints)
+    nrows <- NROW(endpoints)
     # Define startpoints
-    startpoints <- c(rep_len(1, look_back-1), endpoints[1:.n_rows-look_back+1)])
+    startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
     # rerun the model
     pnls <- roll_portf_r(excess, returns, startpoints, endpoints, alpha, max_eigen)
     # pnls <- sd(rutils::diffit(indeks))*pnls/sd(rutils::diffit(pnls))

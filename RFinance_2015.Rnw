@@ -94,29 +94,29 @@ knit_theme$set(thm)
       <<echo=(-(1:5)),eval=TRUE,fig.width=7,fig.height=6,fig.show='hide'>>=
 # load package "HighFreq"
 library(HighFreq)
-sym_bol <- "SPY"  # define sym_bol
+symbol <- "SPY"  # define symbol
 # load OHLC data
 output_dir <- "C:/Develop/data/hfreq/scrub/"
-sym_bol <- load(file.path(output_dir, 
-            paste0(sym_bol, ".RData")))
-re_turns <- calc_rets(xts_data=to.daily(get(sym_bol)))
-len_rets <- nrow(re_turns)  # number of observations
-mean_rets <- mean(re_turns[, 1])  # calculate mean
-sd_rets <- sd(re_turns[, 1])  # calculate standard deviation
+symbol <- load(file.path(output_dir, 
+            paste0(symbol, ".RData")))
+returns <- calc_rets(xts_data=to.daily(get(symbol)))
+len_rets <- nrow(returns)  # number of observations
+mean_rets <- mean(returns[, 1])  # calculate mean
+sd_rets <- sd(returns[, 1])  # calculate standard deviation
 # calculate skew and kurtosis
-(sum(((re_turns[, 1] - mean_rets)/sd_rets)^3))/len_rets
-(sum(((re_turns[, 1] - mean_rets)/sd_rets)^4))/len_rets
+(sum(((returns[, 1] - mean_rets)/sd_rets)^3))/len_rets
+(sum(((returns[, 1] - mean_rets)/sd_rets)^4))/len_rets
       @
     \column{0.5\textwidth}
       \includegraphics[width=0.5\paperwidth,valign=t]{figure/rfin_ret_hist-1}
       \vspace{-2em}
       <<rfin_ret_hist,echo=TRUE,eval=FALSE,fig.width=7,fig.height=6,fig.show='hide'>>=
 library(PerformanceAnalytics)
-chart.Histogram(re_turns[, 1], main="", 
+chart.Histogram(returns[, 1], main="", 
   xlim=c(-6e-5, 6e-5), 
   methods = c("add.density", "add.normal"))
 # add title
-title(main=paste(sym_bol, 
+title(main=paste(symbol, 
          "density"), line=-1)
       @
   \end{columns}
@@ -159,17 +159,17 @@ library(HighFreq)
 # set data directories
 data_dir <- "C:/Develop/data/hfreq/src/"
 output_dir <- "C:/Develop/data/hfreq/scrub/"
-# define sym_bol
-sym_bol <- "SPY"
+# define symbol
+symbol <- "SPY"
 # load a single day of TAQ data
-sym_bol <- load(
+symbol <- load(
   file.path(data_dir, 
-            paste0(sym_bol, "/2014.05.02.", 
-                   sym_bol, ".RData")))
+            paste0(symbol, "/2014.05.02.", 
+                   symbol, ".RData")))
 # scrub, aggregate single day of TAQ data to OHLC
-ohlc_data <- scrub_agg(taq_data=get(sym_bol))
+ohlc_data <- scrub_agg(taq_data=get(symbol))
 # aggregate TAQ data for symbol, save to file
-save_scrub_agg(sym_bol, 
+save_scrub_agg(symbol, 
                data_dir=data_dir, 
                output_dir=output_dir, 
                period="minutes")
@@ -191,17 +191,17 @@ save_scrub_agg(sym_bol,
       <<rfin_ohlc_chart,echo=TRUE,eval=FALSE,fig.width=7,fig.height=6,fig.show='hide'>>=
 # load package "HighFreq"
 library(HighFreq)
-# define sym_bol
-sym_bol <- "SPY"
+# define symbol
+symbol <- "SPY"
 # load OHLC data
 output_dir <- "C:/Develop/data/hfreq/scrub/"
-sym_bol <- load(
+symbol <- load(
   file.path(output_dir, 
-            paste0(sym_bol, ".RData")))
-ran_ge <- "2013-11-11 09:30:00/
+            paste0(symbol, ".RData")))
+rangev <- "2013-11-11 09:30:00/
             2013-11-11 10:30:00"
-chartSeries(get(sym_bol)[ran_ge], 
-            name=sym_bol, 
+chartSeries(get(symbol)[rangev], 
+            name=symbol, 
             theme=chartTheme("white"))
       @
     \column{0.5\textwidth}
@@ -238,23 +238,23 @@ chartSeries(get(sym_bol)[ran_ge],
 \vspace{-1em}
       <<rfin_ttr_runvol,eval=FALSE,echo=(-(1:7)),fig.width=7,fig.height=4.5,fig.show='hide'>>=
 par(mfrow=c(2,1))  # set plot panels
-# define sym_bol
-sym_bol <- "SPY"
+# define symbol
+symbol <- "SPY"
 # load OHLC data
 output_dir <- "C:/Develop/data/hfreq/scrub/"
-sym_bol <- load(file.path(output_dir, paste0(sym_bol, ".RData")))
+symbol <- load(file.path(output_dir, paste0(symbol, ".RData")))
 library(quantmod)
 library(TTR)
-ran_ge <- "2013-11-11/2013-11-15"
-vol_at <- volatility(OHLC=get(sym_bol), 
+rangev <- "2013-11-11/2013-11-15"
+volat <- volatility(OHLC=get(symbol), 
                      calc="yang.zhang", n=20)
-chartSeries(vol_at[ran_ge], 
-            name=paste(sym_bol, "vol w/ ON spikes"), 
+chartSeries(volat[rangev], 
+            name=paste(symbol, "vol w/ ON spikes"), 
             theme=chartTheme("white"))
-vol_at <- volatility(OHLC=get(sym_bol), 
+volat <- volatility(OHLC=get(symbol), 
                      calc="rogers.satchell", n=20)
-chartSeries(vol_at[ran_ge], 
-            name=paste(sym_bol, "vol w/o ON spikes"), 
+chartSeries(volat[rangev], 
+            name=paste(symbol, "vol w/o ON spikes"), 
             theme=chartTheme("white"))
       @
     \column{0.5\textwidth}
@@ -278,30 +278,30 @@ chartSeries(vol_at[ran_ge],
       \begin{multline*}
         \hskip-1em {s}^2=\frac{1}{n} \sum_{i=1}^{n} ((H_{i}-O_{i})(H_{i}-C_{i})(H_{i}-0.5(O_{i}+C_{i})) +\\ (L_{i}-O_{i})(L_{i}-C_{i})(L_{i}-0.5(O_{i}+C_{i}))
       \end{multline*}
-      The function \texttt{run\_moment\_ohlc()} calculates running, volume weighted moment estimators,
+      The function \texttt{run\moment\_ohlc()} calculates running, volume weighted moment estimators,
       <<rfin_highfreq_runskew,eval=FALSE,echo=(-(1:7)),fig.width=7,fig.height=4.5,fig.show='hide'>>=
 par(mfrow=c(2,1))  # set plot panels
-# define sym_bol
-sym_bol <- "SPY"
+# define symbol
+symbol <- "SPY"
 # load OHLC data
 output_dir <- "C:/Develop/data/hfreq/scrub/"
-sym_bol <- load(file.path(output_dir, paste0(sym_bol, ".RData")))
+symbol <- load(file.path(output_dir, paste0(symbol, ".RData")))
 library(quantmod)
 library(HighFreq)  # load package "HighFreq"
 # running volatility
-vol_at <- run_moment_ohlc(ohlc=get(sym_bol))
+volat <- runmoment_ohlc(ohlc=get(symbol))
 # running skew
-sk_ew <- run_moment_ohlc(ohlc=get(sym_bol), 
+skew <- runmoment_ohlc(ohlc=get(symbol), 
                          mom_fun="skew_ohlc")
-sk_ew <- sk_ew/(vol_at)^(1.5)
-sk_ew[1, ] <- 0
-sk_ew <- na.locf(sk_ew)
-ran_ge <- "2013-11-11/2013-11-15"
-chartSeries(vol_at[ran_ge], 
-            name=paste(sym_bol, "volatility"), 
+skew <- skew/(volat)^(1.5)
+skew[1, ] <- 0
+skew <- na.locf(skew)
+rangev <- "2013-11-11/2013-11-15"
+chartSeries(volat[rangev], 
+            name=paste(symbol, "volatility"), 
             theme=chartTheme("white"))
-chartSeries(sk_ew[ran_ge],
-            name=paste(sym_bol, "Skew"),
+chartSeries(skew[rangev],
+            name=paste(symbol, "Skew"),
             theme=chartTheme("white"), 
             yrange=c(-1, 1))
       @
@@ -324,31 +324,31 @@ chartSeries(sk_ew[ran_ge],
       The function \texttt{moment\_ohlc()} calculates the volume weighted moment of a \emph{OHLC} time series,
       <<rfin_dailyskew,eval=TRUE,echo=(-(1:7)),fig.width=7,fig.height=4.5,fig.show='hide'>>=
 par(mfrow=c(2,1))  # set plot panels
-# define sym_bol
-sym_bol <- "SPY"
+# define symbol
+symbol <- "SPY"
 # load OHLC data
 output_dir <- "C:/Develop/data/hfreq/scrub/"
-sym_bol <- load(file.path(output_dir, paste0(sym_bol, ".RData")))
+symbol <- load(file.path(output_dir, paste0(symbol, ".RData")))
 library(quantmod)
 library(HighFreq)  # load package "HighFreq"
 # daily volatility and skew
-vol_at <- apply.daily(x=get(sym_bol), 
+volat <- apply.daily(x=get(symbol), 
                       FUN=moment_ohlc)
-colnames(vol_at) <- paste(
-  strsplit(colnames(get(sym_bol))[1], 
+colnames(volat) <- paste(
+  strsplit(colnames(get(symbol))[1], 
   split="[.]")[[1]][1], "Vol", sep=".")
-sk_ew <- apply.daily(x=get(sym_bol), 
+skew <- apply.daily(x=get(symbol), 
               FUN=moment_ohlc, mom_fun="skew_ohlc")
-sk_ew <- sk_ew/(vol_at)^(1.5)
-colnames(sk_ew) <- paste(
-  strsplit(colnames(get(sym_bol))[1], 
+skew <- skew/(volat)^(1.5)
+colnames(skew) <- paste(
+  strsplit(colnames(get(symbol))[1], 
   split="[.]")[[1]][1], "Skew", sep=".")
-ran_ge <- "2013-06-01/"
-chartSeries(vol_at[ran_ge], 
-            name=paste(sym_bol, "volatility"), 
+rangev <- "2013-06-01/"
+chartSeries(volat[rangev], 
+            name=paste(symbol, "volatility"), 
             theme=chartTheme("white"))
-chartSeries(sk_ew[ran_ge],
-            name=paste(sym_bol, "Skew"),
+chartSeries(skew[rangev],
+            name=paste(symbol, "Skew"),
             theme=chartTheme("white"), 
             yrange=c(-1, 1))
       @
@@ -372,19 +372,19 @@ chartSeries(sk_ew[ran_ge],
 par(oma=c(15, 1, 1, 1), mgp=c(0, 0.5, 0), mar=c(1, 1, 1, 1), cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.5)
 par(mfrow=c(2,1))  # set plot panels
 # daily contrarian trading strategy
-re_turns <- get(sym_bol)[index(sk_ew), 4]
-re_turns <- diff(log(re_turns))
-colnames(re_turns) <- paste(sym_bol, "Ret", sep=".")
-po_sition <- -lag(sk_ew)
-colnames(po_sition) <- paste0(sym_bol, ".Position")
-po_sition <- na.omit(merge(po_sition, re_turns))
-# scatterplot of sk_ew and re_turns
-ran_ge <- "2008-09/2009-05"
-plot(coredata(po_sition[ran_ge]))
-cor.test(coredata(po_sition[ran_ge])[, 1], 
-         coredata(po_sition[ran_ge])[, 2])
-po_sition <- cumsum(po_sition[, 1]*po_sition[, 2])
-plot(po_sition)
+returns <- get(symbol)[index(skew), 4]
+returns <- diff(log(returns))
+colnames(returns) <- paste(symbol, "Ret", sep=".")
+position <- -lag(skew)
+colnames(position) <- paste0(symbol, ".Position")
+position <- na.omit(merge(position, returns))
+# scatterplot of skew and returns
+rangev <- "2008-09/2009-05"
+plot(coredata(position[rangev]))
+cor.test(coredata(position[rangev])[, 1], 
+         coredata(position[rangev])[, 2])
+position <- cumsum(position[, 1]*position[, 2])
+plot(position)
       @
     \column{0.5\textwidth}
       \vspace{-2em}
@@ -404,21 +404,21 @@ plot(po_sition)
     \column{0.5\textwidth}
       <<rfin_intradaystrat,eval=FALSE,echo=TRUE,fig.width=7,fig.height=6,fig.show='hide'>>=
 # intraday contrarian trading strategy
-re_turns <- calc_rets(xts_data=get(sym_bol))
-thresh_old <- 0.2  # signal threshold trading level
-po_sition <- NA*numeric(nrow(sk_ew))
-po_sition <- ifelse(sk_ew>thresh_old, -1, po_sition)
-po_sition <- ifelse(sk_ew<(-thresh_old), 1, po_sition)
-po_sition <- ifelse((sk_ew*lag(sk_ew))<0, 0, po_sition)
-# lag the po_sition
-po_sition <- c(0, po_sition)
-po_sition <- po_sition[-length(po_sition)]
-po_sition <- na.locf(po_sition)
-po_sition <- merge(sk_ew, po_sition)
-colnames(po_sition)[2] <- 
-  paste0(sym_bol, ".Position")
+returns <- calc_rets(xts_data=get(symbol))
+threshold <- 0.2  # signal threshold trading level
+position <- NA*numeric(nrow(skew))
+position <- ifelse(skew>threshold, -1, position)
+position <- ifelse(skew<(-threshold), 1, position)
+position <- ifelse((skew*lag(skew))<0, 0, position)
+# lag the position
+position <- c(0, position)
+position <- position[-length(position)]
+position <- na.locf(position)
+position <- merge(skew, position)
+colnames(position)[2] <- 
+  paste0(symbol, ".Position")
 # cumulative PnL
-cumu_pnl <- cumsum(po_sition[, 2]*re_turns[, 1])
+cumu_pnl <- cumsum(position[, 2]*returns[, 1])
 plot(cumu_pnl, format.labels="%Y-%m")
       @
     \column{0.5\textwidth}

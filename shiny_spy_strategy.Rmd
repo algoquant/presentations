@@ -33,39 +33,39 @@ library(HighFreq)  # load package HighFreq
 
 # Data setup code
 look_backs <- c(11, 111, 511, 1111, 5111)
-price_s <- as.numeric(HighFreq::SPY[, "SPY.Close"])
-re_turns <- rutils::diff_it(HighFreq::SPY[, "SPY.Close"])
+prices <- as.numeric(HighFreq::SPY[, "SPY.Close"])
+returns <- rutils::diffit(HighFreq::SPY[, "SPY.Close"])
 load("C:/Develop/R/data/zscores_spy.RData")
 
 # Define the strategy function
-run_strategy <- function(re_turns, z_scores, thresh_old) {
+run_strategy <- function(returns, zscores, threshold) {
   # Intitialize positions
-  n_rows <- NROW(re_turns)
-  position_s <- rep.int(NA_integer_, n_rows)
-  position_s[1] <- 0
+  nrows <- NROW(returns)
+  posit <- rep.int(NA_integer_, nrows)
+  posit[1] <- 0
   # Handle signals
-  bu_y <- (z_scores < (-thresh_old))
-  position_s[bu_y] <- 1
-  se_ll <- (z_scores > thresh_old)
-  position_s[se_ll] <- (-1)
-  position_s <- zoo::na.locf(position_s)
+  bu_y <- (zscores < (-threshold))
+  posit[bu_y] <- 1
+  se_ll <- (zscores > threshold)
+  posit[se_ll] <- (-1)
+  posit <- zoo::na.locf(posit)
   # Lag the positions by two periods
-  position_s <- rutils::lag_it(position_s, lagg=2)
+  posit <- rutils::lagit(posit, lagg=2)
   # Return strategy PnL
-  cumsum(position_s*re_turns)
+  cumsum(posit*returns)
 }  # end run_strategy
 
 
 ### Run the initial z-score data setup below once ###
-# in_dex <- matrix(.index(HighFreq::SPY), nc=1)
-# z_scores <- lapply(look_backs, function(look_back) {
-#   z_score <- HighFreq::roll_zscores(res_ponse=re_turns, de_sign=in_dex, look_back=look_back)
+# indeks <- matrix(.index(HighFreq::SPY), nc=1)
+# zscores <- lapply(look_backs, function(look_back) {
+#   z_score <- HighFreq::roll_zscores(response=returns, predictor=indeks, look_back=look_back)
 #   HighFreq::roll_scale(z_score, look_back=look_back, use_median=TRUE)
 # })  # end lapply
-# z_scores <- rutils::do_call(cbind, z_scores)
-# colnames(z_scores) <- paste0("look_back=", look_backs)
-# z_scores[which(!is.finite(z_scores), arr.ind=TRUE)] <- 0
-# save(z_scores, file="C:/Develop/R/data/zscores_spy.RData")
+# zscores <- rutils::do_call(cbind, zscores)
+# colnames(zscores) <- paste0("look_back=", look_backs)
+# zscores[which(!is.finite(zscores), arr.ind=TRUE)] <- 0
+# save(zscores, file="C:/Develop/R/data/zscores_spy.RData")
 ### End initial data setup ###
 ```
 
@@ -78,7 +78,7 @@ inputPanel(
   selectInput("look_back", label="lookback value:",
               choices=look_backs, selected=look_backs[4]),
   # actionButton("re_calculate", "Recalculate z-scores"),
-  sliderInput("thresh_old", label="threshold value:",
+  sliderInput("threshold", label="threshold value:",
               min=0.01, max=5.0, value=0.5, step=0.01)
 )  # end inputPanel
 
@@ -88,13 +88,13 @@ cat("Please Wait While Model is Running...\n")
 renderPlot({
   # Extract from input the strategy model parameters
   look_back <- paste0("look_back=", input$look_back)
-  z_scores <- subset(z_scores, select=look_back)
-  # thresh_old <- input$thresh_old*sum(abs(range(z_scores)))/2
-  thresh_old <- input$thresh_old
+  zscores <- subset(zscores, select=look_back)
+  # threshold <- input$threshold*sum(abs(range(zscores)))/2
+  threshold <- input$threshold
 
   # Run the trading strategy and plot it
-  pnl_s <- run_strategy(re_turns, z_scores, thresh_old)[endpoints(HighFreq::SPY, on="days")]
-  chart_Series(pnl_s, name="Cumulative PnL of the Contrarian Strategy for 1-minute SPY Returns")
+  pnls <- run_strategy(returns, zscores, threshold)[endpoints(HighFreq::SPY, on="days")]
+  chart_Series(pnls, name="Cumulative PnL of the Contrarian Strategy for 1-minute SPY Returns")
 
 })  # end renderPlot
 ```

@@ -1,6 +1,6 @@
 ##############################
-# This is a shiny app for backtesting a Z-Scores strategy, 
-# with a dygraphs plot.
+# This is a shiny app for backtesting a strategy based on the Z-scores
+# of the residuals of rolling regressions.
 # 
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -13,14 +13,14 @@ library(shiny)
 library(dygraphs)
 
 # Source the backtest functions
-source("C:/Develop/R/scripts/backtest_functions.R")
+source("/Users/jerzy/Develop/R/backtest_functions.R")
 
 
 ## Set up ETF data
 # if (!("etfenv" %in% search()))
 #   attach(etfenv)
 # if (!("etfenv" %in% ls()))
-#   load(file="C:/Develop/lecture_slides/data/etf_data.RData")
+#   load(file="/Users/jerzy/Develop/lecture_slides/data/etf_data.RData")
 # data_env <- "etfenv"
 # symbolv <- etfenv$symbolv
 # symbol <- "SVXY"
@@ -28,7 +28,7 @@ source("C:/Develop/R/scripts/backtest_functions.R")
 
 data_env <- rutils::etfenv
 symbolv <- get("symbolv", data_env)
-symbol <- "VXX"
+symbol <- "XLK"
 # symbolv <- rutils::etfenv$symbolv
 
 
@@ -36,7 +36,7 @@ symbol <- "VXX"
 # if (!("sp500env" %in% search()))
 #   attach(sp500env)
 # if (!("sp500env" %in% ls())) {
-#   load(file="C:/Develop/lecture_slides/data/sp500.RData")
+#   load(file="/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
 # }  # end if
 # data_env <- sp500env
 # symbolv <- names(data_env)
@@ -49,27 +49,24 @@ symbol <- "VXX"
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel("Z-Scores Strategy"),
+  titlePanel("Strategy Based on the Z-scores of Rolling Regressions"),
   
   # create single row with four slider inputs
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("symbol", label="Symbol",
-                                choices=symbolv, selected=symbol)),
+    column(width=2, selectInput("symbol", label="Symbol", choices=symbolv, selected=symbol)),
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Lookback interval",
-                                min=1, max=150, value=15, step=1)),
+    column(width=2, sliderInput("look_back", label="Lookback interval", min=1, max=150, value=9, step=1)),
     # Input lag trade parameter
-    column(width=2, sliderInput("lagg", label="Confirmation signals", min=1, max=5, value=2, step=1)),
+    column(width=2, sliderInput("lagg", label="Confirmation signals", min=1, max=5, value=1, step=1)),
     # Input lag trade parameter
-    column(width=2, sliderInput("threshold", label="Threshold", min=0.01, max=1.5, value=0.3, step=0.1)),
+    column(width=2, sliderInput("threshold", label="Threshold", min=0.01, max=1.5, value=1.1, step=0.1)),
     # Input trending or reverting (contrarian) strategy
-    column(width=2, selectInput("coeff", label="Trend (1) Revert (-1)",
-                                choices=c(1, -1), selected=(-1)))
+    column(width=2, selectInput("coeff", label="Trend (1) Revert (-1)", choices=c(1, -1), selected=(-1)))
   ),  # end fluidRow
   
   # create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dyplot", width="100%", height="600px"), height=10, width=12)
+  dygraphs::dygraphOutput("dyplot", width="90%", height="600px")
   # mainPanel(dygraphs::dygraphOutput("dyplot"), width=12)
 )  # end fluidPage interface
 
@@ -78,7 +75,7 @@ uiface <- shiny::fluidPage(
 servfunc <- shiny::shinyServer(function(input, output) {
 
   # Create an empty list of reactive values.
-  value_s <- reactiveValues()
+  values <- reactiveValues()
   
   # Recalculate the data and rerun the model
   datav <- reactive({
@@ -92,20 +89,20 @@ servfunc <- shiny::shinyServer(function(input, output) {
     # Prepare data
     ohlc <- get(symbol, data_env)
     closep <- log(quantmod::Cl(ohlc))
-    startd <- as.numeric(closep[1, ])
+    # startd <- as.numeric(closep[1, ])
     # rangev <- (log(quantmod::Hi(ohlc)) - log(quantmod::Lo(ohlc)))
-    # Run model
+    # Run model from /Users/jerzy/Develop/R/backtest_functions.R
     pnls <- backtest_zscores(ohlc, look_back=look_back, lagg=lagg, threshold=threshold, coeff=coeff)
-    position_s <- pnls[ ,"positions"]
+    posit <- pnls[ ,"positions"]
     
     # Calculate number of trades
-    value_s$n_trades <- sum(abs(rutils::diffit(position_s)) > 0)
+    values$ntrades <- sum(abs(rutils::diffit(posit)) > 0)
     # Calculate Sharpe ratios
-    sharp_e <- sqrt(252)*sapply(cbind(rutils::diffit(closep), pnls[ ,"pnls"]), function(x) mean(x)/sd(x[x<0]))
-    value_s$sharp_e <- round(sharp_e, 3)
+    sharper <- sqrt(252)*sapply(cbind(rutils::diffit(closep), pnls[ ,"pnls"]), function(x) mean(x)/sd(x[x<0]))
+    values$sharper <- round(sharper, 3)
     
-    pnls <- startd + cumsum(pnls[ ,"pnls"])
-    # pnls <- cbind(closep, pnls, closep + coeff*position_s*rangev)
+    pnls <- cumsum(pnls[ ,"pnls"])
+    # pnls <- cbind(closep, pnls, closep + coeff*posit*rangev)
     # colnames(pnls) <- c(symbol, "Strategy", "Positions")
     pnls <- cbind(closep, pnls)
     colnames(pnls) <- c(symbol, "Strategy")
@@ -117,11 +114,11 @@ servfunc <- shiny::shinyServer(function(input, output) {
     pnls <- datav()
     colnamev <- colnames(pnls)
     
-    cap_tion <- paste("Strategy for", input$symbol, "Regression Z-score / \n", 
-                      paste0(c("Index SR=", "Strategy SR="), value_s$sharp_e, collapse=" / "), "/ \n",
-                      "Number of trades=", value_s$n_trades)
+    captiont <- paste("Strategy for", input$symbol, "Regression Z-score / \n", 
+                      paste0(c("Index SR=", "Strategy SR="), values$sharper, collapse=" / "), "/ \n",
+                      "Number of trades=", values$ntrades)
     
-    dygraphs::dygraph(pnls, main=cap_tion) %>%
+    dygraphs::dygraph(pnls, main=captiont) %>%
       dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
       dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
       dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=2, col="blue") %>%

@@ -15,15 +15,15 @@ library(dygraphs)
 
 ## Model and data setup
 
-# cap_tion <- paste("EWMA Strategy for", symbol)
-cap_tion <- paste("EWMA Strategy With Scaling of Returns by the Trading Volume")
+# captiont <- paste("EWMA Strategy for", symbol)
+captiont <- paste("EWMA Strategy With Scaling of Returns by the Trading Volume")
 
 ## End setup code
 
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel(cap_tion),
+  titlePanel(captiont),
 
   fluidRow(
     # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
@@ -56,7 +56,7 @@ uiface <- shiny::fluidPage(
     # Input the trade lag
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=2, step=1)),
     # Input the exponent of volume
-    column(width=2, sliderInput("expo_nent", label="exponent", min=0.05, max=2.0, value=1.0, step=0.05)),
+    column(width=2, sliderInput("exponent", label="exponent", min=0.05, max=2.0, value=1.0, step=0.05)),
     # Input the floor for volume
     column(width=2, sliderInput("floo_r", label="vol floor", min=0.01, max=0.25, value=0.1, step=0.01))
     
@@ -73,8 +73,8 @@ uiface <- shiny::fluidPage(
 servfunc <- function(input, output) {
 
   # Create an empty list of reactive values.
-  value_s <- reactiveValues()
-  value_s$minute_ly <- FALSE
+  values <- reactiveValues()
+  values$minute_ly <- FALSE
   
   # Load the data
   datav <- reactive({
@@ -83,18 +83,18 @@ servfunc <- function(input, output) {
     
     if (symbol == "SPY") {
       ## SPY ETF 1-minute bars
-      value_s$minute_ly <- TRUE
+      values$minute_ly <- TRUE
       ohlc <- HighFreq::SPY["2009"]
-      #.n_rows <- NROW(ohlc)
+      # nrows <- NROW(ohlc)
       closep <- quantmod::Cl(ohlc)
       volumes <- quantmod::Vo(ohlc)
       returns <- rutils::diffit(log(closep))
       returns <- returns/sd(returns)
       cbind(returns, volumes)
     } else {
-      value_s$minute_ly <- FALSE
+      values$minute_ly <- FALSE
       ohlc <- get(symbol, rutils::etfenv)
-      #.n_rows <- NROW(ohlc)
+      # nrows <- NROW(ohlc)
       closep <- quantmod::Cl(ohlc)
       volumes <- quantmod::Vo(ohlc)
       returns <- rutils::diffit(log(closep))
@@ -109,7 +109,7 @@ servfunc <- function(input, output) {
   scaled_data <- reactive({
     cat("Scaling data for ", input$symbol, "\n")
     # Get model parameters from input argument
-    expo_nent <- input$expo_nent
+    exponent <- input$exponent
     look_back <- input$look_back
     floo_r <- input$floo_r
     
@@ -124,11 +124,11 @@ servfunc <- function(input, output) {
     volumes <- volumes/roll_vol
     
     # Divide returns by the volume (volume clock).
-    rets_scaled <- ifelse(volumes > 0, returns/(volumes^expo_nent), 0)
+    rets_scaled <- ifelse(volumes > 0, returns/(volumes^exponent), 0)
     rets_scaled <- rets_scaled/sd(rets_scaled)
     
     # Calculate daily returns from minutely prices
-    if (value_s$minute_ly) {
+    if (values$minute_ly) {
       cum_rets <- cumsum(returns)
       cum_rets <- xts::to.daily(cum_rets)
       returns <- rutils::diffit(quantmod::Cl(cum_rets))
@@ -158,7 +158,7 @@ servfunc <- function(input, output) {
     returns <- scaled_data()[, 1]
     rets_scaled <- scaled_data()[, 2]
     cum_scaled <- cumsum(rets_scaled)
-   .n_rows <- NROW(returns)
+    nrows <- NROW(returns)
     
     # Calculate EWMA weights
     fast_weights <- exp(-fast_lambda*1:look_back)
@@ -179,36 +179,36 @@ servfunc <- function(input, output) {
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
-    # This is designed to prevent whipsaws and over-trading.
-    # position_s <- ifelse(indic == indic_lag, indic, position_s)
+    # This is predictored to prevent whipsaws and over-trading.
+    # posit <- ifelse(indic == indic_lag, indic, posit)
     
     indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
     indic_sum[1:lagg] <- 0
-    position_s <- rep(NA_integer_,.n_rows)
-    position_s[1] <- 0
-    position_s <- ifelse(indic_sum == lagg, 1, position_s)
-    position_s <- ifelse(indic_sum == (-lagg), -1, position_s)
-    position_s <- zoo::na.locf(position_s, na.rm=FALSE)
-    position_s[1:lagg] <- 0
+    posit <- rep(NA_integer_, nrows)
+    posit[1] <- 0
+    posit <- ifelse(indic_sum == lagg, 1, posit)
+    posit <- ifelse(indic_sum == (-lagg), -1, posit)
+    posit <- zoo::na.locf(posit, na.rm=FALSE)
+    posit[1:lagg] <- 0
     
     # Calculate indicator of flipping the positions
-    indic <- rutils::diffit(position_s)
+    indic <- rutils::diffit(posit)
     # Calculate number of trades
-    value_s$n_trades <- sum(abs(indic)>0)
+    values$ntrades <- sum(abs(indic)>0)
     
     # Add buy/sell indicators for annotations
     indic_buy <- (indic > 0)
     indic_sell <- (indic < 0)
     
     # Lag the positions to trade in next period
-    position_s <- rutils::lagit(position_s, lagg=1)
+    posit <- rutils::lagit(posit, lagg=1)
     
-    # position_s <- sin(5*pi*(1.n_rows).n_rows)
+    # posit <- sin(5*pi*(1:nrows) nrows)
     
     # Calculate strategy pnls
-    # pnls <- as.numeric(input$coeff)*position_s*returns
-    # pnls <- 0.5*((coeff*position_s*returns) + returns)
-    pnls <- position_s*returns
+    # pnls <- as.numeric(input$coeff)*posit*returns
+    # pnls <- 0.5*((coeff*posit*returns) + returns)
+    pnls <- posit*returns
     
     # Calculate transaction costs
     costs <- 0.5*input$bid_offer*abs(indic)
@@ -221,8 +221,8 @@ servfunc <- function(input, output) {
     pnls <- cbind(returns, pnls)
     
     # Calculate Sharpe ratios
-    sharp_e <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
-    value_s$sharp_e <- round(sharp_e, 3)
+    sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
+    values$sharper <- round(sharper, 3)
 
     # Bind with indicators
     pnls <- cumsum(pnls)
@@ -243,19 +243,19 @@ servfunc <- function(input, output) {
     colnamev <- colnames(pnls)
     
     # Get Sharpe ratios
-    sharp_e <- value_s$sharp_e
+    sharper <- values$sharper
     # Get number of trades
-    n_trades <- value_s$n_trades
+    ntrades <- values$ntrades
     
-    cap_tion <- paste("Strategy for", input$symbol, "Returns Scaled by the Trading Volumes / \n", 
-                      paste0(c("Index SR=", "Strategy SR="), sharp_e, collapse=" / "), "/ \n",
-                      "Number of trades=", n_trades)
+    captiont <- paste("Strategy for", input$symbol, "Returns Scaled by the Trading Volumes / \n", 
+                      paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
+                      "Number of trades=", ntrades)
     
     # Plot with annotations
     add_annotations <- input$add_annotations
     
     if (add_annotations == "True") {
-      dygraphs::dygraph(pnls, main=cap_tion) %>%
+      dygraphs::dygraph(pnls, main=captiont) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
         dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%
@@ -263,7 +263,7 @@ servfunc <- function(input, output) {
         dySeries(name=colnamev[3], axis="y", label=colnamev[3], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
         dySeries(name=colnamev[4], axis="y", label=colnamev[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
     } else if (add_annotations == "False") {
-      dygraphs::dygraph(pnls[, 1:2], main=cap_tion) %>%
+      dygraphs::dygraph(pnls[, 1:2], main=captiont) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
         dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%

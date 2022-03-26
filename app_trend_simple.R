@@ -25,14 +25,14 @@ symbolv <- rutils::etfenv$symbolv
 # symbolv <- sort(colnames(returns))
 
 
-cap_tion <- paste("Trend Following and Mean Reverting Strategies")
+captiont <- paste("Trend Following and Mean Reverting Strategies")
 
 ## End setup code
 
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel(cap_tion),
+  titlePanel(captiont),
   
   # fluidRow(
   # The Shiny App is recalculated when the actionButton is clicked and the add_annotations variable is updated
@@ -77,10 +77,10 @@ servfunc <- function(input, output) {
   # Get model parameters from input argument
   # max_eigen <- isolate(input$max_eigen)
   # look_lag <- isolate(input$look_lag
-  # lambdav <- isolate(input$lambdav)
+  # lambda <- isolate(input$lambda)
   # typev <- isolate(input$typev)
   # alpha <- isolate(input$alpha)
-  # percen_tile <- isolate(input$percen_tile)
+  # quant <- isolate(input$quant)
   # coeff <- as.numeric(isolate(input$coeff))
   # bid_offer <- isolate(input$bid_offer)
   # Model is recalculated when the add_annotations variable is updated
@@ -161,9 +161,9 @@ servfunc <- function(input, output) {
     lambda <- input$lambda
     trend <- as.numeric(input$trend)
     
-    position_s <- tanh(lambda*predictor())
-    position_s <- rutils::lagit(position_s, lagg=1)
-    pnls <- trend*position_s*datav()[, 1, drop=FALSE]
+    posit <- tanh(lambda*predictor())
+    posit <- rutils::lagit(posit, lagg=1)
+    pnls <- trend*posit*datav()[, 1, drop=FALSE]
     colnames(pnls) <- "Strategy"
     pnls
     
@@ -178,19 +178,19 @@ servfunc <- function(input, output) {
     colnamev <- colnames(datav)
 
     # Calculate Sharpe ratios
-    sharp_e <- sqrt(252)*sapply(datav, function(x) mean(x)/sd(x[x<0]))
-    sharp_e <- round(sharp_e, 3)
+    sharper <- sqrt(252)*sapply(datav, function(x) mean(x)/sd(x[x<0]))
+    sharper <- round(sharper, 3)
 
-    # cap_tion <- paste("Contrarian Strategy for", input$symbol, "Using the Hampel Filter Over Prices")
+    # captiont <- paste("Contrarian Strategy for", input$symbol, "Using the Hampel Filter Over Prices")
     if (input$trend == "1") {
-      cap_tion <- paste("Trending Strategy for", input$symbol, "Over ", input$data_type, "/ \n", 
-                        paste0(c("Index SR=", "Strategy SR="), sharp_e, collapse=" / "))
+      captiont <- paste("Trending Strategy for", input$symbol, "Over ", input$data_type, "/ \n", 
+                        paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "))
     } else if (input$trend == "-1") {
-      cap_tion <- paste("Mean Reverting Strategy for", input$symbol, "Over ", input$data_type, "/ \n", 
-                        paste0(c("Index SR=", "Strategy SR="), sharp_e, collapse=" / "))
+      captiont <- paste("Mean Reverting Strategy for", input$symbol, "Over ", input$data_type, "/ \n", 
+                        paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "))
     }  # end if
     
-    dygraphs::dygraph(cumsum(datav), main=cap_tion) %>%
+    dygraphs::dygraph(cumsum(datav), main=captiont) %>%
       dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
       dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
       dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%

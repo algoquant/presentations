@@ -34,7 +34,7 @@ load(file=paste0("C:/Develop/data/TwoSig/", file_name, ".RData"))
 # symbol <- taq$SYM_ROOT[1]
 symbol <- rutils::get_name(colnames(taq)[1])
 
-# taq <- taq[3e4:.n_rows-3e4), c("SIZE", "PRICE")]
+# taq <- taq[3e4: nrows-3e4), c("SIZE", "PRICE")]
 
 # taq <- taq[taq$SIZE > 200]
 # closep <- matrix(taq$PRICE, nc=1)
@@ -105,7 +105,7 @@ servfunc <- shiny::shinyServer(function(input, output) {
     # closep <- (max(closep) + 10 - closep)
     volumes <- quantmod::Vo(taq)
     returns <- rutils::diffit(closep)
-   .n_rows <- NROW(taq)
+    nrows <- NROW(taq)
 
 
     if (model_type == "VWAP") {
@@ -122,38 +122,38 @@ servfunc <- shiny::shinyServer(function(input, output) {
       # Hampel model
       medi_an <- TTR::runMedian(returns, n=look_back)
       medi_an[1:look_back] <- 1
-      ma_d <- TTR::runMAD(returns, n=look_back)
-      ma_d[1:look_back] <- 1
-      z_scores <- ifelse(ma_d!=0, (returns-medi_an)/ma_d, 0)
-      z_scores[1:look_back] <- 0
-      mad_zscores <- TTR::runMAD(z_scores, n=look_back)
+      madv <- TTR::runMAD(returns, n=look_back)
+      madv[1:look_back] <- 1
+      zscores <- ifelse(madv!=0, (returns-medi_an)/madv, 0)
+      zscores[1:look_back] <- 0
+      mad_zscores <- TTR::runMAD(zscores, n=look_back)
       mad_zscores[1:look_back] <- 0
-      indic_long <- (z_scores > threshold*mad_zscores)
-      indic_short <- (z_scores < (-threshold*mad_zscores))
+      indic_long <- (zscores > threshold*mad_zscores)
+      indic_short <- (zscores < (-threshold*mad_zscores))
       # End Hampel model
     } else if (model_type == "ZScore") {
       # Z-Score regression model
-      design <- matrix(1.n_rows, nc=1)
-      sig_nal <- HighFreq::roll_zscores(response=closep, design=design, look_back=look_back)
-      colnames(sig_nal) <- "sig_nal"
-      sig_nal[1:look_back] <- 0
-      sig_nal[is.infinite(sig_nal)] <- 0
-      indic_long <- (sig_nal > threshold)
-      indic_short <- (sig_nal < (-threshold))
+      predictor <- matrix(1:nrows, nc=1)
+      score <- HighFreq::roll_zscores(response=closep, predictor=predictor, look_back=look_back)
+      colnames(score) <- "score"
+      score[1:look_back] <- 0
+      score[is.infinite(score)] <- 0
+      indic_long <- (score > threshold)
+      indic_short <- (score < (-threshold))
       # End Z-Score regression model
     }  # end if
     
     ## Calculate the positions
-    position_s <- rep(NA_integer_,.n_rows)
-    position_s[1] <- 0
-    indica_tor <- HighFreq::roll_count(indic_long)
-    position_s <- ifelse(indica_tor >= lagg, 1, position_s)
-    indica_tor <- HighFreq::roll_count(indic_short)
-    position_s <- ifelse(indica_tor >= lagg, -1, position_s)
+    posit <- rep(NA_integer_, nrows)
+    posit[1] <- 0
+    indic <- HighFreq::roll_count(indic_long)
+    posit <- ifelse(indic >= lagg, 1, posit)
+    indic <- HighFreq::roll_count(indic_short)
+    posit <- ifelse(indic >= lagg, -1, posit)
     # Lag the positions to trade in next period
-    position_s <- zoo::na.locf(position_s, na.rm=FALSE)
-    position_s <- rutils::lagit(position_s, lagg=1)
-    pnls <- cumsum(coeff*returns*position_s)
+    posit <- zoo::na.locf(posit, na.rm=FALSE)
+    posit <- rutils::lagit(posit, lagg=1)
+    pnls <- cumsum(coeff*returns*posit)
     pnls <- cbind(closep, pnls)
     # indeks <- seq.POSIXt(Sys.time()-NROW(pnls)+1, Sys.time(), by=1)
     # pnls <- xts::xts(coredata(pnls), indeks)

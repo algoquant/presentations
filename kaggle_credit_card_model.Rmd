@@ -385,7 +385,7 @@ glm.m <- glm(default.payment.next.month ~ ., data=train.batch, family=binomial)
 summary(glm.m)
 
 glm.final <- glm(default.payment.next.month ~ limit_bal+sex+education+marriage+
-                   pay_0+pay_2+pay_3+pay_5+pay_6+pay_amt1+pay_amt2, data=train.batch,
+                   pay_0+pay2+pay3+pay5+pay_6+pay_amt1+pay_amt2, data=train.batch,
                  family=binomial)
 summary(glm.final)
 

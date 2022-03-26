@@ -63,7 +63,7 @@ servfunc <- function(input, output) {
     look_back <- input$look_back
     alpha <- input$alpha
     # define startpoints
-    startpoints <- c(rep_len(1, look_back-1), endpoints[1:.n_rows-look_back+1)])
+    startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
     # rerun the model
     pnls <- cbind(
       roll_portf_r(excess, returns, startpoints, endpoints, alpha, max_eigen), 

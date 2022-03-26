@@ -16,7 +16,7 @@ uiface <- shiny::shinyUI(fluidPage(
   
   sidebarLayout(
     sidebarPanel(
-      sliderInput("lambdav", label="lambda:",
+      sliderInput("lambda", label="lambda:",
                   min=0.001, max=0.1, value=0.02, step=0.01),
       numericInput("wid_th", label="wid_th:", min=51, max=301, value=151)
     ),
@@ -36,12 +36,12 @@ servfunc <- function(input, output) {
   # Calculate the data for plotting
   datav <- reactive({
     # get model parameters from input
-    lambdav <- input$lambdav
+    lambda <- input$lambda
     wid_th <- input$wid_th
     # calculate close prices
     closep <- quantmod::Cl(rutils::etfenv$VTI["2007/2010"])
     # calculate EWMA prices
-    weights <- exp(-lambdav*(1:wid_th))
+    weights <- exp(-lambda*(1:wid_th))
     weights <- weights/sum(weights)
     ew_ma <- .Call(stats:::C_cfilter, closep, filter=weights, sides=1, circular=FALSE)
     # ew_ma <- filter(closep, filter=weights, sides=1)

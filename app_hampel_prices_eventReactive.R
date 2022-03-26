@@ -37,11 +37,11 @@ closep <- log(Cl(ohlc))
 
 
 ## Load 1-minute bars
-# cap_tion <- "Strategy for 1-minute LODE Bars"
+# captiont <- "Strategy for 1-minute LODE Bars"
 # symbol <- "LODE"
-# ohlc <- data.table::fread(file="C:/Develop/predictive/data/lode_oneminutebars.csv", sep=",")
-#.n_rows <- NROW(ohlc)
-# dates <- seq.POSIXt(from=as.POSIXct("2021-03-10 09:30:00", origin="1970-01-01"), by="min", length.out.n_rows)
+# ohlc <- data.table::fread(file="/Volumes/external/Develop/Predictive/data/lode_oneminutebars.csv", sep=",")
+# nrows <- NROW(ohlc)
+# dates <- seq.POSIXt(from=as.POSIXct("2021-03-10 09:30:00", origin="1970-01-01"), by="min", length.out=nrows)
 # closep <- log(ohlc$close)
 # closep <- xts::xts(closep, dates)
 # returns <- rutils::diffit(closep)
@@ -53,7 +53,7 @@ closep <- log(Cl(ohlc))
 # load(file=paste0("C:/Develop/data/ib_data/", symbol, "_ohlc.RData"))
 # closep <- log(Cl(ohlc))
 # Or random prices
-# closep <- xts(cumsum(rnorm.n_rows)), index(ohlc))
+# closep <- xts(cumsum(rnorm(nrows)), index(ohlc))
 
 ## Load combined futures data
 # com_bo <- HighFreq::SPY
@@ -72,14 +72,14 @@ closep <- log(Cl(ohlc))
 
 returns <- rutils::diffit(closep)
 
-cap_tion <- paste("Contrarian Strategy for", symbol, "Using the Hampel Filter Over Prices")
+captiont <- paste("Contrarian Strategy for", symbol, "Using the Hampel Filter Over Prices")
 
 ## End setup code
 
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel(cap_tion),
+  titlePanel(captiont),
   
   # fluidRow(
   # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
@@ -100,7 +100,7 @@ uiface <- shiny::fluidPage(
     # Input threshold interval
     column(width=2, sliderInput("threshold", label="threshold", min=0.5, max=3.0, value=1.0, step=0.1))
     # Input the weight decay parameter
-    # column(width=2, sliderInput("lambdav", label="Weight decay:",
+    # column(width=2, sliderInput("lambda", label="Weight decay:",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input model weights type
     # column(width=2, selectInput("typev", label="Portfolio weights type",
@@ -111,7 +111,7 @@ uiface <- shiny::fluidPage(
     # column(width=2, sliderInput("alpha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input the percentile
-    # column(width=2, sliderInput("percen_tile", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
+    # column(width=2, sliderInput("quant", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     # column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # Input the bid-offer spread
@@ -135,10 +135,10 @@ servfunc <- function(input, output) {
   # max_eigen <- isolate(input$max_eigen)
   # threshold <- isolate(input$threshold)
   # look_lag <- isolate(input$look_lag
-  # lambdav <- isolate(input$lambdav)
+  # lambda <- isolate(input$lambda)
   # typev <- isolate(input$typev)
   # alpha <- isolate(input$alpha)
-  # percen_tile <- isolate(input$percen_tile)
+  # quant <- isolate(input$quant)
   # coeff <- as.numeric(isolate(input$coeff))
   # bid_offer <- isolate(input$bid_offer)
   # Model is recalculated when the re_calculate variable is updated
@@ -148,79 +148,79 @@ servfunc <- function(input, output) {
   # look_back <- 11
   # half_window <- look_back %/% 2
   
-  # Calculate z_scores if new look_back value
-  z_scores <- eventReactive(input$look_back, {
-    cat("Calculating z_scores\n")
-    # Calculate the z_scores
+  # Calculate zscores if new look_back value
+  zscores <- eventReactive(input$look_back, {
+    cat("Calculating zscores\n")
+    # Calculate the zscores
     medi_an <- TTR::runMedian(closep, n=input$look_back)
     medi_an[1:input$look_back, ] <- 1
-    # ma_d <- TTR::runMAD(returns, n=look_back)
-    # ma_d[1:look_back, ] <- 1
-    # z_scores <- ifelse(ma_d != 0, (closep-medi_an)/ma_d, 0)
-    # Don't divide z_scores by the ma_d because it's redundant since z_scores is divided by the mad_zscores.
-    z_scores <- (closep-medi_an)
-    # z_scores[1:look_back, ] <- 0
-    mad_zscores <- TTR::runMAD(z_scores, n=10*input$look_back)
+    # madv <- TTR::runMAD(returns, n=look_back)
+    # madv[1:look_back, ] <- 1
+    # zscores <- ifelse(madv != 0, (closep-medi_an)/madv, 0)
+    # Don't divide zscores by the madv because it's redundant since zscores is divided by the mad_zscores.
+    zscores <- (closep-medi_an)
+    # zscores[1:look_back, ] <- 0
+    mad_zscores <- TTR::runMAD(zscores, n=10*input$look_back)
     mad_zscores[1:(10*input$look_back), ] <- 0
-    z_scores <- ifelse(mad_zscores != 0, z_scores/mad_zscores, 0)
+    zscores <- ifelse(mad_zscores != 0, zscores/mad_zscores, 0)
   })  # end eventReactive
   
-  # Plot histogram of z_scores
-  # range(z_scores)
-  # z_scores <- z_scores[z_scores > quantile(z_scores, 0.05)]
-  # z_scores <- z_scores[z_scores < quantile(z_scores, 0.95)]
+  # Plot histogram of zscores
+  # range(zscores)
+  # zscores <- zscores[zscores > quantile(zscores, 0.05)]
+  # zscores <- zscores[zscores < quantile(zscores, 0.95)]
   # x11(width=6, height=5)
-  # hist(z_scores, xlim=c(quantile(z_scores, 0.05), quantile(z_scores, 0.95)), breaks=50, main=paste("Z-scores for", "look_back =", look_back))
+  # hist(zscores, xlim=c(quantile(zscores, 0.05), quantile(zscores, 0.95)), breaks=50, main=paste("Z-scores for", "look_back =", look_back))
   
-  # Calculate position_s if new look_back or threshold values
+  # Calculate posit if new look_back or threshold values
   datav <- eventReactive(list(input$look_back, input$threshold), {
-    cat("Calculating position_s\n")
-    # Determine if the z_scores have exceeded the threshold
-    indic <- rep(0,.n_rows)
+    cat("Calculating posit\n")
+    # Determine if the zscores have exceeded the threshold
+    indic <- rep(0, nrows)
     # indic[1] <- 0
-    indic <- ifelse(z_scores() > input$threshold, -1, indic)
-    indic <- ifelse(z_scores() < (-input$threshold), 1, indic)
+    indic <- ifelse(zscores() > input$threshold, -1, indic)
+    indic <- ifelse(zscores() < (-input$threshold), 1, indic)
     # Calculate number of consecutive indicators in same direction.
-    # This is designed to avoid trading on microstructure noise.
+    # This is predictored to avoid trading on microstructure noise.
     # indic <- ifelse(indic == indic_lag, indic, indic)
     indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=input$lagg)
     indic_sum[1:input$lagg] <- 0
     
-    # Calculate position_s and pnls from indic_sum.
-    # position_s <- rep(NA_integer_,.n_rows)
-    # position_s[1] <- 0
-    # threshold <- 3*mad(z_scores)
+    # Calculate posit and pnls from indic_sum.
+    # posit <- rep(NA_integer_, nrows)
+    # posit[1] <- 0
+    # threshold <- 3*mad(zscores)
     # Flip position only if the indic_sum is at least equal to lagg.
     # Otherwise keep previous position.
-    position_s <- rep(NA_integer_,.n_rows)
-    position_s[1] <- 0
-    position_s <- ifelse(indic_sum >= input$lagg, 1, position_s)
-    position_s <- ifelse(indic_sum <= (-input$lagg), -1, position_s)
-    # position_s <- ifelse(z_scores > threshold, -1, position_s)
-    # position_s <- ifelse(z_scores < (-threshold), 1, position_s)
-    position_s <- zoo::na.locf(position_s, na.rm=FALSE)
-    position_s <- rutils::lagit(position_s, lagg=1)
+    posit <- rep(NA_integer_, nrows)
+    posit[1] <- 0
+    posit <- ifelse(indic_sum >= input$lagg, 1, posit)
+    posit <- ifelse(indic_sum <= (-input$lagg), -1, posit)
+    # posit <- ifelse(zscores > threshold, -1, posit)
+    # posit <- ifelse(zscores < (-threshold), 1, posit)
+    posit <- zoo::na.locf(posit, na.rm=FALSE)
+    posit <- rutils::lagit(posit, lagg=1)
     
     # Number of trades
-    n_trades <- sum(abs(rutils::diffit(position_s)))# /.n_rows
-    cap_tion <- paste("Number of trades =", n_trades)
+    ntrades <- sum(abs(rutils::diffit(posit)))# / nrows
+    captiont <- paste("Number of trades =", ntrades)
     
-    pnls <- cumsum(position_s*returns)
+    pnls <- cumsum(posit*returns)
     pnls <- cbind(pnls, cumsum(returns))
     colnames(pnls) <- c("Strategy", "Index")
     # pnls[rutils::calc_endpoints(pnls, interval="minutes")]
     # pnls[rutils::calc_endpoints(pnls, interval="hours")]
-    list(caption=cap_tion, pnls=pnls)
+    list(caption=captiont, pnls=pnls)
   })  # end eventReactive
   
   # })  # end reactive code
   
   # Return to the output argument a dygraph plot with two y-axes
   output$dyplot <- dygraphs::renderDygraph({
-    cap_tion <- datav()$caption
+    captiont <- datav()$caption
     pnls <- datav()$pnls
     colnamev <- colnames(pnls)
-    dygraphs::dygraph(pnls, main=cap_tion) %>%
+    dygraphs::dygraph(pnls, main=captiont) %>%
       dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
       dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
       dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="red") %>%

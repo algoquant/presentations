@@ -32,7 +32,7 @@ symbolv <- names(ratio_s)
 
 # Select ETFs with largest variance ratios
 ncols <- 4
-namesv <- names(ratio_s)[1.n_cols]
+namesv <- names(ratio_s)[1:ncols]
 returns <- rutils::etfenv$returns[, namesv]
 returns <- na.omit(returns)
 
@@ -56,7 +56,7 @@ calc_hurst_rets <- function(rets, endp) {
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel(paste("Portfolio Optimization for",.n_cols, "ETFs")),
+  titlePanel(paste("Portfolio Optimization for", ncols, "ETFs")),
   
   # Create single row with two slider inputs
   fluidRow(
@@ -102,7 +102,7 @@ servfunc <- function(input, output) {
     # pnls <- (pnls - mean(pnls))
     # tre_nd <- mean(pnls*rutils::lagit(pnls))/drop(var(pnls))
     pnls <- xts::xts(cumsum(pnls), zoo::index(returns))
-    dygraphs::dygraph(pnls, main=paste("Static Portfolio for",.n_cols, "ETFs", 
+    dygraphs::dygraph(pnls, main=paste("Static Portfolio for", ncols, "ETFs", 
                                         "Trend indicator =", round(tre_nd, 4)))
     # colnamev <- colnames(datav())
     # dygraphs::dygraph(datav(), main="ETF Portfolio Optimization") %>%

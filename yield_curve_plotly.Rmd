@@ -20,10 +20,10 @@ suppressMessages(suppressWarnings(library(plotly)))
 # load constant maturity Treasury rates
 load(file="C:/Develop/data/rates_data.RData")
 # create data frame of time series
-rate_s <- na.omit(do.call(merge, as.list(env_rates)[c("DGS10", "DGS20")]))
-rate_s <- data.frame(dates=index(rate_s), coredata(rate_s))
+rates <- na.omit(do.call(merge, as.list(env_rates)[c("DGS10", "DGS20")]))
+rates <- data.frame(dates=index(rates), coredata(rates))
 # plotly syntax using pipes
-rate_s %>% 
+rates %>% 
   plot_ly(x=~dates, y=~DGS10, type="scatter", mode="lines + markers", name="10yr Treasury rate") %>% 
   add_trace(x=~dates, y=~DGS20, name="20yr Treasury rate") %>% 
   layout(title="20yr and 10yr Treasury rates", 
@@ -31,7 +31,7 @@ rate_s %>%
          yaxis=list(title="Rates"),
          legend=list(x=0.1, y=0.9))
 # standard plotly syntax - for reference
-# p_lot <- plot_ly(data=rate_s, x=~dates, y=~DGS10, type="scatter", mode="lines", name="10yr Treasury rate")
+# p_lot <- plot_ly(data=rates, x=~dates, y=~DGS10, type="scatter", mode="lines", name="10yr Treasury rate")
 # p_lot <- add_trace(p=p_lot, x=~dates, y=~DGS20, fill="tonexty", name="20yr Treasury rate")
 # p_lot <- layout(p=p_lot, title="20yr and 10yr Treasury rates", xaxis=list(title="Time"), yaxis=list(title="Rates"), legend=list(x=0.1, y=0.9))
 # p_lot
@@ -54,46 +54,46 @@ suppressMessages(suppressWarnings(library(plotly)))
 # load constant maturity Treasury rates
 load(file="C:/Develop/data/rates_data.RData")
 # get end-of-year dates since 2006
-date_s <- endpoints(env_rates$DGS1["2006/"], on="years")
-date_s <- index(env_rates$DGS1["2006/"])[date_s]
+dates <- endpoints(env_rates$DGS1["2006/"], on="years")
+dates <- index(env_rates$DGS1["2006/"])[dates]
 # create time series of end-of-year rates
-rate_s <- eapply(env_rates, function(ra_te) ra_te[date_s])
-rate_s <- do.call(merge, rate_s)
+rates <- eapply(env_rates, function(ra_te) ra_te[dates])
+rates <- do.call(merge, rates)
 # rename columns and rows, sort columns, and transpose into matrix
-colnames(rate_s) <- substr(colnames(rate_s), start=4, stop=11)
-rate_s <- rate_s[, order(as.numeric(colnames(rate_s)))]
-colnames(rate_s) <- paste0(colnames(rate_s), "yr")
-rate_s <- t(rate_s)
-colnames(rate_s) <- substr(colnames(rate_s), start=1, stop=4)
+colnames(rates) <- substr(colnames(rates), start=4, stop=11)
+rates <- rates[, order(as.numeric(colnames(rates)))]
+colnames(rates) <- paste0(colnames(rates), "yr")
+rates <- t(rates)
+colnames(rates) <- substr(colnames(rates), start=1, stop=4)
 # plot matrix
-color_ramp <- colorRampPalette(c("red", "blue"))(NCOL(rate_s))
+color_ramp <- colorRampPalette(c("red", "blue"))(NCOL(rates))
 
 # plotly syntax using pipes
 
 # create yield_curves list
-yield_curves <- lapply(1:NCOL(rate_s), function (col_umn) {
+yield_curves <- lapply(1:NCOL(rates), function (colnum) {
   list(visible=FALSE,
-       name=paste0('v=', col_names[col_umn]),
+       name=paste0('v=', colnamevs[colnum]),
        x=row_names,
-       y=rate_s[, col_umn])
+       y=rates[, colnum])
 })  # end lapply
 
 yield_curves[3][[1]]$visible=TRUE
 
 # create slider list
-slide_r <- lapply(1:NCOL(rate_s), function (col_umn) {
+slide_r <- lapply(1:NCOL(rates), function (colnum) {
   ste_p <- list(args=list("visible", rep(FALSE, length(yield_curves))), method="restyle")
-  ste_p$args[[2]][col_umn] <- TRUE
+  ste_p$args[[2]][colnum] <- TRUE
   ste_p
 })  # end lapply
 
 # plot all traces
 p_lot <- plot_ly()
-for (col_umn in 1:NCOL(rate_s)) {
-  p_lot <- add_lines(p=p_lot, x=yield_curves[col_umn][[1]]$x, 
-                     y=yield_curves[col_umn][[1]]$y, 
-                     visible=yield_curves[col_umn][[1]]$visible, 
-                     name=yield_curves[col_umn][[1]]$name, 
+for (colnum in 1:NCOL(rates)) {
+  p_lot <- add_lines(p=p_lot, x=yield_curves[colnum][[1]]$x, 
+                     y=yield_curves[colnum][[1]]$y, 
+                     visible=yield_curves[colnum][[1]]$visible, 
+                     name=yield_curves[colnum][[1]]$name, 
                      type="scatter", mode="lines", hoverinfo="name", 
                      line=list(color="00CED1"), showlegend=FALSE)
 
@@ -112,7 +112,7 @@ p_lot <- layout(p=p_lot,
 p_lot
 
 # standard plotly syntax - for reference
-# p_lot <- plot_ly(data=rate_s, x=~dates, y=~DGS10, type="scatter", mode="lines", name="10yr Treasury rate")
+# p_lot <- plot_ly(data=rates, x=~dates, y=~DGS10, type="scatter", mode="lines", name="10yr Treasury rate")
 # p_lot <- add_trace(p=p_lot, x=~dates, y=~DGS20, fill="tonexty", name="20yr Treasury rate")
 # p_lot <- layout(p=p_lot, title="20yr and 10yr Treasury rates", xaxis=list(title="Time"), yaxis=list(title="Rates"), legend=list(x=0.1, y=0.9))
 # p_lot

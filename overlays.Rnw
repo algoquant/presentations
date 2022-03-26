@@ -116,7 +116,7 @@ The command |\only|, which is introduced by \beamer, normally simply inserts its
 
 Overlay specifications can only be written behind certain commands, not every command. Which commands you can use and which effects this will have is explained in the next section. However, it is quite easy to redefine an existing command such that it becomes ``overlay specification aware,'' see also Section~\ref{section-overlay-commands}.
 
-The syntax of (basic) overlay specifications is the following: They are comma-separated lists of slides and ranges. Ranges are specified like this: |2-5|, which means slide two through to five. The start or the end of a range can be omitted. For example, |3-| means ``slides three, four, five, and so on'' and |-5| means the same as |1-5|. A complicated example is |-3,6-8,10,12-15|, which selects the slides 1, 2, 3, 6, 7, 8, 10, 12, 13, 14, and 15.
+The syntax of (basic) overlay specifications is the following: They are comma-separated listv of slides and ranges. Ranges are specified like this: |2-5|, which means slide two through to five. The start or the end of a range can be omitted. For example, |3-| means ``slides three, four, five, and so on'' and |-5| means the same as |1-5|. A complicated example is |-3,6-8,10,12-15|, which selects the slides 1, 2, 3, 6, 7, 8, 10, 12, 13, 14, and 15.
 
 
 \subsection{Commands with Overlay Specifications}
@@ -699,7 +699,7 @@ Often you want to have overlay specifications that follow a pattern similar to t
 
 The problem starts if you decide to insert a new fruit, say, at the beginning. In this case, you would have to adjust all of the overlay specifications. Also, if you add a |\pause| command before the |itemize|, you would also have to update the overlay specifications.
 
-\beamer\ offers a special syntax to make creating lists as the one above more ``robust.'' You can replace it by the following list of \emph{incremental overlay specifications}:
+\beamer\ offers a special syntax to make creating listv as the one above more ``robust.'' You can replace it by the following list of \emph{incremental overlay specifications}:
 \begin{verbatim}
 \begin{itemize}
 \item<+-> Apple

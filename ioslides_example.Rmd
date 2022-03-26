@@ -33,7 +33,7 @@ options(width=80)
 
 ## Creating slide presentations using *RStudio*
 
-*RStudio* has developed two related file formats designed for creating slide presentations: the *R Markdown* format (files with extension *.Rmd*) and the *RPresentations* format (files with extension *.Rpres*).  Both formats use the *R Markdown* flavor of the *markdown* markup language, but differ in the way they are rendered into slide presentations. 
+*RStudio* has developed two related file formats predictored for creating slide presentations: the *R Markdown* format (files with extension *.Rmd*) and the *RPresentations* format (files with extension *.Rpres*).  Both formats use the *R Markdown* flavor of the *markdown* markup language, but differ in the way they are rendered into slide presentations. 
 
 *R Markdown* files can be rendered into either one of two interactive *html* slide presentations: **ioslides** or *slidy*, or into non-interactive *pdf* slide presentations.  *R Markdown* documents can also be rendered into standard *pdf* or *html* documents that aren't slides.
 
@@ -136,7 +136,7 @@ Below is an example of two-column layout using *CSS* code.
 The location of the break between columns is specified by the *CSS* style code in the file slides.css.  
 The left column is 40%, and the right is 60% of the page width.  
 
-<div class="column_left_40">
+<div class="column_left40">
 The left column contains *R* code that returns the summary of the *cars* data frame:  
 ```{r, sum_cars, eval=FALSE, echo=TRUE, results="hold"}
 summary(cars)
@@ -154,7 +154,7 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 
 ## Plots in Two-column Layout Using *CSS* Code  
 
-<div class="column_left_50">
+<div class="column_left50">
 Example of two-column layout with a plot.  
 The Normal probability density function is given by:
 $$
@@ -172,17 +172,17 @@ curve(expr=dnorm(x, sd=1.5), type="l", xlim=c(-5, 5),
 x_var <- seq(-5, 5, length=100)
 y_var <- dnorm(x_var, mean=0.0, sd=1.5)
 # Set shading range
-star_t <- 2; fin_ish <- 3
+startd <- 2; fin_ish <- 3
 # Set polygon base
-are_a <- ((x_var >= star_t) & (x_var <= fin_ish))
+are_a <- ((x_var >= startd) & (x_var <= fin_ish))
 # Draw shaded area
-polygon(c(star_t, x_var[are_a], fin_ish),
+polygon(c(startd, x_var[are_a], fin_ish),
         c(-1, y_var[are_a], -1), col="red")
 ```
 
 </div>
 
-<div class="column_right_50">
+<div class="column_right50">
 
 Plot of Normal probability density function:
 
@@ -199,7 +199,7 @@ Image files can be included in two different ways.  First, directly by using *ma
 
 The image file should be either in the same directory as the *R Markdown* file, or in a sub-directory.  
 
-<div class="column_left_50">
+<div class="column_left50">
 
 Hello World!  
 Creating *R* Presentations isn't difficult at all!  
@@ -212,7 +212,7 @@ knitr::include_graphics("image/easy_button.png")
 
 </div>
 
-<div class="column_right_50">
+<div class="column_right50">
 R is fun!  
 ![smiling_face](image/smile_small.png)
 </div>

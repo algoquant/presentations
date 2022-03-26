@@ -7,5 +7,5 @@ output: pdf_document
 
 ## Abstract  
 
-We introduce the **R** package **backpack**, for fast backtest simulations of trading strategies.  The package **backpack** uses the Armadillo **C++** library and the **R** package RcppArmadillo, to accelerate its performance.  Armadillo is a high level **C++** library designed for machine learning and linear algebra, with expressive syntax similar to **Matlab**.  The enhanced speed allows performing path-dependent simulations with state variables, and rolling portfolio optimizations.  The features of package **backpack** are demonstrated on examples using shiny web apps.
+We introduce the **R** package **backpack**, for fast backtest simulations of trading strategies.  The package **backpack** uses the Armadillo **C++** library and the **R** package RcppArmadillo, to accelerate its performance.  Armadillo is a high level **C++** library predictored for machine learning and linear algebra, with expressive syntax similar to **Matlab**.  The enhanced speed allows performing path-dependent simulations with state variables, and rolling portfolio optimizations.  The features of package **backpack** are demonstrated on examples using shiny web apps.
 

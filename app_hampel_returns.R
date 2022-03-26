@@ -48,14 +48,14 @@ closep <- log(Cl(ohlc))
 
 returns <- rutils::diffit(closep)
 
-cap_tion <- paste("Contrarian Strategy for", symbol, "Using the Hampel Filter Over Returns")
+captiont <- paste("Contrarian Strategy for", symbol, "Using the Hampel Filter Over Returns")
 
 ## End setup code
 
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel(cap_tion),
+  titlePanel(captiont),
   
   fluidRow(
     # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
@@ -76,7 +76,7 @@ uiface <- shiny::fluidPage(
     # Input threshold interval
     column(width=2, sliderInput("threshold", label="threshold", min=1.0, max=10.0, value=1.8, step=0.2))
     # Input the weight decay parameter
-    # column(width=2, sliderInput("lambdav", label="Weight decay:",
+    # column(width=2, sliderInput("lambda", label="Weight decay:",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input model weights type
     # column(width=2, selectInput("typev", label="Portfolio weights type",
@@ -87,7 +87,7 @@ uiface <- shiny::fluidPage(
     # column(width=2, sliderInput("alpha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
     # Input the percentile
-    # column(width=2, sliderInput("percen_tile", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
+    # column(width=2, sliderInput("quant", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     # column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # Input the bid-offer spread
@@ -111,10 +111,10 @@ servfunc <- function(input, output) {
     # max_eigen <- isolate(input$max_eigen)
     threshold <- isolate(input$threshold)
     # look_lag <- isolate(input$look_lag
-    # lambdav <- isolate(input$lambdav)
+    # lambda <- isolate(input$lambda)
     # typev <- isolate(input$typev)
     # alpha <- isolate(input$alpha)
-    # percen_tile <- isolate(input$percen_tile)
+    # quant <- isolate(input$quant)
     # coeff <- as.numeric(isolate(input$coeff))
     # bid_offer <- isolate(input$bid_offer)
     # Model is recalculated when the re_calculate variable is updated
@@ -127,27 +127,27 @@ servfunc <- function(input, output) {
     # Rerun the model
     medi_an <- TTR::runMedian(returns, n=look_back)
     medi_an[1:look_back, ] <- 1
-    ma_d <- TTR::runMAD(returns, n=look_back)
-    ma_d[1:look_back, ] <- 1
-    z_scores <- ifelse(ma_d != 0, (returns-medi_an)/ma_d, 0)
-    z_scores[1:look_back, ] <- 0
-    # mad_zscores <- TTR::runMAD(z_scores, n=look_back)
+    madv <- TTR::runMAD(returns, n=look_back)
+    madv[1:look_back, ] <- 1
+    zscores <- ifelse(madv != 0, (returns-medi_an)/madv, 0)
+    zscores[1:look_back, ] <- 0
+    # mad_zscores <- TTR::runMAD(zscores, n=look_back)
     # mad_zscores[1:look_back, ] <- 0
     mad_zscores <- 1
     
-    # Calculate position_s and pnls from z-scores and rangev
-    position_s <- rep(NA_integer_,.n_rows)
-    position_s[1] <- 0
-    # threshold <- 3*mad(z_scores)
-    # position_s <- ifelse(z_scores > threshold, -1, position_s)
-    # position_s <- ifelse(z_scores < (-threshold), 1, position_s)
-    position_s <- ifelse(z_scores > threshold*mad_zscores, -1, position_s)
-    position_s <- ifelse(z_scores < (-threshold*mad_zscores), 1, position_s)
-    position_s <- zoo::na.locf(position_s, na.rm=FALSE)
-    position_s <- rutils::lagit(position_s, lagg=lagg)
+    # Calculate posit and pnls from z-scores and rangev
+    posit <- rep(NA_integer_, nrows)
+    posit[1] <- 0
+    # threshold <- 3*mad(zscores)
+    # posit <- ifelse(zscores > threshold, -1, posit)
+    # posit <- ifelse(zscores < (-threshold), 1, posit)
+    posit <- ifelse(zscores > threshold*mad_zscores, -1, posit)
+    posit <- ifelse(zscores < (-threshold*mad_zscores), 1, posit)
+    posit <- zoo::na.locf(posit, na.rm=FALSE)
+    posit <- rutils::lagit(posit, lagg=lagg)
     
     # returns <- rutils::diffit(closep)
-    pnls <- cumsum(position_s*returns)
+    pnls <- cumsum(posit*returns)
     pnls <- cbind(pnls, cumsum(returns))
     colnames(pnls) <- c("Strategy", "Index")
     # pnls[rutils::calc_endpoints(pnls, interval="minutes")]
@@ -158,7 +158,7 @@ servfunc <- function(input, output) {
   # Return to the output argument a dygraph plot with two y-axes
   output$dyplot <- dygraphs::renderDygraph({
     colnamev <- colnames(datav())
-    dygraphs::dygraph(datav(), main=cap_tion) %>%
+    dygraphs::dygraph(datav(), main=captiont) %>%
       dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
       dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
       dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="red") %>%

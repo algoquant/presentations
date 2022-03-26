@@ -55,9 +55,9 @@ options(width=80)
 # This chunk creates a dynamic markdown heading using pander
 suppressWarnings(library(pander, quietly=TRUE))
 # Get number of rows to be displayed
-n_rows <- sample(x=3:7, size=1)
+nrows <- sample(x=3:7, size=1)
 # Create dynamic heading using pander
-pandoc.header(paste("Here is", n_rows, "rows of the 'mtcars' data frame"), level=4)
-head(mtcars, n_rows)
+pandoc.header(paste("Here is", nrows, "rows of the 'mtcars' data frame"), level=4)
+head(mtcars, nrows)
 ```
 

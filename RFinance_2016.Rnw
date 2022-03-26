@@ -96,8 +96,8 @@ knit_theme$set(thm)
         {\mathrm{d}w}^3 \frac{1}{3!} \frac{\mathrm{d}^3u}{\mathrm{d}w^3} + {\mathrm{d}w}^4 \frac{1}{4!} \frac{\mathrm{d}^4u}{\mathrm{d}w^4} + \ldots
       \end{multline*}
       \begin{multline*}
-        \mathrm{d}E[u] = \alpha_1 mean + \alpha_1 variance + \\
-        \alpha_1 skew + \alpha_4 kurtosis + \ldots
+        \mathrm{d}E[u] = \alpha1 mean + \alpha1 variance + \\
+        \alpha1 skew + \alpha4 kurtosis + \ldots
       \end{multline*}
       mean: $\bar{w}=\frac{1}{k} \sum_{i=1}^{k} w_i$
       \vskip1ex
@@ -142,24 +142,24 @@ Eugene Fama and Kenneth French, \href{http://papers.ssrn.com/sol3/papers.cfm?abs
       <<echo=(-(1:6))>>=
 # load package "HighFreq"
 library(HighFreq)
-sym_bol <- "SPY"  # define sym_bol
+symbol <- "SPY"  # define symbol
 # load OHLC data
-re_turns <- calc_rets(x_ts=to.daily(SPY))
-len_gth <- nrow(re_turns)  # number of observations
-mean_rets <- mean(re_turns[, 1])  # calculate mean
-sd_rets <- sd(re_turns[, 1])  # calculate standard deviation
+returns <- calc_rets(xtes=to.daily(SPY))
+nrows <- nrow(returns)  # number of observations
+mean_rets <- mean(returns[, 1])  # calculate mean
+sd_rets <- sd(returns[, 1])  # calculate standard deviation
 # calculate skew and kurtosis
-(sum(((re_turns[, 1] - mean_rets)/sd_rets)^3))/len_gth
-(sum(((re_turns[, 1] - mean_rets)/sd_rets)^4))/len_gth
+(sum(((returns[, 1] - mean_rets)/sd_rets)^3))/nrows
+(sum(((returns[, 1] - mean_rets)/sd_rets)^4))/nrows
       @
       \vspace{-3em}
       <<earl_ret_hist,echo=TRUE,fig.width=7,fig.height=6,fig.show='hide'>>=
 library(PerformanceAnalytics)
-chart.Histogram(re_turns[, 1], main="", 
+chart.Histogram(returns[, 1], main="", 
   xlim=c(-6e-5, 6e-5), 
   methods = c("add.density", "add.normal"))
 # add title
-title(main=paste(sym_bol, "density"), line=-1)
+title(main=paste(symbol, "density"), line=-1)
       @
   \end{columns}
 \end{block}
@@ -201,17 +201,17 @@ library(HighFreq)
 # set data directories
 data_dir <- "C:/Develop/data/hfreq/src/"
 output_dir <- "C:/Develop/data/hfreq/scrub/"
-# define sym_bol
-sym_bol <- "SPY"
+# define symbol
+symbol <- "SPY"
 # load a single day of TAQ data
-sym_bol <- load(
+symbol <- load(
   file.path(data_dir, 
-            paste0(sym_bol, "/2014.05.02.", 
-                   sym_bol, ".RData")))
+            paste0(symbol, "/2014.05.02.", 
+                   symbol, ".RData")))
 # scrub, aggregate single day of TAQ data to OHLC
-ohlc_data <- scrub_agg(taq_data=get(sym_bol))
+ohlc_data <- scrub_agg(taq_data=get(symbol))
 # aggregate TAQ data for symbol, save to file
-save_scrub_agg(sym_bol, 
+save_scrub_agg(symbol, 
                data_dir=data_dir, 
                output_dir=output_dir, 
                period="minutes")
@@ -233,17 +233,17 @@ save_scrub_agg(sym_bol,
       <<earl_ohlc_chart,echo=TRUE,eval=FALSE,fig.width=7,fig.height=6,fig.show='hide'>>=
 # load package "HighFreq"
 library(HighFreq)
-# define sym_bol
-sym_bol <- "SPY"
+# define symbol
+symbol <- "SPY"
 # load OHLC data
 output_dir <- "C:/Develop/data/hfreq/scrub/"
-sym_bol <- load(
+symbol <- load(
   file.path(output_dir, 
-            paste0(sym_bol, ".RData")))
-inter_val <- 
+            paste0(symbol, ".RData")))
+interval <- 
   "2013-11-11 09:30:00/2013-11-11 10:30:00"
-chart_Series(SPY[inter_val], 
-            name=sym_bol)
+chart_Series(SPY[interval], 
+            name=symbol)
       @
     \column{0.5\textwidth}
       \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_ohlc_chart-1}
@@ -281,15 +281,15 @@ chart_Series(SPY[inter_val],
 par(mfrow=c(2,1))  # set plot panels
 library(quantmod)
 library(TTR)
-inter_val <- "2013-11-11/2013-11-15"
+interval <- "2013-11-11/2013-11-15"
 var_iance <- volatility(OHLC=SPY, 
                      calc="yang.zhang", n=20)
-chart_Series(var_iance[inter_val], 
-            name=paste(sym_bol, "vol w/ ON spikes"))
+chart_Series(var_iance[interval], 
+            name=paste(symbol, "vol w/ ON spikes"))
 var_iance <- volatility(OHLC=SPY, 
                      calc="rogers.satchell", n=20)
-chart_Series(var_iance[inter_val], 
-            name=paste(sym_bol, "vol w/o ON spikes"))
+chart_Series(var_iance[interval], 
+            name=paste(symbol, "vol w/o ON spikes"))
       @
     \column{0.5\textwidth}
       \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_ttr_runvol-1}
@@ -317,12 +317,12 @@ library(HighFreq)  # load package "HighFreq"
 # daily variance and volume
 daily_var <- apply.daily(x=SPY, FUN=agg_regate, 
                         esti_mator="vol_ohlc")
-colnames(daily_var) <- paste0(sym_bol, ".var")
+colnames(daily_var) <- paste0(symbol, ".var")
 daily_volume <- apply.daily(x=Vo(SPY), FUN=sum)
 chart_Series(daily_var, 
-             name=paste(sym_bol, "variance"))
+             name=paste(symbol, "variance"))
 chart_Series(daily_volume, 
-             name=paste(sym_bol, "volume"))
+             name=paste(symbol, "volume"))
       @
     \column{0.5\textwidth}
       \vspace{-1em}
@@ -353,16 +353,16 @@ par(mfrow=c(3,1))  # set plot panels
 library(HighFreq)  # load package "HighFreq"
 # daily volume
 daily_volu <- apply.daily(x=SPY, 
-              FUN=function(da_ta) sum(Vo(da_ta)))
-colnames(daily_volu) <- paste0(sym_bol, ".volume")
-inter_val <- "2010"
-chart_Series(sqrt(daily_var[inter_val]), 
-             name=paste(sym_bol, "std dev"))
-chart_Series(daily_volu[inter_val],
-             name=paste(sym_bol, "volume"))
+              FUN=function(datav) sum(Vo(datav)))
+colnames(daily_volu) <- paste0(symbol, ".volume")
+interval <- "2010"
+chart_Series(sqrt(daily_var[interval]), 
+             name=paste(symbol, "std dev"))
+chart_Series(daily_volu[interval],
+             name=paste(symbol, "volume"))
 chart_Series(
-  sqrt(daily_var[inter_val]/daily_volu[inter_val]),
-  name=paste(sym_bol, "illiquidity"))
+  sqrt(daily_var[interval]/daily_volu[interval]),
+  name=paste(symbol, "illiquidity"))
 @
     \column{0.5\textwidth}
       \vspace{-1em}
@@ -404,9 +404,9 @@ daily_hurst <- apply.daily(x=SPY,
                            FUN=agg_regate, 
                            esti_mator="hurst_ohlc")
 colnames(daily_hurst) <- 
-  paste(na_me(get(sym_bol)), ".Hurst")
+  paste(na_me(get(symbol)), ".Hurst")
 chart_Series(roll_sum(daily_hurst, 10)[-(1:10)]/10, 
-             name=paste(sym_bol, "Hurst"))
+             name=paste(symbol, "Hurst"))
 abline(h=0.5, col="blue", lwd=2)
       @
   \end{columns}
@@ -427,9 +427,9 @@ abline(h=0.5, col="blue", lwd=2)
 par(mfrow=c(2,1))  # set plot panels
 library(HighFreq)  # load package "HighFreq"
 chart_Series(roll_sum(daily_var, 10)[-(1:10)]/10, 
-             name=paste(sym_bol, "variance"))
+             name=paste(symbol, "variance"))
 chart_Series(roll_sum(daily_hurst, 10)[-(1:10)]/10, 
-             name=paste(sym_bol, "Hurst"))
+             name=paste(symbol, "Hurst"))
 abline(h=0.5, col="blue", lwd=2)
       @
     \column{0.5\textwidth}
@@ -458,18 +458,18 @@ library(HighFreq)  # load package "HighFreq"
 season_volume <- season_ality(Vo(SPY))
 season_volume <- season_volume[-(nrow(season_volume))]
 colnames(season_volume) <- 
-  paste0(na_me(get(sym_bol)), ".season_volume")
+  paste0(na_me(get(symbol)), ".season_volume")
 plot_theme <- chart_theme()
 plot_theme$format.labels <- "%H:%M"
-ch_ob <- chart_Series(x=season_volume, 
+chobj <- chart_Series(x=season_volume, 
   name=paste(colnames(season_volume), 
   "intraday seasonality"), theme=plot_theme, 
   plot=FALSE)
-y_lim <- ch_ob$get_ylim()
-y_lim[[2]] <- structure(c(y_lim[[2]][1], 
-              y_lim[[2]][2]/2), fixed=TRUE)
-ch_ob$set_ylim(y_lim)
-plot(ch_ob)
+ylim <- chobj$get_ylim()
+ylim[[2]] <- structure(c(ylim[[2]][1], 
+              ylim[[2]][2]/2), fixed=TRUE)
+chobj$set_ylim(ylim)
+plot(chobj)
 # intraday seasonality of volatility
 season_var <- season_ality(vol_ohlc(ohlc=SPY))
 season_var <- season_var[-(nrow(season_var))]
@@ -500,14 +500,14 @@ library(HighFreq)  # load package "HighFreq"
 season_illiquid <- season_ality(10^6*sqrt(
   ifelse(Vo(SPY)>0, vol_ohlc(ohlc=SPY)/Vo(SPY), 0)))
 colnames(season_illiquid) <- 
-  paste0(na_me(get(sym_bol)), ".season_illiquid")
-ch_ob <- chart_Series(x=season_illiquid,
+  paste0(na_me(get(symbol)), ".season_illiquid")
+chobj <- chart_Series(x=season_illiquid,
   name=paste(colnames(season_illiquid), "intraday seasonality"), 
   plot=FALSE)
-y_lim <- ch_ob$get_ylim()
-y_lim[[2]] <- structure(c(0.2, 0.6), fixed=TRUE)
-ch_ob$set_ylim(y_lim)
-plot(ch_ob)
+ylim <- chobj$get_ylim()
+ylim[[2]] <- structure(c(0.2, 0.6), fixed=TRUE)
+chobj$set_ylim(ylim)
+plot(chobj)
 # intraday seasonality of volatility
 season_var <- season_ality(vol_ohlc(ohlc=SPY))
       @
@@ -532,20 +532,20 @@ season_var <- season_ality(vol_ohlc(ohlc=SPY))
 par(mfrow=c(2,1))  # set plot panels
 library(HighFreq)  # load package "HighFreq"
 # intraday seasonality of Hurst exponent
-season_hurst <- season_ality(hurst_ohlc(ohlc=SPY[inter_val, 1:4]))
+season_hurst <- season_ality(hurst_ohlc(ohlc=SPY[interval, 1:4]))
 season_hurst <- season_hurst[-(nrow(season_hurst))]
-colnames(season_hurst) <- paste0(na_me(get(sym_bol)), ".season_hurst")
+colnames(season_hurst) <- paste0(na_me(get(symbol)), ".season_hurst")
 plot_theme <- chart_theme()
 plot_theme$format.labels <- "%H:%M"
-ch_ob <- chart_Series(x=season_hurst, 
+chobj <- chart_Series(x=season_hurst, 
   name=paste(colnames(season_hurst), 
   "intraday seasonality"), theme=plot_theme, 
   plot=FALSE)
-y_lim <- ch_ob$get_ylim()
-y_lim[[2]] <- structure(c(y_lim[[2]][1], 
-              y_lim[[2]][2]), fixed=TRUE)
-ch_ob$set_ylim(y_lim)
-plot(ch_ob)
+ylim <- chobj$get_ylim()
+ylim[[2]] <- structure(c(ylim[[2]][1], 
+              ylim[[2]][2]), fixed=TRUE)
+chobj$set_ylim(ylim)
+plot(chobj)
 abline(h=0.5, col="blue", lwd=2)
 # intraday seasonality of volatility
 season_var <- season_ality(vol_ohlc(ohlc=SPY))
@@ -571,17 +571,17 @@ season_var <- season_ality(vol_ohlc(ohlc=SPY))
 par(mfrow=c(2,1))  # set plot panels
 library(HighFreq)  # load package "HighFreq"
 # intraday seasonality of Hurst exponent
-ran_ge <- range(daily_var)
+rangev <- range(daily_var)
 plot(x=as.vector(daily_var), y=as.vector(daily_hurst), 
      xlab=colnames(daily_var), ylab=colnames(daily_hurst),  
      main="Daily Hurst and variance", 
-     xlim=c(ran_ge[1], ran_ge[2]/4))
+     xlim=c(rangev[1], rangev[2]/4))
 abline(h=0.5, col="blue", lwd=2)
-ran_ge <- range(season_var)
+rangev <- range(season_var)
 plot(x=as.vector(season_var), y=as.vector(season_hurst), 
      xlab=colnames(season_var), ylab=colnames(season_hurst),  
      main="Intraday seasonal Hurst and variance", 
-     xlim=c(ran_ge[1], ran_ge[2]/2), ylim=c(0.35, 0.7))
+     xlim=c(rangev[1], rangev[2]/2), ylim=c(0.35, 0.7))
 abline(h=0.5, col="blue", lwd=2)
       @
     \column{0.5\textwidth}
@@ -613,16 +613,16 @@ library(HighFreq)  # load package "HighFreq"
 var_iance <- 
   roll_agg(ohlc=SPY, esti_mator="vol_ohlc")
 # rolling skew
-sk_ew <- 
+skew <- 
   roll_agg(ohlc=SPY, esti_mator="skew_ohlc")
-sk_ew <- sk_ew/(var_iance)^(1.5)
-sk_ew[1, ] <- 0
-sk_ew <- na.locf(sk_ew)
-inter_val <- "2013-11-11/2013-11-15"
-chart_Series(var_iance[inter_val], 
-            name=paste(sym_bol, "variance"))
-chart_Series(sk_ew[inter_val],
-            name=paste(sym_bol, "Skew"), 
+skew <- skew/(var_iance)^(1.5)
+skew[1, ] <- 0
+skew <- na.locf(skew)
+interval <- "2013-11-11/2013-11-15"
+chart_Series(var_iance[interval], 
+            name=paste(symbol, "variance"))
+chart_Series(skew[interval],
+            name=paste(symbol, "Skew"), 
             ylim=c(-1, 1))
       @
     \column{0.5\textwidth}
@@ -647,16 +647,16 @@ library(HighFreq)  # load package "HighFreq"
 # daily variance and skew
 daily_var <- apply.daily(x=SPY, FUN=agg_regate, 
                         esti_mator="vol_ohlc")
-colnames(daily_var) <- paste0(sym_bol, ".var")
+colnames(daily_var) <- paste0(symbol, ".var")
 daily_skew <- apply.daily(x=SPY, FUN=agg_regate, 
                         esti_mator="skew_ohlc")
 daily_skew <- daily_skew/(daily_var)^(1.5)
-colnames(daily_skew) <- paste0(sym_bol, ".skew")
-inter_val <- "2013-06-01/"
-chart_Series(daily_var[inter_val], 
-             name=paste(sym_bol, "variance"))
-chart_Series(daily_skew[inter_val],
-             name=paste(sym_bol, "skew"))
+colnames(daily_skew) <- paste0(symbol, ".skew")
+interval <- "2013-06-01/"
+chart_Series(daily_var[interval], 
+             name=paste(symbol, "variance"))
+chart_Series(daily_skew[interval],
+             name=paste(symbol, "skew"))
       @
     \column{0.5\textwidth}
       \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_dailyskew-1}
@@ -677,29 +677,29 @@ chart_Series(daily_skew[inter_val],
       \vspace{-1em}
       <<echo=(-(1:1))>>=
 # scatterplot of returns versus lagged skew
-re_turns <- calc_rets(x_ts=SPY)
-sk_ew <- skew_ohlc(ohlc=SPY[, -5])
-colnames(sk_ew) <- paste0(sym_bol, ".skew")
-lag_skew <- lag(sk_ew)
+returns <- calc_rets(xtes=SPY)
+skew <- skew_ohlc(ohlc=SPY[, -5])
+colnames(skew) <- paste0(symbol, ".skew")
+lag_skew <- lag(skew)
 lag_skew[1, ] <- 0
-da_ta <- cbind(re_turns[, 1], lag_skew)
-for_mula <- as.formula(paste(colnames(da_ta)[1], 
-          paste(paste(colnames(da_ta)[-1], 
+datav <- cbind(returns[, 1], lag_skew)
+formulav <- as.formula(paste(colnames(datav)[1], 
+          paste(paste(colnames(datav)[-1], 
             collapse=" + ")), sep="~"))
-l_m <- lm(for_mula, data=da_ta["2010"])
+l_m <- lm(formulav, data=datav["2010"])
 summary(l_m)$coef
-summary(lm(for_mula, data=da_ta["2011"]))$coef
-summary(lm(for_mula, data=da_ta["2012"]))$coef
+summary(lm(formulav, data=datav["2011"]))$coef
+summary(lm(formulav, data=datav["2012"]))$coef
       @
-      <<earl_skew_scatter,echo=TRUE,eval=FALSE,fig.width=7,fig.height=6,fig.show='hide'>>=
-plot(for_mula, data=da_ta["2010"], 
+      <<earl_skewscatter,echo=TRUE,eval=FALSE,fig.width=7,fig.height=6,fig.show='hide'>>=
+plot(formulav, data=datav["2010"], 
      main="Returns versus lagged skew", 
      xlim=c(-2e-09, 2e-09), ylim=c(-0.01, 0.01), 
      cex=0.6, xlab="skew", ylab="rets")
 abline(l_m, col="blue", lwd=2)
       @
     \column{0.5\textwidth}
-      \includegraphics[width=0.5\paperwidth,valign=t]{figure/skew_scatter.png}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/skewscatter.png}
   \end{columns}
 \end{block}
 
@@ -723,23 +723,23 @@ abline(l_m, col="blue", lwd=2)
       <<echo=(-(1:1))>>=
 # contrarian skew trading strategy
 # lag the skew to get positions
-position_s <- -sign(lag_skew)
-position_s[1, ] <- 0
+posit <- -sign(lag_skew)
+posit[1, ] <- 0
 # cumulative PnL
-cumu_pnl <- cumsum(position_s*re_turns[, 1])
+cumu_pnl <- cumsum(posit*returns[, 1])
 # calculate frequency of trades
-50*sum(abs(sign(sk_ew)-sign(lag_skew)))/nrow(sk_ew)
+50*sum(abs(sign(skew)-sign(lag_skew)))/nrow(skew)
 # calculate transaction costs
 bid_offer <- 0.001  # 10 bps for liquid ETFs
-bid_offer*sum(abs(sign(sk_ew)-sign(lag_skew)))
+bid_offer*sum(abs(sign(skew)-sign(lag_skew)))
 @
     \column{0.5\textwidth}
-      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_skew_strat-1}
+      \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_skewstrat-1}
       \vspace{-1em}
-      <<earl_skew_strat,echo=TRUE,eval=FALSE,fig.width=7,fig.height=6,fig.show='hide'>>=
+      <<earl_skewstrat,echo=TRUE,eval=FALSE,fig.width=7,fig.height=6,fig.show='hide'>>=
 chart_Series(
   cumu_pnl[endpoints(cumu_pnl, on="hours"), ], 
-  name=paste(sym_bol, "contrarian skew strategy pnl"))
+  name=paste(symbol, "contrarian skew strategy pnl"))
 @
   \end{columns}
 \end{block}

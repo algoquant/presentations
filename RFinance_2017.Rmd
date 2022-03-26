@@ -56,22 +56,22 @@ abstract: How Can Machines Learn to Trade?
 confi_dence <- function(num_flips, num_coins, p1, p2=0.5) {
   # calculate binomial probabilities for biased coin, using normal approximation for the binomial coefficient.
   if (p1^num_flips > 1e-10)
-    binom_1 <- choose(num_flips, 0:num_flips) * p1^(0:num_flips) * (1-p1)^(num_flips:0)
+    binom1 <- choose(num_flips, 0:num_flips) * p1^(0:num_flips) * (1-p1)^(num_flips:0)
   else
-    binom_1 <- dnorm(0:num_flips, mean=num_flips*p1, sd=sqrt(num_flips*p1*(1-p1)))
+    binom1 <- dnorm(0:num_flips, mean=num_flips*p1, sd=sqrt(num_flips*p1*(1-p1)))
   # calculate binomial probabilities for unbiased coins, using normal approximation for the binomial coefficient.
   if (p2^num_flips > 1e-10)
-    binom_2 <- choose(num_flips, 0:num_flips) * p2^(0:num_flips) * (1-p2)^(num_flips:0)
+    binom2 <- choose(num_flips, 0:num_flips) * p2^(0:num_flips) * (1-p2)^(num_flips:0)
   else
-    binom_2 <- dnorm(0:num_flips, mean=num_flips*p2, sd=sqrt(num_flips*p2*(1-p2)))
+    binom2 <- dnorm(0:num_flips, mean=num_flips*p2, sd=sqrt(num_flips*p2*(1-p2)))
   # probability of unbiased coin producing less than a certain number of heads
-  cum_binom_2 <- cumsum(binom_2)
-  cum_binom_2 <- c(0, cum_binom_2[-NROW(cum_binom_2)])
+  cum_binom2 <- cumsum(binom2)
+  cum_binom2 <- c(0, cum_binom2[-NROW(cum_binom2)])
 # probability of selecting the biased coin, when there's a tie in number of heads
-  prob_tie <- sapply(binom_2, function(pro_b)
-    sum(choose(num_coins-1, 1:(num_coins-1)) * pro_b^(1:(num_coins-1)) * (1-pro_b)^((num_coins-2):0) / (2:num_coins)))
+  prob_tie <- sapply(binom2, function(probv)
+    sum(choose(num_coins-1, 1:(num_coins-1)) * probv^(1:(num_coins-1)) * (1-probv)^((num_coins-2):0) / (2:num_coins)))
 # total probability of selecting the biased coin, including ties in number of heads
-  sum(binom_1 * (cum_binom_2^(num_coins-1) + prob_tie))
+  sum(binom1 * (cum_binom2^(num_coins-1) + prob_tie))
 }  # end confi_dence
 
 # Probability of selecting the biased coin out of 2 coins, after 132 coin flips
@@ -79,20 +79,20 @@ confi_dence <- function(num_flips, num_coins, p1, p2=0.5) {
 
 # Probabilities of selecting the biased coin, as a function of the number of coin flips
 num_flips <- 10:150
-prob_s <- sapply(num_flips, confi_dence, p1=0.6, num_coins=2)
+probs <- sapply(num_flips, confi_dence, p1=0.6, num_coins=2)
 # Number of coin flips needed to select the biased coin, with 95% confidence
-min_num_flips <- num_flips[findInterval(0.95, prob_s)]
+min_num_flips <- num_flips[findInterval(0.95, probs)]
 # min_num_flips
 
 # Plot probabilities as a function of the number of coin flips
 # Create data frame
-da_ta <- data.frame(num_flips=num_flips, probs=prob_s)
+datav <- data.frame(num_flips=num_flips, probs=probs)
 # Plot with plotly using pipes syntax
 suppressMessages(suppressWarnings(library(plotly)))
-da_ta %>% 
+datav %>% 
   plot_ly(x=~num_flips, y=~probs, type="scatter", mode="lines + markers", name="probability") %>% 
   add_trace(x=range(num_flips), y=0.95, mode="lines", line=list(color="red"), name="95% confidence") %>% 
-  add_trace(x=min_num_flips, y=range(prob_s), mode="lines", line=list(color="green"), name=paste(min_num_flips, "flips")) %>% 
+  add_trace(x=min_num_flips, y=range(probs), mode="lines", line=list(color="green"), name=paste(min_num_flips, "flips")) %>% 
   layout(title="Probability of selecting biased coin from two coins", 
          xaxis=list(title="number of coin flips"),
          yaxis=list(title="probability"),
@@ -110,30 +110,30 @@ da_ta %>%
 
 ```{r eval=TRUE, echo=FALSE, fig.width=5.5, fig.height=3.5}
 # Sharpe ratio as function of daily probability
-# sharpe_ratio <- sqrt(250)*(2*pro_b-1)
+# sharpe_ratio <- sqrt(250)*(2*probv-1)
 # Daily probability as function of Sharpe ratio
 sharpe_ratio <- 0.4
-pro_b <- (sharpe_ratio/sqrt(250)+1)/2
+probv <- (sharpe_ratio/sqrt(250)+1)/2
 # Adjust probability to account for two managers
-# pro_b <- 0.5 + (pro_b-0.5)/2
+# probv <- 0.5 + (probv-0.5)/2
 
 # Probability of selecting skilled manager with 20 years of data
-# confi_dence(20*250, 2, pro_b, 0.5)
+# confi_dence(20*250, 2, probv, 0.5)
 
 # Annual probabilities of selecting skilled manager from two managers
-year_s <- 1:50
-prob_s <- sapply(250*year_s, confi_dence, num_coins=2, p1=pro_b, p2=0.5)
+years <- 1:50
+probs <- sapply(250*years, confi_dence, num_coins=2, p1=probv, p2=0.5)
 
 # Years of data needed to select the skilled manager, with 95% confidence
-num_years <- findInterval(0.95, prob_s)
+num_years <- findInterval(0.95, probs)
 
 # Plot probabilities as a function of the number of years
-da_ta <- data.frame(years=year_s, probs=prob_s)
+datav <- data.frame(years=years, probs=probs)
 # Plot with plotly using pipes syntax
-da_ta %>% 
+datav %>% 
   plot_ly(x=~years, y=~probs, type="scatter", mode="lines + markers", name="probability") %>% 
-  add_trace(x=range(year_s), y=0.95, mode="lines", line=list(color="red"), name="95% confidence") %>% 
-  add_trace(x=num_years, y=range(prob_s), mode="lines", line=list(color="green"), name=paste(num_years, "years")) %>% 
+  add_trace(x=range(years), y=0.95, mode="lines", line=list(color="red"), name="95% confidence") %>% 
+  add_trace(x=num_years, y=range(probs), mode="lines", line=list(color="green"), name=paste(num_years, "years")) %>% 
   layout(title="Probability of selecting skilled manager", 
          xaxis=list(title="years"),
          yaxis=list(title="probabilities"),
@@ -150,14 +150,14 @@ da_ta %>%
 ```{r eval=TRUE, echo=FALSE, fig.width=5.5, fig.height=3.5}
 # Probabilities of selecting the skilled manager, as a function of the number of managers
 num_managers <- 2:50
-prob_s <- sapply(num_managers, confi_dence, p1=pro_b, p2=0.5, num_flips=250*33)
-# prob_s <- cbind(num_managers, prob_s)
-# plot(prob_s, t="l", main="Probabilities of selecting the skilled manager, as a function of the number of managers")
+probs <- sapply(num_managers, confi_dence, p1=probv, p2=0.5, num_flips=250*33)
+# probs <- cbind(num_managers, probs)
+# plot(probs, t="l", main="Probabilities of selecting the skilled manager, as a function of the number of managers")
 
 # Create data frame
-da_ta <- data.frame(num_managers=num_managers, probs=prob_s)
+datav <- data.frame(num_managers=num_managers, probs=probs)
 # Plot with plotly using pipes syntax
-da_ta %>% 
+datav %>% 
   plot_ly(x=~num_managers, y=~probs, type="scatter", mode="lines + markers", name="probability") %>% 
   layout(title="Probability of selecting skilled manager, from multiple managers", 
          xaxis=list(title="number of managers"),
@@ -184,25 +184,25 @@ da_ta %>%
 
 ```{r eval=TRUE, echo=FALSE, fig.width=5.5, fig.height=3.5}
 # cum_pnl for multi-manager strategy (simplest version)
-cum_pnl <- function(look_back, n_row, sharpe_ratio=NULL, re_turns=NULL, mean_s=NULL, num_managers=NULL, vol_at=0.01) {
+cum_pnl <- function(look_back, n_row, sharpe_ratio=NULL, returns=NULL, mean_s=NULL, num_managers=NULL, volat=0.01) {
   # calculate drifts
   if(is.null(mean_s)) {
-    pro_b <- (sharpe_ratio/sqrt(250)+1)/2
+    probv <- (sharpe_ratio/sqrt(250)+1)/2
     # Adjust probability to account for multiple managers
-    p1 <- (0.5*num_managers + (pro_b - 0.5)*(num_managers-1)) / num_managers
-    p2 <- (0.5*num_managers - (pro_b - 0.5)) / num_managers
-    mean_s <- vol_at*look_back*c(2*p1-1, rep(2*p2-1, num_managers-1))
+    p1 <- (0.5*num_managers + (probv - 0.5)*(num_managers-1)) / num_managers
+    p2 <- (0.5*num_managers - (probv - 0.5)) / num_managers
+    mean_s <- volat*look_back*c(2*p1-1, rep(2*p2-1, num_managers-1))
   } else {
     num_managers <- NROW(mean_s)
   }  # end if
   # calculate probability of selecting the best manager
-  pro_b <- integrate(function(x, ...) 
+  probv <- integrate(function(x, ...) 
     dnorm(x, mean=mean_s[1], ...)*pnorm(x, mean=mean_s[2], ...)^(num_managers-1), 
             low=-3.0, up=3.0, 
-            sd=sqrt(look_back)*vol_at)$value
+            sd=sqrt(look_back)*volat)$value
   # return total expected pnl
   num_agg <- n_row %/% look_back
-  num_agg*(pro_b*mean_s[1] + (1-pro_b)*mean_s[2])
+  num_agg*(probv*mean_s[1] + (1-probv)*mean_s[2])
 }  # end cum_pnl
 
 # Calculate total expected pnl
@@ -210,16 +210,16 @@ cum_pnl <- function(look_back, n_row, sharpe_ratio=NULL, re_turns=NULL, mean_s=N
 
 # Perform loop over number of managers
 num_managers <- 2*(1:50)
-pnl_s <- sapply(num_managers, cum_pnl, 
-              re_turns=NULL, sharpe_ratio=0.4, look_back=100, n_row=50000, mean_s=NULL, vol_at=0.01)
-# pnl_s <- cbind(num_managers, pnl_s)
-# plot(pnl_s, t="l", main="Strategy pnl as a function of number of managers")
+pnls <- sapply(num_managers, cum_pnl, 
+              returns=NULL, sharpe_ratio=0.4, look_back=100, n_row=50000, mean_s=NULL, volat=0.01)
+# pnls <- cbind(num_managers, pnls)
+# plot(pnls, t="l", main="Strategy pnl as a function of number of managers")
 
 # Create data frame
-da_ta <- data.frame(num_managers=num_managers, pnl_s=pnl_s)
+datav <- data.frame(num_managers=num_managers, pnls=pnls)
 # Plot with plotly using pipes syntax
-da_ta %>% 
-  plot_ly(x=~num_managers, y=~pnl_s, type="scatter", mode="lines + markers", name="probability") %>% 
+datav %>% 
+  plot_ly(x=~num_managers, y=~pnls, type="scatter", mode="lines + markers", name="probability") %>% 
   layout(title="Strategy pnl as function of number of managers", 
          xaxis=list(title="number of managers"),
          yaxis=list(title="strategy pnl"),
@@ -236,16 +236,16 @@ da_ta %>%
 ```{r eval=TRUE, echo=FALSE, fig.width=5.5, fig.height=3.5}
 # Perform loop over look-back windows
 look_backs <- 100*(1:20)
-pnl_s <- sapply(look_backs, cum_pnl, 
+pnls <- sapply(look_backs, cum_pnl, 
               sharpe_ratio=0.4, num_managers=11, n_row=50000)
-# pnl_s <- cbind(look_backs, pnl_s)
-# plot(pnl_s, t="l", main="Strategy pnl as a function of lookback window length")
+# pnls <- cbind(look_backs, pnls)
+# plot(pnls, t="l", main="Strategy pnl as a function of lookback window length")
 
 # Create data frame
-da_ta <- data.frame(look_backs=look_backs, pnl_s=pnl_s)
+datav <- data.frame(look_backs=look_backs, pnls=pnls)
 # Plot with plotly using pipes syntax
-da_ta %>% 
-  plot_ly(x=~look_backs, y=~pnl_s, type="scatter", mode="lines + markers", name="probability") %>% 
+datav %>% 
+  plot_ly(x=~look_backs, y=~pnls, type="scatter", mode="lines + markers", name="probability") %>% 
   layout(title="Strategy pnl as function of lookback window length", 
          xaxis=list(title="window length"),
          yaxis=list(title="strategy pnl"),
@@ -258,32 +258,32 @@ da_ta %>%
 
 ```{r eval=TRUE, echo=FALSE, fig.width=10, fig.height=6}
 suppressMessages(suppressWarnings(library(HighFreq)))
-# define daily volatility: daily prices change by vol_at units
-vol_at <- 0.01
+# define daily volatility: daily prices change by volat units
+volat <- 0.01
 n_row <- 5000
 num_managers <- 3
 # rate of drift (skill) change
 ra_te <- 4*pi
 # Daily probability as function of Sharpe ratio
 sharpe_ratio <- 0.4
-pro_b <- (sharpe_ratio/sqrt(250)+1)/2
+probv <- (sharpe_ratio/sqrt(250)+1)/2
 # Adjust probability to account for two managers
-pro_b <- 0.5 + (pro_b-0.5)/2
+probv <- 0.5 + (probv-0.5)/2
 # define growth rate
-mea_n <- vol_at*(2*pro_b-1)
+mea_n <- volat*(2*probv-1)
 # time-dependent drift (skill)
-dri_ft <- sapply(1:num_managers, function(x) 
+drift <- sapply(1:num_managers, function(x) 
   mea_n*sin(ra_te*(1:n_row)/n_row + 2*pi*x/num_managers))
 # simulate multiple price paths
 set.seed(1121)  # reset random number generator
-re_turns <- matrix(vol_at*rnorm(num_managers*n_row) - vol_at^2/2, nc=num_managers) + dri_ft
-col_ors <- colorRampPalette(c("red", "blue"))(NCOL(re_turns))
+returns <- matrix(volat*rnorm(num_managers*n_row) - volat^2/2, nc=num_managers) + drift
+colors <- colorRampPalette(c("red", "blue"))(NCOL(returns))
 par(mfrow=c(2, 2))
 par(mar=c(3, 1, 1, 1), oma=c(1, 1, 1, 1))
-plot.zoo(dri_ft, main="time-dependent growth rates", lwd=3, xlab=NA, ylab=NA, plot.type="single", col=col_ors)
-plot.zoo(re_turns, main="simulated returns", xlab=NA, ylab=NA, plot.type="single", col=col_ors)
-plot.zoo(apply(re_turns, 2, cumsum), 
-         main="simulated prices", xlab=NA, ylab=NA, plot.type="single", col=col_ors)
+plot.zoo(drift, main="time-dependent growth rates", lwd=3, xlab=NA, ylab=NA, plot.type="single", col=colors)
+plot.zoo(returns, main="simulated returns", xlab=NA, ylab=NA, plot.type="single", col=colors)
+plot.zoo(apply(returns, 2, cumsum), 
+         main="simulated prices", xlab=NA, ylab=NA, plot.type="single", col=colors)
 
 ```
 
@@ -295,77 +295,77 @@ plot.zoo(apply(re_turns, 2, cumsum),
 
 ```{r eval=FALSE, echo=FALSE, fig.width=7, fig.height=5}
 num_managers <- 5
-dri_ft <- sapply(1:num_managers, function(x) 
+drift <- sapply(1:num_managers, function(x) 
   mea_n*sin(ra_te*(1:n_row)/n_row + 2*pi*x/num_managers))
 set.seed(1121)  # reset random number generator
-re_turns <- matrix(vol_at*rnorm(num_managers*n_row) - vol_at^2/2, nc=num_managers) + dri_ft
+returns <- matrix(volat*rnorm(num_managers*n_row) - volat^2/2, nc=num_managers) + drift
 # calculate cumulative returns
-cum_rets <- apply(re_turns, 2, cumsum)
+cum_rets <- apply(returns, 2, cumsum)
 
 ### pre-calculate row order indices for a vector of look_backs
 look_backs <- 20*(1:50)
-order_stats <- lapply(look_backs, function(look_back) {
-  # total re_turns aggregated over overlapping windows
-  agg_rets <- apply(cum_rets, 2, rutils::diff_it, lag=look_back)
-  or_der <- t(apply(agg_rets, 1, order))
-  or_der <- rutils::lag_it(or_der)
-  or_der[1, ] <- 1
-  or_der
+orderstats <- lapply(look_backs, function(look_back) {
+  # total returns aggregated over overlapping windows
+  agg_rets <- apply(cum_rets, 2, rutils::diffit, lag=look_back)
+  ordern <- t(apply(agg_rets, 1, order))
+  ordern <- rutils::lagit(ordern)
+  ordern[1, ] <- 1
+  ordern
 })  # end lapply
-names(order_stats) <- look_backs
+names(orderstats) <- look_backs
 
-### cum_pnl for long-short multi-manager strategy (without end_points)
-cum_pnl <- function(select_best=NULL, select_worst=NULL, re_turns, or_der) {
-  n_row <- NROW(re_turns)
+### cum_pnl for long-short multi-manager strategy (without endpoints)
+cum_pnl <- function(select_best=NULL, select_worst=NULL, returns, ordern) {
+  n_row <- NROW(returns)
   if(!is.null(select_best)) {
-    n_col <- NCOL(re_turns)
-    be_st <- or_der[, (n_col-select_best+1):n_col]
+    n_col <- NCOL(returns)
+    be_st <- ordern[, (n_col-select_best+1):n_col]
     be_st <- cbind(1:n_row, be_st)
   } else {
     be_st <- NULL
   }  # end if
   if(!is.null(select_worst)) {
-    wor_st <- or_der[, 1:select_worst]
+    wor_st <- ordern[, 1:select_worst]
     wor_st <- cbind(1:n_row, wor_st)
   } else {
     wor_st <- NULL
   }  # end if
   # return total expected pnl
-  # pnl_s <- re_turns[be_st]-re_turns[wor_st]
-  sum(re_turns[be_st])-sum(re_turns[wor_st])
+  # pnls <- returns[be_st]-returns[wor_st]
+  sum(returns[be_st])-sum(returns[wor_st])
 }  # end cum_pnl
 
 # calculate pnl for long-short multi-manager strategy
-# cum_pnl(select_best=1, select_worst=1, re_turns=re_turns, or_der=order_stats[[5]])
+# cum_pnl(select_best=1, select_worst=1, returns=returns, ordern=orderstats[[5]])
 
 # perform loop over look-back windows
-pnl_s <- sapply(order_stats, cum_pnl, select_best=1, select_worst=NULL, re_turns=re_turns)
-pnl_s <- cbind(look_backs, pnl_s)
+pnls <- sapply(orderstats, cum_pnl, select_best=1, select_worst=NULL, returns=returns)
+pnls <- cbind(look_backs, pnls)
 # par(mar=c(1, 1, 1, 1), oma=c(1, 1, 1, 1))
-# plot(pnl_s, t="l", main="Trend-following PnL, as function of look-back window")
+# plot(pnls, t="l", main="Trend-following PnL, as function of look-back window")
 
 
-### double the dri_ft
+### double the drift
 set.seed(1121)  # reset random number generator
-re_turns <- matrix(vol_at*rnorm(num_managers*n_row) - vol_at^2/2, nc=num_managers) + 2*dri_ft
+returns <- matrix(volat*rnorm(num_managers*n_row) - volat^2/2, nc=num_managers) + 2*drift
 # calculate cumulative returns
-cum_rets <- apply(re_turns, 2, cumsum)
+cum_rets <- apply(returns, 2, cumsum)
 
 ### pre-calculate row order indices for a vector of look_backs
-order_stats_2x <- lapply(look_backs, function(look_back) {
-  # total re_turns aggregated over overlapping windows
-  agg_rets <- apply(cum_rets, 2, rutils::diff_it, lag=look_back)
-  or_der <- t(apply(agg_rets, 1, order))
-  or_der <- rutils::lag_it(or_der)
-  or_der[1, ] <- 1
-  or_der
+orderstats2x <- lapply(look_backs, function(look_back) {
+  # total returns aggregated over overlapping windows
+  agg_rets <- apply(cum_rets, 2, rutils::diffit, lag=look_back)
+  ordern <- t(apply(agg_rets, 1, order))
+  ordern <- rutils::lagit(ordern)
+  ordern[1, ] <- 1
+  ordern
 })  # end lapply
-names(order_stats_2x) <- look_backs
+names(orderstats2x) <- look_backs
 
 # perform loop over look-back windows
-pnls_2x <- sapply(order_stats_2x, cum_pnl, select_best=1, select_worst=NULL, re_turns=re_turns)
+pnls2x <- sapply(orderstats2x, cum_pnl, select_best=1, select_worst=NULL, returns=returns)
 par(mar=c(1, 1, 1, 1), oma=c(1, 1, 1, 1))
-plot.zoo(cbind(pnl_s[, 2], pnls_2x), main="Trend-following PnL, as function of look-back window", 
+plot.zoo(cbind(pnls[, 2], pnls2x), main="Trend-following PnL, as function of look-back window", 
          lwd=2, xaxt="n", xlab="look-back windows", ylab="PnL", plot.type="single", col=c("black", "red"))
 # add x-axis
 axis(1, seq_along(look_backs), look_backs)
@@ -384,16 +384,16 @@ legend(x="top", legend=paste0("SR=", c(0.4, 0.8)),
 
 ```{r eval=FALSE, echo=FALSE, fig.width=7, fig.height=5}
 # perform loop over look-back windows
-pnl_s <- sapply(order_stats, cum_pnl, select_best=2, select_worst=NULL, re_turns=re_turns)
-pnl_s <- cbind(look_backs, pnl_s)
+pnls <- sapply(orderstats, cum_pnl, select_best=2, select_worst=NULL, returns=returns)
+pnls <- cbind(look_backs, pnls)
 # par(mar=c(1, 1, 1, 1), oma=c(1, 1, 1, 1))
-# plot(pnl_s, t="l", main="Trend-following PnL, as function of look-back window")
+# plot(pnls, t="l", main="Trend-following PnL, as function of look-back window")
 
 
 # perform loop over look-back windows
-pnls_2x <- sapply(order_stats_2x, cum_pnl, select_best=2, select_worst=NULL, re_turns=re_turns)
+pnls2x <- sapply(orderstats2x, cum_pnl, select_best=2, select_worst=NULL, returns=returns)
 par(mar=c(1, 1, 1, 1), oma=c(1, 1, 1, 1))
-plot.zoo(cbind(pnl_s[, 2], pnls_2x), main="Trend-following PnL, as function of look-back window", 
+plot.zoo(cbind(pnls[, 2], pnls2x), main="Trend-following PnL, as function of look-back window", 
          lwd=2, xaxt="n", xlab="look-back windows", ylab="PnL", plot.type="single", col=c("black", "red"))
 # add x-axis
 axis(1, seq_along(look_backs), look_backs)
@@ -412,16 +412,16 @@ legend(x="top", legend=paste0("SR=", c(0.4, 0.8)),
 
 ```{r eval=FALSE, echo=FALSE, fig.width=7, fig.height=5}
 # perform loop over look-back windows
-pnl_s <- sapply(order_stats, cum_pnl, select_best=1, select_worst=1, re_turns=re_turns)
-pnl_s <- cbind(look_backs, pnl_s)
+pnls <- sapply(orderstats, cum_pnl, select_best=1, select_worst=1, returns=returns)
+pnls <- cbind(look_backs, pnls)
 # par(mar=c(1, 1, 1, 1), oma=c(1, 1, 1, 1))
-# plot(pnl_s, t="l", main="Trend-following PnL, as function of look-back window")
+# plot(pnls, t="l", main="Trend-following PnL, as function of look-back window")
 
 
 # perform loop over look-back windows
-pnls_2x <- sapply(order_stats_2x, cum_pnl, select_best=1, select_worst=1, re_turns=re_turns)
+pnls2x <- sapply(orderstats2x, cum_pnl, select_best=1, select_worst=1, returns=returns)
 par(mar=c(1, 1, 1, 1), oma=c(1, 1, 1, 1))
-plot.zoo(cbind(pnl_s[, 2], pnls_2x), main="Trend-following PnL, as function of look-back window", 
+plot.zoo(cbind(pnls[, 2], pnls2x), main="Trend-following PnL, as function of look-back window", 
          lwd=2, xaxt="n", xlab="look-back windows", ylab="PnL", plot.type="single", col=c("black", "red"))
 # add x-axis
 axis(1, seq_along(look_backs), look_backs)
@@ -436,5 +436,5 @@ legend(x="top", legend=paste0("SR=", c(0.4, 0.8)),
 ## Thank You {.smaller}  
 
 - Slide source is available here:
-\href{https://github.com/algoquant/presentations/blob/master/RFinance_2017.Rmd}}
+\href{https://github.com/algoquant/presentations/blob/master/RFinance2017.Rmd}}
 

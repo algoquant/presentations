@@ -96,6 +96,6 @@ Note that the `echo = FALSE` parameter may be added to the code chunk to prevent
 For example:
 
 ```{r dygraph, echo=TRUE}
-dygraphs::dygraph(log(Cl(rutils::etf_env$VTI)), main="VTI Stock Price (log)")
+dygraphs::dygraph(log(Cl(rutils::etfenv$VTI)), main="VTI Stock Price (log)")
 ```
 

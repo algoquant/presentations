@@ -16,7 +16,7 @@ library(dygraphs)
 # if (!("etfenv" %in% search()))
 #   attach(etfenv)
 # if (!("etfenv" %in% ls()))
-#   load(file="C:/Develop/lecture_slides/data/etf_data.RData")
+#   load(file="/Users/jerzy/Develop/lecture_slides/data/etf_data.RData")
 # data_env <- "etfenv"
 # symbolv <- etfenv$symbolv
 # symbol <- "SVXY"
@@ -32,7 +32,7 @@ symbol <- "SVXY"
 # if (!("sp500env" %in% search()))
 #   attach(sp500env)
 # if (!("sp500env" %in% ls())) {
-#   load(file="C:/Develop/lecture_slides/data/sp500.RData")
+#   load(file="/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
 # }  # end if
 # data_env <- sp500env
 # symbolv <- names(data_env)
@@ -55,7 +55,7 @@ interface <- shiny::fluidPage(
     # Input look-back interval
     # column(width=2, sliderInput("look_back", label="Lookback interval", min=1, max=150, value=4, step=1)),
     # Input lambda parameter
-    column(width=3, sliderInput("lambdav", label="lambdav:", min=0.01, max=0.99, value=0.37, step=0.01)),
+    column(width=3, sliderInput("lambda", label="lambda:", min=0.01, max=0.99, value=0.37, step=0.01)),
     # Input lag trade parameter
     column(width=2, sliderInput("lagg", label="Confirmation signals", min=1, max=5, value=2, step=1)),
     # Input trend or revert
@@ -80,7 +80,7 @@ server <- shiny::shinyServer(function(input, output) {
     # Get model parameters from input argument
     symbol <- input$symbol
     # look_back <- input$look_back
-    lambdav <- input$lambdav
+    lambda <- input$lambda
     lagg <- input$lagg
     coeff <- as.numeric(input$coeff)
 
@@ -108,37 +108,37 @@ server <- shiny::shinyServer(function(input, output) {
     volumes <- quantmod::Vo(ohlc)
     
     # Simulate strategy
-    vwapv <- HighFreq::run_mean(prices, lambda=lambdav, weights=volumes)
+    vwapv <- HighFreq::run_mean(prices, lambda=lambda, weights=volumes)
 
     # Calculate VWAP indicator
     indic <- sign(prices - vwapv)
     # indic_lag <- rutils::lagit(indic, lagg=1)
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
-    # This is designed to prevent whipsaws and over-trading.
-    # position_s <- ifelse(indic == indic_lag, indic, position_s)
+    # This is predictored to prevent whipsaws and over-trading.
+    # posit <- ifelse(indic == indic_lag, indic, posit)
     indic_sum <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
     indic_sum[1:lagg] <- 0
-    position_s <- rep(NA_integer_, NROW(prices))
-    position_s[1] <- 0
-    position_s <- ifelse(indic_sum == lagg, 1, position_s)
-    position_s <- ifelse(indic_sum == (-lagg), -1, position_s)
-    position_s <- zoo::na.locf(position_s, na.rm=FALSE)
-    # position_s[1:lagg] <- 0
+    posit <- rep(NA_integer_, NROW(prices))
+    posit[1] <- 0
+    posit <- ifelse(indic_sum == lagg, 1, posit)
+    posit <- ifelse(indic_sum == (-lagg), -1, posit)
+    posit <- zoo::na.locf(posit, na.rm=FALSE)
+    # posit[1:lagg] <- 0
     # Calculate indicator of flipping the positions
-    indic <- rutils::diffit(position_s)
+    indic <- rutils::diffit(posit)
     # Calculate number of trades
-    globals$n_trades <- sum(abs(indic)>0)
+    globals$ntrades <- sum(abs(indic)>0)
     
     # Add buy/sell indicators for annotations
     indic_buy <- (indic > 0)
     indic_sell <- (indic < 0)
     # Lag the positions to trade in next period
-    position_s <- rutils::lagit(position_s, lagg=1)
+    posit <- rutils::lagit(posit, lagg=1)
     # Calculate log strategy returns
     # returns <- rutils::diffit(prices)
     # Calculate strategy profits and losses
-    pnls <- coeff*returns*position_s
+    pnls <- coeff*returns*posit
     # Scale the pnls so they have same SD as returns
     pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
     
@@ -146,8 +146,8 @@ server <- shiny::shinyServer(function(input, output) {
     colnames(pnls) <- c(symbol, "Strategy")
     
     # Calculate Sharpe ratios
-    sharp_e <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
-    globals$sharp_e <- round(sharp_e, 3)
+    sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
+    globals$sharper <- round(sharper, 3)
 
     pnls <- cumsum(pnls)
     # pnls <- cbind(pnls, vwapv)
@@ -163,15 +163,15 @@ server <- shiny::shinyServer(function(input, output) {
     colnamev <- colnames(datav())
     
     # Get Sharpe ratios
-    sharp_e <- globals$sharp_e
+    sharper <- globals$sharper
     # Get number of trades
-    n_trades <- globals$n_trades
+    ntrades <- globals$ntrades
     
-    cap_tion <- paste(input$symbol, "VWAP strategy / \n", 
-                      paste0(c("Index SR=", "Strategy SR="), sharp_e, collapse=" / "), "/ \n",
-                      "Number of trades=", n_trades)
+    captiont <- paste(input$symbol, "VWAP strategy / \n", 
+                      paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
+                      "Number of trades=", ntrades)
     
-    dygraphs::dygraph(datav(), main=cap_tion) %>%
+    dygraphs::dygraph(datav(), main=captiont) %>%
       dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
       dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
       dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=2, col="blue") %>%
