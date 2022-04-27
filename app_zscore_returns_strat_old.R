@@ -81,14 +81,14 @@ uiface <- shiny::fluidPage(
 
 
 ## Define the server code
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
 
   ## Create an empty list of reactive values.
   globals <- reactiveValues()
 
   
   ## Calculate the returns
-  returns <- reactive({
+  returns <- shiny::reactive({
     
     symbol <- input$symbol
     response_symbol <- input$response_symbol
@@ -108,7 +108,7 @@ servfunc <- function(input, output) {
   })  # end Load the data
   
   ## Calculate the z-scores
-  zscores <- reactive({
+  zscores <- shiny::reactive({
     
     cat("Calculating the z-scores", "\n")
     lambda <- input$lambda
@@ -136,7 +136,7 @@ servfunc <- function(input, output) {
   
 
   # Recalculate the strategy
-  pnls <- reactive({
+  pnls <- shiny::reactive({
     
     symbol <- input$symbol
     cat("Recalculating strategy for ", symbol, "\n")
@@ -309,4 +309,4 @@ servfunc <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

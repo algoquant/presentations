@@ -34,7 +34,7 @@ library(grid)
 
 ## Executing Real-time Trading Strategies  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - Real-time trading requires running a programmatic loop.  
 
@@ -50,7 +50,7 @@ library(grid)
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ```{r fig.width=7, echo=FALSE}
 img <- readPNG("figure/real_time_trading.png")
@@ -64,7 +64,7 @@ grid.raster(img, just="centre")
 
 ## The Package *IBrokers* for Interactive Brokers  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - The package <a href="https://cran.r-project.org/web/packages/IBrokers/index.html" target="_blank"><em>*IBrokers*</em></a> allows downloading live market data via the <a href="https://interactivebrokers.github.io/tws-api/" target="_blank">API of Interactive Brokers (IB API)</a>
 
@@ -78,7 +78,7 @@ grid.raster(img, just="centre")
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ```{r, eval=FALSE, echo=TRUE}
 # Install and load package IBrokers
@@ -112,7 +112,7 @@ close(file_connect)
 
 ## The *eWrapper* Object  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - An *eWrapper* object consists of a *data environment* and *handlers* (methods) for formatting and adding new data to the *data environment*.
 
@@ -124,7 +124,7 @@ close(file_connect)
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ```{r fig.width=7, echo=FALSE}
 img <- readPNG("figure/eWrapper_object.png")
@@ -137,7 +137,7 @@ grid.raster(img, just="centre")
 
 ## Market Event Processing  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - Market events can be either *trade events* or *market quotes*.  
 
@@ -151,7 +151,7 @@ grid.raster(img, just="centre")
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ```{r fig.width=7, echo=FALSE}
 img <- readPNG("figure/market_event_processing2.png")
@@ -164,7 +164,7 @@ grid.raster(img, just="centre")
 
 ## The *trade_wrapper* Object  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - The functionality of package *IBrokers* can easily be extended to trading by writing a new *eWrapper* object.
 
@@ -178,7 +178,7 @@ grid.raster(img, just="centre")
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ```{r fig.width=7, echo=FALSE}
 img <- readPNG("figure/trade_wrapper_object.png")
@@ -191,7 +191,7 @@ grid.raster(img, just="centre")
 
 ## Functions in Package *IBrokers2*  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - Most of the functions in package *IBrokers2* were derived from those in *IBrokers*.  
 
@@ -207,7 +207,7 @@ grid.raster(img, just="centre")
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ```{r fig.width=7, echo=FALSE}
 img <- readPNG("figure/functions_IBrokers2.png")
@@ -220,7 +220,7 @@ grid.raster(img, just="centre")
 
 ## Trade Processing Using Package *IBrokers2*  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - Trade processing using package *IBrokers2* uses a similar framework to that for downloading real-time *OHLC* market data using `IBrokers::reqRealTimeBars()`.  
 
@@ -228,7 +228,7 @@ grid.raster(img, just="centre")
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ```{r fig.width=7, echo=FALSE}
 img <- readPNG("figure/trade_processing.png")
@@ -241,7 +241,7 @@ grid.raster(img, just="centre")
 
 ## Real-time Trading Using Package *IBrokers2*  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - The function `trade_realtime()` accepts the `trade_wrapper()` and `call_back()` functions, and initiates real-time trading.
 
@@ -255,7 +255,7 @@ grid.raster(img, just="centre")
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ```{r, eval=FALSE, echo=TRUE}
 # Install and load package IBrokers2
@@ -293,7 +293,7 @@ for (file_connect in file_connects) close(file_connect)
 
 ## Future Development of Package *IBrokers2*  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 ### Current state  
 
@@ -309,7 +309,7 @@ for (file_connect in file_connects) close(file_connect)
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ### Applications  
 

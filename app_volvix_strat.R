@@ -66,13 +66,13 @@ uiface <- shiny::fluidPage(
 
 
 ## Define the server code
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
 
   # Create an empty list of reactive values.
   values <- reactiveValues()
 
   # Load the data
-  ohlc <- reactive({
+  ohlc <- shiny::reactive({
     
     symbol <- input$symbol
     cat("Loading data for ", symbol, "\n")
@@ -83,7 +83,7 @@ servfunc <- function(input, output) {
   
 
   # Recalculate the strategy
-  pnls <- reactive({
+  pnls <- shiny::reactive({
     
     symbol <- input$symbol
     cat("Recalculating strategy for ", symbol, "\n")
@@ -228,4 +228,4 @@ servfunc <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

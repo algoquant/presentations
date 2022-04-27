@@ -78,16 +78,16 @@ uiface <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(plotOutput("histo_gram", width="90%", height="550px"))
+  plotOutput("histo_gram", width="90%", height="550px")
 
 )  # end fluidPage interface
 
 
 ## Define the server code
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
   
   # recalculate the data and rerun the model
-  # datav <- reactive({
+  # datav <- shiny::reactive({
   # Get model parameters from input argument
   # max_eigen <- isolate(input$max_eigen)
   # look_lag <- isolate(input$look_lag
@@ -104,7 +104,7 @@ servfunc <- function(input, output) {
   # values <- reactiveValues()
   
   ## Calculate log returns
-  returns <- reactive({
+  returns <- shiny::reactive({
     symbol <- input$symbol
     cat("Loading data for ", symbol, "\n")
     ohlc <- rutils::etfenv[[symbol]]
@@ -115,7 +115,7 @@ servfunc <- function(input, output) {
   })  # end reactive
   
   ## Calculate scaled if there are new short_back and long_back values
-  scaled <- reactive({
+  scaled <- shiny::reactive({
     cat("Calculating scaled returns in trading time \n")
     short_back <- input$short_back
     # long_back <- input$long_back
@@ -187,4 +187,4 @@ servfunc <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

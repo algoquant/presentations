@@ -46,7 +46,7 @@ uiface <- fluidPage(
     # Show a plot of the generated distribution
     # Create output plot panel
     # mainPanel(dygraphs::dygraphOutput("dyplot"), width=12)
-    mainPanel(plotOutput("distPlot"), width=12)
+    plotOutput("distPlot")
     )  # end fluidPage
 
 
@@ -63,7 +63,7 @@ serv_er <- function(input, output) {
     endpoints <- endpoints[endpoints > (ncols+1)]
     nrows <- NROW(endpoints)
     # Calculate returns on equal weight portfolio
-    indeks <- xts(cumsum(returns %*% rep(1/sqrt ncols), ncols)), index(returns))
+    indeks <- xts::xts(cumsum(returns %*% rep(1/sqrt(ncols), ncols)), index(returns))
     
     # Define the strategy function
     run_strategy <- function(returns, look_back, alpha, max_eigen, lagg) {

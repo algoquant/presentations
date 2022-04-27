@@ -49,7 +49,7 @@ symbol <- "XLK"
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel("Strategy Based on the Z-scores of Rolling Regressions"),
+  titlePanel("Strategy Based on the Z-scores of Running Regressions"),
   
   # create single row with four slider inputs
   fluidRow(
@@ -72,13 +72,13 @@ uiface <- shiny::fluidPage(
 
 
 ## Define the server code
-servfunc <- shiny::shinyServer(function(input, output) {
+servfun <- shiny::shinyServer(function(input, output) {
 
   # Create an empty list of reactive values.
   values <- reactiveValues()
   
   # Recalculate the data and rerun the model
-  datav <- reactive({
+  datav <- shiny::reactive({
     # Get model parameters from input argument
     symbol <- input$symbol
     lambda <- input$lambda
@@ -123,10 +123,11 @@ servfunc <- shiny::shinyServer(function(input, output) {
       dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
       dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=2, col="blue") %>%
       # dySeries(name=colnamev[3], axis="y", label=colnamev[3], strokeWidth=2, col="green") %>%
-      dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=2, col="red")
+      dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=2, col="red") %>%
+      dyLegend(show="always", width=500)
   })  # end output plot
 
 })  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

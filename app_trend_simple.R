@@ -70,10 +70,10 @@ uiface <- shiny::fluidPage(
 
 
 ## Define the server code
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
   
   # Recalculate the data and rerun the model
-  # datav <- reactive({
+  # datav <- shiny::reactive({
   # Get model parameters from input argument
   # max_eigen <- isolate(input$max_eigen)
   # look_lag <- isolate(input$look_lag
@@ -94,7 +94,7 @@ servfunc <- function(input, output) {
   globals <- reactiveValues()
   
   # Calculate returns and variance
-  datav <- reactive({
+  datav <- shiny::reactive({
     # Get model parameters from input argument
     data_type <- input$data_type
     symbol <- input$symbol
@@ -125,7 +125,7 @@ servfunc <- function(input, output) {
 
 
   # Calculate predictor
-  predictor <- reactive({
+  predictor <- shiny::reactive({
     cat("Calculating predictor\n")
     predictor_type <- input$predictor_type
 
@@ -156,7 +156,7 @@ servfunc <- function(input, output) {
   # hist(predictor, xlim=c(quantile(predictor, 0.05), quantile(predictor, 0.95)), breaks=50, main=paste("Z-scores for", "look_back =", look_back))
   
   # Calculate pnls
-  pnls <- reactive({
+  pnls <- shiny::reactive({
     cat("Calculating pnls\n")
     lambda <- input$lambda
     trend <- as.numeric(input$trend)
@@ -171,7 +171,7 @@ servfunc <- function(input, output) {
   
 
   # Plot dygraph
-  dyplot <- reactive({
+  dyplot <- shiny::reactive({
     cat("Plotting pnls\n")
     
     datav <- cbind(datav()[, 1, drop=FALSE], pnls())
@@ -205,4 +205,4 @@ servfunc <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

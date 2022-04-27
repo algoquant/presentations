@@ -7,7 +7,7 @@
 ## Below is the setup code that runs once when the shiny app is started
 
 # Load R packages
-library(HighFreq)
+library(rutils)
 library(shiny)
 library(dygraphs)
 
@@ -16,10 +16,10 @@ library(dygraphs)
 # Calculate dollar and percentage returns for VTI and IEF
 prices <- rutils::etfenv$prices[, c("VTI", "IEF")]
 prices <- na.omit(prices)
-rets_dollar <- rutils::diffit(prices)
-rets_percent <- rets_dollar/rutils::lagit(prices, lagg=1, pad_zeros=FALSE)
+retsd <- rutils::diffit(prices)
+retsp <- retsd/rutils::lagit(prices, lagg=1, pad_zeros=FALSE)
 
-captiont <- "Log Wealth of Risk Parity vs Fixed Dollar Ratios for VTI and IEF"
+captiont <- "Log Wealth of Risk Parity vs Fixed Dollar Allocations for VTI and IEF"
 
 ## End setup code
 
@@ -43,7 +43,7 @@ uiface <- shiny::fluidPage(
     # column(width=2, sliderInput("exponent", label="Std Dev exponent:",
     #                             min=0.25, max=2.5, value=1.0, step=0.05)),
     # Input weights
-    column(width=2, sliderInput("weights", label="VTI weight:", min=0.4, max=0.6, value=0.5, step=0.01))
+    column(width=2, sliderInput("weights", label="VTI weight", min=0.4, max=0.6, value=0.5, step=0.01))
     # Input lag trade parameter
     # column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=2, step=1)),
     # Input threshold interval
@@ -57,7 +57,7 @@ uiface <- shiny::fluidPage(
 
 
 ## Define the server code
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
   
   # Create an empty list of reactive values.
   values <- reactiveValues()
@@ -71,7 +71,7 @@ servfunc <- function(input, output) {
     # exponent <- input$exponent
 
     # Calculate rolling percentage volatility
-    volat <- roll::roll_sd(rets_percent, width=look_back)
+    volat <- roll::roll_sd(retsp, width=look_back)
     volat <- zoo::na.locf(volat, na.rm=FALSE)
     volat <- zoo::na.locf(volat, fromLast=TRUE)
     # volat^exponent
@@ -87,10 +87,10 @@ servfunc <- function(input, output) {
     # Get model parameters from input argument
     weights <- input$weights
 
-    # Calculate wealth of fixed ratio of dollar amounts
+    # Calculate wealth of proportional dollar allocation (fixed ratio of dollar amounts)
     weights <- c(weights, 1-weights)
-    rets_weighted <- rets_percent %*% weights
-    wealth_fixed_ratio <- cumprod(1 + rets_weighted)
+    rets_weighted <- retsp %*% weights
+    wealth_pda <- cumprod(1 + rets_weighted)
     
     # Calculate standardized prices and portfolio allocations
     volat <- volat()
@@ -101,11 +101,11 @@ servfunc <- function(input, output) {
     # Lag the allocations
     alloc <- rutils::lagit(alloc)
     # Calculate wealth of risk parity
-    rets_weighted <- rowSums(rets_percent*alloc)
+    rets_weighted <- rowSums(retsp*alloc)
     wealth_risk_parity <- cumprod(1 + rets_weighted)
     
     # Calculate log wealths
-    wealth <- log(cbind(wealth_fixed_ratio, wealth_risk_parity))
+    wealth <- log(cbind(wealth_pda, wealth_risk_parity))
     wealth <- xts(wealth, index(prices))
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(rutils::diffit(wealth), function (x) mean(x)/sd(x[x<0]))
@@ -121,7 +121,7 @@ servfunc <- function(input, output) {
     wealth <- wealth()
     colnamev <- colnames(wealth)
     
-    captiont <- paste0("Sharpe ratios: ", paste0(paste0(colnamev, " = ", values$sharper), collapse=" / "))
+    captiont <- paste0("Sortino ratios: ", paste0(paste0(colnamev, " = ", values$sharper), collapse=" / "))
 
     # Plot log wealths
     dygraphs::dygraph(wealth, main=captiont) %>%
@@ -132,4 +132,4 @@ servfunc <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

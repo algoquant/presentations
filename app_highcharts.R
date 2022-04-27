@@ -2,9 +2,9 @@
 # This is a shiny app for a HighCharts candlestick plot of OHLC stock prices.
 # Just press the "Run App" button on the upper right of RStudio.
 # Or run the app in MacBook terminal:  
-#   Rscript -e "shiny::runApp('~/Develop/Presentations/app_highcharts.R', port=7775)"
+#   Rscript -e "shiny::runApp("~/Develop/Presentations/app_highcharts.R", port=7775)"
 # On mini6 run: 
-#   Rscript -e "shiny::runApp('~/Develop/R/app_highcharts.R', host='0.0.0.0', port=7775)"
+#   Rscript -e "shiny::runApp("~/Develop/R/app_highcharts.R", host="0.0.0.0", port=7775)"
 # And in browser load the page: http://206.72.197.242:7775
 ##############################
 

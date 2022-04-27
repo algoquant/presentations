@@ -20,7 +20,7 @@ set.seed(1121)
 # Simulate vector of systematic factors
 sysv <- rnorm(nsimu)
 # Simulate matrix of idiosyncratic factors
-idio_sync <- matrix(rnorm(nsimu*nassets), ncol=nsimu)
+idiosyncv <- matrix(rnorm(nsimu*nassets), ncol=nsimu)
 
 
 
@@ -34,51 +34,51 @@ idio_sync <- matrix(rnorm(nsimu*nassets), ncol=nsimu)
 uiface <- shiny::fluidPage(
   titlePanel("Portfolio Loss Distribution"),
   
-  # Create four slider inputs with parameters to portf_loss()
+  # Create four slider inputs with parameters to lossdistr()
   fluidRow(
-    column(width=4, sliderInput("rho", label="Correlation:",
+    column(width=3, sliderInput("rho", label="Correlation:",
                                 min=0.0, max=0.9, value=0.2, step=0.01)),
-    column(width=4, sliderInput("def_prob", label="Default probability:",
+    column(width=3, sliderInput("defprob", label="Default probability:",
                                 min=0.0, max=0.9, value=0.2, step=0.01)),
-    column(width=4, sliderInput("lgd", label="Loss severity:",
+    column(width=3, sliderInput("lgd", label="Loss severity:",
                                 min=0.0, max=0.9, value=0.4, step=0.01)),
-    column(width=4, sliderInput("confl", label="Confidence level:",
+    column(width=3, sliderInput("confl", label="Confidence level:",
                                 min=0.9, max=0.99, value=0.95, step=0.01))
   ),  # end fluidRow
   
   # Render plot in panel
-  mainPanel(plotOutput("plot_portf", width="150%", height=500))
+  shiny::plotOutput("plot_portf", width="100%", height=650)
 )  # end fluidPage interface
 
 
 ##############################
 ## Define the server code
-# The function servfunc() accepts the arguments "input" and "output".
+# The function servfun() accepts the arguments "input" and "output".
 
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
   
-  ## The function reactive() accepts a block of expressions
+  ## The function shiny::reactive() accepts a block of expressions
   # which calculate the model, and returns the model output.
   
   ## Calculate the loss distribution with new parameters
-  losses <- reactive({
+  losses <- shiny::reactive({
     cat("Calculating the loss distribution\n")
     
     # Extract model parameters from the argument "input"
-    def_prob <- input$def_prob
+    defprob <- input$defprob
     rho <- input$rho
     lgd <- input$lgd
     
     # Calculate default probability and threshold
-    # exp_loss <- lgd*def_prob
-    def_thresh <- qnorm(def_prob)
+    # exploss <- lgd*defprob
+    defthresh <- qnorm(defprob)
     
     # Define correlation parameters
     rho_sqrt <- sqrt(rho); rho_sqrtm <- sqrt(1-rho)
     
     # Calculate the portfolio losses
-    assets <- t(rho_sqrt*sysv + t(rho_sqrtm*idio_sync))
-    losses <- lgd*colSums(assets < def_thresh)/nassets
+    assets <- t(rho_sqrt*sysv + t(rho_sqrtm*idiosyncv))
+    losses <- lgd*colSums(assets < defthresh)/nassets
     
     # Return the losses
     losses
@@ -87,7 +87,7 @@ servfunc <- function(input, output) {
   
   
   ## Calculate the VaR and CVaR
-  tai_l <- reactive({
+  tailrisk <- shiny::reactive({
     cat("Calculating the VaR and CVaR\n")
     
     # Extract model parameters from the argument "input"
@@ -95,12 +95,12 @@ servfunc <- function(input, output) {
     
     losses <- losses()
     # Calculate VaR from confidence level
-    va_r <- quantile(losses, confl)
+    varisk <- quantile(losses, confl)
     # Calculate the CVaR as the mean losses in excess of VaR
-    c_var <- mean(losses[losses > va_r])
+    cvar <- mean(losses[losses > varisk])
     
     # Return the VaR and CVaR
-    c(va_r, c_var)
+    c(varisk, cvar)
     
   })  # end reactive code
 
@@ -110,48 +110,51 @@ servfunc <- function(input, output) {
     
     # Extract model parameters from the argument "input"
     confl <- input$confl
-    def_prob <- input$def_prob
+    defprob <- input$defprob
     rho <- input$rho
     lgd <- input$lgd
-    exp_loss <- lgd*def_prob
-    # def_thresh <- qnorm(def_prob)
+    exploss <- lgd*defprob
+    # defthresh <- qnorm(defprob)
     
     # Extract the loss distribution
     losses <- losses()
-    densv <- density(losses)
-    x_max <- max(densv$x)
-    y_max <- max(densv$y)
+    densv <- density(losses, from=0)
+    xmax <- max(densv$x)
+    ymax <- max(densv$y)
     
     # Extract the VaR and CVaR
-    va_r <- tai_l()[1]
-    c_var <- tai_l()[2]
+    varisk <- tailrisk()[1]
+    cvar <- tailrisk()[2]
     
     # Plot density of portfolio losses
-    plot(densv, col="blue", lwd=3, main="Portfolio Loss Distribution")
+    par(mar=c(5.1, 5.1, 4.1, 2.1))
+    plot(densv, xlab="Percentage loss", col="blue", lwd=3, 
+         cex.main=1.8, cex.lab=1.8, cex.axis=1.5, 
+         main="Portfolio Loss Distribution")
     # Add vertical line for expected loss
-    abline(v=exp_loss, col="orange", lwd=4)
-    text(x=exp_loss, y=6*y_max/7, labels="expected loss", lwd=2, pos=4, cex=1.2)
+    abline(v=exploss, col="orange", lwd=4)
+    text(x=exploss, y=6*ymax/7, labels="expected loss", lwd=2, pos=4, cex=1.8)
     # Add vertical line for VaR
-    abline(v=va_r, col="red", lwd=4)
-    text(x=va_r, y=4*y_max/5, labels="VaR", lwd=2, pos=4, cex=1.2)
+    abline(v=varisk, col="red", lwd=4)
+    text(x=varisk, y=4*ymax/5, labels="VaR", lwd=2, pos=4, cex=1.8)
     
     # Draw shaded polygon for CVaR
-    indeks <- (densv$x > va_r)
-    x_var <- c(min(densv$x[indeks]), densv$x[indeks], max(densv$x))
-    polygon(x_var, c(-1, densv$y[indeks], -1), 
+    intail <- (densv$x > varisk)
+    x_var <- c(min(densv$x[intail]), densv$x[intail], max(densv$x))
+    polygon(x_var, c(-1, densv$y[intail], -1), 
             col="red", border=NA, density=10)
     # Add text for CVaR
-    text(x=5*va_r/4, y=(y_max/7), labels="CVaR", lwd=2, pos=4)
+    text(x=5*varisk/4, y=(ymax/7), labels="CVaR", lwd=2, pos=4, cex=1.8)
     
     # Text with CVaR attachment
-    text(x_max-0.01, y_max, 
+    text(xmax-0.01, ymax, 
          lab=paste0(
-           "Default probability = ", format(100*def_prob, digits=3), "%", "\n",
+           "Default probability = ", format(100*defprob, digits=3), "%", "\n",
            "Loss severity = ", format(100*lgd, digits=3), "%", "\n",
            "Correlation = ", format(100*rho, digits=3), "%", "\n",
-           "VaR = ", format(100*va_r, digits=3), "%", "\n",
-           "CVaR = ", format(100*c_var, digits=3), "%"), 
-         adj=c(1, 1), cex=1.0, lwd=2)
+           "VaR = ", format(100*varisk, digits=3), "%", "\n",
+           "CVaR = ", format(100*cvar, digits=3), "%"), 
+         adj=c(1, 1), cex=1.8, lwd=2)
     
   })  # end output plot
   
@@ -161,5 +164,5 @@ servfunc <- function(input, output) {
 ##############################
 ## Return a Shiny app object
 
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)
 

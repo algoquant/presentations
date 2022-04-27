@@ -25,8 +25,8 @@ uiface <- shiny::fluidPage(
   titlePanel("View mtcars Data Frame"),
   fluidRow(
     # Input stock symbol
-    column(width=4, numericInput( nrows", "Enter number of rows of data: ", value=5)),
-    column(width=4, actionButton("but_ton", "Press to Show Data")),  # end column
+    column(width=4, numericInput("nrows", "Enter number of rows of data: ", value=5)),
+    column(width=4, actionButton("button", "Press to Show Data"))  # end column
   ),  # end fluidRow
   
   column(8, tableOutput("tablev"))
@@ -35,7 +35,7 @@ uiface <- shiny::fluidPage(
 
 
 ## Define the server function
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
   
   ##############################
   # The function reactiveValues() creates a list for storing 
@@ -48,11 +48,11 @@ servfunc <- function(input, output) {
   
   
   ##############################
-  # The function reactive() transforms an expression into a 
+  # The function shiny::reactive() transforms an expression into a 
   # reactive expression.  Reactive expressions are evaluated 
   # only when their input data is updated.  This avoids 
   # performing unnecessary calculations.
-  # The function reactive() usually returns a value.
+  # The function shiny::reactive() usually returns a value.
   # If the reactive expression is invalidated (recalculated), 
   # then other expressions that depend on its output are also 
   # recalculated. 
@@ -60,10 +60,10 @@ servfunc <- function(input, output) {
   # depend on each other.
   
   # Get input parameters from the user interface.
-  nrows <- reactive({
+  nrows <- shiny::reactive({
     # Add nrows to list of reactive values.
-    values$nrows <- input nrows
-    input nrows
+    values$nrows <- input$nrows
+    input$nrows
   })  # end reactive code
   
   
@@ -79,8 +79,8 @@ servfunc <- function(input, output) {
   # for the functions observe() and isolate().
   
   ##############################
-  # The difference between reactive() and eventReactive() is that 
-  # reactive() recalculates its expression only when its inputs 
+  # The difference between shiny::reactive() and eventReactive() is that 
+  # shiny::reactive() recalculates its expression only when its inputs 
   # are updated.  But eventReactive() recalculates its handler 
   # expression only when the event expression eventExpr is 
   # invalidated (updated). 
@@ -94,7 +94,7 @@ servfunc <- function(input, output) {
   # return a value.
   
   # Broadcast a message to the console when the button is pressed.
-  observeEvent(eventExpr=input$but_ton, handlerExpr={
+  observeEvent(eventExpr=input$button, handlerExpr={
     cat("Input button pressed\n")
   })  # end observeEvent
   
@@ -109,11 +109,11 @@ servfunc <- function(input, output) {
   # the function.
   
   # Send the data when the button is pressed.
-  datav <- eventReactive(eventExpr=input$but_ton, valueExpr={
-    # eventReactive() executes on input$but_ton, but
-    # not on nrows() or input nrows.
+  datav <- eventReactive(eventExpr=input$button, valueExpr={
+    # eventReactive() executes on input$button, but
+    # not on nrows() or input$nrows.
     cat("Sending", nrows(), "rows of data\n")
-    datav <- head(mtcars, input nrows)
+    datav <- head(mtcars, input$nrows)
     values$mpg <- mean(datav$mpg)
     datav
   })  # end eventReactive
@@ -121,7 +121,7 @@ servfunc <- function(input, output) {
   
   
   # Draw table of the data when the button is pressed.
-  observeEvent(eventExpr=input$but_ton, handlerExpr={
+  observeEvent(eventExpr=input$button, handlerExpr={
     datav <- datav()
     cat("Received", values$nrows, "rows of data\n")
     cat("Average mpg = ", values$mpg, "\n")
@@ -133,5 +133,5 @@ servfunc <- function(input, output) {
 
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)
 

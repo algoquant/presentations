@@ -114,7 +114,7 @@ inputPanel(
 # chart_Series(xts(cumsum(rowMeans(returns)), index(returns)),
 #              name="Average Stock Prices")
 
-pnls <- reactive({
+pnls <- shiny::reactive({
   # Extract from input the strategy model parameters
   typev <- isolate(input$typev)
   look_back <- isolate(input$look_back)

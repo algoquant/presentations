@@ -57,7 +57,7 @@ suppressWarnings(library(pander, quietly=TRUE))
 # Get number of rows to be displayed
 nrows <- sample(x=3:7, size=1)
 # Create dynamic heading using pander
-pandoc.header(paste("Here is", nrows, "rows of the 'mtcars' data frame"), level=4)
+pandoc.header(paste("Here is", nrows, "rows of the 'mtcars' data frame"), confl=4)
 head(mtcars, nrows)
 ```
 

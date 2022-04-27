@@ -148,7 +148,7 @@ lets.plot <- function(df, fun, ii, ncol) {
 
 1. Look at Demographical variable data
 + There are more female than male in the dataset.
-+ There are clients who finished university-level education.
++ There are clients who finished university-confl education.
 + There are more single client than married, but the number is quite closed (53.2%:45.5%)
 
 Recap from data definition:

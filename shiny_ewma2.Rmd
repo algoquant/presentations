@@ -19,14 +19,14 @@ inputPanel(
               min=0.01, max=0.5, value=0.25, step=0.01),
   sliderInput("lambda2", label="lambda2:",
               min=0.01, max=0.5, value=0.05, step=0.01),
-  numericInput("wid_th", label="wid_th:", min=10, max=201, value=51)
+  numericInput("widthp", label="widthp:", min=10, max=201, value=51)
 )  # end inputPanel
 
 renderPlot({
   
   lambda1 <- input$lambda1
   lambda2 <- input$lambda2
-  wid_th <- input$wid_th
+  widthp <- input$widthp
 
   library(HighFreq)  # load package HighFreq
   # select OHLC data
@@ -35,7 +35,7 @@ renderPlot({
   closep <- Cl(ohlc)
 
   # simulate EWMA strategy
-  ewma_strat <- simu_ewma2(ohlc=ohlc, lambda1=lambda1, lambda2=lambda2, wid_th=wid_th)
+  ewma_strat <- simu_ewma2(ohlc=ohlc, lambda1=lambda1, lambda2=lambda2, widthp=widthp)
   
   # collect and combine output
   ewma1 <- ewma_strat[, "ewma1"]

@@ -18,7 +18,7 @@ uiface <- shiny::shinyUI(fluidPage(
     sidebarPanel(
       sliderInput("lambda", label="lambda:",
                   min=0.001, max=0.1, value=0.02, step=0.01),
-      numericInput("wid_th", label="wid_th:", min=51, max=301, value=151)
+      numericInput("widthp", label="widthp:", min=51, max=301, value=151)
     ),
     mainPanel(
       dygraphs::dygraphOutput("dygraph")
@@ -28,24 +28,24 @@ uiface <- shiny::shinyUI(fluidPage(
 
 
 # Define the server code
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
 
   # source the model function
   source("/Users/jerzy/Develop/lecture_slides/scripts/ewma_model.R")
   
   # Calculate the data for plotting
-  datav <- reactive({
+  datav <- shiny::reactive({
     # get model parameters from input
     lambda <- input$lambda
-    wid_th <- input$wid_th
+    widthp <- input$widthp
     # calculate close prices
     closep <- quantmod::Cl(rutils::etfenv$VTI["2007/2010"])
     # calculate EWMA prices
-    weights <- exp(-lambda*(1:wid_th))
+    weights <- exp(-lambda*(1:widthp))
     weights <- weights/sum(weights)
     ew_ma <- .Call(stats:::C_cfilter, closep, filter=weights, sides=1, circular=FALSE)
     # ew_ma <- filter(closep, filter=weights, sides=1)
-    ew_ma[1:(wid_th-1)] <- ew_ma[wid_th]
+    ew_ma[1:(widthp-1)] <- ew_ma[widthp]
     ew_ma <- xts(cbind(closep, ew_ma), order.by=index(closep))
     colnames(ew_ma) <- c("VTI", "VTI_EWMA")
     ew_ma  # return data for plotting
@@ -61,4 +61,4 @@ servfunc <- function(input, output) {
 }  # end server code
 
 # Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

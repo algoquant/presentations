@@ -42,7 +42,7 @@ uiface <- fluidPage(
         ),
 
         # Show a plot of the generated distribution
-        mainPanel(plotOutput("histo_gram"))
+        plotOutput("histo_gram")
         
     )  # end sidebarLayout
     

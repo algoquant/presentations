@@ -24,7 +24,7 @@ ratio_s <- sapply(prices, function(x) {
   cat("x=", names(x), "\n")
   x <- na.omit(x)
   if (NROW(x) > 100)
-    drop(HighFreq::calc_var_ag(x, lagg)/HighFreq::calc_var_ag(x)/lagg)
+    drop(HighFreq::calcvar_ag(x, lagg)/HighFreq::calcvar_ag(x)/lagg)
   else NULL
 })  # end sapply
 ratio_s <- sort(unlist(ratio_s), decreasing=TRUE)
@@ -77,10 +77,10 @@ uiface <- shiny::fluidPage(
 
 
 ## Define the server code
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
 
   # Recalculate the data and rerun the model
-  datav <- reactive({
+  datav <- shiny::reactive({
     # get model parameters from input argument
     weight1 <- input$weight1
     weight2 <- input$weight2
@@ -95,7 +95,7 @@ servfunc <- function(input, output) {
   output$dyplot <- dygraphs::renderDygraph({
     pnls <- datav()
     # Variance ratio
-    # tre_nd <- HighFreq::calc_var_ag(pnls, lagg)/HighFreq::calc_var_ag(pnls)/lagg
+    # tre_nd <- HighFreq::calcvar_ag(pnls, lagg)/HighFreq::calcvar_ag(pnls)/lagg
     # Hurst
     tre_nd <- calc_hurst_rets(pnls, endp)
     # Autocorrelation
@@ -120,4 +120,4 @@ servfunc <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

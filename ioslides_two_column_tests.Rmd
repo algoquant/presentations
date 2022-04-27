@@ -35,14 +35,14 @@ Below is an example of two-column layout using *CSS* code.
 The location of the break between columns is specified by the *CSS* style code in the file slides.css.  
 The left column is 40%, and the right is 60% of the page width.  
 
-<div class="column_left40">
+<div class="columnleft40">
 The left column contains *R* code that returns the summary of the *cars* data frame:  
 ```{r, sum_cars, eval=FALSE, echo=TRUE, results="hold"}
 summary(cars)
 ```
 </div>
 
-<div class="column_right_60">
+<div class="columnright_60">
 The right column contains the output of the *R* code in the left column:  
 ```{r, sum_cars, eval=TRUE, echo=FALSE}
 ```

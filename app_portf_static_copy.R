@@ -46,10 +46,10 @@ uiface <- shiny::fluidPage(
 
 
 ## Define the server code
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
 
   # Recalculate the data and rerun the model
-  pnls <- reactive({
+  pnls <- shiny::reactive({
     # get model parameters from input argument
     weight1 <- input$weight1
     weight2 <- input$weight2
@@ -63,7 +63,7 @@ servfunc <- function(input, output) {
   output$dyplot <- dygraphs::renderDygraph({
     pnls <- pnls()
     # Variance ratio
-    # tre_nd <- HighFreq::calc_var_ag(pnls, lagg)/HighFreq::calc_var_ag(pnls)/lagg
+    # tre_nd <- HighFreq::calcvar_ag(pnls, lagg)/HighFreq::calcvar_ag(pnls)/lagg
     pnls <- xts::xts(cumsum(pnls), zoo::index(returns))
     dygraphs::dygraph(pnls, main="Static Portfolio of ETFs")
     # colnamev <- colnames(pnls())
@@ -82,4 +82,4 @@ servfunc <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

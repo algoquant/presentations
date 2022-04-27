@@ -84,10 +84,10 @@ uiface <- shiny::fluidPage(
 
 
 ## Define the server code
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
   
   # Recalculate the data and rerun the model
-  # datav <- reactive({
+  # datav <- shiny::reactive({
   # Get model parameters from input argument
   # max_eigen <- isolate(input$max_eigen)
   # look_lag <- isolate(input$look_lag
@@ -104,7 +104,7 @@ servfunc <- function(input, output) {
   values <- reactiveValues()
   
   # Load data
-  ohlc <- reactive({
+  ohlc <- shiny::reactive({
     cat("Loading data\n")
     symbol <- input$symbol
     
@@ -149,19 +149,19 @@ servfunc <- function(input, output) {
   })  # end reactive
   
   # Calculate log close prices
-  # closep <- reactive({
+  # closep <- shiny::reactive({
   #   cat("Calculating log close prices\n")
   #   log(Cl(ohlc()))
   # })  # end reactive
   
   # Calculate log returns
-  returns <- reactive({
+  returns <- shiny::reactive({
     cat("Calculating log returns\n")
     rutils::diffit(log(Cl(ohlc())))
   })  # end reactive
   
   # Calculate zscores if there are new short_back and long_back values
-  zscores <- reactive({
+  zscores <- shiny::reactive({
     cat("Calculating zscores\n")
     short_back <- input$short_back
     # long_back <- input$long_back
@@ -214,7 +214,7 @@ servfunc <- function(input, output) {
   # hist(zscores, xlim=c(quantile(zscores, 0.05), quantile(zscores, 0.95)), breaks=50, main=paste("Z-scores for", "short_back =", short_back))
   
   # Calculate posit and pnls if there's new threshold value
-  pnls <- reactive({
+  pnls <- shiny::reactive({
     cat("Calculating posit and pnls\n")
     threshold <- input$threshold
     lagg <- input$lagg
@@ -274,7 +274,7 @@ servfunc <- function(input, output) {
   
   
   # Plot dygraph of pnls if the add_annotations variable is updated
-  dyplot <- reactive({
+  dyplot <- shiny::reactive({
     cat("Plotting pnls\n")
     add_annotations <- input$add_annotations
     # captiont <- pnls()$caption
@@ -314,4 +314,4 @@ servfunc <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

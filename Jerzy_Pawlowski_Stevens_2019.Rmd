@@ -29,7 +29,7 @@ library(grid)
 
 ## Implementing a *Hedge Fund in a Box*  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - In the past, only large institutional investors had the resources to implement real-time, algorithmic trading.  
 
@@ -44,7 +44,7 @@ library(grid)
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 The *R* Project for Statistical Computing  
 
@@ -56,7 +56,7 @@ The *R* Project for Statistical Computing
 
 ## What is Package *IBrokers2*?  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - <a href="https://github.com/algoquant/iBrokers2" target="_blank">*iBrokers2*</a> is an open-source package written in *R*, derived from package <a href="https://cran.r-project.org/web/packages/iBrokers/index.html" target="_blank">*iBrokers*</a>.  
 
@@ -72,7 +72,7 @@ The *R* Project for Statistical Computing
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ```{r, eval=FALSE, echo=TRUE}
 # Install and load package IBrokers2
@@ -86,7 +86,7 @@ library(IBrokers2)
 
 ## Why the *R* Language?  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - *R* is widely used for data science and machine learning.  
 
@@ -104,7 +104,7 @@ library(IBrokers2)
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 <a href="https://www.r-project.org/" target="_blank"> <img src="figure/Rlogo.png" align="left"> </img> </a>  
 
@@ -122,7 +122,7 @@ library(IBrokers2)
 
 ## Executing Real-time Trading Strategies  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - Real-time trading requires running a programmatic loop:  
   - A trading model is updated with streaming market data aqcuired via an API,  
@@ -136,7 +136,7 @@ library(IBrokers2)
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 <img src="figure/real_time_trading.png" width="650" height="500" align="left"> </img>
 
@@ -147,7 +147,7 @@ library(IBrokers2)
 
 ## The Package *IBrokers* for Interactive Brokers  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - The package <a href="https://cran.r-project.org/web/packages/IBrokers/index.html" target="_blank">*IBrokers*</a> allows downloading live market data via the <a href="https://interactivebrokers.github.io/tws-api/" target="_blank">API of Interactive Brokers (IB API)</a>
 
@@ -161,7 +161,7 @@ library(IBrokers2)
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ```{r, eval=FALSE, echo=TRUE}
 # Install and load package IBrokers
@@ -197,7 +197,7 @@ close(file_connect)
 
 ## Market Event Processing Using Package *IBrokers*  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - Market events can be either *trade events* or *market quotes*.  
 
@@ -213,7 +213,7 @@ close(file_connect)
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 <img src="figure/market_event_processing2.png" width="650" height="500" align="left"> </img>
 
@@ -223,7 +223,7 @@ close(file_connect)
 
 ## Trade Processing Using Package *IBrokers2*  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - The trade processing framework is similar to that for downloading real-time *OHLC* market data using `reqRealTimeBars()`.  
 
@@ -237,7 +237,7 @@ close(file_connect)
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 <img src="figure/trade_processing.png" width="600" height="500" align="left"> </img>
 
@@ -247,7 +247,7 @@ close(file_connect)
 
 ## Defining Contracts and Trading Parameters  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - The instrument parameters specify the contract or security, the exchange, etc.  
 
@@ -259,7 +259,7 @@ close(file_connect)
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ```{r, eval=FALSE, echo=TRUE}
 # Define instrument for trading ES futures contracts
@@ -287,7 +287,7 @@ trade_params <- list(ES=list(
 
 ## The Trading Model Function  
 
-<div class="column_left40">
+<div class="columnleft40">
 
 - Users can define their own custom trading model function inside the `trade_wrapper()` function.  
 
@@ -301,7 +301,7 @@ trade_params <- list(ES=list(
 
 </div>
 
-<div class="column_right_60">
+<div class="columnright_60">
 
 ```{r, eval=FALSE, echo=TRUE}
 ### The function make_markets() performs a market making strategy
@@ -335,7 +335,7 @@ make_markets <- function(contract_id, trade_params, ib_connect) {
 
 ## Placing Limit Trade Orders  
 
-<div class="column_left40">
+<div class="columnleft40">
 
 - The *trade wrapper* environment maintains data about the state of the trading environment, such as trade IDs, positions, etc.  
 
@@ -343,7 +343,7 @@ make_markets <- function(contract_id, trade_params, ib_connect) {
 
 </div>
 
-<div class="column_right_60">
+<div class="columnright_60">
 
 ```{r, eval=FALSE, echo=TRUE}
 ## Place new limit orders
@@ -380,7 +380,7 @@ invisible(list(buylimit=buylimit, sell_limit=sell_limit))
 
 ## Real-time Trading Using Package *IBrokers2*  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - The function `trade_realtime()` first calls `trade_wrapper()` to create a *trade wrapper* environment, and then calls `call_back()` to run a *callback loop*.  
 
@@ -390,7 +390,7 @@ invisible(list(buylimit=buylimit, sell_limit=sell_limit))
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ```{r, eval=FALSE, echo=TRUE}
 # Open file connection for data download
@@ -427,7 +427,7 @@ for (file_connect in file_connects) close(file_connect)
 
 ## The *EWMA* Crossover Strategy  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - The Exponentially Weighted Moving Average price (*EWMA*) is equal to the average of prices weighted by a decay parameter $\lambda$. 
 
@@ -435,7 +435,7 @@ for (file_connect in file_connects) close(file_connect)
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ```{r, eval=FALSE, echo=TRUE}
 # Define instrument for trading ES futures contracts
@@ -459,13 +459,13 @@ trade_params <- list(ES=list(
 
 ## The Crossover Strategy Model Function  
 
-<div class="column_left40">
+<div class="columnleft40">
 
 - The function `crossover_strat()` is the trading model function for a crossover strategy.  
 
 </div>
 
-<div class="column_right_60">
+<div class="columnright_60">
 
 ```{r, eval=FALSE, echo=TRUE}
 ### The function crossover_strat() performs an EWMA crossover strategy
@@ -490,7 +490,7 @@ crossover_strat <- function(contract_id, trade_params, ib_connect) {
 
 ## Placing Market Trade Orders  
 
-<div class="column_left40">
+<div class="columnleft40">
 
 - We can define a naive contrarian *EWMA* crossover strategy as follows:  
   - Place a market *sell* order when the current price crosses above the *EWMA*,  
@@ -502,7 +502,7 @@ crossover_strat <- function(contract_id, trade_params, ib_connect) {
 
 </div>
 
-<div class="column_right_60">
+<div class="columnright_60">
 
 ```{r, eval=FALSE, echo=TRUE}
 ## Place market orders
@@ -548,7 +548,7 @@ invisible(list(WAP=w_ap, EWMA=ew_ma))
 
 ## Running the *EWMA* Crossover Strategy  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - The *EWMA* crossover strategy is run by calling the function `trade_realtime()`, in the same way as for other strategies.  
 
@@ -560,7 +560,7 @@ invisible(list(WAP=w_ap, EWMA=ew_ma))
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ```{r, eval=FALSE, echo=TRUE}
 # Open file connection for data download
@@ -597,7 +597,7 @@ for (file_connect in file_connects) close(file_connect)
 
 ## The Pairs Trading Strategy  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - In the pairs trading strategy, a regression of the prices is performed, over a rolling look-back window.  
 
@@ -610,7 +610,7 @@ for (file_connect in file_connects) close(file_connect)
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ```{r, eval=FALSE, echo=TRUE}
 # Define instruments for trading two stocks: GOOG and AAPL
@@ -638,7 +638,7 @@ trade_params <- list(
 
 ## The Pairs Trading Strategy Model Function  
 
-<div class="column_left40">
+<div class="columnleft40">
 
 - The function `pairs_strat()` is the trading model function for a pairs trading strategy.  
 
@@ -651,7 +651,7 @@ trade_params <- list(
 
 </div>
 
-<div class="column_right_60">
+<div class="columnright_60">
 
 ```{r, eval=FALSE, echo=TRUE}
   ### The function pairs_strat() performs a pairs trading strategy
@@ -687,7 +687,7 @@ trade_params <- list(
 
 ## Placing Market Trade Orders  
 
-<div class="column_left40">
+<div class="columnleft40">
 
 - We can define a naive contrarian pairs trading strategy as follows:  
   - Place a market pairs *sell* order when the z-score is above the trade threshold,  
@@ -697,7 +697,7 @@ trade_params <- list(
 
 </div>
 
-<div class="column_right_60">
+<div class="columnright_60">
 
 ```{r, eval=FALSE, echo=TRUE}
 ## Place market orders
@@ -755,7 +755,7 @@ invisible(list(coeff=coeff, z_score=z_score))
 
 ## Running the Pairs Trading Strategy  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - The pairs trading strategy is run by calling the function `trade_realtime()`, in the same way as for other strategies.  
 
@@ -767,7 +767,7 @@ invisible(list(coeff=coeff, z_score=z_score))
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 ```{r, eval=FALSE, echo=TRUE}
 # Open file connection for data download
@@ -806,7 +806,7 @@ for (file_connect in file_connects) close(file_connect)
 
 ## The *eWrapper* Object  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - An *eWrapper* object consists of a *data environment* and *handlers* (methods) for formatting and adding new data to the *data environment*.
 
@@ -818,7 +818,7 @@ for (file_connect in file_connects) close(file_connect)
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 <img src="figure/eWrapper_object.png" width="600" height="450" align="left"> </img>
 
@@ -828,7 +828,7 @@ for (file_connect in file_connects) close(file_connect)
 
 ## The *Trade Wrapper* Environment  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - The functionality of package *IBrokers* can easily be extended to trading by writing a new *eWrapper* object.
 
@@ -842,7 +842,7 @@ for (file_connect in file_connects) close(file_connect)
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 <img src="figure/trade_wrapper_object.png" width="600" height="450" align="left"> </img>
 
@@ -852,7 +852,7 @@ for (file_connect in file_connects) close(file_connect)
 
 ## Functions in Package *IBrokers2*  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 - Most of the functions in package *IBrokers2* were derived from those in *IBrokers*.  
 
@@ -868,7 +868,7 @@ for (file_connect in file_connects) close(file_connect)
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 <img src="figure/functions_IBrokers2.png" width="600" height="400" align="left"> </img>
 
@@ -878,7 +878,7 @@ for (file_connect in file_connects) close(file_connect)
 
 ## Future Development of Package *IBrokers2*  
 
-<div class="column_left50">
+<div class="columnleft50">
 
 ### Current state  
 
@@ -895,7 +895,7 @@ for (file_connect in file_connects) close(file_connect)
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 
 
 ### Applications  

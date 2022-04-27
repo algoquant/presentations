@@ -86,10 +86,10 @@ uiface <- shiny::fluidPage(
 
 
 ## Define the server code
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
   
   # Load the prices
-  prices <- reactive({
+  prices <- shiny::reactive({
     
     # Get model parameters from input argument
     symbol <- input$symbol
@@ -101,7 +101,7 @@ servfunc <- function(input, output) {
   
   
   # Recalculate the data and rerun the model
-  zscores <- reactive({
+  zscores <- shiny::reactive({
 
     cat("Calculating the zscores\n")
     
@@ -125,7 +125,7 @@ servfunc <- function(input, output) {
   
   
   # Recalculate the model
-  datav <- reactive({
+  datav <- shiny::reactive({
     cat("Recalculating the model\n")
     
     # Get model parameters from input argument
@@ -165,4 +165,4 @@ servfunc <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

@@ -61,13 +61,13 @@ uiface <- shiny::fluidPage(
 
 
 ## Define the server code
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
   
   # Create an empty list of reactive values.
   values <- reactiveValues()
   
   # Load the prices
-  prices <- reactive({
+  prices <- shiny::reactive({
     
     # Get model parameters from input argument
     symbolstock <- input$symbolstock
@@ -87,7 +87,7 @@ servfunc <- function(input, output) {
   })  # end Load the data
   
   # Calculate the portfolio residuals
-  residuals <- reactive({
+  residuals <- shiny::reactive({
     cat("Calculating the portfolio residuals\n")
     
     # Get model parameters from input argument
@@ -125,4 +125,4 @@ servfunc <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

@@ -14,8 +14,8 @@ library(dygraphs)
 # Model and data setup
 # source the model function
 # source("C:/Develop/lecture_slides/scripts/roll_portf_new.R")
-# max_eigen <- 2
-load("/Users/jerzy/Develop/lecture_slides/data/sp500_prices.RData")
+# eigen_max <- 2
+load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
 # returns <- returns100
 returns <- returns[, !is.na(returns[NROW(returns), ])]
 returns <- returns[, !is.na(returns[NROW(returns)-1000, ])]
@@ -37,7 +37,7 @@ uiface <- shiny::fluidPage(
   # create single row with two slider inputs
   fluidRow(
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=4, numericInput("max_eigen", "Number of eigenvalues:", value=5)),
+    column(width=4, numericInput("eigen_max", "Number of eigenvalues:", value=5)),
     # Input end points interval
     # column(width=4, selectInput("interval", label="End points Interval",
     #             choices=c("weeks", "months", "years"), selected="months")),
@@ -53,18 +53,18 @@ uiface <- shiny::fluidPage(
   ),  # end fluidRow
   
   # create output plot panel
-  mainPanel(plotOutput("plotobj"), width=12)
+  plotOutput("plotobj")
 )  # end fluidPage interface
 
 
 ## Define the server code
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
 
   # Recalculate the data and rerun the model
-  datav <- reactive({
+  weightv <- shiny::reactive({
     # get model parameters from input argument
     # interval <- input$interval
-    max_eigen <- input$max_eigen
+    eigen_max <- input$eigen_max
     # look_back <- input$look_back
     # end_stub <- input$end_stub
     # alpha <- input$alpha
@@ -77,31 +77,31 @@ servfunc <- function(input, output) {
     # Define startpoints
     # startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
     # rerun the model
-    weights = HighFreq::calc_weights(returns, max_eigen=max_eigen);
+    weightv <- HighFreq::calc_weights(returns, eigen_max=eigen_max);
     
     # pnls <- roll_portf_n(excess=returns, 
     #                               returns=returns,
     #                               startpoints=startpoints-1,
     #                               endpoints=endpoints-1,
-    #                       max_eigen=max_eigen, 
+    #                       eigen_max=eigen_max, 
     #                       alpha=alpha,
     #                       min_var=FALSE)
     # pnls[which(is.na(pnls)), ] <- 0
-    # pnls <- roll_portf_r(excess, returns, startpoints, endpoints, alpha, max_eigen, end_stub)
+    # pnls <- roll_portf_r(excess, returns, startpoints, endpoints, alpha, eigen_max, end_stub)
     # pnls <- sd(rutils::diffit(indeks))*pnls/sd(rutils::diffit(pnls))
     # pnls <- cumsum(pnls)
     # pnls <- cbind(pnls, indeks)
     # colnames(pnls) <- c("Strategy", "Index")
     # pnls[c(1, endpoints), ]
-    sort(weights)
+    sort(weightv)
   })  # end reactive code
   
   # return to output argument a dygraph plot with two y-axes
   output$plotobj <- shiny::renderPlot({
-    plot(datav())
+    plot(weightv())
   })  # end renderPlot
   
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

@@ -52,13 +52,13 @@ uiface <- shiny::fluidPage(
 
 
 ## Define the server code
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
 
   # Create an empty list of reactive values.
   values <- reactiveValues()
 
   # Load the data
-  datav <- reactive({
+  datav <- shiny::reactive({
     
     symbol <- input$symbol
     cat("Loading Data For ", symbol, "\n")
@@ -93,7 +93,7 @@ servfunc <- function(input, output) {
   
 
   # Recalculate the predictor
-  predictor <- reactive({
+  predictor <- shiny::reactive({
     
     cat("Recalculating PCA Predictor For ", input$symbol, "\n")
     
@@ -130,7 +130,7 @@ servfunc <- function(input, output) {
     # eigend <- eigen(covmat)
     
     # Define predictors as the principal components of predictor
-    # eigen_vec <- eigend$vectors
+    # eigenvec <- eigend$vectors
     # predictor <- xts::xts(predictor %*% eigend$vectors, order.by=dates)
     # colnames(predictor) <- paste0("pc", 1:NCOL(predictor))
     # round(cov(predictor), 3)
@@ -140,7 +140,7 @@ servfunc <- function(input, output) {
   
   
   # Recalculate the strategy
-  pnls <- reactive({
+  pnls <- shiny::reactive({
     
     cat("Recalculating Strategy For ", input$symbol, "\n")
     
@@ -154,16 +154,16 @@ servfunc <- function(input, output) {
     max_eigen <- NCOL(predictor)
     
     nrows <- NROW(returns)
-    in_sample <- 1:(nrows %/% 2)
-    out_sample <- (nrows %/% 2 + 1):nrows
+    insample <- 1:(nrows %/% 2)
+    outsample <- (nrows %/% 2 + 1):nrows
     
     # Calculate in-sample fitted coefficients
-    inverse <- MASS::ginv(predictor[in_sample, 1:max_eigen])
-    coeff_fit <- drop(inverse %*% response[in_sample])
+    inverse <- MASS::ginv(predictor[insample, 1:max_eigen])
+    coeff_fit <- drop(inverse %*% response[insample])
     
     # Calculate out-sample forecasts of returns
-    # forecasts <- drop(predictor[out_sample, 1:3] %*% coeff_fit[1:3])
-    forecasts <- drop(predictor[out_sample, 1:max_eigen] %*% coeff_fit)
+    # forecasts <- drop(predictor[outsample, 1:3] %*% coeff_fit[1:3])
+    forecasts <- drop(predictor[outsample, 1:max_eigen] %*% coeff_fit)
     # Lag the positions to trade in next period
     posit <- sign(rutils::lagit(forecasts))
     
@@ -177,7 +177,7 @@ servfunc <- function(input, output) {
     indic_sell <- (indic < 0)
     
     # Calculate strategy pnls
-    returns <- returns[out_sample]
+    returns <- returns[outsample]
     pnls <- posit*returns
     
     # Calculate transaction costs
@@ -248,4 +248,4 @@ servfunc <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

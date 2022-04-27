@@ -65,7 +65,7 @@ interface <- fluidPage(
 server <- function(input, output) {
   
   # Load the data
-  ohlc <- reactive({
+  ohlc <- shiny::reactive({
     
     symbol <- input$symbol
     tspan <- input$tspan

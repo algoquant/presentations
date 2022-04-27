@@ -76,7 +76,7 @@ server <- shiny::shinyServer(function(input, output) {
   globals <- reactiveValues()
   
   # Recalculate the data and rerun the model
-  datav <- reactive({
+  datav <- shiny::reactive({
     # Get model parameters from input argument
     symbol <- input$symbol
     # look_back <- input$look_back

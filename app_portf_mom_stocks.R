@@ -53,7 +53,7 @@ quantilev <- round(percent*nstocks)
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
   titlePanel("Momentum Strategy for S&P500 Portfolio"),
-  
+
   fluidRow(
     # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
     column(width=12, 
@@ -87,7 +87,7 @@ uiface <- shiny::fluidPage(
     # Input the strategy factor: coeff=1 for momentum, and coeff=-1 for contrarian
     column(width=2, selectInput("coeff", "factor (1 momentum, -1 contrarian):", choices=c(-1, 1), selected=(-1))),
     # Input the bid-offer spread
-    column(width=2, numericInput("bid_offer", label="bid-offer:", value=0.00, step=0.001))
+    column(width=2, numericInput("bid_offer", label="bid-offer:", value=0.001, step=0.001))
   ),  # end fluidRow
   
   # Create output plot panel
@@ -137,7 +137,7 @@ servfun <- function(input, output) {
     pnls <- lapply(2:nrows, function(it) {
       # Subset the excess returns
       sub_excess <- excess[startpoints[it-1]:endpoints[it-1], ]
-      # Calculate the volatility
+      # Calculate the signal as volatility
       stdev <- sapply(sub_excess, sd)
       # score <- stdev
       # Calculate the signal as Sharpe ratio
@@ -157,9 +157,8 @@ servfun <- function(input, output) {
       weights[ordern[1:quantilev]] <- (-coeff)
       weights[ordern[(nstocks-quantilev+1):nstocks]] <- coeff
       # Scale the weights
-      # weights <- weights/sum(abs(weights))
-      weights <- weights/sqrt(sum(weights^2))
-      # Subset the returns
+      weights <- weights/sum(abs(weights))
+      # Subset the rets
       sub_returns <- rets[(endpoints[it-1]+1):endpoints[it], ]
       # Calculate the out-of-sample portfolio returns
       xts(sub_returns %*% weights, index(sub_returns))

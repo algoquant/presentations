@@ -57,13 +57,13 @@ uiface <- shiny::fluidPage(
 
 
 ## Define the server code
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
 
   # Create an empty list of reactive values.
   values <- reactiveValues()
 
   # Load the VIX data
-  vi_x <- reactive({
+  vi_x <- shiny::reactive({
     
     symbol <- input$symbol_vix
     cat("Loading data for ", symbol, "\n")
@@ -78,7 +78,7 @@ servfunc <- function(input, output) {
   
   
   # Load the data
-  ohlc <- reactive({
+  ohlc <- shiny::reactive({
     
     symbol <- input$symbol
     cat("Loading data for ", symbol, "\n")
@@ -89,7 +89,7 @@ servfunc <- function(input, output) {
   
 
   # Recalculate the strategy
-  pnls <- reactive({
+  pnls <- shiny::reactive({
     
     cat("Recalculating strategy for ", input$symbol, "\n")
     # Get model parameters from input argument
@@ -226,4 +226,4 @@ servfunc <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

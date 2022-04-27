@@ -131,10 +131,10 @@ uiface <- shiny::fluidPage(
 
 
 ## Define the server code
-servfunc <- shiny::shinyServer(function(input, output) {
+servfun <- shiny::shinyServer(function(input, output) {
 
   ## Recalculate the model with new parameters
-  datav <- reactive({
+  datav <- shiny::reactive({
     # get model parameters from input argument
     # beta_ret <- input$beta_ret
     enter <- input$enter
@@ -246,4 +246,4 @@ servfunc <- shiny::shinyServer(function(input, output) {
 })  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

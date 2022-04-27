@@ -27,7 +27,7 @@ ui <- shiny::shinyUI(fluidPage(
 # Define the server code
 server <- shiny::shinyServer(function(input, output) {
   
-  predicted <- reactive({
+  predicted <- shiny::reactive({
     hw <- HoltWinters(ldeaths)
     predict(hw, n.ahead = input$months, 
             prediction.interval = TRUE,

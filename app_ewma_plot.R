@@ -1,5 +1,5 @@
 ##############################
-# This is a shiny app for plotting a VWAP moving average.
+# This is a shiny app for plotting an EWMA moving average.
 # Just press the "Run App" button on upper right of this panel.
 ##############################
 
@@ -22,7 +22,7 @@ symbol <- "VTI"
 
 ## Create elements of the user interface
 uiface <- shiny::fluidPage(
-  titlePanel("VWAP Moving Average"),
+  titlePanel("EWMA Moving Average"),
   
   # Create single row of widgets with two slider inputs
   fluidRow(
@@ -30,8 +30,8 @@ uiface <- shiny::fluidPage(
     column(width=2, selectInput("symbol", label="Symbol",
                                 choices=symbolv, selected=symbol)),
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Lookback interval",
-                                min=1, max=150, value=11, step=1))
+    column(width=2, sliderInput("lambda", label="Decay parameter",
+                                min=0.1, max=0.99, value=0.9, step=0.01))
   ),  # end fluidRow
   
   # Create output plot panel
@@ -43,40 +43,36 @@ uiface <- shiny::fluidPage(
 ## Define the server function
 servfun <- shiny::shinyServer(function(input, output) {
   
-  # Get the close and volume data in a reactive environment
+  # Get the close prices in a reactive environment
   closep <- shiny::reactive({
-    cat("Getting the close and volume data\n")
+    cat("Getting the close prices\n")
     # Get the data
     ohlc <- get(input$symbol, data_env)
     closep <- log(quantmod::Cl(ohlc))
-    volumes <- quantmod::Vo(ohlc)
     # Return the data
-    cbind(closep, volumes)
+    closep
   })  # end reactive code
   
-  # Calculate the VWAP indicator in a reactive environment
-  vwapv <- shiny::reactive({
-    cat("Calculating the VWAP indicator\n")
+  # Calculate the EWMA indicator in a reactive environment
+  ewmap <- shiny::reactive({
+    cat("Calculating the EWMA indicator\n")
     # Get model parameters from input argument
-    look_back <- input$look_back
-    # Calculate the VWAP indicator
-    closep <- closep()[, 1]
-    volumes <- closep()[, 2]
-    vwapv <- rutils::roll_sum(xtes=closep*volumes, look_back=look_back)
-    volume_rolling <- rutils::roll_sum(xtes=volumes, look_back=look_back)
-    vwapv <- ifelse(volume_rolling>0, vwapv/volume_rolling, 0)
-    vwapv[is.na(vwapv)] <- 0
+    lambda <- input$lambda
+    # Calculate EWMA prices recursively using RcppArmadillo
+    closep <- closep()
+    ewmap <- HighFreq::run_mean(closep, lambda=lambda)
+    ewmap[is.na(ewmap)] <- 0
     # Return the plot data
-    datav <- cbind(closep, vwapv)
-    colnames(datav) <- c(input$symbol, "VWAP")
+    datav <- cbind(closep, ewmap)
+    colnames(datav) <- c(input$symbol, "EWMA")
     datav
   })  # end reactive code
   
   # Return the dygraph plot to output argument
   output$dyplot <- dygraphs::renderDygraph({
     cat("Plotting the dygraph\n")
-    colnamev <- colnames(vwapv())
-    dygraphs::dygraph(vwapv(), main=paste(colnamev[1], "VWAP")) %>%
+    colnamev <- colnames(ewmap())
+    dygraphs::dygraph(ewmap(), main=paste(colnamev[1], "EWMA")) %>%
       dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
       dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
       dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=2, col="blue") %>%

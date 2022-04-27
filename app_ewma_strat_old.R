@@ -142,10 +142,10 @@ uiface <- shiny::fluidPage(
 
 
 ## Define the server code
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
 
   # recalculate the data and rerun the strategy
-  datav <- reactive({
+  datav <- shiny::reactive({
     # Get model parameters from input argument
     fast_lambda <- isolate(input$fast_lambda)
     slow_lambda <- isolate(input$slow_lambda)
@@ -261,4 +261,4 @@ servfunc <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

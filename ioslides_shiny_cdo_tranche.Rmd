@@ -31,7 +31,7 @@ options(width=80)
 ## Collateralized Debt Obligations *CDOs*
 
 
-<div class="column_left50">
+<div class="columnleft50">
 Collateralized Debt Obligations (cash CDOs) are securities (bonds) collateralized by other debt assets.  
 The CDO assets can be debt instruments like bonds, loans, and mortgages.  
 
@@ -47,7 +47,7 @@ The senior tranche is the most senior tranche, and is the last to absorb losses.
 
 </div>
 
-<div class="column_right50">
+<div class="columnright50">
 ![CDO](figure/CDO.jpg){width=50%}
 ![CDO2](figure/CDO2.jpg){width=50%}
 

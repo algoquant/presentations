@@ -26,7 +26,7 @@ uiface <- shiny::fluidPage(
   ## Create interface for the input parameters.
   
   # Create numeric input for the number of data points.
-  numericInput('ndata', "Number of data points:", value=ndata),
+  numericInput("ndata", "Number of data points:", value=ndata),
   
   # Create slider input for the standard deviation parameter.
   sliderInput("stdev", label="Standard deviation:",
@@ -44,12 +44,12 @@ uiface <- shiny::fluidPage(
 ## Define the server function, with the arguments "input" and "output".
 # The server function performs the calculations and creates the plots.
 
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
   
   ## Recalculate the model with new parameters
-  # The function reactive() accepts a block of expressions
+  # The function shiny::reactive() accepts a block of expressions
   # which calculate the model, and returns the model output.
-  datav <- reactive({
+  datav <- shiny::reactive({
     cat("Calculating the data\n")
     
     # Simulate the data
@@ -70,9 +70,9 @@ servfunc <- function(input, output) {
     
   })  # end renderPlot
   
-}  # end servfunc
+}  # end servfun
 
 
 ## Return a Shiny app object
 
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)

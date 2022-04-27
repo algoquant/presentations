@@ -24,7 +24,7 @@ riskf <- 0.03/260
 # look_back <- 5
 # lambda <- 0.01
 # model_type <- "max_sharpe"
-# conf_lev <- 0.25
+# confl <- 0.25
 # eigen_max <- 11
 # alpha <- 0.01
 
@@ -71,7 +71,7 @@ uiface <- shiny::fluidPage(
     column(width=2, sliderInput("alpha", label="Shrinkage intensity",
                                 min=0.01, max=0.99, value=0.01, step=0.05)),
     # Input the quantile
-    column(width=2, sliderInput("conf_lev", label="Confidence level",
+    column(width=2, sliderInput("confl", label="Confidence level",
                                 min=0.01, max=0.49, value=0.25, step=0.01)),
     # Input choice of excess returns
     column(width=2, selectInput("returns_scaling", label="Excess returns scaling",
@@ -90,13 +90,13 @@ uiface <- shiny::fluidPage(
 
 
 ## Define the server code
-servfunc <- function(input, output) {
+servfun <- function(input, output) {
   
   ## Create an empty list of reactive values.
   globals <- reactiveValues()
   
   # Load the data
-  datav <- reactive({
+  datav <- shiny::reactive({
     # Get model parameters from input argument
     data_name <- input$data_name
     
@@ -179,7 +179,7 @@ servfunc <- function(input, output) {
   
   
   ## Calculate the excess
-  excess <- reactive({
+  excess <- shiny::reactive({
     cat("Calculating the excess", "\n")
     
     returns_scaling <- input$returns_scaling
@@ -234,7 +234,7 @@ servfunc <- function(input, output) {
              # Rcpp::sourceCpp(file="/Users/jerzy/Develop/R/Rcpp/roll_skew.cpp")
              # rolling_skew <- roll_kurtosis(rets, look_back=nperiods)
              # rolling_skew <- roll_skew(rets, look_back=nperiods)
-             # rolling_skew <- roll_skew(rets, typev="quantile", alpha=conf_lev, look_back=nperiods)
+             # rolling_skew <- roll_skew(rets, typev="quantile", alpha=confl, look_back=nperiods)
              # rolling_skew[!is.finite(rolling_skew)] <- 0
              # rolling_skew <- na.locf(rolling_skew)
 
@@ -269,7 +269,7 @@ servfunc <- function(input, output) {
   
   
   ## Calculate the end points
-  roll_points <- reactive({
+  roll_points <- shiny::reactive({
     cat("Calculating the end points", "\n")
     
     interval <- input$interval
@@ -298,14 +298,14 @@ servfunc <- function(input, output) {
   
   
   # Recalculate the strategy
-  pnls <- reactive({
+  pnls <- shiny::reactive({
     
     look_back <- input$look_back
     eigen_max <- input$eigen_max
     lambda <- input$lambda
     model_type <- input$model_type
     alpha <- input$alpha
-    conf_lev <- input$conf_lev
+    confl <- input$confl
     trend <- as.numeric(input$trend)
     
     # Model is recalculated when the re_calculate variable is updated
@@ -354,7 +354,7 @@ servfunc <- function(input, output) {
                                    startp=startpoints-1,
                                    endp=endpoints-1,
                                    lambda=lambda,
-                                   conf_lev=conf_lev,
+                                   confl=confl,
                                    eigen_max=eigen_max,
                                    alpha=alpha,
                                    method=model_type,
@@ -372,7 +372,7 @@ servfunc <- function(input, output) {
       #                                returns=rets,
       #                                startpoints=sp_new-1,
       #                                endpoints=ep_new-1,
-      #                                conf_lev=conf_lev,
+      #                                confl=confl,
       #                                eigen_max=eigen_max, 
       #                                alpha=alpha, 
       #                                model_type=model_type,
@@ -392,7 +392,7 @@ servfunc <- function(input, output) {
                                    startp=startpoints-1,
                                    endp=endpoints-1,
                                    lambda=lambda,
-                                   conf_lev=conf_lev,
+                                   confl=confl,
                                    eigen_max=eigen_max,
                                    alpha=alpha,
                                    method=model_type,
@@ -430,4 +430,4 @@ servfunc <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfunc)
+shiny::shinyApp(ui=uiface, server=servfun)
