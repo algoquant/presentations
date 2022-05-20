@@ -12,7 +12,7 @@ library(shiny)
 library(dygraphs)
 
 # Source the backtest functions
-source("C:/Develop/R/scripts/backtest_functions.R")
+source("/Users/jerzy/Develop/R/scripts/backtest_functions.R")
 
 ## Set up ETF data
 # if (!("etfenv" %in% search()))

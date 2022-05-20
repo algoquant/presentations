@@ -32,9 +32,9 @@ library(HighFreq)  # load package HighFreq
 # End R chunk setup code
 
 # Data setup code
-# load("C:/Develop/R/data/zscores_sp500.RData")
-load("C:/Develop/R/data/returns_simple_sp500.RData")
-load("C:/Develop/R/data/predictor_sp500.RData")
+# load("/Users/jerzy/Develop/R/data/zscores_sp500.RData")
+load("/Users/jerzy/Develop/R/data/returns_simple_sp500.RData")
+load("/Users/jerzy/Develop/R/data/predictor_sp500.RData")
 stock_symbols <- colnames(returns)
 
 # Define the strategy function
@@ -66,8 +66,8 @@ run_strategy <- function(stock_symbol, returns, predictor, look_back, threshold,
 ### Run the initial data setup below once ###
 # load("/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
 # stock_symbols <- sort(names(env_sp500))
-# returns <- eapply(env_sp500, function(xt_s) {
-#   rutils::diffit(quantmod::Cl(xt_s))
+# returns <- eapply(env_sp500, function(xtes) {
+#   rutils::diffit(quantmod::Cl(xtes))
 # })  # end eapply
 # returns <- rutils::do_call(cbind, returns)
 # colnames(returns) <- rutils::get_name(colnames(returns))
@@ -87,9 +87,9 @@ run_strategy <- function(stock_symbol, returns, predictor, look_back, threshold,
 # })  # end lapply
 # zscores <- rutils::do_call(cbind, zscores)
 # zscores[which(!is.finite(zscores), arr.ind=TRUE)] <- 0
-# save(predictor, file="C:/Develop/R/data/predictor_sp500.RData")
-# save(returns, file="C:/Develop/R/data/returns_simple_sp500.RData")
-# save(zscores, file="C:/Develop/R/data/zscores_sp500.RData")
+# save(predictor, file="/Users/jerzy/Develop/R/data/predictor_sp500.RData")
+# save(returns, file="/Users/jerzy/Develop/R/data/returns_simple_sp500.RData")
+# save(zscores, file="/Users/jerzy/Develop/R/data/zscores_sp500.RData")
 ### End initial data setup ###
 ```
 

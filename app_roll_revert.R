@@ -15,8 +15,8 @@ library(HighFreq)
 
 # Model and data setup
 # Source the model function
-# Source("C:/Develop/lecture_slides/scripts/roll_portf_new.R")
-# max_eigen <- 2
+# Source("/Users/jerzy/Develop/lecture_slides/scripts/roll_portf_new.R")
+# eigen_max <- 2
 load("/Users/jerzy/Develop/lecture_slides/data/sp500_prices.RData")
 returns <- returns["2000/"]
 # Random data
@@ -60,7 +60,7 @@ uiface <- shiny::fluidPage(
     column(width=2, selectInput("typev", label="Portfolio weights type",
                                 choices=c("max_sharpe", "min_var", "min_varpca", "rank"), selected="rank")),
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=2, sliderInput("max_eigen", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
+    column(width=2, sliderInput("eigen_max", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
     # Input the shrinkage intensity
     column(width=2, sliderInput("alpha", label="Shrinkage intensity",
                                 min=0.01, max=0.99, value=0.1, step=0.05)),
@@ -83,7 +83,7 @@ servfun <- function(input, output) {
   datav <- shiny::reactive({
     # Get model parameters from input argument
     interval <- isolate(input$interval)
-    max_eigen <- isolate(input$max_eigen)
+    eigen_max <- isolate(input$eigen_max)
     look_back <- isolate(input$look_back)
     # look_lag <- isolate(input$look_lag
     lambda <- isolate(input$lambda)
@@ -95,12 +95,12 @@ servfun <- function(input, output) {
     input$re_calculate
     
     # Define end points
-    endpoints <- rutils::calc_endpoints(returns, interval=interval)
-    # endpoints <- ifelse(endpoints< ncols+1), ncols+1, endpoints)
-    endpoints <- endpoints[endpoints > (ncols+1)]
-    nrows <- NROW(endpoints)
-    # Define startpoints
-    startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
+    endp <- rutils::calc_endpoints(returns, interval=interval)
+    # endp <- ifelse(endp< ncols+1), ncols+1, endp)
+    endp <- endp[endp > (ncols+1)]
+    nrows <- NROW(endp)
+    # Define startp
+    startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
     
     # Calculate the weights - commented out because it produces leak
     # weights <- exp(-lambda*1:look_back)
@@ -112,9 +112,9 @@ servfun <- function(input, output) {
     # Rerun the model
     pnls <- HighFreq::back_test(excess=excess, 
                                  returns=returns,
-                                 startpoints=startpoints-1,
-                                 endpoints=endpoints-1,
-                                 max_eigen=max_eigen, 
+                                 startp=startp-1,
+                                 endp=endp-1,
+                                 eigen_max=eigen_max, 
                                  alpha=alpha, 
                                  typev=typev,
                                  coeff=coeff,
@@ -123,7 +123,7 @@ servfun <- function(input, output) {
     pnls <- cumsum(pnls)
     pnls <- cbind(pnls, indeks)
     colnames(pnls) <- c("Strategy", "Index")
-    pnls[c(1, endpoints), ]
+    pnls[c(1, endp), ]
   })  # end reactive code
   
   # Return to output argument a dygraph plot with two y-axes

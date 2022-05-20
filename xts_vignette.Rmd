@@ -773,7 +773,7 @@ The argument on supports a variety of periods, including "years", "quarters", "m
 
 In addition to each period, you can find the KthKth period by utilizing the k argument. For example, setting the arguments of your endpoints() call to on = "weeks", k = 2, would generate the final day of every other week in your data. Note that the last value returned will always be the length of your input data, even if it doesn't correspond to a skipped interval.
 
-In this exercise you'll use endpoints() to find two sets of endpoints for the daily temps data.
+In this exercise you'll use endpoints() to find two sets of endp for the daily temps data.
 
 Instructions
  - Use endpoints() to locate the end of week in your temps data.
@@ -787,25 +787,25 @@ endpoints(temps, on = "weeks")
 endpoints(temps, on = "weeks", k = 2)
 ```
 
-As you'll see in the next exercise, locating endpoints can help speed the process of aggregating time series data.
+As you'll see in the next exercise, locating endp can help speed the process of aggregating time series data.
 
 ### Apply a function by time period(s)
 
 At this point you know how to locate the end of periods using endpoints(). You may be wondering what it is you do with these values.
 
-In the most simple case you can subset your object to get the last values. In certain cases this may be useful. For example, to identify the last known value of a sensor during the hour or get the value of the USD/JPY exchange rate at the start of the day. For most series, you will want to apply a function to the values between endpoints. In essence, use the base function apply(), but used on a window of time.
+In the most simple case you can subset your object to get the last values. In certain cases this may be useful. For example, to identify the last known value of a sensor during the hour or get the value of the USD/JPY exchange rate at the start of the day. For most series, you will want to apply a function to the values between endp. In essence, use the base function apply(), but used on a window of time.
 
-To do this easily, xts provides the period.apply() command, which takes a time series, an index of endpoints, and a function.
+To do this easily, xts provides the period.apply() command, which takes a time series, an index of endp, and a function.
 
 period.apply(x, INDEX, FUN, ...)
 In this exercise you'll practice using period.apply() by taking the weekly mean of your temps data. You'll also look at one of the shortcut functions that does the same thing with slightly different syntax.
 
 Instructions
- - Calculate the weekly endpoints of the temps series and assign to ep.
- - Using period.apply(), calculate the weekly mean of the Temp.Mean column of your temps data. Remember that your endpoints were calculated weekly.
+ - Calculate the weekly endp of the temps series and assign to ep.
+ - Using period.apply(), calculate the weekly mean of the Temp.Mean column of your temps data. Remember that your endp were calculated weekly.
  
 ```{r}
-# Calculate the weekly endpoints
+# Calculate the weekly endp
 ep <- endpoints(temps, on = "weeks")
 
 # Now calculate the weekly mean and display the results
@@ -842,7 +842,7 @@ temps_avg
 ```
 As you can see, period.apply() is similar to using a combination of split() and lapply()
 
-### Selection by endpoints vs. split-lapply-rbind
+### Selection by endp vs. split-lapply-rbind
 
 By now you have seen that even in xts there is more than one way to accomplish a task. In this exercise we'll highlight this explicitly by tackling the same challenge using two different methods. When you are on your own, you will likely find situations where one or the other will be more intuitive, but for now you should make sure you are able to do both.
 

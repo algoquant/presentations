@@ -10,10 +10,8 @@
 library(HighFreq)
 library(shiny)
 library(dygraphs)
-# Rcpp::sourceCpp(file="C:/Develop/lecture_slides/assignments/rcpp_strat.cpp")
+# Rcpp::sourceCpp(file="/Users/jerzy/Develop/lecture_slides/assignments/rcpp_strat.cpp")
 # Model and data setup
-# source the model function
-# source("C:/Develop/lecture_slides/scripts/roll_portf_new.R")
 # eigen_max <- 2
 load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
 # returns <- returns100
@@ -70,29 +68,28 @@ servfun <- function(input, output) {
     # alpha <- input$alpha
     
     # Define end points
-    # endpoints <- rutils::calc_endpoints(returns, interval=interval)
-    # endpoints <- ifelse(endpoints<(nweights+1), nweights+1, endpoints)
-    # endpoints <- endpoints[endpoints > (nweights+1)]
-    # nrows <- NROW(endpoints)
-    # Define startpoints
-    # startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
+    # endp <- rutils::calc_endpoints(returns, interval=interval)
+    # endp <- ifelse(endp<(nweights+1), nweights+1, endp)
+    # endp <- endp[endp > (nweights+1)]
+    # nrows <- NROW(endp)
+    # Define startp
+    # startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
     # rerun the model
     weightv <- HighFreq::calc_weights(returns, eigen_max=eigen_max);
     
     # pnls <- roll_portf_n(excess=returns, 
     #                               returns=returns,
-    #                               startpoints=startpoints-1,
-    #                               endpoints=endpoints-1,
+    #                               startp=startp-1,
+    #                               endp=endp-1,
     #                       eigen_max=eigen_max, 
     #                       alpha=alpha,
     #                       min_var=FALSE)
     # pnls[which(is.na(pnls)), ] <- 0
-    # pnls <- roll_portf_r(excess, returns, startpoints, endpoints, alpha, eigen_max, end_stub)
     # pnls <- sd(rutils::diffit(indeks))*pnls/sd(rutils::diffit(pnls))
     # pnls <- cumsum(pnls)
     # pnls <- cbind(pnls, indeks)
     # colnames(pnls) <- c("Strategy", "Index")
-    # pnls[c(1, endpoints), ]
+    # pnls[c(1, endp), ]
     sort(weightv)
   })  # end reactive code
   

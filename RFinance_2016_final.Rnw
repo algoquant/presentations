@@ -54,7 +54,7 @@ knit_theme$set(thm)
 \title[Exploring Higher Order Risk Premia Using High Frequency Data]{Exploring Higher Order Risk Premia Using High Frequency Data}
 \subtitle{R/Finance Chicago 2016}
 \institute[NYU Tandon]{NYU Tandon School of Engineering}
-\titlegraphic{\includegraphics[scale=0.2]{C:/Develop/R/FRE6871/image/tandon_long_color}}
+\titlegraphic{\includegraphics[scale=0.2]{/Users/jerzy/Develop/R/FRE6871/image/tandon_long_color}}
 \author[Jerzy Pawlowski]{Jerzy Pawlowski \emph{\href{mailto:jp3900@nyu.edu}{jp3900@nyu.edu}}}
 \date{May 20, 2016}
 % \pgfdeclareimage[height=0.5cm]{university-logo}{engineering_long_white}
@@ -199,8 +199,8 @@ install_github(repo="algoquant/HighFreq")
 # load package "HighFreq"
 library(HighFreq)
 # set data directories
-data_dir <- "C:/Develop/data/hfreq/src/"
-output_dir <- "C:/Develop/data/hfreq/scrub/"
+data_dir <- "/Users/jerzy/Develop/data/hfreq/src/"
+output_dir <- "/Users/jerzy/Develop/data/hfreq/scrub/"
 # define symbol
 symbol <- "SPY"
 # load a single day of TAQ data
@@ -236,7 +236,7 @@ library(HighFreq)
 # define symbol
 symbol <- "SPY"
 # load OHLC data
-output_dir <- "C:/Develop/data/hfreq/scrub/"
+output_dir <- "/Users/jerzy/Develop/data/hfreq/scrub/"
 symbol <- load(
   file.path(output_dir, 
             paste0(symbol, ".RData")))

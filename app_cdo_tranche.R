@@ -20,7 +20,7 @@ cumlossdistr <- function(x, defthresh=(-2), rho=0.2, lgd=0.4)
   pnorm((sqrt(1-rho)*qnorm(x/lgd) - defthresh)/sqrt(rho))
 
 # Define Vasicek loss distribution density function 
-lossdistr <- function(x, defthresh=-2, rho=0.1, lgd=0.4) {
+lossdistr <- function(x, defthresh=(-2), rho=0.1, lgd=0.4) {
   qnormv <- ifelse(x/lgd < 0.999, qnorm(x/lgd), 3.1)
   sqrt((1-rho)/rho)*exp(-(sqrt(1-rho)*qnormv - defthresh)^2/(2*rho) + qnormv^2/2)/lgd
 }  # end lossdistr
@@ -106,22 +106,22 @@ servfun <- function(input, output) {
     # Plot density of portfolio losses
     par(mar=c(5.1, 5.1, 4.1, 2.1))
     curve(expr=lossdistr(x, defthresh=defthresh, rho=rho, lgd=lgd),
-          cex.main=1.8, cex.lab=1.8, cex.axis=1.5, 
+          cex.main=1.5, cex.lab=1.5, cex.axis=1.5, 
           type="l", xlim=c(0, xmax), 
           xlab="Percentage loss", ylab="Density", lwd=3,
           col="orange", main="CDO Tranche Losses")
     # Add vertical line for expected loss
     abline(v=exploss, col="red", lwd=3)
     text(x=exploss-0.001, y=3*ymax/4, labels="expected loss",
-         lwd=2, srt=90, pos=3, cex=1.8)
+         lwd=2, srt=90, pos=3, cex=1.5)
     # Add vertical line for tranche attachment
     abline(v=attachp, col="blue", lwd=3)
     text(x=attachp-0.001, y=3*ymax/4, labels="tranche attachment",
-         lwd=2, srt=90, pos=3, cex=1.8)
+         lwd=2, srt=90, pos=3, cex=1.5)
     # Add vertical line for tranche detachment
     abline(v=detachp, col="blue", lwd=3)
     text(x=detachp-0.001, y=3*ymax/4, labels="tranche detachment",
-         lwd=2, srt=90, pos=3, cex=1.8)
+         lwd=2, srt=90, pos=3, cex=1.5)
     
     # Calculate tranche shading for CVaR
     varisk <- attachp; var_max <- detachp
@@ -141,7 +141,7 @@ servfun <- function(input, output) {
            "Tranche attachment = ", format(100*attachp, digits=3), "%", "\n",
            "Tranche detachment = ", format(100*detachp, digits=3), "%", "\n",
            "Tranche loss = ", 100*datav(), "%"), 
-         adj=c(1, 1), cex=1.8, lwd=2)
+         adj=c(1, 1), cex=1.5, lwd=2)
   })  # end output plot
 
 }  # end server function

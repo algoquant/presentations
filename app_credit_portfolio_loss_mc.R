@@ -129,22 +129,22 @@ servfun <- function(input, output) {
     # Plot density of portfolio losses
     par(mar=c(5.1, 5.1, 4.1, 2.1))
     plot(densv, xlab="Percentage loss", col="blue", lwd=3, 
-         cex.main=1.8, cex.lab=1.8, cex.axis=1.5, 
+         cex.main=1.5, cex.lab=1.5, cex.axis=1.5, 
          main="Portfolio Loss Distribution")
     # Add vertical line for expected loss
     abline(v=exploss, col="orange", lwd=4)
-    text(x=exploss, y=6*ymax/7, labels="expected loss", lwd=2, pos=4, cex=1.8)
+    text(x=exploss, y=6*ymax/7, labels="expected loss", lwd=2, pos=4, cex=1.5)
     # Add vertical line for VaR
     abline(v=varisk, col="red", lwd=4)
-    text(x=varisk, y=4*ymax/5, labels="VaR", lwd=2, pos=4, cex=1.8)
+    text(x=varisk, y=4*ymax/5, labels="VaR", lwd=2, pos=4, cex=1.5)
     
     # Draw shaded polygon for CVaR
     intail <- (densv$x > varisk)
-    x_var <- c(min(densv$x[intail]), densv$x[intail], max(densv$x))
-    polygon(x_var, c(-1, densv$y[intail], -1), 
+    xvar <- c(min(densv$x[intail]), densv$x[intail], max(densv$x))
+    polygon(xvar, c(-1, densv$y[intail], -1), 
             col="red", border=NA, density=10)
     # Add text for CVaR
-    text(x=5*varisk/4, y=(ymax/7), labels="CVaR", lwd=2, pos=4, cex=1.8)
+    text(x=5*varisk/4, y=(ymax/7), labels="CVaR", lwd=2, pos=4, cex=1.5)
     
     # Text with CVaR attachment
     text(xmax-0.01, ymax, 
@@ -154,7 +154,7 @@ servfun <- function(input, output) {
            "Correlation = ", format(100*rho, digits=3), "%", "\n",
            "VaR = ", format(100*varisk, digits=3), "%", "\n",
            "CVaR = ", format(100*cvar, digits=3), "%"), 
-         adj=c(1, 1), cex=1.8, lwd=2)
+         adj=c(1, 1), cex=1.5, lwd=2)
     
   })  # end output plot
   

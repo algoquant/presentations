@@ -14,9 +14,7 @@ library(dygraphs)
 library(rutils)
 
 # Model and data setup
-# Source the model function
-# Source("C:/Develop/lecture_slides/scripts/roll_portf_new.R")
-# max_eigen <- 2
+# eigen_max <- 2
 load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
 rets <- returns100["2000/"]
 symbolv <- colnames(rets)
@@ -32,13 +30,13 @@ indeks <- xts(indeks, index(rets))
 
 # Calculate vector of monthly end points and start points
 look_back <- 12
-endpoints <- rutils::calc_endpoints(rets, interval="months")
-endpoints[endpoints<2*nstocks] <- 2*nstocks
-nrows <- NROW(endpoints)
+endp <- rutils::calc_endpoints(rets, interval="months")
+endp[endp<2*nstocks] <- 2*nstocks
+nrows <- NROW(endp)
 # sliding window
-startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
+startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
 # OR expanding window
-# startpoints <- rep_len(1, NROW(endpoints))
+# startp <- rep_len(1, NROW(endp))
 # riskf is the daily risk-free rate
 riskf <- 0.03/252
 # Calculate daily excess returns 
@@ -78,7 +76,7 @@ uiface <- shiny::fluidPage(
     # column(width=2, selectInput("typev", label="Portfolio weights type",
     #                             choices=c("max_sharpe", "min_var", "min_varpca", "rank"), selected="rank")),
     # Input number of eigenvalues for regularized matrix inverse
-    # column(width=2, sliderInput("max_eigen", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
+    # column(width=2, sliderInput("eigen_max", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
     # Input the shrinkage intensity
     # column(width=2, sliderInput("alpha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
@@ -103,7 +101,7 @@ servfun <- function(input, output) {
   datav <- shiny::reactive({
     # Get model parameters from input argument
     interval <- isolate(input$interval)
-    # max_eigen <- isolate(input$max_eigen)
+    # eigen_max <- isolate(input$eigen_max)
     look_back <- isolate(input$look_back)
     # look_lag <- isolate(input$look_lag
     # lambda <- isolate(input$lambda)
@@ -116,12 +114,12 @@ servfun <- function(input, output) {
     input$re_calculate
     
     # Define end points
-    endpoints <- rutils::calc_endpoints(rets, interval=interval)
-    # endpoints <- ifelse(endpoints< nstocks+1), nstocks+1, endpoints)
-    endpoints <- endpoints[endpoints > (nstocks+1)]
-    nrows <- NROW(endpoints)
-    # Define startpoints
-    startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
+    endp <- rutils::calc_endpoints(rets, interval=interval)
+    # endp <- ifelse(endp< nstocks+1), nstocks+1, endp)
+    endp <- endp[endp > (nstocks+1)]
+    nrows <- NROW(endp)
+    # Define startp
+    startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
     
     # Define quantile
     quantilev <- round(percent*nstocks)
@@ -136,14 +134,14 @@ servfun <- function(input, output) {
     # Rerun the model
     pnls <- lapply(2:nrows, function(it) {
       # Subset the excess returns
-      sub_excess <- excess[startpoints[it-1]:endpoints[it-1], ]
+      sub_excess <- excess[startp[it-1]:endp[it-1], ]
       # Calculate the signal as volatility
       stdev <- sapply(sub_excess, sd)
       # score <- stdev
       # Calculate the signal as Sharpe ratio
       score <- ifelse(is.na(stdev) | (stdev == 0), 0, colSums(sub_excess)/stdev)
       # Calculate the signal as beta
-      # indeks <- indeks[startpoints[it-1]:endpoints[it-1], ]
+      # indeks <- indeks[startp[it-1]:endp[it-1], ]
       # indeks <- (indeks - mean(indeks))
       # sub_excess <- (sub_excess - colMeans(sub_excess))
       # score <- mean(drop(coredata(indeks))*sub_excess)/sapply(sub_excess, var)
@@ -159,7 +157,7 @@ servfun <- function(input, output) {
       # Scale the weights
       weights <- weights/sum(abs(weights))
       # Subset the rets
-      sub_returns <- rets[(endpoints[it-1]+1):endpoints[it], ]
+      sub_returns <- rets[(endp[it-1]+1):endp[it], ]
       # Calculate the out-of-sample portfolio returns
       xts(sub_returns %*% weights, index(sub_returns))
     }  # end anonymous function
@@ -173,7 +171,7 @@ servfun <- function(input, output) {
     sharper <- round(sharper, 3)
     pnls <- cumsum(pnls)
     colnames(pnls) <- paste0(c("Strategy SR=", "Index SR="), sharper)
-    # pnls[c(1, endpoints), ]
+    # pnls[c(1, endp), ]
     pnls
   })  # end reactive code
   

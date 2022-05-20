@@ -7,7 +7,7 @@ date: January 29, 2015
 output: pdf_document
 ---
 
-![olimpiada](C:/Develop/R/FRE6871/figure/olimpiada.png)
+![olimpiada](/Users/jerzy/Develop/R/FRE6871/figure/olimpiada.png)
 Rozwiazanie:  
 Najpierw mozemy napisac cztery równania:  
 (1) $z+x = t_{2}(w+v)$  

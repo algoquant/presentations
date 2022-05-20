@@ -16,7 +16,7 @@ library(dygraphs)
 # Source the strategy functions
 source("/Users/jerzy/Develop/R/backtest_functions.R")
 # Calculate indicator_s matrix of OHLC technical indicators
-# source(file="C:/Develop/R/scripts/load_technical_indicators.R")
+# source(file="/Users/jerzy/Develop/R/scripts/load_technical_indicators.R")
 # volat[which.max(volat)] <- 0
 # volat[which.max(volat)] <- 0
 
@@ -26,11 +26,11 @@ source("/Users/jerzy/Develop/R/backtest_functions.R")
 # ohlc <- HighFreq::SPY["2010"]
 # ohlc <- rutils::etfenv$VTI
 # load recent ES1 futures data
-# load(file="C:/Develop/data/ES1.RData")
+# load(file="/Users/jerzy/Develop/data/ES1.RData")
 # score <- "SPY"
 
 # load recent combined futures data
-load(file="C:/Develop/data/combined.RData")
+load(file="/Users/jerzy/Develop/data/combined.RData")
 
 # plot daily closing prices
 # dygraphs::dygraph(ohlc[endpoints(ohlc, on="days"), c("ES1.Close", "TY1.Close")], 

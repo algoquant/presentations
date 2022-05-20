@@ -176,7 +176,7 @@ con_tract <- IBrokers::twsFuture(symbol="ES",
 IBrokers::reqContractDetails(conn=ib_connect, 
                              Contract=con_tract)
 # Open file connection for data download
-file_name <- "C:/Develop/data/ib_data/ESohlc_live.csv"
+file_name <- "/Users/jerzy/Develop/data/ib_data/ESohlc_live.csv"
 file_connect <- file(file_name, open="w")
 # Download live data to file
 ### <b>
@@ -394,7 +394,7 @@ invisible(list(buylimit=buylimit, sell_limit=sell_limit))
 
 ```{r, eval=FALSE, echo=TRUE}
 # Open file connection for data download
-file_names <- "C:/Develop/data/ib_data/ESohlc_live.csv"
+file_names <- "/Users/jerzy/Develop/data/ib_data/ESohlc_live.csv"
 file_connects <- lapply(file_names, 
   function(file_name) file(file_name, open="w"))
 # Open the IB connection to TWS
@@ -564,7 +564,7 @@ invisible(list(WAP=w_ap, EWMA=ew_ma))
 
 ```{r, eval=FALSE, echo=TRUE}
 # Open file connection for data download
-file_names <- "C:/Develop/data/ib_data/ESohlc_live.csv"
+file_names <- "/Users/jerzy/Develop/data/ib_data/ESohlc_live.csv"
 file_connects <- lapply(file_names, 
   function(file_name) file(file_name, open="w"))
 # Open the IB connection to TWS
@@ -771,7 +771,7 @@ invisible(list(coeff=coeff, z_score=z_score))
 
 ```{r, eval=FALSE, echo=TRUE}
 # Open file connection for data download
-data_dir <- "C:/Develop/data/ib_data"
+data_dir <- "/Users/jerzy/Develop/data/ib_data"
 file_names <- file.path(data_dir, 
   paste0(names(con_tracts), "_", format(Sys.time(), format="%m_%d_%Y_%H_%M"), ".csv"))
 file_connects <- lapply(file_names, 

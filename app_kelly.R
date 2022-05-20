@@ -19,14 +19,14 @@ returns <- na.omit(rutils::etfenv$returns[, "VTI"])
 ## Load QM futures 5-second bars
 # symbol <- "ES"  # S&P500 Emini futures
 # symbol <- "QM"  # oil
-# load(file=paste0("C:/Develop/data/ib_data/", symbol, "_ohlc.RData"))
+# load(file=paste0("/Users/jerzy/Develop/data/ib_data/", symbol, "_ohlc.RData"))
 # prices <- Cl(ohlc)
 # Or random prices
 # prices <- xts(exp(cumsum(rnorm(NROW(ohlc)))), index(ohlc))
 
 ## Load VX futures 5-second bars
 # symbol <- "VX"
-# load(file="C:/Develop/data/vix_data/vix_cboe.RData")
+# load(file="/Users/jerzy/Develop/data/vix_data/vix_cboe.RData")
 # prices <- Cl(vix_env$chain_ed)
 
 ## VTI ETF daily bars
@@ -74,7 +74,7 @@ uiface <- shiny::fluidPage(
     # column(width=2, selectInput("typev", label="Portfolio weights type",
     #                             choices=c("max_sharpe", "min_var", "min_varpca", "rank"), selected="rank")),
     # Input number of eigenvalues for regularized matrix inverse
-    # column(width=2, sliderInput("max_eigen", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
+    # column(width=2, sliderInput("eigen_max", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
     # Input the shrinkage intensity
     # column(width=2, sliderInput("alpha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
@@ -100,7 +100,7 @@ servfun <- function(input, output) {
     # Get model parameters from input argument
     look_back <- input$look_back
     # lagg <- input$lagg
-    # max_eigen <- isolate(input$max_eigen)
+    # eigen_max <- isolate(input$eigen_max)
     # threshold <- input$threshold
     # look_lag <- isolate(input$look_lag
     # lambda <- isolate(input$lambda)

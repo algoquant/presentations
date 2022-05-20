@@ -36,11 +36,11 @@ switch(data_type,
          # Data setup
          dates <- index(ohlc)
          nrows <- NROW(ohlc)
-         endpoints <- xts::endpoints(ohlc, on="hours")
+         endp <- xts::endpoints(ohlc, on="hours")
          prices <- log(Cl(ohlc))
          returns <- rutils::diffit(prices)
          stdev <- sd(returns[returns<0])
-         # prices <- prices[endpoints]
+         # prices <- prices[endp]
        },
        "otherbars" = {
          captiont <- "Strategy for 1-minute LODE Bars"
@@ -54,7 +54,7 @@ switch(data_type,
          closep <- xts::xts(closep, dates)
          returns <- rutils::diffit(closep)
          stdev <- sd(returns[returns<0])
-         endpoints <- xts::endpoints(returns, on="hours")
+         endp <- xts::endpoints(returns, on="hours")
          # Coerce ohlc into a matrix
          ohlc <- ohlc[, c(4, 6, 7, 5)]
          colnames(ohlc) <- c("Open", "High", "Low", "Close")
@@ -87,7 +87,7 @@ switch(data_type,
          # Make dates unique:
          # dates <- as.POSIXct(big_ticks$seconds, origin="1970-01-01")
          # dates <- xts::make.index.unique(dates)
-         endpoints <- 100*(1:(nrows %/% 100))
+         endp <- 100*(1:(nrows %/% 100))
          dates <- seq.POSIXt(from=as.POSIXct("2020-01-01", origin="1970-01-01"), by="sec", length.out=nrows)
          returns <- xts::xts(returns, dates)
        },
@@ -95,7 +95,7 @@ switch(data_type,
          # Load the 5-second ES futures bar data collected from IB.
          captiont <- "Strategy for Futures"
          model_type <- "sharpe_ohlc"
-         data_dir <- "C:/Develop/data/ib_data/"
+         data_dir <- "/Users/jerzy/Develop/data/ib_data/"
          # symbol <- "ES"  # S&P500 Emini futures
          symbol <- "QM"  # oil
          symbolv <- symbol
@@ -103,11 +103,11 @@ switch(data_type,
          # Data setup
          dates <- index(ohlc)
          nrows <- NROW(ohlc)
-         endpoints <- xts::endpoints(ohlc, on="hours")
+         endp <- xts::endpoints(ohlc, on="hours")
          prices <- log(Cl(ohlc))
          returns <- rutils::diffit(prices)
          stdev <- sd(returns[returns<0])
-         # prices <- prices[endpoints]
+         # prices <- prices[endp]
          # returns <- c(0, returns)
          captiont <- paste("Contrarian Strategy for", symbol, "Bars")
        },
@@ -122,17 +122,17 @@ switch(data_type,
          # Data setup
          dates <- index(ohlc)
          nrows <- NROW(ohlc)
-         endpoints <- xts::endpoints(ohlc, on="days")
+         endp <- xts::endpoints(ohlc, on="days")
          prices <- log(Cl(ohlc))
          returns <- rutils::diffit(prices)
          stdev <- sd(returns[returns<0])
-         # prices <- prices[endpoints]
+         # prices <- prices[endp]
        },
        "sp500" = {
          captiont <- "Strategy for S&P500 Stocks"
          model_type <- "sharpe_ohlc"
          # Load S&P500 stocks
-         # load("C:/Develop/data/returns100.RData")
+         # load("/Users/jerzy/Develop/data/returns100.RData")
          load("/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
          # Select the columns with non-zero returns
          data_env <- sp500env
@@ -142,11 +142,11 @@ switch(data_type,
          # Data setup
          dates <- index(ohlc)
          nrows <- NROW(ohlc)
-         endpoints <- xts::endpoints(ohlc, on="days")
+         endp <- xts::endpoints(ohlc, on="days")
          prices <- log(Cl(ohlc))
          returns <- rutils::diffit(prices)
          stdev <- sd(returns[returns<0])
-         # prices <- prices[endpoints]
+         # prices <- prices[endp]
        }
 )  # end switch
 
@@ -197,7 +197,7 @@ uiface <- shiny::fluidPage(
     # column(width=2, selectInput("typev", label="Portfolio weights type",
     #                             choices=c("max_sharpe", "min_var", "min_varpca", "rank"), selected="rank")),
     # Input number of eigenvalues for regularized matrix inverse
-    # column(width=2, sliderInput("max_eigen", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
+    # column(width=2, sliderInput("eigen_max", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
     # Input the shrinkage intensity
     # column(width=2, sliderInput("alpha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
@@ -230,7 +230,7 @@ servfun <- function(input, output) {
     look_back <- isolate(input$look_back)
     lagg <- isolate(input$lagg)
     confirm <- isolate(input$confirm)
-    # max_eigen <- isolate(input$max_eigen)
+    # eigen_max <- isolate(input$eigen_max)
     threshold <- isolate(input$threshold)
     volumes <- isolate(input$volumes)
     # look_lag <- isolate(input$look_lag
@@ -254,11 +254,11 @@ servfun <- function(input, output) {
              # Data setup
              dates <- index(ohlc)
              nrows <- NROW(ohlc)
-             endpoints <- xts::endpoints(ohlc, on="days")
+             endp <- xts::endpoints(ohlc, on="days")
              prices <- log(Cl(ohlc))
              returns <- rutils::diffit(prices)
              stdev <- sd(returns[returns<0])
-             # prices <- prices[endpoints]
+             # prices <- prices[endp]
            },
            "sp500" = {
              # captiont <- "Rolling Portfolio Optimization Strategy for Sub-Portfolio of S&P500 Stocks"
@@ -266,11 +266,11 @@ servfun <- function(input, output) {
              # Data setup
              dates <- index(ohlc)
              nrows <- NROW(ohlc)
-             endpoints <- xts::endpoints(ohlc, on="days")
+             endp <- xts::endpoints(ohlc, on="days")
              prices <- log(Cl(ohlc))
              returns <- rutils::diffit(prices)
              stdev <- sd(returns[returns<0])
-             # prices <- prices[endpoints]
+             # prices <- prices[endp]
            },
            "tick_data" = {
              big_ticks <- raw_ticks[volume >= volumes]
@@ -279,7 +279,7 @@ servfun <- function(input, output) {
              stdev <- sd(returns[returns<0])
              nrows <- NROW(returns)
              # dim(returns) <- c(nrows, 1)
-             endpoints <- 100*(1:(nrows %/% 100))
+             endp <- 100*(1:(nrows %/% 100))
              dates <- seq.POSIXt(from=as.POSIXct("2020-01-01", origin="1970-01-01"), by="sec", length.out=nrows)
              returns <- xts::xts(returns, dates)
            }
@@ -466,7 +466,7 @@ servfun <- function(input, output) {
     ## Coerce pnls to xts
     # pnls <- xts(pnls, dates)
     colnames(pnls) <- paste0(c("Strategy SR=", "Index SR="), sharper)
-    pnls[c(1, endpoints), ]
+    pnls[c(1, endp), ]
   })  # end reactive code
 
   # Return to the output argument a dygraph plot with two y-axes

@@ -24,12 +24,12 @@ library(dygraphs)
 # file_name <- "goog_tick_trades2020_02102020_0510_biglots"
 file_name <- "goog_tick_trades2020_02102020_0510_biglots"
 
-# taq <- data.table::fread(file=paste0("C:/Develop/data/", file_name, ".csv"), stringsAsFactors=FALSE)
+# taq <- data.table::fread(file=paste0("/Users/jerzy/Develop/data/", file_name, ".csv"), stringsAsFactors=FALSE)
 # Create date-time index
 # indeks <- paste(taq$DATE, taq$TIME_M)
 # indeks <- strptime(indeks, "%Y%m%d %H:%M:%OS")
 # indeks <- as.POSIXct(indeks)
-load(file=paste0("C:/Develop/data/TwoSig/", file_name, ".RData"))
+load(file=paste0("/Users/jerzy/Develop/data/TwoSig/", file_name, ".RData"))
 
 # symbol <- taq$SYM_ROOT[1]
 symbol <- rutils::get_name(colnames(taq)[1])

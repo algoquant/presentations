@@ -82,7 +82,7 @@ uiface <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dyplot", width="100%", height="600px"), height=10, width=12)
+  dygraphs::dygraphOutput("dyplot", width="90%", height="550px")
   # Create output plot panel
   # mainPanel(dygraphs::dygraphOutput("dyplot"), width=12)
   
@@ -277,22 +277,22 @@ servfun <- function(input, output) {
     rets <- datav()$rets
     
     # Define end points
-    endpoints <- rutils::calc_endpoints(rets, interval=interval)
-    # endpoints <- ifelse(endpoints< ncols+1), ncols+1, endpoints)
-    endpoints <- endpoints[endpoints > (globals$ncols+1)]
-    nrows <- NROW(endpoints)
-    # Define startpoints
-    startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
+    endp <- rutils::calc_endpoints(rets, interval=interval)
+    # endp <- ifelse(endp< ncols+1), ncols+1, endp)
+    endp <- endp[endp > (globals$ncols+1)]
+    nrows <- NROW(endp)
+    # Define startp
+    startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
     
     ## Calculate the number of days in the look_back interval
-    # nperiods <- rutils::diffit(endpoints)
+    # nperiods <- rutils::diffit(endp)
     # which_periods <- which.max(table(nperiods))
     # nperiods <- nperiods[which_periods]
-    nperiods <- (endpoints[nrows] - endpoints[nrows-1])
+    nperiods <- (endp[nrows] - endp[nrows-1])
     nperiods <- nperiods*look_back
     globals$nperiods <- nperiods
     
-    list(startpoints=startpoints, endpoints=endpoints)
+    list(startp=startp, endp=endp)
     
   })  # end Calculate the end points
   
@@ -313,8 +313,8 @@ servfun <- function(input, output) {
     
     rets <- datav()$rets
     excess <- excess()
-    startpoints <- roll_points()$startpoints
-    endpoints <- roll_points()$endpoints
+    startp <- roll_points()$startp
+    endp <- roll_points()$endp
     
     if (model_type == "ranksimple") {
       cat("Rank simple model \n")
@@ -323,8 +323,8 @@ servfun <- function(input, output) {
       # posit[1, ] <- 0
       # Reset the positions according to the sort data in excess
       posit <- matrixStats::rowRanks(excess)
-      # Reset the positions only at the endpoints and hold the position between the endpoints
-      # posit[endpoints, ] <- excess[endpoints, ]
+      # Reset the positions only at the endp and hold the position between the endp
+      # posit[endp, ] <- excess[endp, ]
       # posit <- zoo::na.locf(posit, na.rm=FALSE)
       posit <- (posit - rowMeans(posit))
       posit <- HighFreq::lagit(posit, lagg=1)
@@ -337,8 +337,8 @@ servfun <- function(input, output) {
       # posit[1, ] <- 0
       # Reset the positions according to the sort data in excess
       posit <- matrixStats::rowRanks(excess)
-      # Reset the positions only at the endpoints and hold the position between the endpoints
-      # posit[endpoints, ] <- excess[endpoints, ]
+      # Reset the positions only at the endp and hold the position between the endp
+      # posit[endp, ] <- excess[endp, ]
       # posit <- zoo::na.locf(posit, na.rm=FALSE)
       posit <- (posit - rowMeans(posit))
       # Average the past posit to reflect holding the position for some time
@@ -351,8 +351,8 @@ servfun <- function(input, output) {
       # Rerun the strategy with fixed start date
       pnls <- HighFreq::back_test(excess=excess,
                                    returns=rets,
-                                   startp=startpoints-1,
-                                   endp=endpoints-1,
+                                   startp=startp-1,
+                                   endp=endp-1,
                                    lambda=lambda,
                                    confl=confl,
                                    eigen_max=eigen_max,
@@ -362,16 +362,16 @@ servfun <- function(input, output) {
       pnls[which(is.na(pnls)), ] <- 0
     } else {
       # Rerun the strategy with multiple start dates
-      # endpoint <- endpoints[nrows]
-      # nperiods <- (endpoint - endpoints[nrows-1] - 1)
+      # endpoint <- endp[nrows]
+      # nperiods <- (endpoint - endp[nrows-1] - 1)
       # 
       # pnls <- lapply(1:nperiods, function(shiftv) {
-      #   ep_new <- c(endpoints-shiftv, endpoint)
+      #   ep_new <- c(endp-shiftv, endpoint)
       #   sp_new <- c(rep_len(1, look_back-1), ep_new[1:(nrows-look_back+2)])
       #   pnls <- HighFreq::back_test(excess=excess, 
       #                                returns=rets,
-      #                                startpoints=sp_new-1,
-      #                                endpoints=ep_new-1,
+      #                                startp=sp_new-1,
+      #                                endp=ep_new-1,
       #                                confl=confl,
       #                                eigen_max=eigen_max, 
       #                                alpha=alpha, 
@@ -389,8 +389,8 @@ servfun <- function(input, output) {
       # Rerun the strategy with fixed start date
       pnls <- HighFreq::back_test(excess=excess,
                                    returns=rets,
-                                   startp=startpoints-1,
-                                   endp=endpoints-1,
+                                   startp=startp-1,
+                                   endp=endp-1,
                                    lambda=lambda,
                                    confl=confl,
                                    eigen_max=eigen_max,
@@ -410,7 +410,7 @@ servfun <- function(input, output) {
     colnames(pnls) <- c("Strategy", "Index")
     captiont <- paste0(c("Strategy SR = ", "Index SR = "), sharper)
     captiont <- paste("Rolling Portfolio Strategy: ", paste(captiont, collapse=" and "))
-    list(captiont=captiont, pnls=pnls[c(1, endpoints), ])
+    list(captiont=captiont, pnls=pnls[c(1, endp), ])
     
   })  # end reactive code
   

@@ -10,7 +10,7 @@ runtime: shiny
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
-# source("C:/Develop/R/scripts/ewma_model.R")
+# source("/Users/jerzy/Develop/R/scripts/ewma_model.R")
 ```
 
 ```{r ou_model, echo=FALSE}

@@ -20,11 +20,11 @@ library(dygraphs)
 ############## deprecated ##############
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # You must first compile the following Rcpp file as follows:
-# Rcpp::sourceCpp(file="C:/Develop/R/Rcpp/lm_arma.cpp")
+# Rcpp::sourceCpp(file="/Users/jerzy/Develop/R/Rcpp/lm_arma.cpp")
 # Source the strategy functions
-# source("C:/Develop/R/scripts/backtest_functions.R")
+# source("/Users/jerzy/Develop/R/scripts/backtest_functions.R")
 # Calculate indicator_s matrix of OHLC technical indicators
-# source(file="C:/Develop/R/scripts/load_technical_indicators.R")
+# source(file="/Users/jerzy/Develop/R/scripts/load_technical_indicators.R")
 # volat[which.max(volat)] <- 0
 # volat[which.max(volat)] <- 0
 ############## end deprecated ##############
@@ -39,12 +39,12 @@ library(dygraphs)
 # com_bo <- zoo::na.locf(com_bo, fromLast=TRUE)
 
 # Load ES1 futures data
-# load(file="C:/Develop/data/ES1.RData")
+# load(file="/Users/jerzy/Develop/data/ES1.RData")
 # symbol_asset <- "SPY"
 
 # Load combined futures data
 # com_bo <- HighFreq::SPY
-load(file="C:/Develop/data/combined.RData")
+load(file="/Users/jerzy/Develop/data/combined.RData")
 symbolv <- unique(rutils::get_name(colnames(com_bo)))
 # UX1: close_high_thresh=2, close_low_thresh=2, lagg=1
 # UX1: close_high_thresh=3, close_low_thresh=3, lagg=1

@@ -93,7 +93,7 @@ con_tract <- IBrokers::twsFuture(symbol="ES",
 IBrokers::reqContractDetails(conn=ib_connect, 
                              Contract=con_tract)
 # Open file connection for data download
-file_name <- "C:/Develop/data/ib_data/ESohlc_live.csv"
+file_name <- "/Users/jerzy/Develop/data/ib_data/ESohlc_live.csv"
 file_connect <- file(file_name, open="w")
 # Download live data to file
 IBrokers::reqRealTimeBars(conn=ib_connect,
@@ -265,7 +265,7 @@ library(IBrokers2)
 con_tracts <- list(ES=IBrokers2::twsFuture(symbol="ES", exch="GLOBEX", expiry="201906"))
 trade_params <- list(ES=c(buy_spread=0.75, sell_spread=0.75, siz_e=1, lagg=2, lambda=0.05))
 # Open file connection for data download
-file_names <- "C:/Develop/data/ib_data/ESohlc_live.csv"
+file_names <- "/Users/jerzy/Develop/data/ib_data/ESohlc_live.csv"
 file_connects <- lapply(file_names, function(file_name) file(file_name, open="w"))
 # Open the IB connection to TWS
 ac_count <- "algoquant"

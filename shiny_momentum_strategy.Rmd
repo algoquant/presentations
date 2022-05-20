@@ -42,23 +42,23 @@ returns <- returns[, sam_ple]
 excess <- returns
 stock_symbols <- colnames(returns)
 ncols <- NCOL(returns)
-endpoints <- rutils::calc_endpoints(returns, interval="weeks")
-endpoints <- endpoints[endpoints > (ncols+1)]
-nrows <- NROW(endpoints)
+endp <- rutils::calc_endpoints(returns, interval="weeks")
+endp <- endp[endp > (ncols+1)]
+nrows <- NROW(endp)
 
 # Define the strategy function
-run_strategy <- function(excess, returns, typev, look_back, alpha, max_eigen, quantilev, coeff, bid_offer, lagg) {
+run_strategy <- function(excess, returns, typev, look_back, alpha, eigen_max, quantilev, coeff, bid_offer, lagg) {
   # browser()
-# cat("look_back =", look_back, "\nalpha =", alpha, "\nmax_eigen =", max_eigen, "\nlagg =", lagg, "\n")
-  startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
+# cat("look_back =", look_back, "\nalpha =", alpha, "\neigen_max =", eigen_max, "\nlagg =", lagg, "\n")
+  startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
   # Perform backtest in RcppArmadillo
   pnls <- HighFreq::back_test(excess=excess, 
                                returns=returns,
-                               startpoints=startpoints-1,
-                               endpoints=endpoints-1,
+                               startp=startp-1,
+                               endp=endp-1,
                                typev=typev,
                                alpha=alpha,
-                               max_eigen=max_eigen,
+                               eigen_max=eigen_max,
                                quantilev=quantilev,
                                coeff=coeff,
                                bid_offer=bid_offer)
@@ -73,14 +73,14 @@ run_strategy <- function(excess, returns, typev, look_back, alpha, max_eigen, qu
 
 ### Run the initial data setup below once ###
 # load("/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
-# returns <- eapply(env_sp500, function(xt_s) {
-#   rutils::diffit(log(quantmod::Cl(xt_s)))
+# returns <- eapply(env_sp500, function(xtes) {
+#   rutils::diffit(log(quantmod::Cl(xtes)))
 # })  # end eapply
 # returns <- rutils::do_call(cbind, returns)
 # returns <- zoo::na.fill(returns, 0)
 # sum(!is.finite(returns))
 # colnames(returns) <- rutils::get_name(colnames(returns))
-# save(returns, file="C:/Develop/R/data/returns_percent_sp500.RData")
+# save(returns, file="/Users/jerzy/Develop/R/data/returns_percent_sp500.RData")
 ### End initial data setup ###
 ```
 
@@ -98,7 +98,7 @@ inputPanel(
   # actionButton("re_calculate", "Recalculate z-scores"),
   sliderInput("alpha", label="Shrinkage intensity:",
               min=0, max=1, value=0.8, step=0.01),
-  sliderInput("max_eigen", label="max eigenvalues:",
+  sliderInput("eigen_max", label="max eigenvalues:",
               min=2, max=20, value=15, step=1),
   sliderInput("quantilev", label="quantile:",
               min=0, max=0.5, value=0.1, step=0.01),
@@ -119,7 +119,7 @@ pnls <- shiny::reactive({
   typev <- isolate(input$typev)
   look_back <- isolate(input$look_back)
   alpha <- isolate(input$alpha)
-  max_eigen <- isolate(input$max_eigen)
+  eigen_max <- isolate(input$eigen_max)
   quantilev <- isolate(input$quantilev)
   bid_offer <- isolate(input$bid_offer)
   coeff <- isolate(as.numeric(input$coeff))
@@ -129,7 +129,7 @@ pnls <- shiny::reactive({
   
   # Run the trading strategy
   cat("Please Wait While Model is Running...\n")
-  pnls <- run_strategy(excess, returns, typev, look_back, alpha, max_eigen, quantilev, coeff, bid_offer, lagg)
+  pnls <- run_strategy(excess, returns, typev, look_back, alpha, eigen_max, quantilev, coeff, bid_offer, lagg)
   cat("Model finished.\n")
   pnls
 })  # end reactive code

@@ -75,7 +75,7 @@ servfun <- function(input, output) {
   # Recalculate the data and rerun the model
   # datav <- shiny::reactive({
   # Get model parameters from input argument
-  # max_eigen <- isolate(input$max_eigen)
+  # eigen_max <- isolate(input$eigen_max)
   # look_lag <- isolate(input$look_lag
   # lambda <- isolate(input$lambda)
   # typev <- isolate(input$typev)

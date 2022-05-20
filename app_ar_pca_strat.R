@@ -40,7 +40,7 @@ uiface <- shiny::fluidPage(
     # Input the response look-back interval
     column(width=2, sliderInput("numagg", label="Aggregation Interval", min=2, max=20, value=5, step=1)),
     # Input the look-back interval
-    column(width=2, sliderInput("max_eigen", label="Max Eigen", min=2, max=20, value=3, step=1))
+    column(width=2, sliderInput("eigen_max", label="Max Eigen", min=2, max=20, value=3, step=1))
     # Input the trade lag
     # column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=2, step=1))
   ),  # end fluidRow
@@ -145,25 +145,25 @@ servfun <- function(input, output) {
     cat("Recalculating Strategy For ", input$symbol, "\n")
     
     # Get model parameters from input argument
-    max_eigen <- input$max_eigen
+    eigen_max <- input$eigen_max
 
     response <- predictor()[, 1]
     predictor <- predictor()[, -1]
     returns <- datav()[, 1]
-    # max_eigen <- min(max_eigen, NCOL(predictor))
-    max_eigen <- NCOL(predictor)
+    # eigen_max <- min(eigen_max, NCOL(predictor))
+    eigen_max <- NCOL(predictor)
     
     nrows <- NROW(returns)
     insample <- 1:(nrows %/% 2)
     outsample <- (nrows %/% 2 + 1):nrows
     
     # Calculate in-sample fitted coefficients
-    inverse <- MASS::ginv(predictor[insample, 1:max_eigen])
+    inverse <- MASS::ginv(predictor[insample, 1:eigen_max])
     coeff_fit <- drop(inverse %*% response[insample])
     
     # Calculate out-sample forecasts of returns
     # forecasts <- drop(predictor[outsample, 1:3] %*% coeff_fit[1:3])
-    forecasts <- drop(predictor[outsample, 1:max_eigen] %*% coeff_fit)
+    forecasts <- drop(predictor[outsample, 1:eigen_max] %*% coeff_fit)
     # Lag the positions to trade in next period
     posit <- sign(rutils::lagit(forecasts))
     

@@ -16,7 +16,7 @@ library(shiny)
 library(dygraphs)
 library(HighFreq)
 # Compile Rcpp code from package HighFreq
-Rcpp::sourceCpp(file="C:/Develop/lecture_slides/assignments/rcpp_strat.cpp")
+Rcpp::sourceCpp(file="/Users/jerzy/Develop/lecture_slides/assignments/rcpp_strat.cpp")
 # Model and data setup
 load("/Users/jerzy/Develop/lecture_slides/data/sp500_prices.RData")
 returns <- returns100
@@ -44,7 +44,7 @@ uiface <- shiny::fluidPage(
   # Create single row with two slider inputs
   fluidRow(
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=4, numericInput("max_eigen", "Number of eigenvalues:", value=45)),
+    column(width=4, numericInput("eigen_max", "Number of eigenvalues:", value=45)),
     # Input end points interval
     column(width=4, selectInput("interval", label="End points Interval",
                 choices=c("weeks", "months", "years"), selected="months")),
@@ -71,7 +71,7 @@ servfun <- function(input, output) {
   datav <- shiny::reactive({
     # Get model parameters from input argument
     interval <- isolate(input$interval)
-    max_eigen <- isolate(input$max_eigen)
+    eigen_max <- isolate(input$eigen_max)
     alpha <- isolate(input$alpha)
     look_back <- isolate(input$look_back)
     # end_stub <- input$end_stub
@@ -79,26 +79,26 @@ servfun <- function(input, output) {
     input$re_calculate
     
     # Define end points
-    endpoints <- rutils::calc_endpoints(returns, interval=interval)
-    # endpoints <- ifelse(endpoints<(nweights+1), nweights+1, endpoints)
-    endpoints <- endpoints[endpoints > (nweights+1)]
-    nrows <- NROW(endpoints)
-    # Define startpoints
-    startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
+    endp <- rutils::calc_endpoints(returns, interval=interval)
+    # endp <- ifelse(endp<(nweights+1), nweights+1, endp)
+    endp <- endp[endp > (nweights+1)]
+    nrows <- NROW(endp)
+    # Define startp
+    startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
     # Rerun the model
     pnls <- back_test(excess=returns, 
                         returns=returns,
-                        startpoints=startpoints-1,
-                        endpoints=endpoints-1,
-                        max_eigen=max_eigen, 
+                        startp=startp-1,
+                        endp=endp-1,
+                        eigen_max=eigen_max, 
                         alpha=alpha)
     pnls[which(is.na(pnls)), ] <- 0
-    # pnls <- back_test_r(excess, returns, startpoints, endpoints, alpha, max_eigen, end_stub)
+    # pnls <- back_test_r(excess, returns, startp, endp, alpha, eigen_max, end_stub)
     # pnls <- sd(rutils::diffit(indeks))*pnls/sd(rutils::diffit(pnls))
     pnls <- cumsum(pnls)
     pnls <- cbind(pnls, indeks)
     colnames(pnls) <- c("Strategy", "Index")
-    pnls[c(1, endpoints), ]
+    pnls[c(1, endp), ]
   })  # end reactive code
   
   # Return to output argument a dygraph plot with two y-axes

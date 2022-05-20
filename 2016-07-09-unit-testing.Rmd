@@ -23,10 +23,10 @@ You can read more about unit testing of *R* packages on
 
 ### Setting up a package for unit testing using *devtools*
 
-The function *use_testthat()* from package *devtools* sets up a package for unit testing (in this example the package `rutils` stored in `"C:/Develop/R/rutils"`): 
+The function *use_testthat()* from package *devtools* sets up a package for unit testing (in this example the package `rutils` stored in `"/Users/jerzy/Develop/R/rutils"`): 
 ```{r eval=FALSE}
 library(devtools)
-devtools::use_testthat("C:/Develop/R/rutils")
+devtools::use_testthat("/Users/jerzy/Develop/R/rutils")
 ```
 
 The function *use_testthat()* from package *devtools* performs the following operations:
@@ -160,13 +160,13 @@ test_that("value must be VTI", {
 library(testthat)
 library(rutils)
 # define context for tests of function endpoints()
-context("test endpoints")
+context("test endp")
 # test the type returned by endpoints()
-test_that("endpoints must be integer", {
+test_that("endp must be integer", {
   expect_match(typeof(endpoints(env_etf$VTI)), "integer")
 })
 # test the value returned by endpoints()
-test_that("endpoints value", expect_false(last(endpoints(env_etf$VTI)) > NROW(env_etf$VTI)))
+test_that("endp value", expect_false(last(endpoints(env_etf$VTI)) > NROW(env_etf$VTI)))
 ```
 
 <br>
@@ -178,6 +178,6 @@ Once the directory `./tests/testthat` has been populated with test files named `
 ```{r eval=FALSE}
 library(devtools)
 library(rutils)
-devtools::test("C:/Develop/R/rutils")
+devtools::test("/Users/jerzy/Develop/R/rutils")
 ```
 

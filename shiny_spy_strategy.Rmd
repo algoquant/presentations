@@ -35,7 +35,7 @@ library(HighFreq)  # load package HighFreq
 look_backs <- c(11, 111, 511, 1111, 5111)
 prices <- as.numeric(HighFreq::SPY[, "SPY.Close"])
 returns <- rutils::diffit(HighFreq::SPY[, "SPY.Close"])
-load("C:/Develop/R/data/zscores_spy.RData")
+load("/Users/jerzy/Develop/R/data/zscores_spy.RData")
 
 # Define the strategy function
 run_strategy <- function(returns, zscores, threshold) {
@@ -65,7 +65,7 @@ run_strategy <- function(returns, zscores, threshold) {
 # zscores <- rutils::do_call(cbind, zscores)
 # colnames(zscores) <- paste0("look_back=", look_backs)
 # zscores[which(!is.finite(zscores), arr.ind=TRUE)] <- 0
-# save(zscores, file="C:/Develop/R/data/zscores_spy.RData")
+# save(zscores, file="/Users/jerzy/Develop/R/data/zscores_spy.RData")
 ### End initial data setup ###
 ```
 

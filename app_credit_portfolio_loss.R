@@ -98,18 +98,18 @@ servfun <- function(input, output) {
     # Plot density of portfolio losses
     par(mar=c(5.1, 5.1, 4.1, 2.1))
     curve(expr=lossdistr(x, defthresh=defthresh, rho=rho, lgd=lgd),
-          cex.main=1.8, cex.lab=1.8, cex.axis=1.5, 
+          cex.main=1.5, cex.lab=1.5, cex.axis=1.5, 
           type="l", xlim=c(0, xmax), 
           xlab="Percentage loss", ylab="Density", lwd=3,
           col="orange", main="Distribution of Losses")
     # Add vertical line for expected loss
     abline(v=exploss, col="red", lwd=3)
     text(x=exploss-0.001, y=3*ymax/4, labels="expected loss",
-         lwd=2, srt=90, pos=3, cex=1.8)
+         lwd=2, srt=90, pos=3, cex=1.5)
     # Add vertical line for tranche attachment
     abline(v=attachp, col="blue", lwd=3)
     text(x=attachp-0.001, y=3*ymax/4, labels="tranche attachment",
-         lwd=2, srt=90, pos=3, cex=1.8)
+         lwd=2, srt=90, pos=3, cex=1.5)
     
     # Calculate tranche shading for CVaR
     varisk <- attachp; var_max <- 0.99
@@ -128,7 +128,7 @@ servfun <- function(input, output) {
            "Correlation = ", format(100*rho, digits=3), "%", "\n",
            "Tranche attachment = ", format(100*attachp, digits=3), "%", "\n",
            "Tranche loss = ", 100*datav(), "%"), 
-         adj=c(1, 1), cex=1.8, lwd=2)
+         adj=c(1, 1), cex=1.5, lwd=2)
   })  # end output plot
 
 }  # end server code

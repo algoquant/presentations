@@ -54,7 +54,7 @@ knit_theme$set(thm)
 \subtitle{EARL Boston 2015}
 % \subject{Getting Started With R}
 \institute[NYU Polytechnic]{NYU Tandon School of Engineering}
-\titlegraphic{\includegraphics[scale=0.2]{C:/Develop/R/FRE6871/image/tandon_long_color}}
+\titlegraphic{\includegraphics[scale=0.2]{/Users/jerzy/Develop/R/FRE6871/image/tandon_long_color}}
 \author[Jerzy Pawlowski]{Jerzy Pawlowski \emph{\href{mailto:jp3900@nyu.edu}{jp3900@nyu.edu}}}
 % \email{jp3900@poly.edu}
 \date{November 4, 2015}
@@ -145,7 +145,7 @@ Eugene Fama and Kenneth French, \href{http://papers.ssrn.com/sol3/papers.cfm?abs
 library(HighFreq)
 symbol <- "SPY"  # define symbol
 # load OHLC data
-output_dir <- "C:/Develop/data/hfreq/scrub/"
+output_dir <- "/Users/jerzy/Develop/data/hfreq/scrub/"
 symbol <- load(file.path(output_dir, paste0(symbol, ".RData")))
 returns <- calc_rets(xts_data=to.daily(get(symbol)))
 len_rets <- nrow(returns)  # number of observations
@@ -203,8 +203,8 @@ install_github(repo="algoquant/HighFreq")
 # load package "HighFreq"
 library(HighFreq)
 # set data directories
-data_dir <- "C:/Develop/data/hfreq/src/"
-output_dir <- "C:/Develop/data/hfreq/scrub/"
+data_dir <- "/Users/jerzy/Develop/data/hfreq/src/"
+output_dir <- "/Users/jerzy/Develop/data/hfreq/scrub/"
 # define symbol
 symbol <- "SPY"
 # load a single day of TAQ data
@@ -240,7 +240,7 @@ library(HighFreq)
 # define symbol
 symbol <- "SPY"
 # load OHLC data
-output_dir <- "C:/Develop/data/hfreq/scrub/"
+output_dir <- "/Users/jerzy/Develop/data/hfreq/scrub/"
 symbol <- load(
   file.path(output_dir, 
             paste0(symbol, ".RData")))
@@ -355,7 +355,7 @@ par(mfrow=c(2,1))  # set plot panels
 # define symbol
 symbol <- "SPY"
 # load OHLC data
-output_dir <- "C:/Develop/data/hfreq/scrub/"
+output_dir <- "/Users/jerzy/Develop/data/hfreq/scrub/"
 symbol <- load(file.path(output_dir, paste0(symbol, ".RData")))
 library(HighFreq)  # load package "HighFreq"
 # daily volatility and skew
@@ -401,7 +401,7 @@ par(mfrow=c(3,1))  # set plot panels
 # define symbol
 symbol <- "SPY"
 # load OHLC data
-output_dir <- "C:/Develop/data/hfreq/scrub/"
+output_dir <- "/Users/jerzy/Develop/data/hfreq/scrub/"
 symbol <- load(file.path(output_dir, paste0(symbol, ".RData")))
 library(HighFreq)  # load package "HighFreq"
 # daily volatility and volume

@@ -68,7 +68,7 @@ uiface <- shiny::fluidPage(
     # column(width=2, selectInput("typev", label="Portfolio weights type",
     #                             choices=c("max_sharpe", "min_var", "min_varpca", "rank"), selected="rank")),
     # Input number of eigenvalues for regularized matrix inverse
-    # column(width=2, sliderInput("max_eigen", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
+    # column(width=2, sliderInput("eigen_max", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
     # Input the shrinkage intensity
     # column(width=2, sliderInput("alpha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
@@ -92,7 +92,7 @@ servfun <- function(input, output) {
   # Recalculate the data and rerun the model
   # datav <- shiny::reactive({
   # Get model parameters from input argument
-  # max_eigen <- isolate(input$max_eigen)
+  # eigen_max <- isolate(input$eigen_max)
   # look_lag <- isolate(input$look_lag
   # lambda <- isolate(input$lambda)
   # typev <- isolate(input$typev)

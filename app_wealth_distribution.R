@@ -123,7 +123,7 @@ servfun <- function(input, output) {
     par(mar=c(5.1, 5.1, 4.1, 2.1))
     plot(densityv, col="blue", lwd=3, 
          xlab="Wealth", ylab="Density",
-         cex.main=1.8, cex.lab=1.8, cex.axis=1.5, 
+         cex.main=1.5, cex.lab=1.5, cex.axis=1.5, 
          main="Density of the Terminal Wealths of VTI and IEF Portfolio")
 
     text(x=0.75*max(densityv$x), y=0.75*max(densityv$y), 
@@ -131,7 +131,7 @@ servfun <- function(input, output) {
                        "Standard deviation of wealth = ", format(sdv, digits=3), "\n",
                        "Skewness of wealth = ", format(skewv, digits=3), "\n",
                        "Risk-adjusted wealth = ", format(wealthm, digits=3)),
-         adj=c(1, 1), lwd=2, cex=1.8)
+         adj=c(1, 1), lwd=2, cex=1.5)
     
   })  # end output plot
 

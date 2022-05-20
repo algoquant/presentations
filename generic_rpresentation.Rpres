@@ -173,7 +173,7 @@ Here's a fourth way of formatting Courier font: <p><pre>Courier text</pre></p>
 ```{r, shiny_normal_dist, eval=FALSE, echo=TRUE}
 library(shiny)
 shinyAppDir(
-  appDir="C:/Develop/R/shiny/normal_dist",
+  appDir="/Users/jerzy/Develop/R/shiny/normal_dist",
   options=list(width="100%", height=400)
   )  # end shinyAppDir
 ```

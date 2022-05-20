@@ -12,9 +12,9 @@ library(dygraphs)
 
 ## Model and data setup
 # Load the trading function
-source("C:/Develop/R/scripts/market_making.R")
+source("/Users/jerzy/Develop/R/scripts/market_making.R")
 
-data_dir <- "C:/Develop/data/ib_data"
+data_dir <- "/Users/jerzy/Develop/data/ib_data"
 setwd(dir=data_dir)
 # for SPY
 # ohlc <- HighFreq::SPY
@@ -112,9 +112,9 @@ servfun <- function(input, output) {
                           invent_limit=input$invent_limit)
     
     # Output
-    endpoints <- c(1, rutils::calc_endpoints(ohlc, interval="minutes"))
+    endp <- c(1, rutils::calc_endpoints(ohlc, interval="minutes"))
     colnamev <- c(colnames(ohlc)[4], input$output)
-    xts::xts(pnls[endpoints, colnamev], index(ohlc[endpoints]))
+    xts::xts(pnls[endp, colnamev], index(ohlc[endp]))
   })  # end reactive code
 
   output$dyplot <- dygraphs::renderDygraph({

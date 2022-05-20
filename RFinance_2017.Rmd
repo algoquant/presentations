@@ -314,7 +314,7 @@ orderstats <- lapply(look_backs, function(look_back) {
 })  # end lapply
 names(orderstats) <- look_backs
 
-### cum_pnl for long-short multi-manager strategy (without endpoints)
+### cum_pnl for long-short multi-manager strategy (without endp)
 cum_pnl <- function(select_best=NULL, select_worst=NULL, returns, ordern) {
   n_row <- NROW(returns)
   if(!is.null(select_best)) {

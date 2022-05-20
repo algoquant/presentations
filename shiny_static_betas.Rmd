@@ -12,11 +12,11 @@ runtime: shiny
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
 library(HighFreq)  # load package HighFreq
-load("C:/Develop/data/SPY_predictor.RData")
+load("/Users/jerzy/Develop/data/SPY_predictor.RData")
 # returns_running <- 60*HighFreq::run_returns(xtes=HighFreq::SPY)
 # colnames(returns_running) <- "returns"
 rangev <- match(index(SPY_predictor["2009-03-10/2009-03-13"]), index(SPY_predictor))
-# source("C:/Develop/R/scripts/ewma_model.R")
+# source("/Users/jerzy/Develop/R/scripts/ewma_model.R")
 ```
 
 ```{r ewma_model, echo=FALSE}

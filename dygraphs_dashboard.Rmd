@@ -28,7 +28,7 @@ Uses the package *dygraphs* to create the dygraphs objects in a loop, and then u
 
 # create new environment for data
 data_env <- new.env()
-dir_data <- "C:/Develop/data/bbg_records"
+dir_data <- "/Users/jerzy/Develop/data/bbg_records"
 # symbols <- c("SPX", "VIX")
 # file_names <- paste0(symbols, ".csv")
 file_names <- dir(dir_data)

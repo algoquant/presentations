@@ -18,7 +18,7 @@ Then double-click (or click on home icon) to return to the original range.
 suppressMessages(suppressWarnings(library(quantmod)))
 suppressMessages(suppressWarnings(library(plotly)))
 # load constant maturity Treasury rates
-load(file="C:/Develop/data/rates_data.RData")
+load(file="/Users/jerzy/Develop/data/rates_data.RData")
 # create data frame of time series
 rates <- na.omit(do.call(merge, as.list(env_rates)[c("DGS10", "DGS20")]))
 rates <- data.frame(dates=index(rates), coredata(rates))
@@ -52,7 +52,7 @@ suppressMessages(suppressWarnings(library(quantmod)))
 suppressMessages(suppressWarnings(library(plotly)))
 
 # load constant maturity Treasury rates
-load(file="C:/Develop/data/rates_data.RData")
+load(file="/Users/jerzy/Develop/data/rates_data.RData")
 # get end-of-year dates since 2006
 dates <- endpoints(env_rates$DGS1["2006/"], on="years")
 dates <- index(env_rates$DGS1["2006/"])[dates]

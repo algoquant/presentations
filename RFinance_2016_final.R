@@ -28,8 +28,8 @@ install_github(repo="algoquant/HighFreq")
 # load package "HighFreq"
 library(HighFreq)
 # set data directories
-data_dir <- "C:/Develop/data/hfreq/src/"
-output_dir <- "C:/Develop/data/hfreq/scrub/"
+data_dir <- "/Users/jerzy/Develop/data/hfreq/src/"
+output_dir <- "/Users/jerzy/Develop/data/hfreq/scrub/"
 # define symbol
 symbol <- "SPY"
 # load a single day of TAQ data
@@ -49,7 +49,7 @@ library(HighFreq)
 # define symbol
 symbol <- "SPY"
 # load OHLC data
-output_dir <- "C:/Develop/data/hfreq/scrub/"
+output_dir <- "/Users/jerzy/Develop/data/hfreq/scrub/"
 symbol <- load(
   file.path(output_dir,
       paste0(symbol, ".RData")))

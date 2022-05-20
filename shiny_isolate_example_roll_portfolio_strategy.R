@@ -37,7 +37,7 @@ uiface <- fluidPage(
                                     min=5, max=111, value=11, step=1)),
         column(width=2, sliderInput("alpha", label="Shrinkage intensity:",
                     min=0, max=1, value=0, step=0.01)),
-        column(width=2, selectInput("max_eigen", label="max-eigen:",
+        column(width=2, selectInput("eigen_max", label="max-eigen:",
                     choices=2:10, selected=3)),
         column(width=2, selectInput("lagg", label="lag:",
                     choices=2:10, selected=2))
@@ -54,29 +54,29 @@ uiface <- fluidPage(
 serv_er <- function(input, output) {
     
     # Data setup code
-    load("C:/Develop/R/data/returns_percent_sp500.RData")
+    load("/Users/jerzy/Develop/R/data/returns_percent_sp500.RData")
     # Subset 100 columns to reduce computations
     returns <- returns[, sample(1:NCOL(returns), 100)]
     stock_symbols <- colnames(returns)
     ncols <- NCOL(returns)
-    endpoints <- rutils::calc_endpoints(returns, interval="weeks")
-    endpoints <- endpoints[endpoints > (ncols+1)]
-    nrows <- NROW(endpoints)
+    endp <- rutils::calc_endpoints(returns, interval="weeks")
+    endp <- endp[endp > (ncols+1)]
+    nrows <- NROW(endp)
     # Calculate returns on equal weight portfolio
     indeks <- xts::xts(cumsum(returns %*% rep(1/sqrt(ncols), ncols)), index(returns))
     
     # Define the strategy function
-    run_strategy <- function(returns, look_back, alpha, max_eigen, lagg) {
+    run_strategy <- function(returns, look_back, alpha, eigen_max, lagg) {
         # browser()
-        # cat("look_back =", look_back, "\nalpha =", alpha, "\nmax_eigen =", max_eigen, "\nlagg =", lagg, "\n")
-        startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
+        # cat("look_back =", look_back, "\nalpha =", alpha, "\neigen_max =", eigen_max, "\nlagg =", lagg, "\n")
+        startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
         # Perform backtest in RcppArmadillo
         pnls <- HighFreq::back_test(excess=returns, 
                                      returns=returns,
-                                     startpoints=startpoints-1,
-                                     endpoints=endpoints-1,
+                                     startp=startp-1,
+                                     endp=endp-1,
                                      alpha=alpha,
-                                     max_eigen=max_eigen)
+                                     eigen_max=eigen_max)
         xts(cumsum(pnls), order.by=index(returns))
     }  # end run_strategy
     
@@ -85,16 +85,16 @@ serv_er <- function(input, output) {
         # Extract from input the strategy model parameters
         look_back <- isolate(input$look_back)
         alpha <- isolate(input$alpha)
-        max_eigen <- isolate(as.numeric(input$max_eigen))
+        eigen_max <- isolate(as.numeric(input$eigen_max))
         lagg <- isolate(as.numeric(input$lagg))
         # Model is recalculated when the re_calculate variable is updated
         input$re_calculate
         
         # Run the trading strategy and plot it
-        pnls <- run_strategy(returns, look_back, alpha, max_eigen, lagg)
+        pnls <- run_strategy(returns, look_back, alpha, eigen_max, lagg)
         pnls <- cbind(pnls, indeks*max(pnls)/max(indeks))
         colnames(pnls) <- c("Strategy", "Index")
-        pnls[c(1, endpoints), ]
+        pnls[c(1, endp), ]
         # output$dyplot <- dygraphs::renderDygraph({
         #     colnamev <- colnames(datav())
         #     dygraphs::dygraph(datav(), main="Rolling Portfolio Optimization Strategy") %>%

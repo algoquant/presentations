@@ -7,7 +7,7 @@
 ##############################
 
 # Best parameters - these are stale and don't work
-# typev interval look_back max_eigen alpha
+# typev interval look_back eigen_max alpha
 # max_sharpe  days 15-35  6-7
 # min_var  days 15-35  6-7
 # max_sharpe  weeks 3-6  5-9
@@ -34,7 +34,7 @@ library(dygraphs)
 # Model and data setup
 
 # Source the model function
-# source("C:/Develop/lecture_slides/scripts/roll_portf.R")
+# source("/Users/jerzy/Develop/lecture_slides/scripts/roll_portf.R")
 
 
 # Load ETF data
@@ -145,7 +145,7 @@ uiface <- shiny::fluidPage(
     column(width=2, selectInput("model_type", label="Weights type",
                                 choices=c("max_sharpe", "max_sharpe_median", "min_var", "min_varpca", "rank", "rankrob", "quantilev"), selected="max_sharpe")),
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=2, numericInput("max_eigen", "Number of eigenvalues", value=6)),
+    column(width=2, numericInput("eigen_max", "Number of eigenvalues", value=6)),
     # Input the shrinkage intensity
     column(width=2, sliderInput("alpha", label="Shrinkage intensity",
                                 min=0.01, max=0.99, value=0.01, step=0.05)),
@@ -170,7 +170,7 @@ servfun <- function(input, output) {
   datav <- shiny::reactive({
     # get model parameters from input argument
     interval <- isolate(input$interval)
-    max_eigen <- isolate(input$max_eigen)
+    eigen_max <- isolate(input$eigen_max)
     look_back <- isolate(input$look_back)
     lambda <- isolate(input$lambda)
     model_type <- isolate(input$model_type)
@@ -203,10 +203,10 @@ servfun <- function(input, output) {
     # Rerun the model
     pnls <- HighFreq::back_test(excess=excess, 
                                  returns=returns,
-                                 startpoints=startp-1,
-                                 endpoints=endp-1,
+                                 startp=startp-1,
+                                 endp=endp-1,
                                  probv=probv,
-                                 max_eigen=max_eigen, 
+                                 eigen_max=eigen_max, 
                                  alpha=alpha, 
                                  model_type=model_type,
                                  coeff=coeff)
