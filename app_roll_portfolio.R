@@ -48,17 +48,17 @@ uiface <- shiny::fluidPage(
   # Create single row with two slider inputs
   fluidRow(
     # Input choice of data
-    column(width=2, selectInput("data_name", label="Data",
+    column(width=2, selectInput("datas", label="Data",
                                 choices=c("etf", "sp500"), selected="sp500")),
     # Input choice of model
     column(width=2, selectInput("model_type", label="Model type",
-                                choices=c("ranksharpe", "max_sharpe", "max_sharpe_median", "min_var", "min_varpca", "ranksimple", "rank_hold", "rank", "rankrob", "quantilev"), selected="ranksimple")),
+                                choices=c("sharpem", "kellym", "maxsharpe", "maxsharpemed", "minvarlin", "minvarquad", "ranksimple", "rank_hold", "robustm", "quantilev"), selected="maxsharpe")),
     # Input end points interval
     column(width=2, selectInput("interval", label="End points Interval",
-                                choices=c("days", "weeks", "months", "years"), selected="days")),
+                                choices=c("days", "weeks", "months", "years"), selected="months")),
     # Input look-back interval
     column(width=2, sliderInput("look_back", label="Lookback interval",
-                                min=2, max=40, value=3, step=1)),
+                                min=2, max=40, value=11, step=1)),
     # Input decay factor for averaging the portfolio weights
     column(width=2, sliderInput("lambda", label="Decay factor:",
                                 min=0.01, max=0.99, value=0.01, step=0.05)),
@@ -66,7 +66,8 @@ uiface <- shiny::fluidPage(
     column(width=2, sliderInput("exponent", label="Variance exponent:",
                                 min=0.25, max=1.5, value=1.0, step=0.05)),
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=2, numericInput("eigen_max", "Number of eigenvalues", value=11)),
+    column(width=2, sliderInput("eigen_max", label="Number of eigenvalues",
+                                min=2, max=100, value=11, step=1)),
     # Input the shrinkage intensity
     column(width=2, sliderInput("alpha", label="Shrinkage intensity",
                                 min=0.01, max=0.99, value=0.01, step=0.05)),
@@ -78,7 +79,7 @@ uiface <- shiny::fluidPage(
                                 choices=c("none", "sum", "rescaled", "volatility", "sharpe", "skew"), selected="none")),
     # If trend=1 then trending, If trend=(-1) then contrarian
     column(width=2, selectInput("trend", label="Trend coefficient",
-                                choices=c(1, -1), selected=(-1)))
+                                choices=c(1, -1), selected=(1)))
   ),  # end fluidRow
   
   # Create output plot panel
@@ -98,10 +99,10 @@ servfun <- function(input, output) {
   # Load the data
   datav <- shiny::reactive({
     # Get model parameters from input argument
-    data_name <- input$data_name
+    datas <- input$datas
     
     # Load data if needed
-    switch(data_name,
+    switch(datas,
            "etf" = {
              cat("Loading ETF data \n")
              captiont <- "Rolling Portfolio Optimization Strategy for ETF Portfolio"
@@ -131,16 +132,16 @@ servfun <- function(input, output) {
              # Load S&P500 stock returns
              # cat("sp500 init load \n")
              # load("/Users/jerzy/Develop/lecture_slides/data/returns100.RData")
-             load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
+             load("/Users/jerzy/Develop/data/sp500_returns.RData")
              # Select data after 2000
-             rets <- returns["2000/"]
+             rets <- returns100["2000/"]
              # Copy over NA values
-             rets[1, is.na(rets[1, ])] <- 0
-             rets <- zoo::na.locf(rets, na.rm=FALSE)
-             nrows <- NROW(rets)
-             ncols <- NCOL(rets)
+             # rets[1, is.na(rets[1, ])] <- 0
+             # rets <- zoo::na.locf(rets, na.rm=FALSE)
+             # nrows <- NROW(rets)
+             # ncols <- NCOL(rets)
              # Select the columns with non-zero returns
-             rets <- rets[, !(rets[ncols %/% 10, ] == 0)]
+             # rets <- rets[, !(rets[ncols %/% 10, ] == 0)]
              # Select 100 columns to reduce computations
              # set.seed(1121)  # Reset random number generator
              # sam_ple <- sample(1:NCOL(rets), 100)
@@ -168,10 +169,10 @@ servfun <- function(input, output) {
     # Calculate returns on equal weight portfolio
     # indeks <- xts(cumprod(1 + rowMeans(rets)), index(rets))
     indeks <- rowMeans(rets)
-    stdev <- sd(indeks[indeks<0])
-    globals$stdev <- stdev
     # sharper <- sqrt(252)*mean(indeks)/stdev
     indeks <- xts(indeks, index(rets))
+    # stdev <- sd(indeks[indeks<0])
+    globals$stdev <- sd(indeks[indeks<0])
 
     list(rets=rets, indeks=indeks)
     
@@ -221,14 +222,14 @@ servfun <- function(input, output) {
            },
            "skew" = {
              ## Calculate the skew-like stats
-             ma_x <- RcppRoll::roll_max(rets, n=nperiods, align="right")
-             # mi_n <- -RcppRoll::roll_max(-rets, n=nperiods, align="right")
-             # me_an <- RcppRoll::roll_mean(rets, n=nperiods, align="right")
-             medi_an <- RcppRoll::roll_median(rets, n=nperiods, align="right")
+             maxv <- RcppRoll::roll_max(rets, n=nperiods, align="right")
+             # minv <- -RcppRoll::roll_max(-rets, n=nperiods, align="right")
+             # meanv <- RcppRoll::roll_mean(rets, n=nperiods, align="right")
+             medianv <- RcppRoll::roll_median(rets, n=nperiods, align="right")
              # Calculate difference between upside minus downside volatility
              # core_data <- coredata(rets)
-             # up_sd <- RcppRoll::roll_sd(ifelse(core_data>0, core_data, 0), n=nperiods, align="right")
-             # down_sd <- RcppRoll::roll_sd(ifelse(core_data<0, core_data, 0), n=nperiods, align="right")
+             # upsd <- RcppRoll::roll_sd(ifelse(core_data>0, core_data, 0), n=nperiods, align="right")
+             # downsd <- RcppRoll::roll_sd(ifelse(core_data<0, core_data, 0), n=nperiods, align="right")
              # Calculate rolling skew using Rcpp
              # First compile this file in R by running this command:
              # Rcpp::sourceCpp(file="/Users/jerzy/Develop/R/Rcpp/roll_skew.cpp")
@@ -239,15 +240,15 @@ servfun <- function(input, output) {
              # rolling_skew <- na.locf(rolling_skew)
 
              # Best performing stats so far
-             excess <- ma_x / medi_an
+             excess <- maxv / medianv
              # excess <- rolling_skew
-             # excess <- (up_sd - down_sd)
-             # excess <- (ma_x - medi_an)
-             # excess <- ma_x/me_an^exponent
-             # excess <- ma_x - mi_n
-             # excess <- (ma_x + mi_n - 2*medi_an) / (ma_x - mi_n)
-             # excess <- (ma_x - medi_an) / (medi_an - mi_n)
-             # excess <- (me_an - medi_an)
+             # excess <- (upsd - downsd)
+             # excess <- (maxv - medianv)
+             # excess <- maxv/meanv^exponent
+             # excess <- maxv - minv
+             # excess <- (maxv + minv - 2*medianv) / (maxv - minv)
+             # excess <- (maxv - medianv) / (medianv - minv)
+             # excess <- (meanv - medianv)
              excess[is.infinite(excess)] <- 0
              excess[is.na(excess)] <- 0
              # Pad zeros up-front
@@ -350,15 +351,15 @@ servfun <- function(input, output) {
       cat("Daily HighFreq::back_test() \n")
       # Rerun the strategy with fixed start date
       pnls <- HighFreq::back_test(excess=excess,
-                                   returns=rets,
-                                   startp=startp-1,
-                                   endp=endp-1,
-                                   lambda=lambda,
-                                   confl=confl,
-                                   eigen_max=eigen_max,
-                                   alpha=alpha,
-                                   method=model_type,
-                                   coeff=trend)
+                                  returns=rets,
+                                  startp=startp-1,
+                                  endp=endp-1,
+                                  lambda=lambda,
+                                  confl=confl,
+                                  eigen_max=eigen_max,
+                                  alpha=alpha,
+                                  method=model_type,
+                                  coeff=trend)
       pnls[which(is.na(pnls)), ] <- 0
     } else {
       # Rerun the strategy with multiple start dates

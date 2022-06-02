@@ -2,6 +2,7 @@
 # This is a shiny app for backtesting a rolling portfolio 
 # optimization strategy, which produces an interactive 
 # dygraphs plot.
+# It only uses R code, not C++.
 # Just press the "Run App" button on upper right of this panel.
 ##############################
 
@@ -15,19 +16,19 @@ library(rutils)
 # Model and data setup
 # source the model function
 source("/Users/jerzy/Develop/lecture_slides/scripts/back_test.R")
-# eigen_max <- 2
+# dimax <- 2
 symbolv <- colnames(rutils::etfenv$returns)
 symbolv <- symbolv[!(symbolv %in% c("VXX", "SVXY", "MTUM", "QUAL", "VLUE", "USMV"))]
 nstocks <- NROW(symbolv)
-returnts <- rutils::etfenv$returns[, symbolv]
-returnts[1, is.na(returnts[1, ])] <- 0
-returnts <- zoo::na.locf(returnts, na.rm=FALSE)
-returnts <- na.omit(returnts)
-dates <- zoo::index(returnts)
+rets <- rutils::etfenv$returns[, symbolv]
+rets[1, is.na(rets[1, ])] <- 0
+rets <- zoo::na.locf(rets, na.rm=FALSE)
+rets <- na.omit(rets)
+dates <- zoo::index(rets)
 riskf <- 0.03/260
-excess <- (returnts - riskf)
+excess <- (rets - riskf)
 # Calculate returns on equal weight portfolio
-indeks <- xts::xts(rowMeans(returnts), dates)
+indeks <- xts::xts(rowMeans(rets), dates)
 
 # End setup code
 
@@ -39,7 +40,7 @@ uiface <- shiny::fluidPage(
   # create single row with two slider inputs
   fluidRow(
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=3, sliderInput("eigen_max", label="Number of eigenvalues:",
+    column(width=3, sliderInput("dimax", label="Number of eigenvalues:",
                                 min=2, max=(nstocks %/% 2), value=3, step=1)),
     # Input end points interval
     column(width=3, selectInput("interval", label="End points Interval",
@@ -64,20 +65,20 @@ servfun <- function(input, output) {
   pnls <- shiny::reactive({
     # get model parameters from input argument
     interval <- input$interval
-    eigen_max <- input$eigen_max
+    dimax <- input$dimax
     look_back <- input$look_back
     alpha <- input$alpha
     
     # Define end points
-    endp <- rutils::calc_endpoints(returnts, interval=interval)
+    endp <- rutils::calc_endpoints(rets, interval=interval)
     # endp <- ifelse(endp<(nstocks+1), nstocks+1, endp)
     endp <- endp[endp > (nstocks+1)]
     # npts <- NROW(endp)
     # Define startp
     # startp <- c(rep_len(1, look_back-1), endp[1:(npts-look_back+1)])
     # Rerun the model
-    # pnls <- roll_portf(excess, returnts, startp, endp, alpha, eigen_max)
-    pnls <- roll_portf(excess=excess, returns=returnts, look_back=look_back, endp=endp, alpha=alpha, eigen_max=eigen_max)
+    # pnls <- roll_portf(excess, rets, startp, endp, alpha, dimax)
+    pnls <- roll_portf(excess=excess, returns=rets, look_back=look_back, endp=endp, alpha=alpha, dimax=dimax)
     # pnls <- sd(rutils::diffit(indeks))*pnls/sd(rutils::diffit(pnls))
     pnls <- rbind(indeks[paste0("/", start(pnls)-1)], pnls*sd(indeks)/sd(pnls))
     pnls <- cbind(indeks, pnls)

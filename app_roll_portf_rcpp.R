@@ -60,7 +60,7 @@ uiface <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dyplot"), width=12)
+  dygraphs::dygraphOutput("dyplot", width="90%", height="550px")
 )  # end fluidPage interface
 
 

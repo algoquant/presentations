@@ -1,0 +1,1372 @@
+% Define knitr options
+% !Rnw weave=knitr
+% Set global chunk options
+<<knitr_setup,include=FALSE,cache=FALSE>>=
+library(knitr)
+opts_chunk$set(prompt=TRUE, eval=FALSE, tidy=FALSE, strip.white=FALSE, comment=NA, highlight=FALSE, message=FALSE, warning=FALSE, size="tiny", fig.width=4, fig.height=4)
+options(width=80, dev="pdf")
+options(digits=3)
+thm <- knit_theme$get("acid")
+knit_theme$set(thm)
+@
+
+
+% Define document options
+\documentclass[9pt]{beamer}
+\DeclareMathSizes{8pt}{6pt}{6pt}{5pt}
+\mode<presentation>
+\usetheme{AnnArbor}
+% \usecolortheme{whale}
+% Uncover everything in a step-wise fashion
+% \beamerdefaultoverlayspecification{<+->}
+% mathtools package for math symbols
+\usepackage{mathtools}
+% tikz package for plotting and tables
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{array}
+\usepackage{multirow}
+% bbm and bbold packages for unitary vector or matrix symbol
+\usepackage{bbm}
+\usepackage{bbold}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage[latin1]{inputenc}
+\usepackage{hyperref}
+\usepackage{fancybox}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{anti_flashwhite}{rgb}{0.95, 0.95, 0.96}
+% \usepackage[backend=bibtex,style=alphabetic]{biblatex} % bibstyle=numeric
+% \bibliographystyle{amsalpha} % doesn't work
+% \addbibresource{FRE_lectures.bib}
+% \addbibresource[location=remote]{http://www.citeulike.org/user/jerzyp}
+% \renewcommand\bibfont{\footnotesize}
+% \renewcommand{\pgfuseimage}[1]{\scalebox{0.75}{\includegraphics{#1}}} % scale bib icons
+% \setbeamertemplate{bibliography item}[text] % set bib icons
+% \setbeamertemplate{bibliography item}{} % remove bib icons
+
+% \usepackage{enumerate}
+% \let\emph\textbf
+% \let\alert\textbf
+% Define colors for hyperlinks
+\definecolor{links}{HTML}{2A1B81}
+\hypersetup{colorlinks=true,linkcolor=,urlcolor=links}
+% Make url text scriptsize
+\renewcommand\UrlFont{\scriptsize}
+% Make institute text italic and small
+\setbeamerfont{institute}{size=\small,shape=\itshape}
+\setbeamerfont{date}{size=\small}
+\setbeamerfont{block title}{size=\normalsize} % shape=\itshape
+\setbeamerfont{block body}{size=\footnotesize}
+
+
+
+% Title page setup
+\title[Fast Backtest Simulations of Trading Strategies]{Fast Backtest Simulations of Trading Strategies}
+\subtitle{R/Finance Chicago 2022}
+\author[Jerzy Pawlowski]{Jerzy Pawlowski \emph{\href{mailto:jp3900@nyu.edu}{jp3900@nyu.edu}}}
+\institute[NYU Tandon]{NYU Tandon School of Engineering}
+\date{June 3, 2022}
+\titlegraphic{\includegraphics[scale=0.1]{image/tandon_long_color.png}}
+% \email{jp3900@nyu.edu}
+% \date{\today}
+
+
+
+%%%%%%%%%%%%%%%
+\begin{document}
+
+
+%%%%%%%%%%%%%%%
+\maketitle
+
+
+
+%%%%%%%%%%%%%%%
+\section{Motivation}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Rolling Portfolio Simulation}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      We would like to perform a rolling portfolio simulation: At each \emph{end point} in time, select a portfolio in-sample (based on some model) and measure its performance out-of-sample.
+      \vskip1ex
+      A \emph{rolling aggregation} is performed over a vector of \emph{end points} in time.  The \emph{start points} are the \emph{end points} lagged by the \emph{look-back interval}.
+      \vskip1ex
+      We would like to perform all the matrix algebra and loops in \texttt{C++}.
+      \vskip1ex
+      The package 
+      \href{https://cran.r-project.org/web/packages/RcppArmadillo/index.html}{\color{blue}{\emph{RcppArmadillo}}}
+      allows calling the high-level \emph{Armadillo} \texttt{C++} linear algebra library.
+      \vskip1ex
+      \href{http://arma.sourceforge.net/}{\color{blue}{\emph{Armadillo}}} 
+      is a high-level \texttt{C++} linear algebra library, with syntax similar to \emph{Matlab}.
+      \vskip1ex
+      \emph{RcppArmadillo} functions are often faster than even compiled \texttt{R} functions, because they use better optimized \texttt{C++} code:\\
+      \url{http://arma.sourceforge.net/speed.html}\\
+      \vskip1ex
+      You can learn more about \emph{RcppArmadillo}: \\
+      \tiny \url{http://arma.sourceforge.net/}\\
+      \tiny \url{http://dirk.eddelbuettel.com/code/rcpp.armadillo.html}\\
+      \tiny \url{https://cran.r-project.org/web/packages/RcppArmadillo/index.html}\\
+      \tiny \url{https://github.com/RcppCore/RcppArmadillo}
+      \vskip1ex
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      \hspace*{-3em}
+      \includegraphics[width=0.6\paperwidth]{figure/intervals_rolling.png}
+      <<echo=TRUE,eval=FALSE>>=
+library(quantmod)
+# Load stock returns
+load("/Users/jerzy/Develop/data/sp500_returns.RData")
+dim(returns)
+# Calculate MSFT percentage returns
+rets <- na.omit(returns$MSFT)
+# Define endp at each point in time
+nrows <- NROW(rets)
+endp <- 1:nrows
+# Start points are multi-period lag of endp
+look_back <- 11
+startp <- c(rep_len(0, look_back), endp[1:(nrows-look_back)])
+head(cbind(startp, endp), 13)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Packages for Rolling Aggregations}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      If possible, always perform loops in \texttt{C++} and also in \emph{parallel}. 
+      \vskip1ex
+      \texttt{R} has several packages for fast rolling aggregations over time series: sums, volatilities, regressions, PCA, etc.
+      \vskip1ex
+      The package
+      \href{https://cran.r-project.org/web/packages/roll/index.html}{\color{blue}{\emph{roll}}}
+      contains functions for calculating \emph{weighted} rolling aggregations over \emph{vectors} and \emph{time series} objects.
+      \vskip1ex
+      The \emph{roll} functions can be \texttt{100} times faster than \texttt{apply()} loops!
+      \vskip1ex
+      The \emph{roll} functions are extremely fast because they perform calculations in \emph{parallel} in compiled \texttt{C++} code, using packages 
+      \href{https://cran.r-project.org/web/packages/Rcpp/index.html}{\color{blue}{\emph{Rcpp}}},
+      \href{https://cran.r-project.org/web/packages/RcppArmadillo/index.html}{\color{blue}{\emph{RcppArmadillo}}},
+      and 
+      \href{https://cran.r-project.org/web/packages/RcppParallel/index.html}{\color{blue}{\emph{RcppParallel}}}.
+      \vskip1ex
+      The package
+      \href{https://cran.r-project.org/web/packages/RcppRoll/index.html}{\color{blue}{\emph{RcppRoll}}}
+      contains functions for calculating \emph{weighted} rolling aggregations over \emph{vectors} and \emph{time series} objects.
+      \vskip1ex
+      The package
+      \href{https://cran.r-project.org/web/packages/matrixStats/index.html}{\color{blue}{\emph{matrixStats}}}
+      contains functions for calculating aggregations over matrix columns and rows, and other matrix computations, such as:
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      \includegraphics[width=0.4\paperwidth]{figure/Jeremy_Clarkson_Linus_Torvalds.jpg}
+      <<echo=TRUE,eval=FALSE>>=
+# Calculate rolling MSFT variance using R loop
+varr <- sapply(1:nrows, function(it) {
+  var(rets[startp[it]:endp[it]])
+})  # end sapply
+# Calculate rolling MSFT variance using package roll
+varcpp <- roll::roll_var(rets, width=(look_back+1))
+all.equal(varr[-(1:look_back)], 
+          drop(zoo::coredata(varcpp))[-(1:look_back)])
+# Benchmark calculation of rolling variance
+library(microbenchmark)
+summary(microbenchmark(
+  sapply=sapply(1:nrows, function(it) {
+    var(rets[startp[it]:endp[it]])}),
+  roll=roll::roll_var(rets, width=(look_back+1)),
+  times=10))[, c(1, 4, 5)]
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Maximum Sharpe Markowitz Portfolio}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The \emph{Sharpe} ratio is equal to the ratio of weighted excess returns $\mathbf{w}^T \mu$ divided by the portfolio standard deviation $\sigma = \sqrt{\mathbf{w}^T \mathbb{C} \, \mathbf{w}}$:
+      \begin{displaymath}
+        SR = \frac{\mathbf{w}^T \mu}{\sigma}
+      \end{displaymath}
+      Where $\mathbf{w}$ are the portfolio weights and $\mathbb{C}$ is the covariance matrix of returns.
+      \vskip1ex
+      We can calculate the \emph{maximum Sharpe} (Markowitz) portfolio weights by setting the derivative of the \emph{Sharpe} ratio with respect to the weights to zero:
+      \begin{displaymath}
+        \mathbf{w} = \frac{\mathbb{C}^{-1} \mu}{\mathbbm{1}^T \mathbb{C}^{-1} \mu}
+      \end{displaymath}
+      The Markowitz weights are proportional to the inverse of the covariance matrix times the excess returns.
+      \vskip1ex
+      But the returns are difficult to forecast so they have large confidence intervals.
+      \vskip1ex
+      In addition, the covariance matrix of highly correlated returns is either singular or is close to singular, with a large number of very small eigenvalues.
+      \vskip1ex
+      Therefore the Markowitz formula is a noise amplification scheme.  See the package 
+      \href{https://github.com/shabbychef/MarkowitzR}{\color{blue}{\emph{MarkowitzR}}} for an excellent discussion. 
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      <<echo=TRUE,eval=FALSE>>=
+# Select returns after 2000 and overwrite NA values
+rets <- returns["2000/"]
+nstocks <- NCOL(rets)
+rets[1, is.na(rets[1, ])] <- 0
+rets <- zoo::na.locf(rets, na.rm=FALSE)
+dates <- zoo::index(rets)
+# Calculate excess returns
+riskf <- 0.03/252
+retsx <- (rets - riskf)
+# Calculate covariance and inverse matrix
+covmat <- cov(rets)
+# Error: system is singular!
+covinv <- solve(a=covmat)
+# Calculate the Moore-Penrose generalized inverse
+covinv <- MASS::ginv(covmat)
+# Weights of maximum Sharpe portfolio
+weightv <- drop(covinv %*% colMeans(retsx))
+# Combine equal weight and optimal returns
+indeks <- xts::xts(rowMeans(rets), dates)
+pnls <- rets %*% weightv
+pnls <- pnls*sd(indeks)/sd(pnls)
+pnls <- cbind(indeks, pnls)
+colnames(pnls) <- c("Equal Weight", "Optimal")
+# Calculate the out-of-sample Sharpe and Sortino ratios
+sqrt(252)*sapply(pnls,
+  function(x) c(Sharpe=mean(x)/sd(x), Sortino=mean(x)/sd(x[x<0])))
+# Plot the cumulative portfolio returns
+endp <- rutils::calc_endpoints(pnls, interval="months")
+dygraphs::dygraph(cumsum(pnls)[endp], main="Optimal Portfolio Returns") %>%
+  dyOptions(colors=c("blue", "red"), strokeWidth=2) %>%
+  dyLegend(width=500)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Minimum Variance Portfolio}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      To avoid the problem of forecasting the returns, we may choose to select a \emph{minimum variance} portfolio.
+      \vskip1ex
+      If the portfolio weights $\mathbf{w}$ are subject to \emph{linear} constraints: $\mathbf{w}^T \mathbbm{1} = {\sum_{i=1}^n w_i} = 1$, then the weights that minimize the portfolio variance ($\mathbf{w}^T \mathbb{C} \, \mathbf{w}$) can be found by minimizing the \emph{Lagrangian}:
+      \begin{displaymath}
+        \mathcal{L} = \mathbf{w}^T \mathbb{C} \, \mathbf{w} - \, \lambda \, (\mathbf{w}^T \mathbbm{1} - 1)
+      \end{displaymath}
+      Where $\lambda$ is a \emph{Lagrange multiplier}.
+      \vskip1ex
+      The \emph{minimum variance} portfolio weights are equal to:
+      \begin{displaymath}
+        \mathbf{w} = \frac{\mathbb{C}^{-1} \mathbbm{1}}{\mathbbm{1}^T \mathbb{C}^{-1} \mathbbm{1}}
+      \end{displaymath}
+      The \emph{minimum variance} portfolio weights are proportional to the inverse of the covariance matrix of returns times the unit vector $\mathbbm{1}$.
+      \vskip1ex
+      So the \emph{minimum variance} portfolio still requires the regularization of the inverse covariance matrix. 
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      <<echo=TRUE,eval=FALSE>>=
+# Weights of minimum variance portfolio
+weightv <- drop(covinv %*% rep(1, nstocks))
+# Combine equal weight and optimal returns
+pnls <- rets %*% weightv
+pnls <- pnls*sd(indeks)/sd(pnls)
+pnls <- cbind(indeks, pnls)
+colnames(pnls) <- c("Equal Weight", "Minimum Variance")
+# Calculate the out-of-sample Sharpe and Sortino ratios
+sqrt(252)*sapply(pnls,
+  function(x) c(Sharpe=mean(x)/sd(x), Sortino=mean(x)/sd(x[x<0])))
+# Plot the cumulative portfolio returns
+endp <- rutils::calc_endpoints(pnls, interval="months")
+dygraphs::dygraph(cumsum(pnls)[endp], main="Minimum Variance Portfolio Returns") %>%
+  dyOptions(colors=c("blue", "red"), strokeWidth=2) %>%
+  dyLegend(width=500)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Markowitz Portfolio Out-of-Sample}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The Markowitz portfolio is \emph{overfit} in the \emph{in-sample} interval.
+      \vskip1ex
+      Therefore the portfolio underperforms in the \emph{out-of-sample} interval.
+      \vskip1ex
+      The Markowitz portfolio underperforms \emph{out-of-sample} because it has too many degrees of freedom, and also because the covariance matrix has many very small eigenvalues.
+      <<echo=TRUE,eval=FALSE>>=
+# Define in-sample and out-of-sample intervals
+retsis <- rets["/2010"]
+retsos <- rets["2011/"]
+# Maximum Sharpe weights in-sample interval
+covmat <- cov(retsis)
+covinv <- MASS::ginv(covmat)
+weightv <- covinv %*% colMeans(retsx["/2010"])
+names(weightv) <- colnames(rets)
+# Calculate portfolio returns
+insample <- xts::xts(retsis %*% weightv, zoo::index(retsis))
+outsample <- xts::xts(retsos %*% weightv, zoo::index(retsos))
+indeks <- xts::xts(rowMeans(rets), dates)
+      @
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      \includegraphics[width=0.4\paperwidth]{figure/portf_optim_out_sample.png}
+      <<echo=TRUE,eval=FALSE>>=
+# Combine in-sample and out-of-sample returns
+pnls <- rbind(insample, outsample)
+pnls <- pnls*sd(indeks)/sd(pnls)
+pnls <- cbind(indeks, pnls)
+colnames(pnls) <- c("Equal Weight", "Optimal")
+# Calculate the out-of-sample Sharpe and Sortino ratios
+sqrt(252)*sapply(pnls["2011/"],
+  function(x) c(Sharpe=mean(x)/sd(x), Sortino=mean(x)/sd(x[x<0])))
+# Plot the cumulative portfolio returns
+endp <- rutils::calc_endpoints(pnls, interval="months")
+dygraphs::dygraph(cumsum(pnls)[endp], main="Out-of-sample Optimal Portfolio Returns") %>%
+  dyOptions(colors=c("blue", "red"), strokeWidth=2) %>%
+  dyEvent(zoo::index(last(retsis[, 1])), label="in-sample", strokePattern="solid", color="red") %>%
+  dyLegend(width=500)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Packages for Portfolio Selection and Optimization}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      We need to apply some form of regularization to the Markowitz portfolio, such as dimension reduction or shrinkage.
+      \vskip1ex
+      There is good research on portfolio optimization using regularization, dimension reduction, and shrinkage estimators of covariance matrices by 
+      \href{http://faculty.london.edu/avmiguel/}{\color{blue}{\emph{Victor DeMiguel}}}, 
+      \href{http://denard.ch/}{\color{blue}{\emph{Gianluca De Nard}}}, 
+      and \href{http://www.ledoit.net/}{\color{blue}{\emph{Olivier Ledoit}}}.
+      \vskip1ex
+      There are also good \texttt{R} packages for portfolio optimization:
+      \href{https://cran.r-project.org/web/packages/RiskPortfolios/index.html}{\color{blue}{\emph{RiskPortfolios}}}, 
+      \href{https://cran.r-project.org/web/packages/parma/index.html}{\color{blue}{\emph{parma}}}, 
+      \href{https://github.com/enricoschumann/PMwR}{\color{blue}{\emph{PMwR}}}, 
+      \href{https://github.com/enricoschumann/NMOF}{\color{blue}{\emph{NMOF}}}, 
+      \href{https://cran.r-project.org/web/packages/fPortfolio/index.html}{\color{blue}{\emph{fPortfolio}}}, 
+      \href{https://github.com/shabbychef/MarkowitzR}{\color{blue}{\emph{MarkowitzR}}}, 
+      \vskip1ex
+      Unfortunately, most of these packages are written in \texttt{R} so they can't be called in a \texttt{C++} loop.
+      So we'll have to write our own code in \texttt{C++}.
+      \vskip1ex
+      So the objective is to: combine modern portfolio analytics, rolling optimization, all written in Armadillo code.
+      \vskip1ex
+      There are also good \texttt{R} packages and research on portfolio selection:
+      \href{https://github.com/dppalomar/riskParityPortfolio}{\color{blue}{\emph{riskParityPortfolio}}}, 
+      \href{https://gallery.rcpp.org/articles/hierarchical-risk-parity/}{\color{blue}{\emph{Hierarchical Risk Parity}}}, 
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      <<echo=TRUE,eval=FALSE>>=
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Markowitz Portfolio With \protect\emph{Parameter Shrinkage}}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The regularization technique of \emph{parameter shrinkage} is designed to reduce the number of parameters in a model, for example in portfolio optimization.
+      \vskip1ex
+      The \emph{parameter shrinkage} technique adds a penalty term to the objective function.
+      \vskip1ex
+      The \emph{elastic net} regularization is a combination of \emph{ridge} and \emph{Lasso} regularization:
+      \begin{displaymath}
+        w_{max} = \operatorname*{arg\,max}_{w} [ \frac{\mathbf{w}^T \mu}{\sigma} - \lambda ( (1-\alpha) \sum_{i=1}^n w^2_i + \alpha \sum_{i=1}^n|w_i| ) ]
+      \end{displaymath}
+      The portfolio weights $\mathbf{w}$ are shrunk to zero as the parameters $\lambda$ and $\alpha$ increase.
+      \vskip1ex
+      The function \texttt{DEoptim()} from package 
+      \href{https://cran.r-project.org/web/packages/DEoptim/index.html}{\color{blue}{\emph{DEoptim}}}
+      performs \emph{global} optimization using the \emph{Differential Evolution} algorithm.
+      \vskip1ex
+      But the optimization can be very time consuming.
+    \column{0.5\textwidth}
+      \vspace{-1em}
+        <<echo=TRUE,eval=FALSE>>=
+# Objective with shrinkage penalty
+objfun <- function(weightv, rets, lambda, alpha) {
+  rets <- rets %*% weightv
+  if (sd(rets) == 0)
+    return(0)
+  else {
+    penaltyv <- lambda*((1-alpha)*sum(weightv^2) +
+        alpha*sum(abs(weightv)))
+    -return(mean(rets)/sd(rets) + penaltyv)
+  }
+}  # end objfun
+# Objective for equal weight portfolio
+weightv <- rep(1, nstocks)
+lambda <- 0.1 ; alpha <- 0.1
+objfun(weightv, rets=rets, lambda=lambda, alpha=alpha)
+# Perform optimization using DEoptim - takes very long on M1 Mac!
+optiml <- DEoptim::DEoptim(fn=objfun,
+  upper=rep(10, nstocks),
+  lower=rep(-10, nstocks),
+  rets=rets,
+  lambda=lambda, alpha=alpha,
+  control=list(trace=FALSE, itermax=100, parallelType=1, packages="quantmod"))
+weightv <- optiml$optim$bestmem/sum(abs(optiml$optim$bestmem))
+weightv <- weightv/sum(weightv)
+names(weightv) <- colnames(rets)
+# Combine equal weight and optimal returns
+pnls <- rets %*% weightv
+pnls <- pnls*sd(indeks)/sd(pnls)
+pnls <- cbind(indeks, pnls)
+colnames(pnls) <- c("Equal Weight", "Optimal")
+# Calculate the out-of-sample Sharpe and Sortino ratios
+sqrt(252)*sapply(pnls,
+  function(x) c(Sharpe=mean(x)/sd(x), Sortino=mean(x)/sd(x[x<0])))
+# Plot the cumulative portfolio returns
+endp <- rutils::calc_endpoints(pnls, interval="months")
+dygraphs::dygraph(cumsum(pnls)[endp], main="Optimal Portfolio Returns") %>%
+  dyOptions(colors=c("blue", "red"), strokeWidth=2) %>%
+  dyLegend(width=500)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Regularized Inverse of the Covariance Matrix}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The covariance matrix of returns $\mathbb{C}$ can be expressed as a product of its \emph{eigenvalues} $\mathbb{D}$ and its \emph{eigenvectors} $\mathbb{O}$:
+      \begin{displaymath}
+        \mathbb{C} = \mathbb{O} \, \mathbb{D} \, \mathbb{O}^T
+      \end{displaymath}
+      The inverse of the covariance matrix can then be calculated from its \emph{eigen decomposition} as:
+      \begin{displaymath}
+        \mathbb{C}^{-1} = \mathbb{O} \, \mathbb{D}^{-1} \, \mathbb{O}^T
+      \end{displaymath}
+      If the number of time periods of returns (rows) is less than the number of stocks (columns), then some of the higher order eigenvalues are zero, and the above covariance matrix inverse is singular.
+      \vskip1ex
+      The \emph{regularized inverse} $\mathbb{C}_n^{-1}$ is calculated by removing the zero eigenvalues, and keeping only the first $n$ \emph{eigenvalues}:
+      \begin{displaymath}
+        \mathbb{C}_n^{-1} = \mathbb{O}_n \, \mathbb{D}_n^{-1} \, \mathbb{O}_n^T
+      \end{displaymath}
+      Where $\mathbb{D}_n$ and $\mathbb{O}_n$ are matrices with the higher order eigenvalues and eigenvectors removed.
+      \vskip1ex
+      The function \texttt{MASS::ginv()} calculates the \emph{regularized} inverse of a matrix.
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      <<echo=TRUE,eval=FALSE>>=
+# Calculate covariance matrix
+covmat <- cov(rets)
+# Calculate inverse of covmat - error
+covinv <- solve(covmat)
+# Perform eigen decomposition
+eigend <- eigen(covmat)
+eigenvec <- eigend$vectors
+eigenval <- eigend$values
+# Set tolerance for determining zero singular values
+precv <- sqrt(.Machine$double.eps)
+# Calculate regularized inverse matrix
+notzero <- (eigenval > (precv * eigenval[1]))
+invreg <- eigenvec[, notzero] %*%
+  (t(eigenvec[, notzero]) / eigenval[notzero])
+# Verify inverse property of invreg
+all.equal(covmat, covmat %*% invreg %*% covmat)
+# Calculate regularized inverse of covmat
+covinv <- MASS::ginv(covmat)
+# Verify that covinv is same as invreg
+all.equal(covinv, invreg)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Dimension Reduction of the Covariance Matrix}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      If the higher order singular values are very small then the inverse matrix amplifies the statistical noise in the response matrix.
+      \vskip1ex
+      The technique of \emph{dimension reduction} calculates the inverse of a covariance matrix by removing the very small, higher order eigenvalues, to reduce the propagation of statistical noise and improve the signal-to-noise ratio:
+      \begin{displaymath}
+        \mathbb{C}^{-1}_{DR} = \mathbb{O}_{dimax} \, \mathbb{D}^{-1}_{dimax} \, \mathbb{O}_{dimax}^T
+      \end{displaymath}
+      The parameter \texttt{dimax} specifies the number of eigenvalues used for calculating the \emph{dimension reduction inverse} of the covariance matrix of returns.
+      \vskip1ex
+      Even though the \emph{dimension reduction inverse} $\mathbb{C}^{-1}_{DR}$ does not satisfy the matrix inverse property (so it's biased), its out-of-sample forecasts are usually more accurate than those using the actual inverse matrix.
+      \vskip1ex
+      But removing a larger number of eigenvalues increases the bias of the covariance matrix, which is an example of the \emph{bias-variance tradeoff}.
+      \vskip1ex
+      The optimal value of the parameter \texttt{dimax} can be determined using \emph{backtesting} (\emph{cross-validation}).
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      <<echo=TRUE,eval=FALSE>>=
+# Calculate in-sample covariance matrix
+covmat <- cov(retsis)
+eigend <- eigen(covmat)
+eigenvec <- eigend$vectors
+eigenval <- eigend$values
+# Calculate dimension reduction inverse of covariance matrix
+dimax <- 3
+covinv <- eigenvec[, 1:dimax] %*%
+  (t(eigenvec[, 1:dimax]) / eigenval[1:dimax])
+# Verify inverse property of inverse
+all.equal(covmat, covmat %*% covinv %*% covmat)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Optimal Portfolios Under Zero Correlation}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      If the correlations of returns are equal to zero, then the covariance matrix is diagonal:
+      \begin{displaymath}
+        \mathbb{C} = \begin{pmatrix}
+          \sigma^2_1 & 0 & \cdots & 0 \\
+          0 & \sigma^2_2 & \cdots & 0 \\
+          \vdots  & \vdots  & \ddots & \vdots  \\
+          0 & 0 & \cdots & \sigma^2_n
+        \end{pmatrix}
+      \end{displaymath}
+      Where $\sigma^2_i$ is the variance of returns of asset \texttt{i}.
+      \vskip1ex
+      The inverse of $\mathbb{C}$ is then simply:
+      \begin{displaymath}
+        \mathbb{C}^{-1} = \begin{pmatrix}
+          \sigma^{-2}_1 & 0 & \cdots & 0 \\
+          0 & \sigma^{-2}_2 & \cdots & 0 \\
+          \vdots  & \vdots  & \ddots & \vdots  \\
+          0 & 0 & \cdots & \sigma^{-2}_n
+        \end{pmatrix}
+      \end{displaymath}
+    \column{0.5\textwidth}
+      The \emph{minimum variance} portfolio weights are proportional to the inverse of the individual variances:
+      \begin{displaymath}
+        w_i = \frac{1}{\sigma^2_i \sum_{i=1}^n \sigma^{-2}_i}
+      \end{displaymath}
+      The \emph{maximum Sharpe} portfolio weights are proportional to the ratio of excess returns divided by the individual variances:
+      \begin{displaymath}
+        w_i = \frac{\mu_i}{\sigma^2_i \sum_{i=1}^n \mu_i \sigma^{-2}_i}
+      \end{displaymath}
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+
+%%%%%%%%%%%%%%%
+\subsection{Markowitz Portfolio with Dimension Reduction}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The \emph{out-of-sample} performance of the Markowitz portfolio is greatly improved by dimension reduction of the inverse covariance matrix.
+      \vskip1ex
+      But the \emph{in-sample} performance is worse because dimension reduction reduces \emph{overfitting}.
+      <<echo=TRUE,eval=FALSE>>=
+# Calculate regularized inverse of covariance matrix
+look_back <- 8; dimax <- 21
+eigend <- eigen(cov(retsis))
+eigenvec <- eigend$vectors
+eigenval <- eigend$values
+covinv <- eigenvec[, 1:dimax] %*%
+  (t(eigenvec[, 1:dimax]) / eigenval[1:dimax])
+# Calculate portfolio weights
+weightv <- covinv %*% colMeans(retsx["/2010"])
+weightv <- drop(weightv/sum(weightv))
+names(weightv) <- colnames(rets)
+# Calculate portfolio returns
+insample <- xts::xts(retsis %*% weightv, zoo::index(retsis))
+outsample <- xts::xts(retsos %*% weightv, zoo::index(retsos))
+indeks <- xts::xts(rowMeans(rets), dates)
+      @
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      \includegraphics[width=0.4\paperwidth]{figure/portf_optim_out_sample_shrink.png}
+      <<echo=TRUE,eval=FALSE>>=
+# Combine in-sample and out-of-sample returns
+pnls <- rbind(insample, outsample)
+pnls <- pnls*sd(indeks)/sd(pnls)
+pnls <- cbind(indeks, pnls)
+colnames(pnls) <- c("Equal Weight", "Optimal")
+# Calculate the out-of-sample Sharpe and Sortino ratios
+sqrt(252)*sapply(pnls["2011/"],
+  function(x) c(Sharpe=mean(x)/sd(x), Sortino=mean(x)/sd(x[x<0])))
+# Plot the cumulative portfolio returns
+endp <- rutils::calc_endpoints(pnls, interval="months")
+dygraphs::dygraph(cumsum(pnls)[endp], main="Out-of-sample Returns with dimension reduction") %>%
+  dyOptions(colors=c("blue", "red"), strokeWidth=2) %>%
+  dyEvent(zoo::index(last(retsis[, 1])), label="in-sample", strokePattern="solid", color="red") %>%
+  dyLegend(width=500)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Markowitz Portfolio With Return Shrinkage}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      To further reduce the statistical noise, the individual returns $r_i$ can be \emph{shrunk} to the average portfolio returns $\bar{r}$:
+      \begin{displaymath}
+        r^{\prime}_i = (1 - \alpha) \, r_i + \alpha \, \bar{r}
+      \end{displaymath}
+      The parameter $\alpha$ is the \emph{shrinkage} intensity, and it determines the strength of the \emph{shrinkage} of individual returns to their mean.
+      \vskip1ex
+      The weights with return shrinkage are an average of \emph{maximum Sharpe} and \emph{minimum variance} weights.
+      \vskip1ex
+      If $\alpha = 0$ then there is no \emph{shrinkage}, while if $\alpha = 1$ then all the returns are \emph{shrunk} to their common mean: $r_i = \bar{r}$.
+      \vskip1ex
+      The optimal value of the \emph{shrinkage} intensity $\alpha$ can be determined using \emph{backtesting} (\emph{cross-validation}).
+      <<echo=TRUE,eval=FALSE>>=
+# Shrink the in-sample returns to their mean
+alpha <- 0.7
+retsxm <- rowMeans(retsx["/2010"])
+retsxis <- (1-alpha)*retsx["/2010"] + alpha*retsxm
+# Calculate portfolio weights
+weightv <- covinv %*% colMeans(retsxis)
+weightv <- drop(weightv/sum(weightv))
+# Calculate portfolio returns
+insample <- xts::xts(retsis %*% weightv, zoo::index(retsis))
+outsample <- xts::xts(retsos %*% weightv, zoo::index(retsos))
+      @
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      \includegraphics[width=0.4\paperwidth]{figure/portf_optim_out_sample_rets_shrink.png}
+      <<echo=TRUE,eval=FALSE>>=
+# Combine in-sample and out-of-sample returns
+pnls <- rbind(insample, outsample)
+pnls <- pnls*sd(indeks)/sd(pnls)
+pnls <- cbind(indeks, pnls)
+colnames(pnls) <- c("Equal Weight", "Optimal")
+# Calculate the out-of-sample Sharpe and Sortino ratios
+sqrt(252)*sapply(pnls["2011/"],
+  function(x) c(Sharpe=mean(x)/sd(x), Sortino=mean(x)/sd(x[x<0])))
+# Plot the cumulative portfolio returns
+dygraphs::dygraph(cumsum(pnls)[endp], main="Out-of-sample Returns with Return Shrinkage") %>%
+  dyOptions(colors=c("blue", "red"), strokeWidth=2) %>%
+  dyEvent(zoo::index(last(retsis[, 1])), label="in-sample", strokePattern="solid", color="red") %>%
+  dyLegend(width=500)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Rolling Portfolio Optimization Strategy for S\&P500 Stocks}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      A \emph{rolling portfolio optimization} strategy consists of rebalancing a portfolio over the end points:
+      \setlength{\leftmargini}{1.0em}
+      \begin{enumerate}
+        \item Calculate the maximum Sharpe ratio portfolio weights at each end point,
+        \item Apply the weights in the next interval and calculate the out-of-sample portfolio returns.
+      \end{enumerate}
+      The strategy parameters are: the rebalancing frequency (annual, monthly, etc.), and the length of look-back interval.
+      <<echo=TRUE,eval=FALSE>>=
+# Overwrite NA values in returns100
+rets <- returns100
+rets[1, is.na(rets[1, ])] <- 0
+rets <- zoo::na.locf(rets, na.rm=FALSE)
+retsx <- (rets - riskf)
+nstocks <- NCOL(rets) ; dates <- zoo::index(rets)
+# Define monthly end points
+endp <- rutils::calc_endpoints(rets, interval="months")
+endp <- endp[endp > (nstocks+1)]
+npts <- NROW(endp) ; look_back <- 12
+startp <- c(rep_len(0, look_back), endp[1:(npts-look_back)])
+# Perform loop over end points - takes very long !!!
+pnls <- lapply(2:npts, function(ep) {
+    # Subset the excess returns
+    insample <- retsx[startp[ep-1]:endp[ep-1], ]
+    covinv <- MASS::ginv(cov(insample))
+    # Calculate the maximum Sharpe ratio portfolio weights
+    weightv <- covinv %*% colMeans(insample)
+    weightv <- drop(weightv/sum(weightv))
+    # Calculate the out-of-sample portfolio returns
+    outsample <- rets[(endp[ep-1]+1):endp[ep], ]
+    xts::xts(outsample %*% weightv, zoo::index(outsample))
+})  # end lapply
+pnls <- rutils::do_call(rbind, pnls)
+      @
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      \includegraphics[width=0.4\paperwidth]{figure/portf_rolling_sp500.png}
+      <<echo=TRUE,eval=FALSE>>=
+# Calculate returns of equal weight portfolio
+indeks <- xts::xts(rowMeans(rets), dates)
+pnls <- rbind(indeks[paste0("/", start(pnls)-1)], pnls*sd(indeks)/sd(pnls))
+# Calculate the Sharpe and Sortino ratios
+wealth <- cbind(indeks, pnls)
+colnames(wealth) <- c("Equal Weight", "Strategy")
+sqrt(252)*sapply(wealth,
+  function(x) c(Sharpe=mean(x)/sd(x), Sortino=mean(x)/sd(x[x<0])))
+# Plot cumulative strategy returns
+dygraphs::dygraph(cumsum(wealth)[endp], main="Rolling Portfolio Optimization Strategy for S&P500 Stocks") %>%
+  dyOptions(colors=c("blue", "red"), strokeWidth=2) %>%
+  dyLegend(show="always", width=500)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Rolling Portfolio Optimization Strategy in \texttt{C++}}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The \emph{rolling portfolio optimization} strategy can be improved by applying both dimension reduction and return shrinkage.
+      \vskip1ex
+      The function \texttt{back\_test()} from package 
+      \href{https://github.com/algoquant/HighFreq}{\color{blue}{\emph{HighFreq}}}
+      performs backtest simulations of trading strategies in \texttt{C++}.
+      <<echo=TRUE,eval=FALSE>>=
+# Shift end points to C++ convention
+endp <- (endp - 1)
+endp[endp < 0] <- 0
+startp <- (startp - 1)
+startp[startp < 0] <- 0
+# Specify dimension reduction and return shrinkage
+alpha <- 0.7
+dimax <- 21
+# Perform backtest in Rcpp
+pnls <- HighFreq::back_test(excess=retsx, returns=rets,
+  startp=startp, endp=endp, alpha=alpha, dimax=dimax, method="maxsharpe")
+pnls <- pnls*sd(indeks)/sd(pnls)
+      @
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      \includegraphics[width=0.4\paperwidth]{figure/portf_rolling_sp500_shrink.png}
+      <<echo=TRUE,eval=FALSE>>=
+# Plot cumulative strategy returns
+wealth <- cbind(indeks, pnls, (pnls+indeks)/2)
+colnames(wealth) <- c("Index", "Strategy", "Combined")
+# Calculate the out-of-sample Sharpe and Sortino ratios
+sqrt(252)*sapply(wealth,
+  function(x) c(Sharpe=mean(x)/sd(x), Sortino=mean(x)/sd(x[x<0])))
+dygraphs::dygraph(cumsum(wealth)[endp], main="Rolling S&P500 Portfolio Optimization Strategy With Shrinkage") %>%
+  dyOptions(colors=c("blue", "red", "green"), strokeWidth=2) %>%
+  dyLegend(show="always", width=500)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Strategy Backtesting Using \protect\emph{RcppArmadillo}}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  % \begin{columns}[T]
+    % \column{0.5\textwidth}
+\vspace{-2em}
+      \begin{lstlisting}[language=R,basicstyle=\tiny\ttfamily\bfseries,backgroundcolor=\color{anti_flashwhite},showstringspaces=FALSE]
+arma::mat back_test(const arma::mat& excess, // Asset excess returns
+                    const arma::mat& returns, // Asset returns
+                    arma::uvec startp, // Start points
+                    arma::uvec endp, // End points
+                    double lambda = 0.0, // Decay factor for averaging the portfolio weights
+                    std::string method = "sharpem", // Method for calculating the weights
+                    double eigen_thresh = 1e-5, // Threshold level for discarding small singular values
+                    arma::uword dimax = 0, // Regularization intensity
+                    double confl = 0.1, // Confidence level for calculating the quantiles of returns
+                    double alpha = 0.0, // Return shrinkage intensity
+                    bool rankw = false, // Rank the weights
+                    bool centerw = false, // Center the weights
+                    std::string scalew = "voltarget", // Method for scaling the weights
+                    double vol_target = 0.01, // Target volatility for scaling the weights
+                    double coeff = 1.0, // Multiplier strategy returns
+                    double bid_offer = 0.0) {
+  
+  double lambda1 = 1-lambda;
+  arma::uword nweights = returns.n_cols;
+  arma::vec weights(nweights, fill::zeros);
+  arma::vec weights_past = ones(nweights)/sqrt(nweights);
+  arma::mat pnls = zeros(returns.n_rows, 1);
+
+  // Perform loop over the end points
+  for (arma::uword it = 1; it < endp.size(); it++) {
+    // cout << "it: " << it << endl;
+    // Calculate portfolio weights
+    weights = coeff*calc_weights(excess.rows(startp(it-1), endp(it-1)), method, eigen_thresh, dimax, 
+                                 confl, alpha, rankw, centerw, scalew, vol_target);
+    // Calculate the weights as the weighted sum with past weights
+    weights = lambda1*weights + lambda*weights_past;
+    // Calculate out-of-sample returns
+    pnls.rows(endp(it-1)+1, endp(it)) = returns.rows(endp(it-1)+1, endp(it))*weights;
+    // Add transaction costs
+    pnls.row(endp(it-1)+1) -= bid_offer*sum(abs(weights - weights_past))/2;
+    // Copy the weights
+    weights_past = weights;
+  }  // end for
+  
+  // Return the strategy pnls
+  return pnls;
+  
+}  // end back_test
+
+
+    \end{lstlisting}
+    % \column{0.5\textwidth}
+      % \vspace{-1em}
+  % \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Portfolio Optimization Using \protect\emph{RcppArmadillo}}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  % \begin{columns}[T]
+    % \column{0.5\textwidth}
+      Fast portfolio optimization using matrix algebra can be implemented using \protect\emph{RcppArmadillo}.
+      \begin{lstlisting}[language=R,basicstyle=\tiny\ttfamily\bfseries,backgroundcolor=\color{anti_flashwhite},showstringspaces=FALSE]
+arma::vec calc_weights(const arma::mat& returns, // Asset returns
+                       std::string method = "maxsharpe", // Method for calculating the weights
+                       double eigen_thresh = 1e-5, // Threshold level for discarding small singular values
+                       arma::uword dimax = 0, // Regularization intensity
+                       double confl = 0.1, // Confidence level for calculating the quantiles of returns
+                       double alpha = 0.0, // Return shrinkage intensity
+                       bool rankw = false, // Rank the weights
+                       bool centerw = false, // Center the weights
+                       std::string scalew = "voltarget", // Method for scaling the weights
+                       double vol_target = 0.01) { // Target volatility for scaling the weights
+  
+  // Initialize
+  arma::uword ncols = returns.n_cols;
+  arma::vec weights(ncols, fill::zeros);
+  // No regularization so set dimax to ncols
+  if (dimax == 0)  dimax = ncols;
+  // Calculate the covariance matrix
+  arma::mat covmat = calc_covar(returns);
+  
+  // Apply different calculation methods for weights
+  switch(calc_method(method)) {
+  case methodenum::maxsharpe: {
+    // Mean returns of columns
+    arma::vec colmeans = arma::trans(arma::mean(returns, 0));
+    // Shrink colmeans to the mean of returns
+    colmeans = ((1-alpha)*colmeans + alpha*arma::mean(colmeans));
+    // Calculate weights using regularized inverse
+    weights = calc_inv(covmat, eigen_thresh, dimax)*colmeans;
+    break;
+  }  // end maxsharpe
+  case methodenum::maxsharpemed: {
+    // Median returns of columns
+    arma::vec colmeans = arma::trans(arma::median(returns, 0));
+    // Shrink colmeans to the median of returns
+    colmeans = ((1-alpha)*colmeans + alpha*arma::median(colmeans));
+    // Calculate weights using regularized inverse
+    weights = calc_inv(covmat, eigen_thresh, dimax)*colmeans;
+    break;
+  }  // end maxsharpemed
+  case methodenum::minvarlin: {
+    // Minimum variance weights under linear constraint
+    // Multiply regularized inverse times unit vector
+    weights = calc_inv(covmat, eigen_thresh, dimax)*arma::ones(ncols);
+    break;
+  }  // end minvarlin
+  case methodenum::minvarquad: {
+    // Minimum variance weights under quadratic constraint
+    // Calculate highest order principal component
+    arma::vec eigenval;
+    arma::mat eigenvec;
+    arma::eig_sym(eigenval, eigenvec, covmat);
+    weights = eigenvec.col(ncols-1);
+    break;
+  }  // end minvarquad
+  case methodenum::sharpem: {
+    // Momentum weights equal to Sharpe ratios
+    // Mean returns of columns
+    arma::vec colmeans = arma::trans(arma::mean(returns, 0));
+    // Standard deviation of columns
+    arma::vec colsd = arma::sqrt(covmat.diag());
+    colsd.replace(0, 1);
+    // Momentum weights equal to Sharpe ratios
+    weights = colmeans/colsd;
+    break;
+  }  // end sharpem
+  case methodenum::kellym: {
+    // Momentum weights equal to Kelly ratios
+    // Mean returns of columns
+    arma::vec colmeans = arma::trans(arma::mean(returns, 0));
+    // Variance of columns
+    arma::vec colvar = covmat.diag();
+    colvar.replace(0, 1);
+    // Momentum weights equal to Kelly ratios
+    weights = colmeans/colvar;
+    break;
+  }  // end kellym
+  case methodenum::robustm: {
+    // Momentum weights equal to robust Sharpe ratios
+    // Median returns of columns
+    arma::vec colmeans = arma::trans(arma::median(returns, 0));
+    // Standard deviation of columns
+    arma::vec colsd = arma::sqrt(covmat.diag());
+    colsd.replace(0, 1);
+    // Momentum weights equal to robust Sharpe ratios
+    colmeans = colmeans/colsd;
+    break;
+  }  // end robustm
+  case methodenum::quantile: {
+    // Momentum weights equal to sum of quantiles for columns
+    arma::vec levels = {confl, 1-confl};
+    weights = conv_to<vec>::from(arma::sum(arma::quantile(returns, levels, 0), 0));
+    break;
+  }  // end quantile
+  default : {
+    cout << "Warning: Invalid method parameter: " << method << endl;
+    return arma::ones(ncols);
+  }  // end default
+  }  // end switch
+  
+  if (rankw == TRUE) {
+    // Convert the weights to their ranks
+    weights = conv_to<vec>::from(arma::sort_index(arma::sort_index(weights)));
+  }  // end if
+  
+  if (centerw == TRUE) {
+    // Center the weights so their sum is equal to zero
+    weights = (weights - arma::mean(weights));
+  }  // end if
+  
+  // Apply different scaling methods for weights
+  switch(calc_method(scalew)) {
+  case methodenum::voltarget: {
+    // Scale the weights so the portfolio has the volatility equal to vol_target
+    weights = weights*vol_target/arma::stddev(returns*weights);
+    break;
+  }  // end voltarget
+  case methodenum::voleqw: {
+    // Scale the weights to the volatility of the equal weight portfolio
+    weights = weights*arma::stddev(arma::mean(returns, 1))/arma::stddev(returns*weights);
+    break;
+  }  // end voleqw
+  case methodenum::sumone: {
+    // Scale the weights so their sum of squares is equal to one
+    weights = weights/arma::sum(weights*arma::ones(ncols));
+    break;
+  }  // end sumone
+  case methodenum::sumsq: {
+    // Scale the weights so their sum of squares is equal to one
+    weights = weights/std::sqrt(arma::sum(square(weights)));
+    break;
+  }  // end sumsq
+  default : {
+    // No scaling
+    break;
+  }  // end default
+  }  // end switch
+  
+  return weights;
+  
+}  // end calc_weights
+
+    \end{lstlisting}
+    % \column{0.5\textwidth}
+      % \vspace{-1em}
+  % \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Fast Covariance Matrix Inverse Using \protect\emph{RcppArmadillo}}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+  \column{0.5\textwidth}
+      \emph{RcppArmadillo} can be used to quickly calculate the regularized inverse of a covariance matrix.
+      \vskip1ex
+      The function \texttt{calc\_inv()} from package 
+      \href{https://github.com/algoquant/HighFreq}{\color{blue}{\emph{HighFreq}}}
+      calculates the regularized inverse of matrices in \texttt{C++}.
+      <<echo=TRUE,eval=FALSE>>=
+# Regularized inverse of covariance matrix
+dimax <- 4
+eigend <- eigen(covmat)
+covinv <- eigend$vectors[, 1:dimax] %*%
+  (t(eigend$vectors[, 1:dimax]) / eigend$values[1:dimax])
+# Regularized inverse using RcppArmadillo
+covinv_arma <- calc_inv(covmat, dimax)
+all.equal(covinv, covinv_arma)
+# Microbenchmark RcppArmadillo code
+library(microbenchmark)
+summary(microbenchmark(
+  rcode={eigend <- eigen(cov(covmat))
+    eigend$vectors[, 1:dimax] %*%
+      (t(eigend$vectors[, 1:dimax]) / eigend$values[1:dimax])
+  },
+  cppcode=calc_inv(covmat, dimax),
+  times=100))[, c(1, 4, 5)]  # end microbenchmark summary
+      @
+  \column{0.5\textwidth}
+      \begin{lstlisting}[language=R,basicstyle=\tiny\ttfamily\bfseries,backgroundcolor=\color{anti_flashwhite},showstringspaces=FALSE]
+arma::mat calc_inv(const arma::mat& tseries,
+                   double eigen_thresh = 0.01, 
+                   arma::uword dimax = 0) {
+  
+  // Allocate SVD variables
+  arma::vec svdval;  // Singular values
+  arma::mat svdu, svdv;  // Singular matrices
+  // Calculate the SVD
+  arma::svd(svdu, svdval, svdv, tseries);
+  // Calculate the number of non-small singular values
+  arma::uword svdnum = arma::sum(svdval > eigen_thresh*arma::sum(svdval));
+  
+  if (dimax == 0) {
+    // Set dimax
+    dimax = svdnum - 1;
+  } else {
+    // Adjust dimax
+    dimax = std::min(dimax - 1, svdnum - 1);
+  }  // end if
+  
+  // Remove all small singular values
+  svdval = svdval.subvec(0, dimax);
+  svdu = svdu.cols(0, dimax);
+  svdv = svdv.cols(0, dimax);
+  
+  // Calculate the regularized inverse from the SVD decomposition
+  return svdv*arma::diagmat(1/svdval)*svdu.t();
+  
+}  // end calc_inv
+
+    \end{lstlisting}
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Determining Regularization Parameters Using Backtesting}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The optimal values of the dimension reduction parameter \texttt{dimax} and the return shrinkage intensity parameter $\alpha$ can be determined using \emph{backtesting}.
+      \vskip1ex
+      The best dimension reduction parameter for this portfolio of stocks is equal to \texttt{dimax=33}, which means relatively weak dimension reduction.
+      \vskip1ex
+      The best return shrinkage parameter for this portfolio of stocks is equal to $\alpha=0.81$, which means strong return shrinkage.
+      <<echo=TRUE,eval=FALSE>>=
+# Perform backtest over vector of return shrinkage intensities
+alphav <- seq(from=0.01, to=0.91, by=0.1)
+pnls <- lapply(alphav, function(alpha) {
+  HighFreq::back_test(excess=retsx, returns=rets,
+  startp=startp, endp=endp, alpha=alpha, dimax=dimax, method="maxsharpe")
+})  # end lapply
+profilev <- sapply(pnls, sum)
+plot(x=alphav, y=profilev, t="l", main="Rolling Strategy as Function of Return Shrinkage",
+  xlab="Shrinkage Intensity Alpha", ylab="pnl")
+whichmax <- which.max(profilev)
+alpha <- alphav[whichmax]
+pnls <- pnls[[whichmax]]
+# Perform backtest over vector of dimension reduction eigenvals
+eigenvals <- seq(from=3, to=40, by=2)
+pnls <- lapply(eigenvals, function(dimax) {
+  HighFreq::back_test(excess=retsx, returns=rets,
+    startp=startp, endp=endp, alpha=alpha, dimax=dimax, method="maxsharpe")
+})  # end lapply
+profilev <- sapply(pnls, sum)
+plot(x=eigenvals, y=profilev, t="l", main="Strategy PnL as Function of dimax",
+  xlab="dimax", ylab="pnl")
+whichmax <- which.max(profilev)
+dimax <- eigenvals[whichmax]
+pnls <- pnls[[whichmax]]
+pnls <- pnls*sd(indeks)/sd(pnls)
+      @
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      \includegraphics[width=0.4\paperwidth]{figure/portf_rolling_sp500_shrink_optim.png}
+      <<echo=TRUE,eval=FALSE>>=
+# Plot cumulative strategy returns
+wealth <- cbind(indeks, pnls, (pnls+indeks)/2)
+colnames(wealth) <- c("Index", "Strategy", "Combined")
+# Calculate the out-of-sample Sharpe and Sortino ratios
+sqrt(252)*sapply(wealth,
+  function(x) c(Sharpe=mean(x)/sd(x), Sortino=mean(x)/sd(x[x<0])))
+dygraphs::dygraph(cumsum(wealth)[endp], main="Optimal Rolling S&P500 Portfolio Strategy") %>%
+  dyOptions(colors=c("blue", "red", "green"), strokeWidth=2) %>%
+  dyLegend(show="always", width=500)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Determining Look-back Interval Using Backtesting}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The optimal value of the look-back interval can be determined using \emph{backtesting}.
+      \vskip1ex
+      The optimal value of the look-back interval for this portfolio of stocks is equal to \texttt{look\_back=9} months, which roughly agrees with the research literature on momentum strategies.
+      <<echo=TRUE,eval=FALSE>>=
+# Perform backtest over look-backs
+look_backs <- seq(from=3, to=12, by=1)
+pnls <- lapply(look_backs, function(look_back) {
+  startp <- c(rep_len(0, look_back), endp[1:(npts-look_back)])
+  startp <- (startp - 1)
+  startp[startp < 0] <- 0
+  HighFreq::back_test(excess=retsx, returns=rets,
+    startp=startp, endp=endp, alpha=alpha, dimax=dimax, method="maxsharpe")
+})  # end lapply
+profilev <- sapply(pnls, sum)
+plot(x=look_backs, y=profilev, t="l", main="Strategy PnL as Function of Look-back Interval",
+  xlab="Look-back Interval", ylab="pnl")
+whichmax <- which.max(profilev)
+look_back <- look_backs[whichmax]
+pnls <- pnls[[whichmax]]
+pnls <- pnls*sd(indeks)/sd(pnls)
+      @
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      \includegraphics[width=0.4\paperwidth]{figure/portf_rolling_sp500_shrink_optim_lookback.png}
+      <<echo=TRUE,eval=FALSE>>=
+# Plot cumulative strategy returns
+wealth <- cbind(indeks, pnls, (pnls+indeks)/2)
+colnames(wealth) <- c("Index", "Strategy", "Combined")
+# Calculate the out-of-sample Sharpe and Sortino ratios
+sqrt(252)*sapply(wealth,
+  function(x) c(Sharpe=mean(x)/sd(x), Sortino=mean(x)/sd(x[x<0])))
+dygraphs::dygraph(cumsum(wealth)[endp], main="Optimal Rolling S&P500 Portfolio Strategy") %>%
+  dyOptions(colors=c("blue", "red", "green"), strokeWidth=2) %>%
+  dyLegend(show="always", width=500)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Fast PCA Using Package RSpectra}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      The dimension reduction calculations can be greatly accelerated by performing \emph{partial eigen decomposition} and calculating only the largest eigenvalues.
+      \vskip1ex
+      The function \texttt{eigs\_sym()} from package 
+      \href{https://cran.r-project.org/web/packages/RSpectra/index.html}{\color{blue}{\emph{RSpectra}}}
+      performs partial eigen decomposition of matrices in \texttt{C++}.
+      \vskip1ex
+      It calculates the \emph{partial eigen decomposition} using the \emph{Implicitly Restarted Lanczos Method} (IRLM).
+      \vskip1ex
+      The function \texttt{eigs\_sym()} can be \texttt{5} times faster than \texttt{eigen()}!
+      \vskip1ex
+      \href{https://spectralib.org}{\color{blue}{\emph{Spectra}}} 
+      is a \texttt{C++} library for the efficient solving of large scale eigenvalue problems, using the 
+      \href{https://eigen.tuxfamily.org/index.php?title=Main_Page}{\color{blue}{\emph{Eigen}}}
+      \texttt{C++} linear algebra library.
+      \vskip1ex
+      The Spectra library is a \texttt{C++} version of the algorithms in the 
+      \href{https://www.caam.rice.edu/software/ARPACK/}{\color{blue}{\emph{ARPACK}}} 
+      library.
+      \vskip1ex
+      The ARPACK is a \texttt{FORTRAN} library for solving large scale eigenvalue problems.
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      <<echo=TRUE,eval=FALSE>>=
+# Perform eigen decomposition using eigen()
+eigend <- eigen(covmat)
+eigenvec <- eigend$vectors
+eigenval <- eigend$values
+# Perform eigen decomposition using RSpectra
+library(RSpectra)
+dimax <- 5
+eigends = RSpectra::eigs_sym(covmat, k=dimax, which="LM")
+all.equal(eigends$values, eigenval[1:dimax])
+all.equal(abs(eigends$vectors), abs(eigenvec[, 1:dimax]))
+# Compare the speed of eigen() with RSpectra
+library(microbenchmark)
+summary(microbenchmark(
+  eigen=eigen(covmat),
+  RSpectra=RSpectra::eigs_sym(covmat, k=dimax, which="LM"),
+  times=10))[, c(1, 4, 5)]  # end microbenchmark summary
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Fast Approximate PCA Using Stochastic Gradient Optimization}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      It's not necessary to perform PCA from scratch at every point in time because the data changes by only a small amount between time periods.
+      \vskip1ex
+      Online PCA algorithms update the PCA with new data, instead of performing PCA from scratch.
+      \vskip1ex
+      The Generalized Hebbian Algorithm (GHA) updates the eigenvectors $\mathbf{u}_t^j$ based on the new data vector $\mathbf{x}_{t+1}$:
+      \begin{displaymath}
+        \mathbf{u}_{t+1}^j = \mathbf{u}_t^j + \gamma \varphi_t^j (\mathbf{x}_{t+1} - \sum_{i=1}^j {\varphi_t^i \mathbf{u}_t^i})
+      \end{displaymath}
+      Where the coefficients $\varphi_t^j$ are the inner products of the new data vector times the eigenvectors:
+      \begin{displaymath}
+        \varphi_t^j = \mathbf{x}_{t+1}^T \mathbf{u}_t^j
+      \end{displaymath}
+      Where $\gamma$ is the learning rate (a number between \texttt{0} and \texttt{1}), with larger values placing more weight on the new data (faster learning).
+      \vskip1ex
+      The GHA algorithm was developed as a neural network learning technique.  It updates the principal components only approximately using recursion.
+      \vskip1ex
+      The function \texttt{ghapca()} from package 
+      \href{https://cran.r-project.org/web/packages/onlinePCA/index.html}{\color{blue}{\emph{onlinePCA}}}
+      performs approximate PCA of matrices in \texttt{C++}.
+    \column{0.5\textwidth}
+      \vspace{-1em}
+      <<echo=TRUE,eval=FALSE>>=
+# Setup data
+ncols <- 10
+nrows <- 1e4
+matv <- matrix(runif(nrows*ncols), nrows, ncols)
+matv <- matv %*% diag(sqrt(12*(1:ncols)))
+# Warmup period
+pcav <- princomp(matv[1:(nrows/2), ])
+meanv <- pcav$center
+pcav <- list(values=pcav$sdev[1:ncols]^2, vectors=pcav$loadings[, 1:ncols])
+# Update the PCA recursively
+for (i in (nrows/2+1):nrows) {
+  meanv <- onlinePCA::updateMean(meanv, matv[i, ], n=(i-1))
+  pcav <- onlinePCA::ghapca(lambda=pcav$values, U=pcav$vectors, x=matv[i, ], gamma=2/i, center=meanv)
+}  # end for
+# Compare PCA methods
+pcaf <- princomp(matv)
+pcaf$sdev^2
+drop(pcav$values)
+      @
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%
+\subsection{Conclusion}
+\begin{frame}[fragile,t]{\subsecname}
+\vspace{-1em}
+\begin{block}{}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+      Fast backtest simulations of trading strategies can be developed using the package
+      \href{https://cran.r-project.org/web/packages/RcppArmadillo/index.html}{\color{blue}{\emph{RcppArmadillo}}}.
+      \vskip1ex
+      \vspace{2em}
+      The simulations can then be visualized using the package
+      \href{https://shiny.rstudio.com}{\color{blue}{\emph{shiny}}}.
+      \vskip1ex
+      \vspace{2em}
+      Many thanks to Dirk Eddelbuettel and Romain Francois for developing the excellent
+      \href{https://cran.r-project.org/web/packages/RcppArmadillo/index.html}{\color{blue}{\emph{RcppArmadillo}}}
+      package.
+      \vskip1ex
+      \vspace{2em}
+      Many thanks to RStudio for developing the excellent
+      \href{https://shiny.rstudio.com}{\color{blue}{\emph{shiny}}}
+      package.
+      \vskip1ex
+      \vspace{2em}
+      Thank you! \\
+      \emph{\href{jpawlowski@machinetrader.io}{jpawlowski@machinetrader.io}} \\
+      \href{https://www.machinetrader.io}{\color{blue}{https://www.machinetrader.io}}
+    \column{0.5\textwidth}
+      \includegraphics[width=0.4\paperwidth]{figure/MT_Logo.png}
+      \includegraphics[width=0.4\paperwidth]{figure/MT_robot.png}
+  \end{columns}
+\end{block}
+
+\end{frame}
+
+
+\end{document}
