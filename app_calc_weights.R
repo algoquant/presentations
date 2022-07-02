@@ -12,7 +12,7 @@ library(shiny)
 library(dygraphs)
 # Rcpp::sourceCpp(file="/Users/jerzy/Develop/lecture_slides/assignments/rcpp_strat.cpp")
 # Model and data setup
-# eigen_max <- 2
+# dimax <- 2
 load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
 # returns <- returns100
 returns <- returns[, !is.na(returns[NROW(returns), ])]
@@ -29,13 +29,13 @@ nweights <- NCOL(returns)
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel("Visualize Weights for S&P500 Portfolio"),
   
   # create single row with two slider inputs
   fluidRow(
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=4, numericInput("eigen_max", "Number of eigenvalues:", value=5)),
+    column(width=4, numericInput("dimax", "Number of eigenvalues:", value=5)),
     # Input end points interval
     # column(width=4, selectInput("interval", label="End points Interval",
     #             choices=c("weeks", "months", "years"), selected="months")),
@@ -62,7 +62,7 @@ servfun <- function(input, output) {
   weightv <- shiny::reactive({
     # get model parameters from input argument
     # interval <- input$interval
-    eigen_max <- input$eigen_max
+    dimax <- input$dimax
     # look_back <- input$look_back
     # end_stub <- input$end_stub
     # alpha <- input$alpha
@@ -75,13 +75,13 @@ servfun <- function(input, output) {
     # Define startp
     # startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
     # rerun the model
-    weightv <- HighFreq::calc_weights(returns, eigen_max=eigen_max);
+    weightv <- HighFreq::calc_weights(returns, dimax=dimax);
     
     # pnls <- roll_portf_n(excess=returns, 
     #                               returns=returns,
     #                               startp=startp-1,
     #                               endp=endp-1,
-    #                       eigen_max=eigen_max, 
+    #                       dimax=dimax, 
     #                       alpha=alpha,
     #                       min_var=FALSE)
     # pnls[which(is.na(pnls)), ] <- 0
@@ -101,4 +101,4 @@ servfun <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

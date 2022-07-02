@@ -20,7 +20,7 @@ datav <- rnorm(1e3)
 
 
 # Define user interface for application that draws a histogram
-uiface <- fluidPage(
+uifun <- fluidPage(
 
     # Application title
     titlePanel("Example of Controlling Recalculation Using isolate()"),
@@ -36,9 +36,9 @@ uiface <- fluidPage(
                         min=1,
                         max=50,
                         value=30),
-            # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
+            # The Shiny App is recalculated when the actionButton is clicked and the recalcb variable is updated
             h4("Click the button 'Recalculate plot' to Recalculate the Shiny App."),
-            actionButton("re_calculate", "Recalculate plot")
+            actionButton("recalcb", "Recalculate plot")
         ),
 
         # Show a plot of the generated distribution
@@ -55,8 +55,8 @@ serv_er <- function(input, output) {
     output$histo_gram <- shiny::renderPlot({
         # isolate() prevents automatic Recalculation when n_bins is updated
         n_bins <- isolate(input$n_bins)
-        # Model is recalculated when the re_calculate variable is updated
-        input$re_calculate
+        # Model is recalculated when the recalcb variable is updated
+        input$recalcb
         # Calculate breaks based on input$bins from ui.R
         break_s <- seq(min(datav), max(datav), length.out=n_bins+1)
 
@@ -68,5 +68,5 @@ serv_er <- function(input, output) {
 }  # end serv_er
 
 # Run the Shiny application 
-shinyApp(ui=uiface, server=serv_er)
+shinyApp(ui=uifun, server=serv_er)
 

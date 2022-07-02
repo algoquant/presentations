@@ -30,7 +30,7 @@ captiont <- paste("Contrarian Strategy Using the Hampel Filter Over Prices")
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel(captiont),
   
   # fluidRow(
@@ -65,7 +65,7 @@ uiface <- shiny::fluidPage(
     # column(width=2, selectInput("typev", label="Portfolio weights type",
     #                             choices=c("max_sharpe", "min_var", "min_varpca", "rank"), selected="rank")),
     # Input number of eigenvalues for regularized matrix inverse
-    # column(width=2, sliderInput("eigen_max", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
+    # column(width=2, sliderInput("dimax", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
     # Input the shrinkage intensity
     # column(width=2, sliderInput("alpha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
@@ -89,7 +89,7 @@ servfun <- function(input, output) {
   # Recalculate the data and rerun the model
   # datav <- shiny::reactive({
   # Get model parameters from input argument
-  # eigen_max <- isolate(input$eigen_max)
+  # dimax <- isolate(input$dimax)
   # look_lag <- isolate(input$look_lag
   # lambda <- isolate(input$lambda)
   # typev <- isolate(input$typev)
@@ -178,19 +178,19 @@ servfun <- function(input, output) {
     cum_scaled <- cumsum(returns)
 
     # Calculate the rolling median of the cumulative returns
-    mi_n <- roll::roll_min(cum_scaled, width=short_back)
-    ma_x <- roll::roll_max(cum_scaled, width=short_back)
-    mi_n[1:short_back, ] <- 0
-    ma_x[1:short_back, ] <- 1
-    mi_n <- rutils::lagit(mi_n, pad_zeros=FALSE)
-    ma_x <- rutils::lagit(ma_x, pad_zeros=FALSE)
+    minv <- roll::roll_min(cum_scaled, width=short_back)
+    maxv <- roll::roll_max(cum_scaled, width=short_back)
+    minv[1:short_back, ] <- 0
+    maxv[1:short_back, ] <- 1
+    minv <- rutils::lagit(minv, pad_zeros=FALSE)
+    maxv <- rutils::lagit(maxv, pad_zeros=FALSE)
     # Don't divide zscores by the madv because it's redundant since zscores is divided by the mad_zscores.
     # Old code:
     # madv <- TTR::runMAD(returns, n=short_back)
     # madv[1:short_back, ] <- 1
-    # zscores <- ifelse(madv != 0, (closep-mi_n)/madv, 0)
+    # zscores <- ifelse(madv != 0, (closep-minv)/madv, 0)
     # Calculate the zscores as the rolling cumulative returns
-    zscores <- ifelse(ma_x > mi_n, (2*cum_scaled - mi_n - ma_x)/(ma_x - mi_n), 0)
+    zscores <- ifelse(maxv > minv, (2*cum_scaled - minv - maxv)/(maxv - minv), 0)
     # zscores[is.na(zscores) | is.infinite(zscores)] <- 0
     # Standardize the zscores
     # Old code:
@@ -314,4 +314,4 @@ servfun <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

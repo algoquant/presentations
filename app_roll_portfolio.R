@@ -25,7 +25,7 @@ riskf <- 0.03/260
 # lambda <- 0.01
 # model_type <- "max_sharpe"
 # confl <- 0.25
-# eigen_max <- 11
+# dimax <- 11
 # alpha <- 0.01
 
 
@@ -33,16 +33,16 @@ riskf <- 0.03/260
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   # titlePanel(captiont),
   # titlePanel("Rolling Portfolio Optimization Strategy for ETF Portfolio or for Sub-Portfolio of S&P500 Stocks"),
   titlePanel("Rolling Portfolio Optimization Strategy"),
   
   # fluidRow(
-  #   # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
+  #   # The Shiny App is recalculated when the actionButton is clicked and the recalcb variable is updated
   #   column(width=12, 
   #          h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
-  #          actionButton("re_calculate", "Recalculate the Model"))
+  #          actionButton("recalcb", "Recalculate the Model"))
   # ),  # end fluidRow
   
   # Create single row with two slider inputs
@@ -66,7 +66,7 @@ uiface <- shiny::fluidPage(
     column(width=2, sliderInput("exponent", label="Variance exponent:",
                                 min=0.25, max=1.5, value=1.0, step=0.05)),
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=2, sliderInput("eigen_max", label="Number of eigenvalues",
+    column(width=2, sliderInput("dimax", label="Number of eigenvalues",
                                 min=2, max=100, value=11, step=1)),
     # Input the shrinkage intensity
     column(width=2, sliderInput("alpha", label="Shrinkage intensity",
@@ -122,7 +122,7 @@ servfun <- function(input, output) {
              # model_type <- "max_sharpe"
              # look_back <- 8
              # look_back_max <- 71
-             # eigen_max <- 5
+             # dimax <- 5
              # alpha <- 0.01
              # rets <- rets["2001-06-02/"]
            },
@@ -150,7 +150,7 @@ servfun <- function(input, output) {
              # model_type <- "rank"
              # look_back <- 5
              # look_back_max <- 50
-             # eigen_max <- 35
+             # dimax <- 35
              # alpha <- 0.01
            }
     )  # end switch
@@ -283,7 +283,10 @@ servfun <- function(input, output) {
     endp <- endp[endp > (globals$ncols+1)]
     nrows <- NROW(endp)
     # Define startp
+    # Rolling window
     startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
+    # Expanding window
+    # startp <- rep_len(1, nrows)
     
     ## Calculate the number of days in the look_back interval
     # nperiods <- rutils::diffit(endp)
@@ -302,15 +305,15 @@ servfun <- function(input, output) {
   pnls <- shiny::reactive({
     
     look_back <- input$look_back
-    eigen_max <- input$eigen_max
+    dimax <- input$dimax
     lambda <- input$lambda
     model_type <- input$model_type
     alpha <- input$alpha
     confl <- input$confl
     trend <- as.numeric(input$trend)
     
-    # Model is recalculated when the re_calculate variable is updated
-    # input$re_calculate
+    # Model is recalculated when the recalcb variable is updated
+    # input$recalcb
     
     rets <- datav()$rets
     excess <- excess()
@@ -356,7 +359,7 @@ servfun <- function(input, output) {
                                   endp=endp-1,
                                   lambda=lambda,
                                   confl=confl,
-                                  eigen_max=eigen_max,
+                                  dimax=dimax,
                                   alpha=alpha,
                                   method=model_type,
                                   coeff=trend)
@@ -374,7 +377,7 @@ servfun <- function(input, output) {
       #                                startp=sp_new-1,
       #                                endp=ep_new-1,
       #                                confl=confl,
-      #                                eigen_max=eigen_max, 
+      #                                dimax=dimax, 
       #                                alpha=alpha, 
       #                                model_type=model_type,
       #                                coeff=trend)
@@ -394,7 +397,7 @@ servfun <- function(input, output) {
                                    endp=endp-1,
                                    lambda=lambda,
                                    confl=confl,
-                                   eigen_max=eigen_max,
+                                   dimax=dimax,
                                    alpha=alpha,
                                    method=model_type,
                                    coeff=trend)
@@ -431,4 +434,4 @@ servfun <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

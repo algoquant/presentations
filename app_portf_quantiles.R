@@ -16,7 +16,7 @@ library(rutils)
 # Model and data setup
 # Source the model function
 # Source("/Users/jerzy/Develop/lecture_slides/scripts/roll_portf_new.R")
-# eigen_max <- 2
+# dimax <- 2
 load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
 rets <- returns100["2000/"]
 symbolv <- colnames(rets)
@@ -51,14 +51,14 @@ quantilev <- round(percent*nstocks)
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel("Momentum Strategy for S&P500 Portfolio"),
   
   fluidRow(
-    # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
+    # The Shiny App is recalculated when the actionButton is clicked and the recalcb variable is updated
     column(width=12, 
            h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
-           actionButton("re_calculate", "Recalculate the Model"))
+           actionButton("recalcb", "Recalculate the Model"))
   ),  # end fluidRow
   
   # Create single row with two slider inputs
@@ -78,7 +78,7 @@ uiface <- shiny::fluidPage(
     # column(width=2, selectInput("typev", label="Portfolio weights type",
     #                             choices=c("max_sharpe", "min_var", "min_varpca", "rank"), selected="rank")),
     # Input number of eigenvalues for regularized matrix inverse
-    # column(width=2, sliderInput("eigen_max", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
+    # column(width=2, sliderInput("dimax", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
     # Input the shrinkage intensity
     # column(width=2, sliderInput("alpha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
@@ -103,7 +103,7 @@ servfun <- function(input, output) {
   datav <- shiny::reactive({
     # Get model parameters from input argument
     interval <- isolate(input$interval)
-    # eigen_max <- isolate(input$eigen_max)
+    # dimax <- isolate(input$dimax)
     look_back <- isolate(input$look_back)
     # look_lag <- isolate(input$look_lag
     # lambda <- isolate(input$lambda)
@@ -112,8 +112,8 @@ servfun <- function(input, output) {
     percent <- isolate(input$percent)
     coeff <- as.numeric(isolate(input$coeff))
     bid_offer <- isolate(input$bid_offer)
-    # Model is recalculated when the re_calculate variable is updated
-    input$re_calculate
+    # Model is recalculated when the recalcb variable is updated
+    input$recalcb
     
     # Define end points
     endp <- rutils::calc_endpoints(rets, interval=interval)
@@ -192,4 +192,4 @@ servfun <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

@@ -20,16 +20,16 @@ library(HighFreq)
 
 
 # Define user interface for application that draws a histogram
-uiface <- fluidPage(
+uifun <- fluidPage(
 
     # Application title
     titlePanel("Rolling Portfolio Optimization Strategy for a S&P500 Sub-portfolio"),
 
     fluidRow(
-        # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
+        # The Shiny App is recalculated when the actionButton is clicked and the recalcb variable is updated
         column(width=8, 
                h4("Click the button 'Recalculate plot' to Recalculate the Shiny App."),
-               actionButton("re_calculate", "Recalculate the Model"))
+               actionButton("recalcb", "Recalculate the Model"))
     ),  # end fluidRow
     
     fluidRow(
@@ -37,7 +37,7 @@ uiface <- fluidPage(
                                     min=5, max=111, value=11, step=1)),
         column(width=2, sliderInput("alpha", label="Shrinkage intensity:",
                     min=0, max=1, value=0, step=0.01)),
-        column(width=2, selectInput("eigen_max", label="max-eigen:",
+        column(width=2, selectInput("dimax", label="max-eigen:",
                     choices=2:10, selected=3)),
         column(width=2, selectInput("lagg", label="lag:",
                     choices=2:10, selected=2))
@@ -66,9 +66,9 @@ serv_er <- function(input, output) {
     indeks <- xts::xts(cumsum(returns %*% rep(1/sqrt(ncols), ncols)), index(returns))
     
     # Define the strategy function
-    run_strategy <- function(returns, look_back, alpha, eigen_max, lagg) {
+    run_strategy <- function(returns, look_back, alpha, dimax, lagg) {
         # browser()
-        # cat("look_back =", look_back, "\nalpha =", alpha, "\neigen_max =", eigen_max, "\nlagg =", lagg, "\n")
+        # cat("look_back =", look_back, "\nalpha =", alpha, "\ndimax =", dimax, "\nlagg =", lagg, "\n")
         startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
         # Perform backtest in RcppArmadillo
         pnls <- HighFreq::back_test(excess=returns, 
@@ -76,7 +76,7 @@ serv_er <- function(input, output) {
                                      startp=startp-1,
                                      endp=endp-1,
                                      alpha=alpha,
-                                     eigen_max=eigen_max)
+                                     dimax=dimax)
         xts(cumsum(pnls), order.by=index(returns))
     }  # end run_strategy
     
@@ -85,13 +85,13 @@ serv_er <- function(input, output) {
         # Extract from input the strategy model parameters
         look_back <- isolate(input$look_back)
         alpha <- isolate(input$alpha)
-        eigen_max <- isolate(as.numeric(input$eigen_max))
+        dimax <- isolate(as.numeric(input$dimax))
         lagg <- isolate(as.numeric(input$lagg))
-        # Model is recalculated when the re_calculate variable is updated
-        input$re_calculate
+        # Model is recalculated when the recalcb variable is updated
+        input$recalcb
         
         # Run the trading strategy and plot it
-        pnls <- run_strategy(returns, look_back, alpha, eigen_max, lagg)
+        pnls <- run_strategy(returns, look_back, alpha, dimax, lagg)
         pnls <- cbind(pnls, indeks*max(pnls)/max(indeks))
         colnames(pnls) <- c("Strategy", "Index")
         pnls[c(1, endp), ]
@@ -114,5 +114,5 @@ serv_er <- function(input, output) {
 }
 
 # Run the Shiny application 
-shinyApp(ui = uiface, server = serv_er)
+shinyApp(ui = uifun, server = serv_er)
 

@@ -47,9 +47,9 @@ endp <- endp[endp > (ncols+1)]
 nrows <- NROW(endp)
 
 # Define the strategy function
-run_strategy <- function(excess, returns, typev, look_back, alpha, eigen_max, quantilev, coeff, bid_offer, lagg) {
+run_strategy <- function(excess, returns, typev, look_back, alpha, dimax, quantilev, coeff, bid_offer, lagg) {
   # browser()
-# cat("look_back =", look_back, "\nalpha =", alpha, "\neigen_max =", eigen_max, "\nlagg =", lagg, "\n")
+# cat("look_back =", look_back, "\nalpha =", alpha, "\ndimax =", dimax, "\nlagg =", lagg, "\n")
   startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
   # Perform backtest in RcppArmadillo
   pnls <- HighFreq::back_test(excess=excess, 
@@ -58,7 +58,7 @@ run_strategy <- function(excess, returns, typev, look_back, alpha, eigen_max, qu
                                endp=endp-1,
                                typev=typev,
                                alpha=alpha,
-                               eigen_max=eigen_max,
+                               dimax=dimax,
                                quantilev=quantilev,
                                coeff=coeff,
                                bid_offer=bid_offer)
@@ -95,10 +95,10 @@ inputPanel(
               selected="rank"),
   sliderInput("look_back", label="lookback (weeks):",
               min=2, max=75, value=55, step=1),
-  # actionButton("re_calculate", "Recalculate z-scores"),
+  # actionButton("recalcb", "Recalculate z-scores"),
   sliderInput("alpha", label="Shrinkage intensity:",
               min=0, max=1, value=0.8, step=0.01),
-  sliderInput("eigen_max", label="max eigenvalues:",
+  sliderInput("dimax", label="max eigenvalues:",
               min=2, max=20, value=15, step=1),
   sliderInput("quantilev", label="quantile:",
               min=0, max=0.5, value=0.1, step=0.01),
@@ -108,7 +108,7 @@ inputPanel(
               choices=c(-1, 1), selected=1),
   sliderInput("lagg", label="lag:",
                min=1, max=10, value=1, step=1),
-  actionButton("re_calculate", "Recalculate the Model")
+  actionButton("recalcb", "Recalculate the Model")
 )  # end inputPanel
 
 # chart_Series(xts(cumsum(rowMeans(returns)), index(returns)),
@@ -119,17 +119,17 @@ pnls <- shiny::reactive({
   typev <- isolate(input$typev)
   look_back <- isolate(input$look_back)
   alpha <- isolate(input$alpha)
-  eigen_max <- isolate(input$eigen_max)
+  dimax <- isolate(input$dimax)
   quantilev <- isolate(input$quantilev)
   bid_offer <- isolate(input$bid_offer)
   coeff <- isolate(as.numeric(input$coeff))
   lagg <- isolate(input$lagg)
-  # Model is re-calculated when the re_calculate variable is updated
-  input$re_calculate
+  # Model is re-calculated when the recalcb variable is updated
+  input$recalcb
   
   # Run the trading strategy
   cat("Please Wait While Model is Running...\n")
-  pnls <- run_strategy(excess, returns, typev, look_back, alpha, eigen_max, quantilev, coeff, bid_offer, lagg)
+  pnls <- run_strategy(excess, returns, typev, look_back, alpha, dimax, quantilev, coeff, bid_offer, lagg)
   cat("Model finished.\n")
   pnls
 })  # end reactive code

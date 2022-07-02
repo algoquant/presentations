@@ -41,9 +41,9 @@ endp <- endp[endp > (ncols+1)]
 nrows <- NROW(endp)
 
 # Define the strategy function
-run_strategy <- function(returns, typev, look_back, alpha, eigen_max, quantilev, coeff, bid_offer, lagg) {
+run_strategy <- function(returns, typev, look_back, alpha, dimax, quantilev, coeff, bid_offer, lagg) {
   # browser()
-# cat("look_back =", look_back, "\nalpha =", alpha, "\neigen_max =", eigen_max, "\nlagg =", lagg, "\n")
+# cat("look_back =", look_back, "\nalpha =", alpha, "\ndimax =", dimax, "\nlagg =", lagg, "\n")
   startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
   # Perform backtest in RcppArmadillo
   pnls <- HighFreq::back_test(excess=returns, 
@@ -52,7 +52,7 @@ run_strategy <- function(returns, typev, look_back, alpha, eigen_max, quantilev,
                                endp=endp-1,
                                typev=typev,
                                alpha=alpha,
-                               eigen_max=eigen_max,
+                               dimax=dimax,
                                quantilev=quantilev,
                                coeff=coeff,
                                bid_offer=bid_offer)
@@ -84,10 +84,10 @@ inputPanel(
               selected="max_sharpe"),
   sliderInput("look_back", label="lookback (weeks):",
               min=2, max=75, value=55, step=1),
-  # actionButton("re_calculate", "Recalculate z-scores"),
+  # actionButton("recalcb", "Recalculate z-scores"),
   sliderInput("alpha", label="Shrinkage intensity:",
               min=0, max=1, value=0.8, step=0.01),
-  sliderInput("eigen_max", label="max eigenvalues:",
+  sliderInput("dimax", label="max eigenvalues:",
               min=2, max=20, value=15, step=1),
   sliderInput("quantilev", label="quantile:",
               min=0, max=0.5, value=0.1, step=0.01),
@@ -109,14 +109,14 @@ renderPlot({
   typev <- input$typev
   look_back <- input$look_back
   alpha <- input$alpha
-  eigen_max <- input$eigen_max
+  dimax <- input$dimax
   quantilev <- input$quantilev
   bid_offer <- input$bid_offer
   coeff <- as.numeric(input$coeff)
   lagg <- input$lagg
 
   # Run the trading strategy and plot it
-  pnls <- run_strategy(returns, typev, look_back, alpha, eigen_max, quantilev, coeff, bid_offer, lagg)
+  pnls <- run_strategy(returns, typev, look_back, alpha, dimax, quantilev, coeff, bid_offer, lagg)
   chart_Series(pnls, name="Cumulative PnL of a Stock Momentum Strategy")
   # plot(cumsum(rnorm(1e2)), main="Cumulative PnL of a Stock Momentum Strategy")
 

@@ -20,7 +20,7 @@ source(file="/Users/jerzy/Develop/R/scripts/technical_indicators.R")
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel("Strategy with Static Betas Times OHLC Technical Indicators"),
   
   # create single row with four slider inputs
@@ -88,4 +88,4 @@ servfun <- shiny::shinyServer(function(input, output) {
 })  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

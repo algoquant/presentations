@@ -56,7 +56,7 @@ symbolv <- unique(rutils::get_name(colnames(com_bo)))
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel("Contrarian Strategy Using OHLC Technical Indicators"),
   
   # Create row with for symbols
@@ -271,4 +271,4 @@ servfun <- shiny::shinyServer(function(input, output) {
 })  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

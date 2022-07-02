@@ -21,7 +21,7 @@ library(dygraphs)
 
 
 ## Define the User Interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel("View mtcars Data Frame"),
   fluidRow(
     # Input stock symbol
@@ -133,5 +133,5 @@ servfun <- function(input, output) {
 
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)
 

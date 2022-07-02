@@ -84,7 +84,7 @@ predictor <- matrix(dates, nc=1)
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel(paste(score, "Strategy Using OHLC Technical Indicators")),
   
   # create single row with four slider inputs
@@ -246,4 +246,4 @@ servfun <- shiny::shinyServer(function(input, output) {
 })  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

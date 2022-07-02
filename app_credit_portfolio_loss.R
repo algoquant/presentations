@@ -31,7 +31,7 @@ lossdistr <- function(x, defthresh=-2, rho=0.1, lgd=0.4) {
 ##############################
 ## Define the user interface
 
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel("Portfolio Loss Distribution"),
   
   # Create four slider inputs with parameters to lossdistr()
@@ -137,4 +137,4 @@ servfun <- function(input, output) {
 ##############################
 ## Return a Shiny app object
 
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

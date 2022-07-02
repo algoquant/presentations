@@ -19,7 +19,7 @@ riskf <- 0.03/260
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   # titlePanel(captiont),
   # titlePanel("Portfolio Optimization Strategy Out-of-Sample for ETF Portfolio or for Sub-Portfolio of S&P500 Stocks"),
   titlePanel("Portfolio Optimization Strategy Out-of-Sample"),
@@ -29,7 +29,7 @@ uiface <- shiny::fluidPage(
     # Input choice of data
     column(width=2, selectInput("datas", label="Data",
                                 choices=c("etf", "sp500"), selected="sp500")),
-    column(width=2, sliderInput("eigen_max", label="Number of eigenvalues",
+    column(width=2, sliderInput("dimax", label="Number of eigenvalues",
                                 min=2, max=100, value=11, step=1)),
     # Input the shrinkage intensity
     column(width=2, sliderInput("alpha", label="Shrinkage intensity",
@@ -101,14 +101,14 @@ servfun <- function(input, output) {
     retsos <- rets["2011/"]
     retsx <- (retsis - riskf)
     
-    eigen_max <- input$eigen_max
+    dimax <- input$dimax
     alpha <- input$alpha
     
     # Calculate regularized inverse of covariance matrix
     eigenvec <- globals$eigenvec
     eigenval <- globals$eigenval
-    covinv <- eigenvec[, 1:eigen_max] %*%
-      (t(eigenvec[, 1:eigen_max]) / eigenval[1:eigen_max])
+    covinv <- eigenvec[, 1:dimax] %*%
+      (t(eigenvec[, 1:dimax]) / eigenval[1:dimax])
     
     # Shrink the in-sample returns to their mean
     retsx <- colMeans(retsx)
@@ -156,4 +156,4 @@ servfun <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

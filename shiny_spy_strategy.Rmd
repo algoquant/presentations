@@ -77,7 +77,7 @@ run_strategy <- function(returns, zscores, threshold) {
 inputPanel(
   selectInput("look_back", label="lookback value:",
               choices=look_backs, selected=look_backs[4]),
-  # actionButton("re_calculate", "Recalculate z-scores"),
+  # actionButton("recalcb", "Recalculate z-scores"),
   sliderInput("threshold", label="threshold value:",
               min=0.01, max=5.0, value=0.5, step=0.01)
 )  # end inputPanel

@@ -7,7 +7,7 @@
 ##############################
 
 # Best parameters - these are stale and don't work
-# typev interval look_back eigen_max alpha
+# typev interval look_back dimax alpha
 # max_sharpe  days 15-35  6-7
 # min_var  days 15-35  6-7
 # max_sharpe  weeks 3-6  5-9
@@ -121,14 +121,14 @@ indeks <- cumsum(indeks)
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel("Rolling Portfolio Optimization Strategy for ETFs"),
   
   fluidRow(
-    # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
+    # The Shiny App is recalculated when the actionButton is clicked and the recalcb variable is updated
     column(width=12, 
            h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
-           actionButton("re_calculate", "Recalculate the Model"))
+           actionButton("recalcb", "Recalculate the Model"))
   ),  # end fluidRow
   
   # Create single row with two slider inputs
@@ -145,7 +145,7 @@ uiface <- shiny::fluidPage(
     column(width=2, selectInput("model_type", label="Weights type",
                                 choices=c("max_sharpe", "max_sharpe_median", "min_var", "min_varpca", "rank", "rankrob", "quantilev"), selected="max_sharpe")),
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=2, numericInput("eigen_max", "Number of eigenvalues", value=6)),
+    column(width=2, numericInput("dimax", "Number of eigenvalues", value=6)),
     # Input the shrinkage intensity
     column(width=2, sliderInput("alpha", label="Shrinkage intensity",
                                 min=0.01, max=0.99, value=0.01, step=0.05)),
@@ -170,15 +170,15 @@ servfun <- function(input, output) {
   datav <- shiny::reactive({
     # get model parameters from input argument
     interval <- isolate(input$interval)
-    eigen_max <- isolate(input$eigen_max)
+    dimax <- isolate(input$dimax)
     look_back <- isolate(input$look_back)
     lambda <- isolate(input$lambda)
     model_type <- isolate(input$model_type)
     alpha <- isolate(input$alpha)
     probv <- isolate(input$probv)
     coeff <- as.numeric(isolate(input$coeff))
-    # Model is recalculated when the re_calculate variable is updated
-    input$re_calculate
+    # Model is recalculated when the recalcb variable is updated
+    input$recalcb
 
     # Define end points
     endp <- rutils::calc_endpoints(returns, interval=interval)
@@ -206,7 +206,7 @@ servfun <- function(input, output) {
                                  startp=startp-1,
                                  endp=endp-1,
                                  probv=probv,
-                                 eigen_max=eigen_max, 
+                                 dimax=dimax, 
                                  alpha=alpha, 
                                  model_type=model_type,
                                  coeff=coeff)
@@ -232,4 +232,4 @@ servfun <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

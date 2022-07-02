@@ -22,9 +22,14 @@ library(dygraphs)
 # closep <- log(rutils::etfenv$VTI$VTI.Close)
 # volumes <- rutils::etfenv$VTI$VTI.Volume
 
-## SPY ETF 1-minute bars - works really well !!!
-symbol <- "SPY"
-load(file="/Users/jerzy/Develop/data/spy_ticks.RData")
+## SPY ETF 1-minute bars - works well
+symbol <- "SPY bars"
+spyticks <- HighFreq::SPY[, c(4, 5)]
+colnames(spyticks) <- c("price", "size")
+
+## SPY ETF ticks - works well
+# symbol <- "SPY ticks"
+# load(file="/Users/jerzy/Develop/data/spy_ticks.RData")
 # closep <- spyticks$price
 # volumes <- spyticks$size
 
@@ -96,16 +101,18 @@ uifun <- shiny::fluidPage(
     #                             choices=c("days", "weeks", "months", "years"), selected="days")),
     # Input minimum trade size
     column(width=2, sliderInput("minsize", label="Minimum trade size:",
-                                min=1, max=maxsizem, value=(maxsizem %/% 2), step=1)),
+                                min=1, max=maxsizem, value=(maxsizem), step=1)),
     # Input maximum trade size
     column(width=2, sliderInput("maxsize", label="Maximum trade size:",
-                                min=100, max=maxsize, value=(maxsize %/% 2), step=1)),
+                                min=100, max=maxsize, value=(maxsize), step=1)),
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Lookback", min=3, max=100, value=60, step=1)),
+    # column(width=2, sliderInput("look_back", label="Lookback", min=3, max=100, value=35, step=1)),
+    # Input lambda decay parameter
+    column(width=3, sliderInput("lambda", label="lambda:", min=0.01, max=0.99, value=0.2, step=0.01)),
     # Input lag trade parameter
-    column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=2, step=1)),
+    column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=3, step=1)),
     # Input threshold interval
-    column(width=2, sliderInput("threshold", label="threshold", min=0.1, max=1.0, value=0.1, step=0.1))
+    column(width=2, sliderInput("threshold", label="threshold", min=0.1, max=1.0, value=0.5, step=0.1))
     # Input the weight decay parameter
     # column(width=2, sliderInput("lambda", label="Weight decay:",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
@@ -140,14 +147,15 @@ servfun <- function(input, output) {
     # Get model parameters from input argument
     minsize <- input$minsize
     maxsize <- input$maxsize
-    
+
     # Remove prices with small size
-    dataticks <- spyticks[(spyticks$size >= minsize), ]
+    # dataticks <- spyticks[(spyticks$size >= minsize), ]
     # Remove prices with small size
-    dataticks <- dataticks[(dataticks$size <= maxsize), ]
-    
-    dataticks
-    
+    # dataticks <- dataticks[(dataticks$size <= maxsize), ]
+
+    # dataticks
+    spyticks
+
   })  # end reactive code
   
   
@@ -155,36 +163,48 @@ servfun <- function(input, output) {
   zscores <- shiny::reactive({
     cat("Calculating z-scores \n")
     # Get model parameters from input argument
-    look_back <- input$look_back
-    # look_back <- isolate(input$look_back)
-    # lagg <- isolate(input$lagg)
+    lambda <- input$lambda
+    # look_back <- input$look_back
+    lagg <- input$lagg
     # coeff <- as.numeric(isolate(input$coeff))
     # bid_offer <- isolate(input$bid_offer)
     # Model is recalculated when the recalcb variable is updated
     # input$recalcb
+    
     closep <- dataticks()$price
-
+    # closep <- spyticks$price
+    
+    # Calculate a matrix of lagged prices
+    retl <- sapply(lagg:0, rutils::lagit, input=as.numeric(closep))
+    # Calculate a matrix of price changes
+    retl <- (retl - retl[, 1])
+    retl[1:lagg, ] <- 0
     # Calculate the zscores
-    medianv <- roll::roll_median(closep, width=look_back)
+    # medianv <- roll::roll_median(closep, width=look_back)
     # medianv <- TTR::runMedian(closep, n=look_back)
-    medianv[1:look_back, ] <- 1
+    # medianv[1:look_back, ] <- 1
     # madv <- TTR::runMAD(rets, n=look_back)
     # madv[1:look_back, ] <- 1
     # zscores <- ifelse(madv != 0, (closep-medianv)/madv, 0)
     # Don't divide zscores by the madv because it's redundant since zscores is divided by the madv.
-    zscores <- (closep-medianv)
+    # zscores <- (closep-medianv)
     # zscores[1:look_back, ] <- 0
-    madv <- HighFreq::roll_var(matrix(zscores), look_back=10*look_back, method="nonparametric")
-    # madv <- TTR::runMAD(zscores, n=10*look_back)
-    madv[1:(10*look_back), ] <- 0
-    zscores <- ifelse(madv != 0, zscores/madv, 0)
-
+    
+    # Calculate the rolling variance
+    # madv <- sqrt(drop(HighFreq::roll_var(retl[, lagg, drop=FALSE], look_back=look_back, method="nonparametric")))
+    # madv[1:look_back] <- 0
+    madv <- sqrt(drop(HighFreq::run_var(closep, lambda=lambda)))
+    # zscores <- ifelse(madv != 0, retl/madv, 0)
+    # Calculate the zscores
+    zscores <- retl/madv
+    zscores[is.na(zscores)] <- 0
+    zscores[is.infinite(zscores)] <- 0
+    
     # Plot histogram of zscores
     # range(zscores)
-    # zscores <- zscores[zscores > quantile(zscores, 0.05)]
-    # zscores <- zscores[zscores < quantile(zscores, 0.95)]
-    # x11(width=6, height=5)
-    # hist(zscores, breaks=500, xlim=c(quantile(zscores, 0.01), quantile(zscores, 0.99)), main=paste("Z-scores for", "look_back =", look_back))
+    # ql <- quantile(zscores, 0.01)
+    # qh <- quantile(zscores, 0.99)
+    # hist(zscores[(zscores > ql) & (zscores < qh)], breaks=30, xlim=c(ql, qh), main=paste("Z-scores for", "look_back =", look_back))
 
     zscores
     
@@ -212,7 +232,7 @@ servfun <- function(input, output) {
   #   # Don't divide zscores by the madv because it's redundant since zscores is divided by the madv.
   #   zscores <- (volumes-medianv)
   #   # zscores[1:look_back, ] <- 0
-  #   madv <- sqrt(HighFreq::roll_var(matrix(zscores), look_back=10*look_back, method="nonparametric"))
+  #   madv <- HighFreq::roll_var(matrix(zscores), look_back=10*look_back, method="nonparametric")
   #   # madv <- TTR::runMAD(zscores, n=10*look_back)
   #   madv[1:(10*look_back), ] <- 0
   #   zscores <- ifelse(madv != 0, zscores/madv, 0)
@@ -222,10 +242,10 @@ servfun <- function(input, output) {
   #   # zscores <- zscores[zscores > quantile(zscores, 0.05)]
   #   # zscores <- zscores[zscores < quantile(zscores, 0.95)]
   #   # x11(width=6, height=5)
-  #   # hist(zscores, breaks=5000, xlim=c(quantile(zscores, 0.01), quantile(zscores, 0.95)), main=paste("Z-scores for", "look_back =", look_back))
+  #   # hist(zscores, breaks=5000, xlim=c(ql, quantile(zscores, 0.95)), main=paste("Z-scores for", "look_back =", look_back))
   #   
   #   zscores
-  #   
+    
   # })  # end reactive code
   
   
@@ -248,6 +268,7 @@ servfun <- function(input, output) {
     zscores <- zscores()
     # zscorev <- zscorev()
     closep <- dataticks()$price
+    # closep <- spyticks$price
     nrows <- NROW(closep)
     rets <- rutils::diffit(closep)
     
@@ -255,28 +276,30 @@ servfun <- function(input, output) {
     # half_window <- look_back %/% 2
     
     # Determine if the zscores have exceeded the threshold
-    indic <- rep(0, nrows)
+    # indic <- rep(0, nrows)
     # indic[1] <- 0
     # indic <- ifelse((zscores > threshold) & (zscorev > threshold), -1, indic)
     # indic <- ifelse((zscores < (-threshold)) & (zscorev > threshold), 1, indic)
-    indic <- ifelse((zscores > threshold), -1, indic)
-    indic <- ifelse((zscores < (-threshold)), 1, indic)
+    # indic <- ifelse((indicsum = lagg), -1, indic)
+    # indic <- ifelse((indicsum = lagg), 1, indic)
     # Calculate number of consecutive indicators in same direction.
     # This is predictored to avoid trading on microstructure noise.
     # indic <- ifelse(indic == indic_lag, indic, indic)
-    indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
-    indic_sum[1:lagg] <- 0
+    # indicsum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
+    # indicsum[1:lagg] <- 0
     
-    # Calculate posit and pnls from indic_sum.
+    # Calculate posit and pnls from indicsum.
     # posit <- rep(NA_integer_, nrows)
     # posit[1] <- 0
     # threshold <- 3*mad(zscores)
-    # Flip position only if the indic_sum is at least equal to lagg.
+    # Flip position only if the indicsum is at least equal to lagg.
     # Otherwise keep previous position.
     posit <- rep(NA_integer_, nrows)
     posit[1] <- 0
-    posit <- ifelse(indic_sum >= lagg, 1, posit)
-    posit <- ifelse(indic_sum <= (-lagg), -1, posit)
+    indicsum <- rowSums(zscores < (-threshold))
+    posit <- ifelse(indicsum == lagg, 1, posit)
+    indicsum <- rowSums(zscores > threshold)
+    posit <- ifelse(indicsum == lagg, -1, posit)
     # posit <- ifelse(zscores > threshold, -1, posit)
     # posit <- ifelse(zscores < (-threshold), 1, posit)
     posit <- zoo::na.locf(posit, na.rm=FALSE)

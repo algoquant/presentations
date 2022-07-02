@@ -46,15 +46,15 @@ symbol <- rutils::get_name(colnames(taq)[1])
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel(paste(symbol, "High Frequency Strategy")),
   
   # create single row with four slider inputs
   fluidRow(
-    # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
+    # The Shiny App is recalculated when the actionButton is clicked and the recalcb variable is updated
     column(width=12, 
            h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
-           actionButton("re_calculate", "Recalculate the Model")),
+           actionButton("recalcb", "Recalculate the Model")),
     # Input stock symbol
     # column(width=2, selectInput("symbol", label="Symbol",
     #                             choices=symbolv, selected=symbol)),
@@ -95,8 +95,8 @@ servfun <- shiny::shinyServer(function(input, output) {
     # tri_m <- input$tri_m
     lot_s <- isolate(input$lot_s)
     coeff <- as.numeric(isolate(input$coeff))
-    # Model is recalculated when the re_calculate variable is updated
-    input$re_calculate
+    # Model is recalculated when the recalcb variable is updated
+    input$recalcb
     
     # Prepare data
     # taq <- taq[taq$SIZE > lot_s]
@@ -177,4 +177,4 @@ servfun <- shiny::shinyServer(function(input, output) {
 })  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

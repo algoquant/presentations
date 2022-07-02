@@ -58,7 +58,7 @@ boot_data <- mclapply(1:nboot, function(x) {
 ##############################
 ## Define the user interface
 
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel("Terminal Wealth Distribution of a VTI and IEF Portfolio"),
   
   # Create four slider inputs with parameters to lossdistr()
@@ -141,4 +141,4 @@ servfun <- function(input, output) {
 ##############################
 ## Return a Shiny app object
 
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

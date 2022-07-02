@@ -25,14 +25,14 @@ captiont <- "Log Wealth of Risk Parity vs Fixed Dollar Allocations for VTI and I
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel(captiont),
   
   # fluidRow(
-    # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
+    # The Shiny App is recalculated when the actionButton is clicked and the recalcb variable is updated
     # column(width=12,
     #        h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
-    #        actionButton("re_calculate", "Recalculate the Model"))
+    #        actionButton("recalcb", "Recalculate the Model"))
   # ),  # end fluidRow
   
   # Create single row with two slider inputs
@@ -132,4 +132,4 @@ servfun <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

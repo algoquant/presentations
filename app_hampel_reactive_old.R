@@ -29,7 +29,7 @@ captiont <- paste("Contrarian Strategy for", symbol, "Using the Hampel Filter Ov
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel(captiont),
   
   # fluidRow(
@@ -64,7 +64,7 @@ uiface <- shiny::fluidPage(
     # column(width=2, selectInput("typev", label="Portfolio weights type",
     #                             choices=c("max_sharpe", "min_var", "min_varpca", "rank"), selected="rank")),
     # Input number of eigenvalues for regularized matrix inverse
-    # column(width=2, sliderInput("eigen_max", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
+    # column(width=2, sliderInput("dimax", "Number of eigenvalues", min=2, max=20, value=15, step=1)),
     # Input the shrinkage intensity
     # column(width=2, sliderInput("alpha", label="Shrinkage intensity",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
@@ -88,7 +88,7 @@ servfun <- function(input, output) {
   # Recalculate the data and rerun the model
   # datav <- shiny::reactive({
   # Get model parameters from input argument
-  # eigen_max <- isolate(input$eigen_max)
+  # dimax <- isolate(input$dimax)
   # look_lag <- isolate(input$look_lag
   # lambda <- isolate(input$lambda)
   # typev <- isolate(input$typev)
@@ -281,4 +281,4 @@ servfun <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

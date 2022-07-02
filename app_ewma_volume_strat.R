@@ -21,14 +21,14 @@ captiont <- paste("EWMA Moving Average Strategy Using the Trading Volumes")
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel(captiont),
 
   fluidRow(
-    # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
+    # The Shiny App is recalculated when the actionButton is clicked and the recalcb variable is updated
     # column(width=2,
            # h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
-           # actionButton("re_calculate", "Click to Recalculate")),
+           # actionButton("recalcb", "Click to Recalculate")),
     # Input stock symbol
     column(width=2, selectInput("symbol", label="Symbol",
                                 choices=c("SPY", rutils::etfenv$symbolv), selected="VTI")),
@@ -108,7 +108,7 @@ servfun <- function(input, output) {
     look_back <- input$look_back
     lagg <- input$lagg
     # coeff <- input$coeff
-    # input$re_calculate
+    # input$recalcb
     
     # Get the data
     returns <- datav()[, 1]
@@ -226,4 +226,4 @@ servfun <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

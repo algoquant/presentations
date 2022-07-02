@@ -31,20 +31,20 @@ indeks <- xts(cumsum(returns %*% rep(1/sqrt(nweights), nweights)), index(returns
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel("Rolling Portfolio Optimization Strategy for S&P500 Sub-portfolio"),
   
   fluidRow(
-    # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
+    # The Shiny App is recalculated when the actionButton is clicked and the recalcb variable is updated
     column(width=12, 
            h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
-           actionButton("re_calculate", "Recalculate the Model"))
+           actionButton("recalcb", "Recalculate the Model"))
   ),  # end fluidRow
   
   # Create single row with two slider inputs
   fluidRow(
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=4, numericInput("eigen_max", "Number of eigenvalues:", value=45)),
+    column(width=4, numericInput("dimax", "Number of eigenvalues:", value=45)),
     # Input end points interval
     column(width=4, selectInput("interval", label="End points Interval",
                 choices=c("weeks", "months", "years"), selected="months")),
@@ -71,12 +71,12 @@ servfun <- function(input, output) {
   datav <- shiny::reactive({
     # Get model parameters from input argument
     interval <- isolate(input$interval)
-    eigen_max <- isolate(input$eigen_max)
+    dimax <- isolate(input$dimax)
     alpha <- isolate(input$alpha)
     look_back <- isolate(input$look_back)
     # end_stub <- input$end_stub
-    # Model is recalculated when the re_calculate variable is updated
-    input$re_calculate
+    # Model is recalculated when the recalcb variable is updated
+    input$recalcb
     
     # Define end points
     endp <- rutils::calc_endpoints(returns, interval=interval)
@@ -90,10 +90,10 @@ servfun <- function(input, output) {
                         returns=returns,
                         startp=startp-1,
                         endp=endp-1,
-                        eigen_max=eigen_max, 
+                        dimax=dimax, 
                         alpha=alpha)
     pnls[which(is.na(pnls)), ] <- 0
-    # pnls <- back_test_r(excess, returns, startp, endp, alpha, eigen_max, end_stub)
+    # pnls <- back_test_r(excess, returns, startp, endp, alpha, dimax, end_stub)
     # pnls <- sd(rutils::diffit(indeks))*pnls/sd(rutils::diffit(pnls))
     pnls <- cumsum(pnls)
     pnls <- cbind(pnls, indeks)
@@ -114,4 +114,4 @@ servfun <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

@@ -49,7 +49,7 @@ captiont <- paste("Running Z-score of SVXY Prices Versus VXX app_runreg_minutes_
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel(captiont),
 
   fluidRow(
@@ -302,4 +302,4 @@ servfun <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

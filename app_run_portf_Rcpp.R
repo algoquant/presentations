@@ -47,20 +47,20 @@ captiont <- paste("Running Portfolio Strategy for", modelcap)
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel(captiont),
   
   fluidRow(
-    # The Shiny App is recalculated when the actionButton is clicked and the re_calculate variable is updated
+    # The Shiny App is recalculated when the actionButton is clicked and the recalcb variable is updated
     column(width=12, 
            h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
-           actionButton("re_calculate", "Recalculate the Model"))
+           actionButton("recalcb", "Recalculate the Model"))
   ),  # end fluidRow
   
   # Create single row with two slider inputs
   fluidRow(
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=3, sliderInput("eigen_max", label="Number of eigenvalues::", min=2, max=20, value=4, step=1)),
+    column(width=3, sliderInput("dimax", label="Number of eigenvalues::", min=2, max=20, value=4, step=1)),
     column(width=3, sliderInput("lambda", label="lambda:", min=0.98, max=0.999, value=0.99, step=0.001))
     # Input end points interval
     # column(width=4, selectInput("interval", label="End points Interval",
@@ -88,13 +88,13 @@ servfun <- function(input, output) {
   pnls <- shiny::reactive({
     # Get model parameters from input argument
     # interval <- isolate(input$interval)
-    # eigen_max <- isolate(input$eigen_max)
+    # dimax <- isolate(input$dimax)
     # alpha <- isolate(input$alpha)
-    eigen_max <- input$eigen_max
+    dimax <- input$dimax
     lambda <- input$lambda
     # end_stub <- input$end_stub
-    # Model is recalculated when the re_calculate variable is updated
-    input$re_calculate
+    # Model is recalculated when the recalcb variable is updated
+    input$recalcb
     
     # Define end points
     # endp <- ifelse(endp<(nweights+1), nweights+1, endp)
@@ -103,9 +103,9 @@ servfun <- function(input, output) {
     # Define startp
     # startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
     # Rerun the model
-    pnls <- back_test(returns=returns, eigen_max=eigen_max, lambda=lambda)
+    pnls <- back_test(returns=returns, dimax=dimax, lambda=lambda)
     pnls[which(is.na(pnls)), ] <- 0
-    # pnls <- back_test_r(excess, returns, startp, endp, alpha, eigen_max, end_stub)
+    # pnls <- back_test_r(excess, returns, startp, endp, alpha, dimax, end_stub)
     pnls <- sd(indeks)*pnls/sd(pnls)
     pnls <- cbind(indeks, pnls)
     colnames(pnls) <- c("Index", "Strategy")
@@ -134,4 +134,4 @@ servfun <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)

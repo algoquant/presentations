@@ -26,7 +26,7 @@ returns <- na.omit(rutils::etfenv$returns[, symbolv])
 
 
 ## Create elements of the user interface
-uiface <- shiny::fluidPage(
+uifun <- shiny::fluidPage(
   titlePanel(paste("Static Portfolio of ETFs")),
   
   # Create single row with two slider inputs
@@ -82,4 +82,4 @@ servfun <- function(input, output) {
 }  # end server code
 
 ## Return a Shiny app object
-shiny::shinyApp(ui=uiface, server=servfun)
+shiny::shinyApp(ui=uifun, server=servfun)
