@@ -481,7 +481,7 @@ crossover_strat <- function(contract_id, trade_params, ib_connect) {
   ## Extract bars of prices from datav$bar_data
   bar_new <- e_wrapper$datav$bar_data[[contract_id]][count_er, ]
   w_ap <- bar_new[7]
-  ew_ma <- e_wrapper$datav$ewma[contract_id]
+  ewmap <- e_wrapper$datav$ewma[contract_id]
 ```
 
 </div>
@@ -509,14 +509,14 @@ crossover_strat <- function(contract_id, trade_params, ib_connect) {
 if (IBrokers2::is.twsConnection(ib_connect)) {
   is_contrarian <- trade_params["is_contrarian"]
   if (is_contrarian) {
-    if ((w_ap > ew_ma) & (posi_tion >= 0)) {
+    if ((w_ap > ewmap) & (posi_tion >= 0)) {
       # Place sell market order
       order_id <- IBrokers2::reqIds(ib_connect)
       ib_order <- IBrokers2::twsOrder(
         order_id, orderType="MKT", action="SELL", 
         totalQuantity=siz_e)
       IBrokers2::placeOrder(ib_connect, e_wrapper$datav$con_tracts[[contract_id]], ib_order)
-    } else if ((w_ap < ew_ma) & (posi_tion <= 0)) {
+    } else if ((w_ap < ewmap) & (posi_tion <= 0)) {
       # Place buy market order
       order_id <- IBrokers2::reqIds(ib_connect)
       ib_order <- IBrokers2::twsOrder(
@@ -525,12 +525,12 @@ if (IBrokers2::is.twsConnection(ib_connect)) {
       IBrokers2::placeOrder(ib_connect, e_wrapper$datav$con_tracts[[contract_id]], ib_order)
     }  # end if
   } else {
-    if ((w_ap > ew_ma) & (posi_tion <= 0)) {
+    if ((w_ap > ewmap) & (posi_tion <= 0)) {
       # Place buy market order
       order_id <- IBrokers2::reqIds(ib_connect)
       ib_order <- IBrokers2::twsOrder(order_id, orderType="MKT", action="BUY", totalQuantity=siz_e)
       IBrokers2::placeOrder(ib_connect, e_wrapper$datav$con_tracts[[contract_id]], ib_order)
-    } else if ((w_ap < ew_ma) & (posi_tion >= 0)) {
+    } else if ((w_ap < ewmap) & (posi_tion >= 0)) {
       # Place sell market order
       order_id <- IBrokers2::reqIds(ib_connect)
       ib_order <- IBrokers2::twsOrder(order_id, orderType="MKT", action="SELL", totalQuantity=siz_e)
@@ -538,7 +538,7 @@ if (IBrokers2::is.twsConnection(ib_connect)) {
     }  # end if
   }  # end if is_contrarian
 }  # end if
-invisible(list(WAP=w_ap, EWMA=ew_ma))
+invisible(list(WAP=w_ap, EWMA=ewmap))
 }  # end crossover_strat
 ```
 
@@ -676,7 +676,7 @@ trade_params <- list(
     coeff <- l_m$coefficients[2, 1]
     z_score <- l_m$z_score
     ## Write to console
-    ew_ma <- e_wrapper$datav$ewma[contract_id]
+    ewmap <- e_wrapper$datav$ewma[contract_id]
     w_ap <- bar_new[NROW(bar_new), 7]
     cat("technical data: \t", paste0("coeff=", round(coeff, 2)), paste0("z-score=", round(z_score, 2)), "\n")
 ```

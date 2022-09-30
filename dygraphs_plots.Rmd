@@ -29,7 +29,7 @@ Double-click your mouse to restore the plot.
 
 ```{r echo=FALSE}
 # extract the closing prices into a list of xts time series
-prices <- lapply(rutils::etfenv$symbols, function(symbol) {
+prices <- lapply(rutils::etfenv$symbolv, function(symbol) {
   quantmod::Cl(get(symbol, envir=rutils::etfenv))
 })  # end lapply
 

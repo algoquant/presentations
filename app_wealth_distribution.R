@@ -38,7 +38,7 @@ ncores <- detectCores() - 1  # Number of cores
 # Perform parallel bootstrap under Windows
 # clusterSetRNGStream(cluster, 1121)  # Reset random number generator in all cores
 # clusterExport(cluster, c("retsp", "nrows"))
-# boot_data <- parLapply(cluster, 1:nboot,
+# bootd <- parLapply(cluster, 1:nboot,
 #                        function(x) {
 #                          retsp[sample.int(nrows, replace=TRUE), ]
 #                        })  # end parLapply
@@ -46,7 +46,7 @@ ncores <- detectCores() - 1  # Number of cores
 # stopCluster(cluster)
 
 ## Mac-OSX code
-boot_data <- mclapply(1:nboot, function(x) {
+bootd <- mclapply(1:nboot, function(x) {
   retsp[sample.int(nrows, replace=TRUE), ]
 }, mc.cores=ncores)  # end mclapply
 
@@ -92,8 +92,8 @@ servfun <- function(input, output) {
     # Use these weights:
     weightv <- c(weightvti, 1-weightvti)
     
-    # Calculate the wealth distribution from boot_data
-    wealthv <- sapply(boot_data, function(retsp) {
+    # Calculate the wealth distribution from bootd
+    wealthv <- sapply(bootd, function(retsp) {
       wealth <- apply(retsp[1:holdp, ], 2, function(x) prod(1+x))
       drop(wealth %*% weightv)
     })  # end sapply

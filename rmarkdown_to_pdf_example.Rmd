@@ -1,0 +1,63 @@
+---
+title: Publishing *pdf* Documents Using *R Markdown*
+author: Jerzy Pawlowski
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
+# date: July 2, 2016
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+# This is an R setup chunk, containing default options applied to all other chunks
+knitr::opts_chunk$set(echo=TRUE)
+```
+
+### *R Markdown* Documents
+
+This is a *pdf* file knitted from an *R Markdown* document. Markdown is a simple formatting language for publishing *HTML*, *pdf*, and *MS Word* documents. For more details on using *R Markdown* see this [**RStudio website**](http://rmarkdown.rstudio.com).  
+
+Creating *pdf* files from *R Markdown* documents isn't difficult at all!  
+![easy](image/easy_button.png){width="30%"}
+
+
+### Including *R* Code Chunks
+
+*R* code chunks can be embedded in *R Markdown* documents.  They are automatically executed and their output is embedded in the output document.  
+This is an *R* code chunk:
+
+```{r mtcars, echo=TRUE}
+head(mtcars)
+```
+
+
+### Including Math Formulas
+
+Math formulas can be written in *LaTeX*.  For example, the Normal probability density function is given by:
+
+$$
+P(x) = \frac{e^{-(x-\mu)^2/2\sigma^2}}{\sigma\sqrt{2 \pi}}
+$$
+
+### Including Plots
+
+You can also embed plots in *pdf* files, produced by *R* code chunks.  For example, the *R* code chunk to plot the Normal probability density function:
+
+```{r normal, echo=TRUE}
+x_var <- seq(-5, 7, length=100)
+y_var <- dnorm(x_var, mean=1.0, sd=2.0)
+plot(x_var, y_var, type="l", lty="solid",
+     xlab="", ylab="")
+title(main="Normal Density Function", line=0.5)
+startd <- 3; fin_ish <- 5  # set lower and upper bounds
+# set polygon base
+are_a <- ((x_var >= startd) & (x_var <= fin_ish))
+polygon(c(startd, x_var[are_a], fin_ish),  # draw polygon
+        c(-1, y_var[are_a], -1), col="red")
+```
+
+
+Note that the `echo = FALSE` parameter can be added to the code chunk to prevent printing of the *R* code that generated the plot.  
+
+
+Hope that you enjoy using *R Markdown*!
+![smiling_face](image//smile_small.png){width="30%"}
+

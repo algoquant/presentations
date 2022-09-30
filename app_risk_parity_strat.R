@@ -71,9 +71,9 @@ servfun <- function(input, output) {
     # exponent <- input$exponent
 
     # Calculate rolling percentage volatility
-    volat <- roll::roll_sd(retsp, width=look_back)
-    volat <- zoo::na.locf(volat, na.rm=FALSE)
-    volat <- zoo::na.locf(volat, fromLast=TRUE)
+    volat <- HighFreq::roll_var(retsp, look_back=look_back)
+    iszero <- (rowSums(volat) == 0)
+    volat[iszero, ] <- 1
     # volat^exponent
     volat
     

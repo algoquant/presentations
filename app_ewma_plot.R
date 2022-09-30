@@ -60,7 +60,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     lambda <- input$lambda
     # Calculate EWMA prices recursively using RcppArmadillo
     closep <- closep()
-    ewmap <- HighFreq::run_mean(closep, lambda=lambda)
+    ewmap <- HighFreq::run_mean(closep, lambda=lambda, weights=0)
     ewmap[is.na(ewmap)] <- 0
     # Return the plot data
     datav <- cbind(closep, ewmap)

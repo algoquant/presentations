@@ -1,4 +1,4 @@
-##############################
+
 # This is a shiny app for simulating a logistic regression model
 # to classify oversold and overbought extreme price points.
 #
@@ -15,13 +15,8 @@ library(dygraphs)
 ## Model and data setup
 
 # Calculate SVXY and VXX prices
-svxy <- log(get("SVXY", rutils::etfenv))
-svxy_close <- quantmod::Cl(svxy)
-nrows <- NROW(svxy)
-dates <- zoo::index(svxy)
-vxx <- log(get("VXX", rutils::etfenv))
-vxx <- vxx[dates]
-vxx_close <- quantmod::Cl(vxx)
+datev <- zoo::index(rutils::etfenv$VTI)
+nrows <- NROW(datev)
 
 captiont <- paste("Logistic Model for Oversold and Overbought Extreme Price Points")
 
@@ -47,11 +42,13 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Look-back", min=3, max=51, value=21, step=2)),
+    column(width=2, sliderInput("look_back", label="Look-back", min=3, max=51, value=25, step=1)),
+    # Input confidence level for price tops and bottoms
+    column(width=2, sliderInput("confex", label="Confidence for extremes", min=0.5, max=0.99, value=0.91, step=0.01)),
     # Input confidence level for tops
-    column(width=2, sliderInput("confi_top", label="Confidence for tops", min=0.01, max=0.99, value=0.98, step=0.01)),
+    column(width=2, sliderInput("confitop", label="Confidence for tops", min=0.01, max=0.99, value=0.91, step=0.01)),
     # Input confidence level for bottoms
-    column(width=2, sliderInput("confi_bot", label="Confidence for bottoms", min=0.01, max=0.99, value=0.002, step=0.01)),
+    column(width=2, sliderInput("confibot", label="Confidence for bottoms", min=0.01, max=0.99, value=0.91, step=0.01)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(1))),
     # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),
@@ -61,8 +58,8 @@ uifun <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dyplot", width="100%", height="600px"), height=10, width=12)
-
+  dygraphs::dygraphOutput("dyplot", width="80%", height="550px")
+  
 )  # end fluidPage interface
 
 
@@ -73,84 +70,94 @@ servfun <- function(input, output) {
   values <- reactiveValues()
 
   # Load the data
-  fit_ted <- shiny::reactive({
+  fittedv <- shiny::reactive({
     
     symbol <- input$symbol
     cat("Loading data for ", symbol, "\n")
     
     # Extract log OHLC prices
-    ohlc <- get(symbol, rutils::etfenv)[dates]
-    closep <- log(quantmod::Cl(ohlc))
-    returns <- rutils::diffit(closep)
+    ohlc <- get(symbol, rutils::etfenv)[datev]
+    ohlc <- log(ohlc)
+    closep <- quantmod::Cl(ohlc)
+    retsp <- rutils::diffit(closep)
     
     cat("Recalculating GLM for ", symbol, "\n")
     # Get model parameters from input argument
     look_back <- input$look_back
     half_back <- look_back %/% 2
     
-    # Calculate SVXY z-scores
-    roll_svxy <- roll::roll_mean(svxy_close, width=look_back, min_obs=1)
-    var_rolling <- sqrt(HighFreq::roll_var_ohlc(svxy, look_back=look_back, scale=FALSE))
-    svxy_scores <- (svxy_close - roll_svxy)/var_rolling
-
-    # Calculate VXX z-scores
-    roll_vxx <- roll::roll_mean(vxx_close, width=look_back, min_obs=1)
-    var_rolling <- sqrt(HighFreq::roll_var_ohlc(vxx, look_back=look_back, scale=FALSE))
-    vxx_scores <- (vxx_close - roll_vxx)/var_rolling
-
     # Calculate the centered volatility
-    volat <- roll::roll_sd(returns, width=look_back, min_obs=1)
-    volat <- rutils::lagit(volat, lagg=(-half_back))
+    stdev <- roll::roll_sd(retsp, width=look_back, min_obs=1)
+    stdev <- rutils::lagit(stdev, lagg=(-half_back))
     
     # Calculate the z-scores of prices
-    mid_p <- 1:nrows  # mid point
-    startp <- (mid_p - half_back)  # start point
+    midp <- 1:nrows  # mid point
+    startp <- (midp - half_back)  # start point
     startp[1:half_back] <- 1
-    endp <- (mid_p + half_back)  # end point
-    endp[ nrows-half_back+1) nrows] <- nrows
-    closep <- as.numeric(closep)
-    zscores <- (2*closep[mid_p] - closep[startp] - closep[endp])
-    zscores <- ifelse(volat > 0, zscores/volat, 0)
+    endp <- (midp + half_back)  # end point
+    endp[(nrows-half_back+1):nrows] <- nrows
+    closep <- coredata(closep)
+    pricez <- (2*closep[midp, ] - closep[startp, ] - closep[endp, ])
+    pricez <- ifelse(stdev > 0, pricez/stdev, 0)
 
     # Calculate the vectors of tops and bottoms
-    thresh_top <- quantile(zscores, input$confi_top)
-    top_s <- (zscores > thresh_top)
-    thresh_bot <- quantile(zscores, input$confi_bot)
-    bottom_s <- (zscores < thresh_bot)
+    threshv <- quantile(pricez, input$confex)
+    tops <- coredata(pricez > threshv)
+    threshv <- quantile(pricez, 1-input$confex)
+    bottoms <- coredata(pricez < threshv)
 
     # Calculate volatility z-scores
-    volat <- log(quantmod::Hi(ohlc))-log(quantmod::Lo(ohlc))
-    roll_vol <- roll::roll_mean(volat, width=look_back, min_obs=1)
-    volat_scores <- (volat - roll_vol)/roll_vol
-    
+    volat <- sqrt(HighFreq::roll_var_ohlc(ohlc, look_back=look_back))
+    meanv <- roll::roll_mean(volat, width=look_back, min_obs=1)
+    stdev <- roll::roll_sd(rutils::diffit(volat), width=look_back, min_obs=1)
+    volatz <- ifelse(stdev > 0, (volat - meanv)/stdev, 0)
+
     # Calculate volume z-scores
     volumes <- quantmod::Vo(ohlc)
-    volume_mean <- roll::roll_mean(volumes, width=look_back, min_obs=1)
-    volume_sd <- roll::roll_sd(rutils::diffit(volumes), width=look_back, min_obs=1)
-    volume_scores <- (volumes - volume_mean)/volume_sd
+    meanv <- roll::roll_mean(volumes, width=look_back, min_obs=1)
+    stdev <- roll::roll_sd(rutils::diffit(volumes), width=look_back, min_obs=1)
+    volumez <- ifelse(stdev > 0, (volumes - meanv)/stdev, 0)
 
+    # Calculate trailing price regression z-scores
+    dates <- matrix(zoo::index(closep))
+    regz <- drop(HighFreq::roll_zscores(response=closep, predictor=dates, look_back=look_back))
+    regz[1:look_back] <- 0
+    
+    # Calculate SVXY z-scores
+    # meanv <- roll::roll_mean(svxyc, width=look_back, min_obs=1)
+    # stdev <- sqrt(HighFreq::roll_var_ohlc(svxy, look_back=look_back, scale=FALSE))
+    # svxyz <- ifelse(stdev > 0, (svxyc - meanv)/stdev, 0)
+    
+    # Calculate VXX z-scores
+    # meanv <- roll::roll_mean(vxxc, width=look_back, min_obs=1)
+    # stdev <- sqrt(HighFreq::roll_var_ohlc(vxx, look_back=look_back, scale=FALSE))
+    # vxxz <- ifelse(stdev > 0, (vxxc - meanv)/stdev, 0)
+    
     # Define predictor matrix
-    predictor <- cbind(vxx_scores, svxy_scores, volat_scores, volume_scores)
-    colnames(predictor) <- c("vxx", "svxy", "volat", "volume")
-
-    # Fit logistic regression for tops
-    glm_tops <- glm(top_s ~ predictor, family=binomial(logit))
-
-    # Fit in-sample logistic regression for bottoms
-    glm_bottoms <- glm(bottom_s ~ predictor, family=binomial(logit))
-
-    # Calculate tops and bottoms from logistic regression
-    fit_ted <- glm_tops$fitted.values
-    thresh_top <- quantile(fit_ted, input$confi_top)
-    top_s <- (fit_ted > thresh_top)
-    fit_ted <- glm_bottoms$fitted.values
-    thresh_bot <- quantile(fit_ted, input$confi_bot)
-    bottom_s <- (fit_ted < thresh_bot)
+    # predictor <- cbind(vxxz, svxyz, volatz, volumez)
+    predictor <- cbind(volatz, volumez, regz)
+    predictor <- coredata(predictor)
+    predictor[1, ] <- 0
+    # colnames(predictor) <- c("vxx", "svxy", "volat", "volume")
+    # colnames(predictor) <- c("volat", "volume")
+    predictor <- rutils::lagit(predictor)
+    
+    # Calculate in-sample forecasts of tops from logistic regression
+    logmod <- glm(tops ~ predictor, family=binomial(logit))
+    fittedv <- logmod$fitted.values
+    threshv <- quantile(fittedv, input$confitop)
+    forecastops <- (fittedv > threshv)
+    
+    # Calculate in-sample forecasts of bottoms from logistic regression
+    logmod <- glm(bottoms ~ predictor, family=binomial(logit))
+    fittedv <- logmod$fitted.values
+    threshv <- quantile(fittedv, input$confibot)
+    forecastbot <- (fittedv > threshv)
     
     # Return fitted values
-    fit_ted <- cbind(returns, top_s, bottom_s)
-    colnames(fit_ted) <- c("returns", "tops", "bottoms")
-    fit_ted
+    fittedv <- cbind(retsp, forecastops, forecastbot)
+    colnames(fittedv) <- c("returns", "tops", "bottoms")
+    fittedv
     
   })  # end Load the data
   
@@ -165,9 +172,9 @@ servfun <- function(input, output) {
     lagg <- input$lagg
 
     # Extract fitted values
-    top_s <- as.logical(fit_ted()$tops)
-    bottom_s <- as.logical(fit_ted()$bottoms)
-    returns <- fit_ted()$returns
+    forecastops <- as.logical(fittedv()$tops)
+    forecastbot <- as.logical(fittedv()$bottoms)
+    retsp <- fittedv()$returns
     
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
@@ -175,55 +182,49 @@ servfun <- function(input, output) {
     # This is predictored to prevent whipsaws and over-trading.
     # posit <- ifelse(indic == indic_lag, indic, posit)
     
-    indic <- rep(NA_integer_, nrows)
-    indic[1] <- 0
-    indic[bottom_s] <- coeff
-    indic[top_s] <- (-coeff)
-    indic <- zoo::na.locf(indic, na.rm=FALSE)
-    indic_sum <- roll::roll_sum(indic, width=lagg, min_obs=1)
-    indic_sum[1:lagg] <- 0
+    # posit <- rep(NA_integer_, nrows)
+    # posit[1] <- 0
+    # posit[forecastops] <- (-1)
+    # posit[forecastbot] <- 1
+    # posit <- zoo::na.locf(posit)
+    foo <- HighFreq::roll_sum(matrix(forecastops), lagg)
+    bar <- HighFreq::roll_sum(matrix(forecastbot), lagg)
+    posit <- (bar-foo)
     
-    posit <- rep(NA_integer_, nrows)
-    posit[1] <- 0
-    posit <- ifelse(indic_sum == lagg, 1, posit)
-    posit <- ifelse(indic_sum == (-lagg), -1, posit)
-    posit <- zoo::na.locf(posit, na.rm=FALSE)
-    posit[1:lagg] <- 0
-
     # Calculate indicator of flipping the positions
     indic <- rutils::diffit(posit)
     # Calculate number of trades
     values$ntrades <- sum(abs(indic)>0)
     
     # Add buy/sell indicators for annotations
-    indic_buy <- (indic > 0)
-    indic_sell <- (indic < 0)
+    indicb <- (indic > 0)
+    indics <- (indic < 0)
     
     # Lag the positions to trade in next period
     posit <- rutils::lagit(posit, lagg=1)
     
     # Calculate strategy pnls
-    pnls <- posit*returns
+    pnls <- posit*retsp
     
     # Calculate transaction costs
     costs <- 0.5*input$bid_offer*abs(indic)
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retsp[retsp<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(returns, pnls)
+    pnls <- cbind(retsp, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
     values$sharper <- round(sharper, 3)
 
     # Bind with indicators
-    pnls <- cumsum(pnls)
-    cum_rets <- cumsum(returns)
-    pnls <- cbind(pnls, cum_rets[indic_buy], cum_rets[indic_sell])
-    colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
+    pnls <- lapply(pnls, cumsum)
+    pnls <- do.call(cbind, pnls)
+    pnls <- cbind(pnls, pnls[indicb, 1], pnls[indics, 1])
+    colnames(pnls) <- c(paste(symbol, "Returns"), "Strategy", "Buy", "Sell")
 
     pnls
 

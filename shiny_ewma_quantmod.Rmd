@@ -36,18 +36,18 @@ renderPlot({
   # calculate EWMA prices
   weightv <- exp(-lambda*1:look_back)
   weightv <- weightv/sum(weightv)
-  ew_ma <- filter(closep, filter=weightv, sides=1)
-  ew_ma[1:(look_back-1)] <- ew_ma[look_back]
-  ew_ma <- xts(cbind(closep, ew_ma),
-               order.by=index(ohlc))
-  colnames(ew_ma) <- c("VTI", "VTI EWMA")
+  ewmap <- filter(closep, filter=weightv, sides=1)
+  ewmap <- as.numeric(ewmap)
+  ewmap[1:(look_back-1)] <- ewmap[look_back]
+  ewmap <- xts(cbind(closep, ewmap), order.by=index(ohlc))
+  colnames(ewmap) <- c("VTI", "VTI EWMA")
   
   # plot EWMA prices
   # x11(width=12, height=9)
-  chobj <- chart_Series(ew_ma, theme=plot_theme, name="EWMA prices")
+  chobj <- chart_Series(ewmap, theme=plot_theme, name="EWMA prices")
   plot(chobj)
-  legend("top", legend=colnames(ew_ma), 
-         inset=0.1, bg="white", lty=c(1, 1), lwd=c(2, 2), 
+  legend("topleft", legend=colnames(ewmap), 
+         inset=0.1, bg="white", lty=1, lwd=6, 
          col=plot_theme$col$line.col, bty="n")
 
 })  # end renderPlot

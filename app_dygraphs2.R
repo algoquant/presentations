@@ -43,12 +43,12 @@ servfun <- function(input, output) {
     # calculate EWMA prices
     weights <- exp(-lambda*(1:widthp))
     weights <- weights/sum(weights)
-    ew_ma <- .Call(stats:::C_cfilter, closep, filter=weights, sides=1, circular=FALSE)
-    # ew_ma <- filter(closep, filter=weights, sides=1)
-    ew_ma[1:(widthp-1)] <- ew_ma[widthp]
-    ew_ma <- xts(cbind(closep, ew_ma), order.by=index(closep))
-    colnames(ew_ma) <- c("VTI", "VTI_EWMA")
-    ew_ma  # return data for plotting
+    ewmap <- .Call(stats:::C_cfilter, closep, filter=weights, sides=1, circular=FALSE)
+    # ewmap <- filter(closep, filter=weights, sides=1)
+    ewmap[1:(widthp-1)] <- ewmap[widthp]
+    ewmap <- xts(cbind(closep, ewmap), order.by=index(closep))
+    colnames(ewmap) <- c("VTI", "VTI_EWMA")
+    ewmap  # return data for plotting
   })  # end reactive data
   
   # Define the output plot

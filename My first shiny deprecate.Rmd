@@ -31,14 +31,14 @@ renderPlot({
   lambda <- input$lambda
   weightv <- exp(-lambda*1:interval)
   weightv <- weightv/sum(weightv)
-  ew_ma <- filter(closep, filter=weightv, sides=1)
-  ew_ma[1:(interval-1)] <- ew_ma[interval]
-  ew_ma <- xts(cbind(closep, ew_ma), order.by=index(closep))
-  colnames(ew_ma) <- c("VTI", "VTI EWMA")
+  ewmap <- filter(closep, filter=weightv, sides=1)
+  ewmap[1:(interval-1)] <- ewmap[interval]
+  ewmap <- xts(cbind(closep, ewmap), order.by=index(closep))
+  colnames(ewmap) <- c("VTI", "VTI EWMA")
   # plot EWMA prices
-  chobj <- chart_Series(ew_ma, theme=plot_theme, name="EWMA prices")
+  chobj <- chart_Series(ewmap, theme=plot_theme, name="EWMA prices")
   plot(chobj)
-  legend("top", legend=colnames(ew_ma),
+  legend("top", legend=colnames(ewmap),
          inset=0.1, bg="white", lty=c(1, 1), lwd=c(2, 2),
          col=plot_theme$col$line.col, bty="n")
 })  # end renderPlot

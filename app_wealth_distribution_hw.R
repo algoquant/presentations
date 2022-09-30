@@ -75,7 +75,7 @@ servfun <- function(input, output) {
     # Use these weights:
     weightv <- c(weightvti, 1-weightvti)
     
-    # Calculate the wealth distribution from boot_data
+    # Calculate the wealth distribution from bootd
     
     ### Write your code here
     

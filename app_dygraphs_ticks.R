@@ -15,7 +15,7 @@
 library(quantmod)
 library(shiny)
 library(shinythemes)
-library(highcharter)
+# library(highcharter)
 
 ## Load SPY ticks
 

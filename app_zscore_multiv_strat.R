@@ -167,8 +167,8 @@ servfun <- function(input, output) {
     # score <- xts(predictor %*% weights, order.by=dates)
     score <- drop(predictor %*% weights)
     # Calculate the vectors of tops and bottoms
-    top_s <- (score > input$thresh_top)
-    bottom_s <- (score < input$thresh_bot)
+    tops <- (score > input$thresh_top)
+    bottoms <- (score < input$thresh_bot)
 
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
@@ -178,8 +178,8 @@ servfun <- function(input, output) {
     
     indic <- rep(NA_integer_, nrows)
     indic[1] <- 0
-    indic[bottom_s] <- coeff
-    indic[top_s] <- (-coeff)
+    indic[bottoms] <- coeff
+    indic[tops] <- (-coeff)
     indic <- zoo::na.locf(indic, na.rm=FALSE)
     indic_sum <- roll::roll_sum(indic, width=lagg, min_obs=1)
     indic_sum[1:lagg] <- 0
