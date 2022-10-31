@@ -41,16 +41,16 @@ $$
 You can also embed plots in *pdf* files, produced by *R* code chunks.  For example, the *R* code chunk to plot the Normal probability density function:
 
 ```{r normal, echo=TRUE}
-x_var <- seq(-5, 7, length=100)
-y_var <- dnorm(x_var, mean=1.0, sd=2.0)
-plot(x_var, y_var, type="l", lty="solid",
+xvar <- seq(-5, 7, length=100)
+yvar <- dnorm(xvar, mean=1.0, sd=2.0)
+plot(xvar, yvar, type="l", lty="solid",
      xlab="", ylab="")
 title(main="Normal Density Function", line=0.5)
-startd <- 3; fin_ish <- 5  # set lower and upper bounds
+startd <- 3; endd <- 5  # set lower and upper bounds
 # set polygon base
-are_a <- ((x_var >= startd) & (x_var <= fin_ish))
-polygon(c(startd, x_var[are_a], fin_ish),  # draw polygon
-        c(-1, y_var[are_a], -1), col="red")
+subv <- ((xvar >= startd) & (xvar <= endd))
+polygon(c(startd, xvar[subv], endd),  # draw polygon
+        c(-1, yvar[subv], -1), col="red")
 ```
 
 

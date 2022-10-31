@@ -35,14 +35,14 @@ Below is an example of two-column layout using *CSS* code.
 The location of the break between columns is specified by the *CSS* style code in the file slides.css.  
 The left column is 40%, and the right is 60% of the page width.  
 
-<div class="columnleft40">
+<div class="column_left_40">
 The left column contains *R* code that returns the summary of the *cars* data frame:  
 ```{r, sum_cars, eval=FALSE, echo=TRUE, results="hold"}
 summary(cars)
 ```
 </div>
 
-<div class="columnright_60">
+<div class="column_right__60">
 The right column contains the output of the *R* code in the left column:  
 ```{r, sum_cars, eval=TRUE, echo=FALSE}
 ```
@@ -77,18 +77,18 @@ Plot the Normal probability density function:
 ```{r normal_dist, eval=TRUE, echo=TRUE, fig.width=5, fig.height=4}
 par(mar=c(2, 1, 2, 1))  # Set plot margins
 par(oma=c(1, 1, 1, 1))  # Set outer margins
-x_var <- seq(-5, 7, length=100)
-y_var <- dnorm(x_var, mean=1.0, sd=2.0)
-plot(x_var, y_var, type="l", lty="solid",
+xvar <- seq(-5, 7, length=100)
+yvar <- dnorm(xvar, mean=1.0, sd=2.0)
+plot(xvar, yvar, type="l", lty="solid",
      xlab="", ylab="")
 title(main="Normal Density Function", line=0.5)
 # Set shading range
-startd <- 3; fin_ish <- 5
+startd <- 3; endd <- 5
 # Set polygon base
-are_a <- ((x_var >= startd) & (x_var <= fin_ish))
+subv <- ((xvar >= startd) & (xvar <= endd))
 # Draw shaded area
-polygon(c(startd, x_var[are_a], fin_ish),
-        c(-1, y_var[are_a], -1), col="red")
+polygon(c(startd, xvar[subv], endd),
+        c(-1, yvar[subv], -1), col="red")
 ```
 
 Note that the `echo = FALSE` parameter can be added to the code chunk to prevent printing of the *R* code that generated the plot.  

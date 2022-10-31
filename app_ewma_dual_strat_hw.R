@@ -1,6 +1,6 @@
 ##############################
-# This is a shiny app for simulating an EWMA moving average 
-# crossover strategy.
+# This is a shiny app for simulating a dual EWMA moving average 
+# crossover strategy for ETFs.
 #
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -14,7 +14,7 @@ library(dygraphs)
 
 ## Model and data setup
 
-captiont <- paste("EWMA Moving Average Crossover Strategy")
+captiont <- paste("Dual EWMA Moving Average Crossover Strategy")
 
 ## End setup code
 
@@ -25,8 +25,7 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("symbol", label="Symbol",
-                                choices=rutils::etfenv$symbolv, selected="VTI")),
+    column(width=2, selectInput("symbol", label="Symbol", choices=rutils::etfenv$symbolv, selected="VTI")),
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the bid-offer spread
@@ -35,16 +34,16 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input the EWMA decays
-    column(width=2, sliderInput("fast_lambda", label="fast_lambda:", min=0.1, max=0.3, value=0.2, step=0.001)),
-    column(width=2, sliderInput("slow_lambda", label="slow_lambda:", min=0.0, max=0.2, value=0.1, step=0.001)),
+    column(width=2, sliderInput("fast_lambda", label="Fast lambda:", min=0.1, max=0.3, value=0.203, step=0.001)),
+    column(width=2, sliderInput("slow_lambda", label="Slow lambda:", min=0.0, max=0.2, value=0.036, step=0.001)),
     # Input the look-back interval
-    column(width=2, sliderInput("look_back", label="Look-back", min=5, max=250, value=100, step=1)),
+    column(width=2, sliderInput("look_back", label="Look-back", min=5, max=250, value=169, step=1)),
     # Input the trade lag
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=2, step=1))
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dyplot", width="100%", height="600px"), height=10, width=12)
+  dygraphs::dygraphOutput("dyplot", width="90%", height="550px")
 
 )  # end fluidPage interface
 
@@ -82,7 +81,7 @@ servfun <- function(input, output) {
 
     # Calculate cumulative returns
     returns <- datav
-    cum_rets <- cumsum(returns)
+    retsum <- cumsum(returns)
     nrows <- NROW(returns)
     
     # Calculate EWMA weights
@@ -92,19 +91,19 @@ servfun <- function(input, output) {
     slow_weights <- slow_weights/sum(slow_weights)
     
     # Calculate EWMA prices by filtering with the weights
-    # cum_rets <- cumsum(rets_scaled)
-    fast_ewma <- .Call(stats:::C_cfilter, cum_rets, filter=fast_weights, sides=1, circular=FALSE)
+    # retsum <- cumsum(rets_scaled)
+    fast_ewma <- .Call(stats:::C_cfilter, retsum, filter=fast_weights, sides=1, circular=FALSE)
     fast_ewma[1:(look_back-1)] <- fast_ewma[look_back]
-    slow_ewma <- .Call(stats:::C_cfilter, cum_rets, filter=slow_weights, sides=1, circular=FALSE)
+    slow_ewma <- .Call(stats:::C_cfilter, retsum, filter=slow_weights, sides=1, circular=FALSE)
     slow_ewma[1:(look_back-1)] <- slow_ewma[look_back]
     
     # Determine dates when the EWMAs have crossed
     indic <- sign(fast_ewma - slow_ewma)
     
-    ## Backtest strategy for flipping if two consecutive positive and negative returns
+    ## Backtest strategy for flipping if several consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
-    # This is predictored to prevent whipsaws and over-trading.
+    # This is designed to prevent whipsaws and over-trading.
     # posit <- ifelse(indic == indic_lag, indic, posit)
     
     indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
@@ -139,7 +138,7 @@ servfun <- function(input, output) {
     pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(returns, pnls)
+    pnls <- c(returns, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*lapply(pnls, function(x) mean(x)/sd(x[x<0]))
@@ -147,7 +146,7 @@ servfun <- function(input, output) {
 
     # Bind with indicators
     pnls <- cumsum(pnls)
-    pnls <- cbind(pnls, cum_rets[indic_buy], cum_rets[indic_sell])
+    pnls <- cbind(pnls, retsum[indic_buy], retsum[indic_sell])
     colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
 
     pnls

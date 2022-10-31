@@ -60,7 +60,7 @@ uifun <- shiny::fluidPage(
     # column(width=2, sliderInput("look_back", label="Lookback interval:",
     #                             min=1, max=30, value=12, step=1)),
     # Input forgetting rate for the mean
-    column(width=2, sliderInput("lambdav", label="Forgetting factor:",
+    column(width=2, sliderInput("lambda", label="Forgetting factor:",
                                 min=0.01, max=0.5, value=0.2, step=0.01)),
     # Input learning rate for the PCA
     column(width=2, sliderInput("gammav", label="Learning rate:",
@@ -84,7 +84,7 @@ servfun <- function(input, output) {
     # get model parameters from input argument
     interval <- input$interval
     dimax <- input$dimax
-    lambdav <- input$lambdav
+    lambda <- input$lambda
     gammav <- input$gammav
     alpha <- input$alpha
     
@@ -120,7 +120,7 @@ servfun <- function(input, output) {
       # weightv <- drop(weightv/sqrt(sum(weightv^2)))
       # Update the PCA
       colm <- colMeans(outsample)
-      meanv <- onlinePCA::updateMean(meanv, colm, ep-1, f=lambdav)
+      meanv <- onlinePCA::updateMean(meanv, colm, ep-1, f=lambda)
       pcav <- onlinePCA::ghapca(lambda=pcav$values, U=pcav$vectors, x=colm, gamma=gammav, center=meanv)
       covinv <- pcav$vectors[, 1:dimax] %*% (t(pcav$vectors[, 1:dimax]) / pcav$values[1:dimax])
       # Calculate the portfolio weights

@@ -42,7 +42,7 @@ uifun <- fluidPage(
         ),
 
         # Show a plot of the generated distribution
-        plotOutput("histo_gram")
+        plotOutput("histp")
         
     )  # end sidebarLayout
     
@@ -52,7 +52,7 @@ uifun <- fluidPage(
 serv_er <- function(input, output) {
 
     # Plot the histogram of the simulated data
-    output$histo_gram <- shiny::renderPlot({
+    output$histp <- shiny::renderPlot({
         # isolate() prevents automatic Recalculation when n_bins is updated
         n_bins <- isolate(input$n_bins)
         # Model is recalculated when the recalcb variable is updated

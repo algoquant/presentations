@@ -91,7 +91,7 @@ knit_theme$set(thm)
   \vskip1ex
   But using high frequency data can present a challenge, since the data size may cause \texttt{R} programs to run very slowly.  
   \vskip1ex
-  We demonstrate how to perform the analysis using vectorized \texttt{R} code predictored for \emph{speed}.  
+  We demonstrate how to perform the analysis using vectorized \texttt{R} code designed for \emph{speed}.  
   \vskip1ex
   We present our results using \emph{interactive visualizations} afforded by new \texttt{R} packages.  
 \end{block}

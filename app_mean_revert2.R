@@ -152,7 +152,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     
     ## Simulate strategy
     # calculate max_min signals
-    # max_min <- roll_maxmin(close_num, look_short)
+    # max_min <- rolregmodaxmin(close_num, look_short)
     # close_high_count <- (close_num == max_min[, 1])
     # close_low_count <- (close_num == max_min[, 2])
     

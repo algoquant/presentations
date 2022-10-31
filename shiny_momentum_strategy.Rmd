@@ -36,9 +36,9 @@ load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
 returns <- returns[, !(returns[(NROW(returns) %/% 10), ] == 0)]
 # Subset 100 columns to reduce computations
 set.seed(1121)  # reset random number generator
-sam_ple <- sample(1:NCOL(returns), 100)
-returns <- returns[, sam_ple]
-# excess <- returns_scaled[, sam_ple]
+samplev <- sample(1:NCOL(returns), 100)
+returns <- returns[, samplev]
+# excess <- returns_scaled[, samplev]
 excess <- returns
 stock_symbols <- colnames(returns)
 ncols <- NCOL(returns)

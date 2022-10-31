@@ -108,13 +108,13 @@ servfun <- function(input, output) {
 
     # Calculate volatility z-scores
     volat <- sqrt(HighFreq::roll_var_ohlc(ohlc, look_back=look_back))
-    meanv <- roll::roll_mean(volat, width=look_back, min_obs=1)
+    meanv <- roll::rolregmodean(volat, width=look_back, min_obs=1)
     stdev <- roll::roll_sd(rutils::diffit(volat), width=look_back, min_obs=1)
     volatz <- ifelse(stdev > 0, (volat - meanv)/stdev, 0)
 
     # Calculate volume z-scores
     volumes <- quantmod::Vo(ohlc)
-    meanv <- roll::roll_mean(volumes, width=look_back, min_obs=1)
+    meanv <- roll::rolregmodean(volumes, width=look_back, min_obs=1)
     stdev <- roll::roll_sd(rutils::diffit(volumes), width=look_back, min_obs=1)
     volumez <- ifelse(stdev > 0, (volumes - meanv)/stdev, 0)
 
@@ -124,12 +124,12 @@ servfun <- function(input, output) {
     regz[1:look_back] <- 0
     
     # Calculate SVXY z-scores
-    # meanv <- roll::roll_mean(svxyc, width=look_back, min_obs=1)
+    # meanv <- roll::rolregmodean(svxyc, width=look_back, min_obs=1)
     # stdev <- sqrt(HighFreq::roll_var_ohlc(svxy, look_back=look_back, scale=FALSE))
     # svxyz <- ifelse(stdev > 0, (svxyc - meanv)/stdev, 0)
     
     # Calculate VXX z-scores
-    # meanv <- roll::roll_mean(vxxc, width=look_back, min_obs=1)
+    # meanv <- roll::rolregmodean(vxxc, width=look_back, min_obs=1)
     # stdev <- sqrt(HighFreq::roll_var_ohlc(vxx, look_back=look_back, scale=FALSE))
     # vxxz <- ifelse(stdev > 0, (vxxc - meanv)/stdev, 0)
     
@@ -179,7 +179,7 @@ servfun <- function(input, output) {
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
-    # This is predictored to prevent whipsaws and over-trading.
+    # This is designed to prevent whipsaws and over-trading.
     # posit <- ifelse(indic == indic_lag, indic, posit)
     
     # posit <- rep(NA_integer_, nrows)

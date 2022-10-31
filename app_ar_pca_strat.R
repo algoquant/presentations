@@ -75,7 +75,7 @@ servfun <- function(input, output) {
     # volumes[volumes == 0] <- NA
     # volumes <- zoo::na.locf(volumes)
     # look_back <- 11
-    # volume_rolling <- roll::roll_mean(volumes, width=look_back, min_obs=1)
+    # volume_rolling <- roll::rolregmodean(volumes, width=look_back, min_obs=1)
     # volume_rolling <- zoo::na.locf(volume_rolling, fromLast=TRUE)
     # volumes <- volumes/volume_rolling
     
@@ -109,11 +109,11 @@ servfun <- function(input, output) {
     
     # response <- rutils::lagit(predictor[, max_back], lagg=(-max_back))
     numagg <- input$numagg
-    response <- sqrt(numagg)*roll::roll_mean(returns, numagg, min_obs=1)
+    response <- sqrt(numagg)*roll::rolregmodean(returns, numagg, min_obs=1)
     # response[1:(numagg-1)] <- 0
     
     look_backs <- numagg*(1:max_back)
-    # predictor <- lapply(look_backs, function(x) sqrt(x)*roll::roll_mean(rets_scaled, x, min_obs=1))
+    # predictor <- lapply(look_backs, function(x) sqrt(x)*roll::rolregmodean(rets_scaled, x, min_obs=1))
     predictor <- lapply(look_backs, rutils::lagit, input=response)
     predictor <- do.call(cbind, predictor)
     # predictor[1, ] <- 0
@@ -197,8 +197,8 @@ servfun <- function(input, output) {
     # Bind with indicators
     pnls <- cumsum(pnls)
     if (values$ntrades > 1) {
-      cum_rets <- cumsum(returns)
-      pnls <- cbind(pnls, cum_rets[indic_buy], cum_rets[indic_sell])
+      retsum <- cumsum(returns)
+      pnls <- cbind(pnls, retsum[indic_buy], retsum[indic_sell])
       colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
     }  # end if
     

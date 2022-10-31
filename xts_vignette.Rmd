@@ -361,7 +361,7 @@ jan_march <- x["20160101/20160322"]
 
 The most common time series data "in the wild" is daily. On occasion, you may find yourself working with intraday data, which contains both dates and times. In this case it is sometimes necessary to view only a subset of time for each day over multiple days. Using xts, you can slice days easily by using special notation in the i = argument to the single bracket extraction (i.e. [i, j]).
 
-As you learned in the previous exercise, the trick to this is to not specify explicit dates, but rather to use the special T/T notation predictored for intraday repeating intervals.
+As you learned in the previous exercise, the trick to this is to not specify explicit dates, but rather to use the special T/T notation designed for intraday repeating intervals.
 
 Intraday times for all days
 NYSE["T09:30/T16:00"] 

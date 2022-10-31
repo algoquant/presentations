@@ -205,8 +205,8 @@ servfun <- function(input, output) {
     # cum_scaled <- cumsum(returns)
 
     # Calculate the rolling median of the cumulative returns
-    # minv <- roll::roll_min(lowp, width=short_back)
-    # maxv <- roll::roll_max(highp, width=short_back)
+    # minv <- roll::rolregmodin(lowp, width=short_back)
+    # maxv <- roll::rolregmodax(highp, width=short_back)
     # minv[1:short_back, ] <- 0
     # maxv[1:short_back, ] <- 1
     # minv <- rutils::lagit(minv, pad_zeros=FALSE)
@@ -259,7 +259,7 @@ servfun <- function(input, output) {
     indic <- ifelse(zscores() > threshold, -1, indic)
     indic <- ifelse(zscores() < (-threshold), 1, indic)
     # Calculate number of consecutive indicators in same direction.
-    # This is predictored to avoid trading on microstructure noise.
+    # This is designed to avoid trading on microstructure noise.
     # indic <- ifelse(indic == indic_lag, indic, indic)
     indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
     indic_sum[1:lagg] <- 0

@@ -1,5 +1,5 @@
 ---
-title: Creating *ioslides* Presentations from *R Markdown* Documents
+title: Creating Dynamic Presentations
 author: Jerzy Pawlowski
 affiliation: NYU Tandon School of Engineering
 date: '`r format(Sys.time(), "%m/%d/%Y")`'
@@ -33,7 +33,7 @@ options(width=80)
 
 ## Creating slide presentations using *RStudio*
 
-*RStudio* has developed two related file formats predictored for creating slide presentations: the *R Markdown* format (files with extension *.Rmd*) and the *RPresentations* format (files with extension *.Rpres*).  Both formats use the *R Markdown* flavor of the *markdown* markup language, but differ in the way they are rendered into slide presentations. 
+*RStudio* has developed two related file formats designed for creating slide presentations: the *R Markdown* format (files with extension *.Rmd*) and the *RPresentations* format (files with extension *.Rpres*).  Both formats use the *R Markdown* flavor of the *markdown* markup language, but differ in the way they are rendered into slide presentations. 
 
 *R Markdown* files can be rendered into either one of two interactive *html* slide presentations: **ioslides** or *slidy*, or into non-interactive *pdf* slide presentations.  *R Markdown* documents can also be rendered into standard *pdf* or *html* documents that aren't slides.
 
@@ -109,25 +109,6 @@ head(mtcars)
 
 
 
-## Slide with an Interactive *dygraphs* Plot  
-
-```{r, dygraphs_simple, cache=FALSE, eval=TRUE, echo=TRUE, fig.width=5, fig.height=4}
-library(dygraphs)
-dygraph(nhtemp, main = "New Haven Temperatures") %>% 
-  dyRangeSelector(dateWindow = c("1920-01-01", "1960-01-01"))
-```
-
-
-## How to Include Images  
-
-Image files can be loaded and displayed by using the following *markdown* syntax:  
-`![animated gif](image/chi_squared.gif)`  
-
-The image file should be either in the same directory as the *R Markdown* file, or in a sub-directory.
-![animated_gif](image/chi_squared.gif)
-
-
-
 ## Two-column Layout Using *CSS* Code  
 
 The formatting of *R Markdown* documents can be controlled using *CSS* code stored in a separate file.  The file with *CSS* code should be either in the same directory as the *R Markdown* file, or in a sub-directory.  
@@ -136,14 +117,14 @@ Below is an example of two-column layout using *CSS* code.
 The location of the break between columns is specified by the *CSS* style code in the file slides.css.  
 The left column is 40%, and the right is 60% of the page width.  
 
-<div class="columnleft40">
+<div class="column_left_50">
 The left column contains *R* code that returns the summary of the *cars* data frame:  
 ```{r, sum_cars, eval=FALSE, echo=TRUE, results="hold"}
 summary(cars)
 ```
 </div>
 
-<div class="columnright_60">
+<div class="column_right_50">
 The right column contains the output of the *R* code in the left column:  
 ```{r, sum_cars, eval=TRUE, echo=FALSE}
 ```
@@ -152,10 +133,78 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 
 
 
+## Slide with an Interactive *dygraphs* Plot  
+
+<div class="column_left_50">
+
+```{r, dygraphs_plot, eval=FALSE, echo=TRUE}
+library(dygraphs, quietly=TRUE)
+library(lubridate, quietly=TRUE)
+xtsv <- log(zoo::coredata(EuStockMarkets[, "DAX"]))
+datev <- date_decimal(zoo::index(EuStockMarkets))
+xtsv <- xts::xts(xtsv, order.by=datev)
+dygraph(xtsv, main = "DAX Index (log)") %>% 
+  dyRangeSelector()
+```
+
+</div>
+
+<div class="column_right_50">
+
+```{r, dygraphs_plot, eval=TRUE, echo=FALSE, fig.width=5, fig.height=4}
+```
+
+</div>
+
+
+## How to Include Images  
+
+<div class="column_left_50">
+
+Image files can be loaded and displayed by using the following *markdown* syntax:  
+`![animated_gif](image/chi_squared.gif)`  
+
+
+The image file should be either in the same directory as the *R Markdown* file, or in a sub-directory.
+
+</div>
+
+<div class="column_right_50">
+
+![animated_gif](image/chi_squared.gif){width=400px, height=400px}
+
+</div>
+
+
+## Images in Two-column Layout Using *CSS* Code  
+
+Image files can be included in two different ways.  First, directly by using *markdown* syntax for external links, or by using the function `include_graphics()` in an *R* code chunk.  
+
+The image file should be either in the same directory as the *R Markdown* file, or in a sub-directory.  
+
+<div class="column_left_50">
+
+Hello World!  
+Creating *R* Presentations isn't difficult at all!  
+<!-- This is an example of using an R chunk and include_graphics() to show an image -->
+```{r, echo=FALSE, out.width="50%"}
+# This is an example of using an R chunk and include_graphics() to show an image
+# Not that the chunk option out.width="50%" controls the image size
+knitr::include_graphics("image/easy_button.png")
+```
+
+</div>
+
+<div class="column_right_50">
+R is fun!  
+![smiling_face](image/smile_small.png){width=200px, height=200px}
+</div>
+
+
+
 ## Plots in Two-column Layout Using *CSS* Code  
 
-<div class="columnleft50">
-Example of two-column layout with a plot.  
+<div class="column_left_50">
 The Normal probability density function is given by:
 $$
   P(x) = \frac{e^{-(x-\mu)^2/2\sigma^2}}{\sigma\sqrt{2 \pi}}
@@ -169,20 +218,18 @@ par(oma=c(1, 1, 1, 1))  # Set outer margins
 curve(expr=dnorm(x, sd=1.5), type="l", xlim=c(-5, 5),
       xlab="", ylab="", lwd=2, col="blue", 
       main="Normal Density Function")
-x_var <- seq(-5, 5, length=100)
-y_var <- dnorm(x_var, mean=0.0, sd=1.5)
-# Set shading range
-startd <- 2; fin_ish <- 3
-# Set polygon base
-are_a <- ((x_var >= startd) & (x_var <= fin_ish))
 # Draw shaded area
-polygon(c(startd, x_var[are_a], fin_ish),
-        c(-1, y_var[are_a], -1), col="red")
+xvar <- seq(-5, 5, length=100)
+yvar <- dnorm(xvar, mean=0.0, sd=1.5)
+startd <- 2; endd <- 3
+subv <- ((xvar >= startd) & (xvar <= endd))
+polygon(c(startd, xvar[subv], endd),
+        c(-1, yvar[subv], -1), col="red")
 ```
 
 </div>
 
-<div class="columnright50">
+<div class="column_right_50">
 
 Plot of Normal probability density function:
 
@@ -193,45 +240,28 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 
 
 
-## Images in Two-column Layout Using *CSS* Code  
-
-Image files can be included in two different ways.  First, directly by using *markdown* syntax for external links, or by using the function `include_graphics()` in an *R* code chunk.  
-
-The image file should be either in the same directory as the *R Markdown* file, or in a sub-directory.  
-
-<div class="columnleft50">
-
-Hello World!  
-Creating *R* Presentations isn't difficult at all!  
-<!-- This is an example of using an R chunk and include_graphics() to show an image -->
-```{r, echo=FALSE, out.width="50%"}
-# This is an example of using an R chunk and include_graphics() to show an image
-# Not that the chunk option out.width="50%" controls the image size
-knitr::include_graphics("image/easy_button.png")
-```
-
-</div>
-
-<div class="columnright50">
-R is fun!  
-![smiling_face](image/smile_small.png)
-</div>
-
-
-
 ## Slide with *HTML Widget*  
 
-Below is an *HTML Widget* created using the *D3.js JavaScript* library.  
+Below is a network graph created using the *D3.js JavaScript* library embedded as an *HTML widget*.  
 You can select and drag the nodes of the *widget* using your mouse.  
 
-```{r, eval=TRUE, echo=TRUE, cache=FALSE}
-library(networkD3)
+<div class="column_left_40">
+```{r, d3net, eval=FALSE, echo=TRUE, results="hold"}
+library(networkD3, quietly=TRUE)
 data(MisLinks, MisNodes)
-forceNetwork(Links=MisLinks, Nodes=MisNodes, Source="source",
-Target="target", Value="value", NodeID="name",
-Group="group", opacity=0.8)
+forceNetwork(Links=MisLinks, Nodes=MisNodes, 
+  Source="source", Target="target", Value="value", 
+  NodeID="name", Group="group", opacity=0.8)
 ```
 
+</div>
+
+<div class="column_right_60">
+
+```{r, d3net, eval=TRUE, echo=FALSE, fig.width=6, fig.height=4}
+```
+
+</div>
 
 
 ## Slide with Incremental Bullets

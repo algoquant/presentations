@@ -47,7 +47,7 @@ uiface <- shiny::shinyUI(fluidPage(
       # Define look_back interval
       sliderInput("look_back", label="lookback interval (months):",
                   min=2, max=30, value=6, step=1),
-      sliderInput("max_eigen", label="max_eigen:",
+      sliderInput("dimax", label="dimax:",
                   min=2, max=nweights, value=3, step=1),
       # Define the shrinkage intensity
       sliderInput("alpha", label="shrinkage intensity alpha:",
@@ -67,7 +67,7 @@ servfunc <- shiny::shinyServer(function(input, output) {
   datav <- reactive({
     # get model parameters from input
     look_back <- input$look_back
-    max_eigen <- input$max_eigen
+    dimax <- input$dimax
     alpha <- input$alpha
     # define startpoints
     startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
@@ -77,7 +77,7 @@ servfunc <- shiny::shinyServer(function(input, output) {
                              startpoints=startpoints-1, 
                              endpoints=endpoints-1, 
                              alpha=alpha, 
-                             max_eigen=max_eigen))
+                             dimax=dimax))
     strat_rets <- cbind(indeks,
                         cumprod(1 + retsp))
     colnames(strat_rets) <- c("equal_weight", "strat_rets")

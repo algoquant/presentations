@@ -278,7 +278,7 @@ servfun <- function(input, output) {
     # indic <- ifelse((indicsum = lagg), -1, indic)
     # indic <- ifelse((indicsum = lagg), 1, indic)
     # Calculate number of consecutive indicators in same direction.
-    # This is predictored to avoid trading on microstructure noise.
+    # This is designed to avoid trading on microstructure noise.
     # indic <- ifelse(indic == indic_lag, indic, indic)
     # indicsum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
     # indicsum[1:lagg] <- 0

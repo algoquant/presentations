@@ -72,11 +72,11 @@ chart_Series(var_iance[interval],
 par(mfrow=c(2,1))  # set plot panels
 library(HighFreq)  # load package "HighFreq"
 # daily variance and volume
-daily_var <- apply.daily(x=SPY, FUN=agg_ohlc,
+dailyvar <- apply.daily(x=SPY, FUN=agg_ohlc,
                   agg_fun="vol_ohlc")
-colnames(daily_var) <- paste0(symbol, ".var")
+colnames(dailyvar) <- paste0(symbol, ".var")
 daily_volume <- apply.daily(x=Vo(SPY), FUN=sum)
-chart_Series(daily_var,
+chart_Series(dailyvar,
        name=paste(symbol, "variance"))
 chart_Series(daily_volume,
        name=paste(symbol, "volume"))
@@ -87,12 +87,12 @@ daily_volu <- apply.daily(x=SPY,
         FUN=function(datav) sum(Vo(datav)))
 colnames(daily_volu) <- paste0(symbol, ".volume")
 interval <- "2010"
-chart_Series(sqrt(daily_var[interval]), 
+chart_Series(sqrt(dailyvar[interval]), 
        name=paste(symbol, "std dev"))
 chart_Series(daily_volu[interval],
        name=paste(symbol, "volume"))
 chart_Series(
-  sqrt(daily_var[interval]/daily_volu[interval]),
+  sqrt(dailyvar[interval]/daily_volu[interval]),
   name=paste(symbol, "illiquidity"))
 library(HighFreq)  # load package "HighFreq"
 # daily Hurst exponents
@@ -106,7 +106,7 @@ chart_Series(roll_sum(daily_hurst, 10)[-(1:10)]/10,
 abline(h=0.5, col="blue", lwd=2)
 par(mfrow=c(2,1))  # set plot panels
 library(HighFreq)  # load package "HighFreq"
-chart_Series(roll_sum(daily_var, 10)[-(1:10)]/10,
+chart_Series(roll_sum(dailyvar, 10)[-(1:10)]/10,
        name=paste(symbol, "variance"))
 chart_Series(roll_sum(daily_hurst, 10)[-(1:10)]/10,
        name=paste(symbol, "Hurst"))
@@ -166,9 +166,9 @@ season_var <- season_ality(vol_ohlc(ohlc=SPY))
 par(mfrow=c(2,1))  # set plot panels
 library(HighFreq)  # load package "HighFreq"
 # intraday seasonality of Hurst exponent
-rangev <- range(daily_var)
-plot(x=as.vector(daily_var), y=as.vector(daily_hurst), 
-     xlab=colnames(daily_var), ylab=colnames(daily_hurst),  
+rangev <- range(dailyvar)
+plot(x=as.vector(dailyvar), y=as.vector(daily_hurst), 
+     xlab=colnames(dailyvar), ylab=colnames(daily_hurst),  
      main="Daily Hurst and variance", 
      xlim=c(rangev[1], rangev[2]/4))
 abline(h=0.5, col="blue", lwd=2)
@@ -198,15 +198,15 @@ chart_Series(skew[interval],
 par(mfrow=c(2,1))  # set plot panels
 library(HighFreq)  # load package "HighFreq"
 # daily variance and skew
-daily_var <- apply.daily(x=SPY, FUN=agg_ohlc,
+dailyvar <- apply.daily(x=SPY, FUN=agg_ohlc,
                   agg_fun="vol_ohlc")
-colnames(daily_var) <- paste0(symbol, ".var")
+colnames(dailyvar) <- paste0(symbol, ".var")
 daily_skew <- apply.daily(x=SPY, FUN=agg_ohlc,
                   agg_fun="skew_ohlc")
-daily_skew <- daily_skew/(daily_var)^(1.5)
+daily_skew <- daily_skew/(dailyvar)^(1.5)
 colnames(daily_skew) <- paste0(symbol, ".skew")
 interval <- "2013-06-01/"
-chart_Series(daily_var[interval],
+chart_Series(dailyvar[interval],
        name=paste(symbol, "variance"))
 chart_Series(daily_skew[interval],
        name=paste(symbol, "skew"))
@@ -221,15 +221,15 @@ formulav <- as.formula(paste(colnames(datav)[1],
     paste(paste(colnames(datav)[-1], 
       collapse=" + "), "- 1"), sep="~"))
 formulav
-l_m <- lm(formulav, data=datav)
-summary(l_m)$coef
+regmod <- lm(formulav, data=datav)
+summary(regmod)$coef
 summary(lm(formulav, data=datav["/2011-01-01"]))$coef
 summary(lm(formulav, data=datav["2011-01-01/"]))$coef
 interval <- "2013-12-01/"
 plot(formulav, data=datav[interval],
      xlim=c(-2e-09, 2e-09),
      cex=0.6, xlab="skew", ylab="rets")
-abline(l_m, col="blue", lwd=2)
+abline(regmod, col="blue", lwd=2)
 # contrarian skew trading strategy
 # lag the skew to get positions
 posit <- -sign(lag_skew)
@@ -279,14 +279,14 @@ formulav <- as.formula(paste(colnames(datav)[1],
     paste(paste(colnames(datav)[-1], 
       collapse=" + "), "- 1"), sep="~"))
 formulav
-l_m <- lm(formulav, data=datav)
-summary(l_m)$coef
+regmod <- lm(formulav, data=datav)
+summary(regmod)$coef
 summary(lm(formulav, data=datav["/2011-01-01"]))$coef
 summary(lm(formulav, data=datav["2011-01-01/"]))$coef
 interval <- "2013-12-01/"
 plot(formulav, data=cbind(returns[, 1], lag_vwap)[interval],
      cex=0.6, xlab="skew", ylab="rets")
-abline(l_m, col="blue", lwd=2)
+abline(regmod, col="blue", lwd=2)
 # momentum trading strategy
 # cumulative PnL
 cumu_pnl <- cumsum(sign(lag_vwap)*returns[, 1])

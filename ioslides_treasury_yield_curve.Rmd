@@ -1,5 +1,5 @@
 ---
-title: An *ioslides* Presentation With an Animated *gif* of the Treasury Yield Curve
+title: An *ioslides* With Animated Yield Curve
 author: Your Name
 affiliation: NYU Tandon School of Engineering
 date: '`r format(Sys.time(), "%m/%d/%Y")`'
@@ -11,7 +11,7 @@ output:
     smaller: true
     transition: 0.1
     self_contained: true
-    logo: tandon_long_color.png
+    logo: image/tandon_long_color.png
 ---
 
 ```{r setup, include=FALSE}
@@ -29,8 +29,19 @@ options(width=80)
 
 ## Animated *gif* of the Treasury Yield Curve  
 
-The yield curve shape changes depending on the economic conditions: in recessions rates drop and the curve flattens,
-while in expansions rates rise and the curve steepens.
+<div class="column_left_50">
 
-![animated_gif](treasury_curve.gif)
+The yield curve shape changes depending on the economic conditions: 
+
+In recessions rates drop and the curve flattens, 
+
+While in expansions rates rise and the curve steepens.
+
+</div>
+
+<div class="column_right_50">
+
+![](image/treasury_curve.gif)
+
+</div>
 

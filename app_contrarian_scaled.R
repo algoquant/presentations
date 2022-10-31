@@ -343,11 +343,11 @@ servfun <- function(input, output) {
            },
            "rescaled_ohlc" = {  # For OHLC data
              # Scale the cumulative returns by the trailing volatility
-             maxv <- RcppRoll::roll_max(Hi(ohlc), n=look_back, align="right")
-             # minv <- -RcppRoll::roll_max(-Lo(ohlc), n=look_back, align="right")
-             # me_an <- RcppRoll::roll_mean(returns, n=look_back, align="right")
-             medi_an <- RcppRoll::roll_median(returns, n=look_back, align="right")
-             re_scaled <- (maxv - medi_an)/medi_an
+             maxv <- RcppRoll::rolregmodax(Hi(ohlc), n=look_back, align="right")
+             # minv <- -RcppRoll::rolregmodax(-Lo(ohlc), n=look_back, align="right")
+             # me_an <- RcppRoll::rolregmodean(returns, n=look_back, align="right")
+             medianv <- RcppRoll::roll_median(returns, n=look_back, align="right")
+             re_scaled <- (maxv - medianv)/medianv
              re_scaled <- c(rep(1, look_back-1), re_scaled)
              # rangev <- returns
              # var_rolling <- sqrt(HighFreq::roll_var_ohlc(ohlc, look_back=look_back, scale=FALSE))

@@ -125,11 +125,11 @@ servfun <- function(input, output) {
     # half_window <- look_back %/% 2
     
     # Rerun the model
-    medi_an <- TTR::runMedian(returns, n=look_back)
-    medi_an[1:look_back, ] <- 1
+    medianv <- TTR::runMedian(returns, n=look_back)
+    medianv[1:look_back, ] <- 1
     madv <- TTR::runMAD(returns, n=look_back)
     madv[1:look_back, ] <- 1
-    zscores <- ifelse(madv != 0, (returns-medi_an)/madv, 0)
+    zscores <- ifelse(madv != 0, (returns-medianv)/madv, 0)
     zscores[1:look_back, ] <- 0
     # mad_zscores <- TTR::runMAD(zscores, n=look_back)
     # mad_zscores[1:look_back, ] <- 0

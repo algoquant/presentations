@@ -143,15 +143,15 @@ servfun <- function(input, output) {
     }  # end if
     # Calculate the zscores
     # datav <- rutils::diffit(closep())
-    medi_an <- roll::roll_median(datav, width=look_back)
-    medi_an[1:look_back, ] <- 1
+    medianv <- roll::roll_median(datav, width=look_back)
+    medianv[1:look_back, ] <- 1
     # Don't divide zscores by the madv because it's redundant since zscores is divided by the mad_zscores.
     # Old code:
     # madv <- TTR::runMAD(datav, n=look_back)
     # madv[1:look_back, ] <- 1
-    # zscores <- ifelse(madv != 0, (datav-medi_an)/madv, 0)
+    # zscores <- ifelse(madv != 0, (datav-medianv)/madv, 0)
     # Calculate cumulative return
-    zscores <- (datav - medi_an)
+    zscores <- (datav - medianv)
     # Standardize the zscores
     # Old code:
     # zscores[1:look_back, ] <- 0
@@ -187,7 +187,7 @@ servfun <- function(input, output) {
     indic <- ifelse(zscores() > threshold, -1, indic)
     indic <- ifelse(zscores() < (-threshold), 1, indic)
     # Calculate number of consecutive indicators in same direction.
-    # This is predictored to avoid trading on microstructure noise.
+    # This is designed to avoid trading on microstructure noise.
     # indic <- ifelse(indic == indic_lag, indic, indic)
     indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
     indic_sum[1:lagg] <- 0
@@ -221,11 +221,11 @@ servfun <- function(input, output) {
     pnls <- cumsum(posit*returns)
     
     # Bind together strategy pnls
-    cum_rets <- cumsum(returns)
-    pnls <- cbind(cum_rets, pnls)
+    retsum <- cumsum(returns)
+    pnls <- cbind(retsum, pnls)
     colnames(pnls) <- c("Index", "Strategy")
     
-    pnls <- cbind(pnls, cum_rets[indic_buy], cum_rets[indic_sell])
+    pnls <- cbind(pnls, retsum[indic_buy], retsum[indic_sell])
     colnames(pnls)[3:4] <- c("Buy", "Sell")
     pnls
     # list(caption=captiont, pnls=pnls)

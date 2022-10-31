@@ -23,7 +23,7 @@ riskf <- 0.03/260
 # interval <- "weeks"
 # look_back <- 5
 # lambda <- 0.01
-# model_type <- "max_sharpe"
+# method <- "max_sharpe"
 # confl <- 0.25
 # dimax <- 11
 # alpha <- 0.01
@@ -51,7 +51,7 @@ uifun <- shiny::fluidPage(
     column(width=2, selectInput("datas", label="Data",
                                 choices=c("etf", "sp500"), selected="sp500")),
     # Input choice of model
-    column(width=2, selectInput("model_type", label="Model type",
+    column(width=2, selectInput("method", label="Model type",
                                 choices=c("sharpem", "kellym", "maxsharpe", "maxsharpemed", "minvarlin", "minvarquad", "ranksimple", "rank_hold", "robustm", "quantilev"), selected="maxsharpe")),
     # Input end points interval
     column(width=2, selectInput("interval", label="End points Interval",
@@ -119,7 +119,7 @@ servfun <- function(input, output) {
              # symbolv <- symbolv[!(symbolv %in% c("TLT", "IEF", "VXX", "SVXY", "MTUM"))]
              # symbolv <- symbolv[!(symbolv %in% c("VXX", "SVXY", "MTUM"))]
              rets <- rutils::etfenv$returns[, symbolv]
-             # model_type <- "max_sharpe"
+             # method <- "max_sharpe"
              # look_back <- 8
              # look_back_max <- 71
              # dimax <- 5
@@ -144,10 +144,10 @@ servfun <- function(input, output) {
              # rets <- rets[, !(rets[ncols %/% 10, ] == 0)]
              # Select 100 columns to reduce computations
              # set.seed(1121)  # Reset random number generator
-             # sam_ple <- sample(1:NCOL(rets), 100)
-             # rets <- rets[, sam_ple]
+             # samplev <- sample(1:NCOL(rets), 100)
+             # rets <- rets[, samplev]
              # rets <- cbind(rets, rutils::etfenv$rets$SVXY, rutils::etfenv$rets$VXX)
-             # model_type <- "rank"
+             # method <- "rank"
              # look_back <- 5
              # look_back_max <- 50
              # dimax <- 35
@@ -222,9 +222,9 @@ servfun <- function(input, output) {
            },
            "skew" = {
              ## Calculate the skew-like stats
-             maxv <- RcppRoll::roll_max(rets, n=nperiods, align="right")
-             # minv <- -RcppRoll::roll_max(-rets, n=nperiods, align="right")
-             # meanv <- RcppRoll::roll_mean(rets, n=nperiods, align="right")
+             maxv <- RcppRoll::rolregmodax(rets, n=nperiods, align="right")
+             # minv <- -RcppRoll::rolregmodax(-rets, n=nperiods, align="right")
+             # meanv <- RcppRoll::rolregmodean(rets, n=nperiods, align="right")
              medianv <- RcppRoll::roll_median(rets, n=nperiods, align="right")
              # Calculate difference between upside minus downside volatility
              # core_data <- coredata(rets)
@@ -307,11 +307,14 @@ servfun <- function(input, output) {
     look_back <- input$look_back
     dimax <- input$dimax
     lambda <- input$lambda
-    model_type <- input$model_type
+    method <- input$method
     alpha <- input$alpha
     confl <- input$confl
     trend <- as.numeric(input$trend)
     
+    # Create a named list of model parameters
+    controlv <- HighFreq::param_portf(method=method, dimax=dimax, alpha=alpha, confl=confl)
+
     # Model is recalculated when the recalcb variable is updated
     # input$recalcb
     
@@ -320,7 +323,7 @@ servfun <- function(input, output) {
     startp <- roll_points()$startp
     endp <- roll_points()$endp
     
-    if (model_type == "ranksimple") {
+    if (method == "ranksimple") {
       cat("Rank simple model \n")
       # Run rank model
       # posit <- matrix(rep(NA_integer_, nrows*ncols), ncol=ncols)
@@ -334,7 +337,7 @@ servfun <- function(input, output) {
       posit <- HighFreq::lagit(posit, lagg=1)
       pnls <- trend*posit*rets
       pnls <- rowMeans(pnls)
-    } else if (model_type == "rank_hold") {
+    } else if (method == "rank_hold") {
       cat("Rank hold model \n")
       # Run rank and hold model
       # posit <- matrix(rep(NA_integer_, nrows*ncols), ncol=ncols)
@@ -358,10 +361,7 @@ servfun <- function(input, output) {
                                   startp=startp-1,
                                   endp=endp-1,
                                   lambda=lambda,
-                                  confl=confl,
-                                  dimax=dimax,
-                                  alpha=alpha,
-                                  method=model_type,
+                                  controlv=controlv,
                                   coeff=trend)
       pnls[which(is.na(pnls)), ] <- 0
     } else {
@@ -379,7 +379,7 @@ servfun <- function(input, output) {
       #                                confl=confl,
       #                                dimax=dimax, 
       #                                alpha=alpha, 
-      #                                model_type=model_type,
+      #                                method=method,
       #                                coeff=trend)
       #   pnls[which(is.na(pnls)), ] <- 0
       #   pnls
@@ -392,15 +392,12 @@ servfun <- function(input, output) {
       cat("HighFreq::back_test() \n")
       # Rerun the strategy with fixed start date
       pnls <- HighFreq::back_test(excess=excess,
-                                   returns=rets,
-                                   startp=startp-1,
-                                   endp=endp-1,
-                                   lambda=lambda,
-                                   confl=confl,
-                                   dimax=dimax,
-                                   alpha=alpha,
-                                   method=model_type,
-                                   coeff=trend)
+                                  returns=rets,
+                                  startp=startp-1,
+                                  endp=endp-1,
+                                  lambda=lambda,
+                                  controlv=controlv,
+                                  coeff=trend)
       pnls[which(is.na(pnls)), ] <- 0
     }  # end if
   

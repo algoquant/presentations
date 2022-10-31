@@ -300,13 +300,13 @@ drift <- sapply(1:num_managers, function(x)
 set.seed(1121)  # reset random number generator
 returns <- matrix(volat*rnorm(num_managers*n_row) - volat^2/2, nc=num_managers) + drift
 # calculate cumulative returns
-cum_rets <- apply(returns, 2, cumsum)
+retsum <- apply(returns, 2, cumsum)
 
 ### pre-calculate row order indices for a vector of look_backs
 look_backs <- 20*(1:50)
 orderstats <- lapply(look_backs, function(look_back) {
   # total returns aggregated over overlapping windows
-  agg_rets <- apply(cum_rets, 2, rutils::diffit, lag=look_back)
+  agg_rets <- apply(retsum, 2, rutils::diffit, lag=look_back)
   ordern <- t(apply(agg_rets, 1, order))
   ordern <- rutils::lagit(ordern)
   ordern[1, ] <- 1
@@ -349,12 +349,12 @@ pnls <- cbind(look_backs, pnls)
 set.seed(1121)  # reset random number generator
 returns <- matrix(volat*rnorm(num_managers*n_row) - volat^2/2, nc=num_managers) + 2*drift
 # calculate cumulative returns
-cum_rets <- apply(returns, 2, cumsum)
+retsum <- apply(returns, 2, cumsum)
 
 ### pre-calculate row order indices for a vector of look_backs
 orderstats2x <- lapply(look_backs, function(look_back) {
   # total returns aggregated over overlapping windows
-  agg_rets <- apply(cum_rets, 2, rutils::diffit, lag=look_back)
+  agg_rets <- apply(retsum, 2, rutils::diffit, lag=look_back)
   ordern <- t(apply(agg_rets, 1, order))
   ordern <- rutils::lagit(ordern)
   ordern[1, ] <- 1

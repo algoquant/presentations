@@ -31,7 +31,7 @@ devtools::use_testthat("/Users/jerzy/Develop/R/rutils")
 
 The function *use_testthat()* from package *devtools* performs the following operations:
 
-+ creates the directories `./tests` and `./tests/testthat`, (the directory `./tests/testthat` is predictored to store the test files named `test*.R`),
++ creates the directories `./tests` and `./tests/testthat`, (the directory `./tests/testthat` is designed to store the test files named `test*.R`),
 
 + creates a file `./tests/testthat.R` for running all the test files,
 
@@ -68,7 +68,7 @@ The package *testthat* contains functions for implementing unit tests:
 Unit tests are organized as a set of calls to the functions *expect_\*()*, each wrapped by the function *test_that()*. 
 Unit tests related to a similar functionality or function can be collected in the same file under a single *context()*.
 
-Below are unit test code examples predictored to demonstrate the functions from package *testthat*.  The test code examples are collected under a single *context()*. 
+Below are unit test code examples designed to demonstrate the functions from package *testthat*.  The test code examples are collected under a single *context()*. 
 
 + The function *expect_match()* tests whether its first argument matches a regular expression provided by the second argument.
 

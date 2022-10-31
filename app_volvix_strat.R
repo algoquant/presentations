@@ -97,7 +97,7 @@ servfun <- function(input, output) {
     closep <- log(quantmod::Cl(ohlc))
     returns <- rutils::diffit(closep)
     # returns <- returns/sd(returns)
-    cum_rets <- cumsum(returns)
+    retsum <- cumsum(returns)
     nrows <- NROW(returns)
 
     # Calculate rolling volatility
@@ -125,7 +125,7 @@ servfun <- function(input, output) {
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
-    # This is predictored to prevent whipsaws and over-trading.
+    # This is designed to prevent whipsaws and over-trading.
     # posit <- ifelse(indic == indic_lag, indic, posit)
     
     indic <- rep(NA_integer_, nrows)
@@ -177,7 +177,7 @@ servfun <- function(input, output) {
 
     # Bind with indicators
     pnls <- cumsum(pnls)
-    pnls <- cbind(pnls, cum_rets[indic_buy], cum_rets[indic_sell])
+    pnls <- cbind(pnls, retsum[indic_buy], retsum[indic_sell])
     colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
 
     pnls

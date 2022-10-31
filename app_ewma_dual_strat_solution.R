@@ -34,10 +34,10 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input the EWMA decays
-    column(width=2, sliderInput("fast_lambda", label="Fast lambda:", min=0.1, max=0.3, value=0.2, step=0.001)),
-    column(width=2, sliderInput("slow_lambda", label="Slow lambda:", min=0.0, max=0.2, value=0.1, step=0.001)),
+    column(width=2, sliderInput("fast_lambda", label="Fast lambda:", min=0.1, max=0.3, value=0.203, step=0.001)),
+    column(width=2, sliderInput("slow_lambda", label="Slow lambda:", min=0.0, max=0.2, value=0.036, step=0.001)),
     # Input the look-back interval
-    column(width=2, sliderInput("look_back", label="Look-back", min=5, max=250, value=100, step=1)),
+    column(width=2, sliderInput("look_back", label="Look-back", min=5, max=250, value=169, step=1)),
     # Input the trade lag
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=2, step=1))
   ),  # end fluidRow
@@ -83,7 +83,7 @@ servfun <- function(input, output) {
 
     # Calculate cumulative returns
     returns <- datav()
-    cum_rets <- cumsum(returns)
+    retsum <- cumsum(returns)
     nrows <- NROW(returns)
     
     # Calculate EWMA weights
@@ -93,19 +93,19 @@ servfun <- function(input, output) {
     slow_weights <- slow_weights/sum(slow_weights)
     
     # Calculate EWMA prices by filtering with the weights
-    # cum_rets <- cumsum(rets_scaled)
-    fast_ewma <- .Call(stats:::C_cfilter, cum_rets, filter=fast_weights, sides=1, circular=FALSE)
+    # retsum <- cumsum(rets_scaled)
+    fast_ewma <- .Call(stats:::C_cfilter, retsum, filter=fast_weights, sides=1, circular=FALSE)
     fast_ewma[1:(look_back-1)] <- fast_ewma[look_back]
-    slow_ewma <- .Call(stats:::C_cfilter, cum_rets, filter=slow_weights, sides=1, circular=FALSE)
+    slow_ewma <- .Call(stats:::C_cfilter, retsum, filter=slow_weights, sides=1, circular=FALSE)
     slow_ewma[1:(look_back-1)] <- slow_ewma[look_back]
     
     # Determine dates when the EWMAs have crossed
     indic <- sign(fast_ewma - slow_ewma)
     
-    ## Backtest strategy for flipping if two consecutive positive and negative returns
+    ## Backtest strategy for flipping if several consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
-    # This is predictored to prevent whipsaws and over-trading.
+    # This is designed to prevent whipsaws and over-trading.
     # posit <- ifelse(indic == indic_lag, indic, posit)
     
     indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
@@ -148,7 +148,7 @@ servfun <- function(input, output) {
 
     # Bind with indicators
     pnls <- cumsum(pnls)
-    pnls <- cbind(pnls, cum_rets[indic_buy], cum_rets[indic_sell])
+    pnls <- cbind(pnls, retsum[indic_buy], retsum[indic_sell])
     colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
 
     pnls

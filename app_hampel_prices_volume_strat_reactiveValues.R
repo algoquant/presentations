@@ -187,16 +187,16 @@ servfun <- function(input, output) {
     cat("Calculated cumsumv\n")
     
     # Calculate the rolling median of the cumulative returns
-    medi_an <- roll::roll_median(cumsumv, width=short_back)
-    medi_an[1:short_back, ] <- 1
-    cat("Calculated medi_an\n")
+    medianv <- roll::roll_median(cumsumv, width=short_back)
+    medianv[1:short_back, ] <- 1
+    cat("Calculated medianv\n")
     # Don't divide zscores by the madv because it's redundant since zscores is divided by the mad_zscores.
     # Old code:
     # madv <- TTR::runMAD(returns, n=short_back)
     # madv[1:short_back, ] <- 1
-    # zscores <- ifelse(madv != 0, (closep-medi_an)/madv, 0)
+    # zscores <- ifelse(madv != 0, (closep-medianv)/madv, 0)
     # Calculate the zscores as the rolling cumulative returns
-    zscores <- (cumsumv - medi_an)
+    zscores <- (cumsumv - medianv)
     # Standardize the zscores
     # Old code:
     # zscores[1:short_back, ] <- 0
@@ -241,7 +241,7 @@ servfun <- function(input, output) {
     indic <- ifelse(zscores() < (-threshold), 1, indic)
     cat("Calculated zscores\n")
     # Calculate number of consecutive indicators in same direction.
-    # This is predictored to avoid trading on microstructure noise.
+    # This is designed to avoid trading on microstructure noise.
     # indic <- ifelse(indic == indic_lag, indic, indic)
     indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
     indic_sum[1:lagg] <- 0

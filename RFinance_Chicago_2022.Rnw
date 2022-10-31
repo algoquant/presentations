@@ -853,10 +853,10 @@ arma::mat back_test(const arma::mat& excess, // Asset excess returns
                     double bid_offer = 0.0) {
   
   double lambda1 = 1-lambda;
-  arma::uword nweights = returns.n_cols;
+  arma::uword nweights = returns.ncols;
   arma::vec weights(nweights, fill::zeros);
   arma::vec weights_past = ones(nweights)/sqrt(nweights);
-  arma::mat pnls = zeros(returns.n_rows, 1);
+  arma::mat pnls = zeros(returns.nrows, 1);
 
   // Perform loop over the end points
   for (arma::uword it = 1; it < endp.size(); it++) {
@@ -910,7 +910,7 @@ arma::vec calc_weights(const arma::mat& returns, // Asset returns
                        double vol_target = 0.01) { // Target volatility for scaling the weights
   
   // Initialize
-  arma::uword ncols = returns.n_cols;
+  arma::uword ncols = returns.ncols;
   arma::vec weights(ncols, fill::zeros);
   // No regularization so set dimax to ncols
   if (dimax == 0)  dimax = ncols;

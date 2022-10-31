@@ -58,7 +58,7 @@ uifun <- shiny::fluidPage(
     column(width=2, sliderInput("dimax", label="Number of eigenvalues:",
                                 min=2, max=(nstocks %/% 2), value=10, step=1)),
     # Input forgetting rate for the mean
-    # column(width=2, sliderInput("lambdav", label="Forgetting factor:",
+    # column(width=2, sliderInput("lambda", label="Forgetting factor:",
     #                             min=0.01, max=0.5, value=0.2, step=0.01)),
     # Input learning rate for the PCA
     # column(width=2, sliderInput("gammav", label="Learning rate:",
@@ -83,7 +83,7 @@ servfun <- function(input, output) {
     interval <- input$interval
     look_back <- input$look_back
     dimax <- input$dimax
-    # lambdav <- input$lambdav
+    # lambda <- input$lambda
     # gammav <- input$gammav
     alpha <- input$alpha
     

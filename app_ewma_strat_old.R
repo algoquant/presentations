@@ -205,7 +205,7 @@ servfun <- function(input, output) {
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
-    # This is predictored to prevent whipsaws and over-trading.
+    # This is designed to prevent whipsaws and over-trading.
     # posit <- ifelse(indic == indic_lag, indic, posit)
     indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
     indic_sum[1:lagg] <- 0

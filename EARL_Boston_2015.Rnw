@@ -359,17 +359,17 @@ output_dir <- "/Users/jerzy/Develop/data/hfreq/scrub/"
 symbol <- load(file.path(output_dir, paste0(symbol, ".RData")))
 library(HighFreq)  # load package "HighFreq"
 # daily volatility and skew
-daily_var <- apply.daily(x=get(symbol), 
+dailyvar <- apply.daily(x=get(symbol), 
                          FUN=moment_ohlc)
-colnames(daily_var) <- 
+colnames(dailyvar) <- 
   paste(symbol, "vol", sep=".")
 daily_skew <- apply.daily(x=get(symbol), 
               FUN=moment_ohlc, mom_fun="skew_ohlc")
-daily_skew <- daily_skew/(daily_var)^(1.5)
+daily_skew <- daily_skew/(dailyvar)^(1.5)
 colnames(daily_skew) <- 
   paste(symbol, "skew", sep=".")
 dates <- "2013-06-01/"
-chart_Series(daily_var[dates], 
+chart_Series(dailyvar[dates], 
              name=paste(symbol, "volatility"))
 chart_Series(daily_skew[dates],
              name=paste(symbol, "skew"))
@@ -405,21 +405,21 @@ output_dir <- "/Users/jerzy/Develop/data/hfreq/scrub/"
 symbol <- load(file.path(output_dir, paste0(symbol, ".RData")))
 library(HighFreq)  # load package "HighFreq"
 # daily volatility and volume
-daily_var <- apply.daily(x=get(symbol), 
+dailyvar <- apply.daily(x=get(symbol), 
                          FUN=moment_ohlc)
-colnames(daily_var) <- 
+colnames(dailyvar) <- 
   paste(symbol, "vol", sep=".")
 daily_volu <- apply.daily(x=get(symbol), 
               FUN=function(datav) sum(Vo(datav)))
 colnames(daily_volu) <- 
   paste(symbol, "volume", sep=".")
 dates <- "2010"
-chart_Series(sqrt(daily_var[dates]), 
+chart_Series(sqrt(dailyvar[dates]), 
              name=paste(symbol, "std dev"))
 chart_Series(daily_volu[dates],
              name=paste(symbol, "volume"))
 chart_Series(
-  sqrt(daily_var[dates]/daily_volu[dates]),
+  sqrt(dailyvar[dates]/daily_volu[dates]),
   name=paste(symbol, "illiquidity"))
 @
     \column{0.5\textwidth}
@@ -452,8 +452,8 @@ formulav <- as.formula(paste(colnames(datav)[1],
           paste(paste(colnames(datav)[-1], 
             collapse=" + "), "- 1"), sep="~"))
 formulav
-l_m <- lm(formulav, data=as.data.frame(datav))
-summary(l_m)$coef
+regmod <- lm(formulav, data=as.data.frame(datav))
+summary(regmod)$coef
 summary(lm(formulav, data=
              as.data.frame(datav["/2011-01-01"])))$coef
 summary(lm(formulav, data=
@@ -466,7 +466,7 @@ dates <- "2013-12-01/"
 plot(formulav, data=datav[dates], 
      xlim=c(-2e-09, 2e-09), 
      cex=0.6, xlab="skew", ylab="rets")
-abline(l_m, col="blue", lwd=2)
+abline(regmod, col="blue", lwd=2)
       @
   \end{columns}
 \end{block}
@@ -582,8 +582,8 @@ formulav <- as.formula(paste(colnames(datav)[1],
           paste(paste(colnames(datav)[-1], 
             collapse=" + "), "- 1"), sep="~"))
 formulav
-l_m <- lm(formulav, data=as.data.frame(datav))
-summary(l_m)$coef
+regmod <- lm(formulav, data=as.data.frame(datav))
+summary(regmod)$coef
 summary(lm(formulav, 
      data=as.data.frame(datav["/2011-01-01"])))$coef
 summary(lm(formulav, 
@@ -596,7 +596,7 @@ summary(lm(formulav,
 dates <- "2013-12-01/"
 plot(formulav, data=cbind(returns[, 1], lag_vwap)[dates], 
      cex=0.6, xlab="skew", ylab="rets")
-abline(l_m, col="blue", lwd=2)
+abline(regmod, col="blue", lwd=2)
       @
   \end{columns}
 \end{block}

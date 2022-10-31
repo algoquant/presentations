@@ -78,7 +78,7 @@ uifun <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Create output plot panel
-  plotOutput("histo_gram", width="90%", height="550px")
+  plotOutput("histp", width="90%", height="550px")
 
 )  # end fluidPage interface
 
@@ -137,7 +137,7 @@ servfun <- function(input, output) {
   })  # end reactive
   
   # Plot the histogram of the simulated data
-  output$histo_gram <- shiny::renderPlot({
+  output$histp <- shiny::renderPlot({
     # isolate() prevents automatic recalculation when n_bins is updated
     symbol <- input$symbol
     cat("Plotting data for ", symbol, "\n")

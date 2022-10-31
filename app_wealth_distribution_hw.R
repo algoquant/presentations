@@ -23,8 +23,12 @@ nrows <- NROW(retsp)
 
 # Define the risk-adjusted wealth measure.
 
-wealthfun <- function(wealthv)
-  (mean(wealthv)-1)/sd(wealthv[wealthv < median(wealthv)])
+riskretfun <- function(wealthv) {
+  riskv <- 0.05
+  if (min(wealthv) < 1)
+    riskv <- mean((1-wealthv)[wealthv<1])
+  mean(wealthv)/riskv
+}  # end riskretfun
 
 
 ## Bootstrap the retsp returns.
@@ -103,12 +107,14 @@ servfun <- function(input, output) {
     
     # Plot density of portfolio wealth
     par(mar=c(5.1, 5.1, 4.1, 2.1))
-    plot(densityv, col="blue", lwd=3, 
+    densx <- densityv$x
+    densy <- densityv$y
+    plot(densityv, col="blue", lwd=3, xlim=c(0.1*min(densx), 0.9*max(densx)), 
          xlab="Wealth", ylab="Density",
          cex.main=1.5, cex.lab=1.5, cex.axis=1.5, 
          main="Density of the Terminal Wealths of VTI and IEF Portfolio")
-
-    text(x=0.75*max(densityv$x), y=0.75*max(densityv$y), 
+    
+    text(x=0.85*max(densx), y=0.75*max(densy), 
          labels=paste0("Mean of wealth = ", format(meanv, digits=3), "\n",
                        "Standard deviation of wealth = ", format(sdv, digits=3), "\n",
                        "Skewness of wealth = ", format(skewv, digits=3), "\n",

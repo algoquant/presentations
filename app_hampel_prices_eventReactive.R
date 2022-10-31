@@ -152,13 +152,13 @@ servfun <- function(input, output) {
   zscores <- eventReactive(input$look_back, {
     cat("Calculating zscores\n")
     # Calculate the zscores
-    medi_an <- TTR::runMedian(closep, n=input$look_back)
-    medi_an[1:input$look_back, ] <- 1
+    medianv <- TTR::runMedian(closep, n=input$look_back)
+    medianv[1:input$look_back, ] <- 1
     # madv <- TTR::runMAD(returns, n=look_back)
     # madv[1:look_back, ] <- 1
-    # zscores <- ifelse(madv != 0, (closep-medi_an)/madv, 0)
+    # zscores <- ifelse(madv != 0, (closep-medianv)/madv, 0)
     # Don't divide zscores by the madv because it's redundant since zscores is divided by the mad_zscores.
-    zscores <- (closep-medi_an)
+    zscores <- (closep-medianv)
     # zscores[1:look_back, ] <- 0
     mad_zscores <- TTR::runMAD(zscores, n=10*input$look_back)
     mad_zscores[1:(10*input$look_back), ] <- 0
@@ -181,7 +181,7 @@ servfun <- function(input, output) {
     indic <- ifelse(zscores() > input$threshold, -1, indic)
     indic <- ifelse(zscores() < (-input$threshold), 1, indic)
     # Calculate number of consecutive indicators in same direction.
-    # This is predictored to avoid trading on microstructure noise.
+    # This is designed to avoid trading on microstructure noise.
     # indic <- ifelse(indic == indic_lag, indic, indic)
     indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=input$lagg)
     indic_sum[1:input$lagg] <- 0

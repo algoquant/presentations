@@ -41,19 +41,19 @@ renderPlot({
   ewma1 <- ewma_strat[, "ewma1"]
   ewma2 <- ewma_strat[, "ewma2"]
   positions <- xts(ewma_strat[, "positions"], order.by=index(ohlc))
-  pn_l <- cumsum(ewma_strat[, "returns"])
-  pn_l <- cbind(closep-as.numeric(closep[1, ]), pn_l, ewma1, ewma2)
-  colnames(pn_l) <- c("VTI", "EWMA PnL", "ewma1", "ewma2")
+  pnlv <- cumsum(ewma_strat[, "returns"])
+  pnlv <- cbind(closep-as.numeric(closep[1, ]), pnlv, ewma1, ewma2)
+  colnames(pnlv) <- c("VTI", "EWMA PnL", "ewma1", "ewma2")
   returns <- rutils::diffxts(closep)
-  shar_pe <- sqrt(260)*sum(returns)/sd(returns)/NROW(returns)
+  sharper <- sqrt(260)*sum(returns)/sd(returns)/NROW(returns)
   returns <- ewma_strat[, "returns"]
-  sharpe_ewma <- sqrt(260)*sum(returns)/sd(returns)/NROW(returns)
+  sharpewma <- sqrt(260)*sum(returns)/sd(returns)/NROW(returns)
   
   # plot EWMA strategy with custom line colors and position shading
   plot_theme <- chart_theme()
   plot_theme$col$line.col <- c("orange", "blue", "yellow", "magenta2")
   
-  chobj <- chart_Series(pn_l, theme=plot_theme, 
+  chobj <- chart_Series(pnlv, theme=plot_theme, 
              name="Performance of Strategy with Two EWMAs")
   add_TA(positions > 0, on=-1,
          col="lightgreen", border="lightgreen")
@@ -61,10 +61,10 @@ renderPlot({
          col="lightgrey", border="lightgrey")
   plot(chobj)
   legend("bottomleft", 
-         title=paste(c(paste0(colnames(pn_l)[1], " Sharpe ratio = ", format(shar_pe, digits=3)),
-                       paste0("strategy Sharpe ratio = ", format(sharpe_ewma, digits=3))),
+         title=paste(c(paste0(colnames(pnlv)[1], " Sharpe ratio = ", format(sharper, digits=3)),
+                       paste0("strategy Sharpe ratio = ", format(sharpewma, digits=3))),
                      collapse="\n"),
-         legend=colnames(pn_l), 
+         legend=colnames(pnlv), 
          inset=0.05, bg="white", lty=rep(1, 4), lwd=rep(8, 4), 
          col=plot_theme$col$line.col, bty="n")
   
