@@ -52,8 +52,8 @@ highp <- Hi(es1)
 lowp <- Lo(es1)
 es1_close_high <- (close_num == as.numeric(highp))
 es1_close_low <- (close_num == as.numeric(lowp))
-es1_returns <- rutils::diffit(closep)
-colnames(es1_returns) <- "returns"
+es1_retv <- rutils::diffit(closep)
+colnames(es1_retv) <- "returns"
 
 # set up data for signal
 score <- "TU1"
@@ -71,14 +71,14 @@ close_high <- (close_num == as.numeric(highp))
 close_high_count <- HighFreq::roll_count(close_high)
 close_low <- (close_num == as.numeric(lowp))
 close_low_count <- HighFreq::roll_count(close_low)
-returns <- rutils::diffit(closep)
-colnames(returns) <- "returns"
+retv <- rutils::diffit(closep)
+colnames(retv) <- "returns"
 dates <- 1:NROW(ohlc)
 # dates <- xts::.index(ohlc)
-predictor <- matrix(dates, nc=1)
+predv <- matrix(dates, nc=1)
 # dates <- xts::.index(ohlc)
-# predictor <- matrix(as.numeric(xts::.index(ohlc)), nc=1)
-# indicator_s <- cbind(returns, zscores, volat, skew)
+# predv <- matrix(as.numeric(xts::.index(ohlc)), nc=1)
+# indicator_s <- cbind(retv, zscores, volat, skew)
 
 # End setup code
 
@@ -160,18 +160,18 @@ servfun <- shiny::shinyServer(function(input, output) {
     # score <- closep
     # trending signal
     # signal_long <- calc_signal(ohlc=log_ohlc, closep=close_num,
-    #                             predictor=predictor,
+    #                             predictor=predv,
     #                             look_short=look_short, look_long=look_long, high_freq=FALSE)
     signal_long <- calc_ma(ohlc=log_ohlc, closep=close_num,
-                           predictor=predictor,
+                           predictor=predv,
                            look_back=look_long, high_freq=FALSE)
     # mean reverting signal
     # signal_short <- log_ohlc[, 1]  # dummy signal
     # signal_short <- calc_signal(ohlc=log_ohlc, closep=close_num,
-    #                             predictor=predictor,
+    #                             predictor=predv,
     #                             look_short=look_short, look_long=look_long, high_freq=FALSE)
-    # score <- HighFreq::roll_zscores(response=close_num, 
-    #                         predictor=predictor, 
+    # score <- HighFreq::roll_zscores(respv=close_num, 
+    #                         predictor=predv, 
     #                         look_back=look_short)
     # score[1:look_short, ] <- 0
     # scale score using HighFreq::roll_scale()
@@ -194,8 +194,8 @@ servfun <- shiny::shinyServer(function(input, output) {
     # posit <- rutils::lagit(posit, lagg=trade_lag)
 
     # trending signal
-    # score <- HighFreq::roll_zscores(response=closep, 
-    #                         predictor=predictor, 
+    # score <- HighFreq::roll_zscores(respv=closep, 
+    #                         predictor=predv, 
     #                         look_back=look_long)
     # score[1:look_long, ] <- 0
     # score <- rutils::lagit(score)
@@ -207,16 +207,16 @@ servfun <- shiny::shinyServer(function(input, output) {
     # posit[score>beta_vol] <- 1
     # posit <- na.locf(posit)
     # pnls <- signal_short
-    # pnls <- cumsum(posit*returns)
+    # pnls <- cumsum(posit*retv)
     # colnames(pnls) <- "strategy"
     
-    # datav <- sim_revert(signal_short, returns, close_high, close_high_count, close_low, close_low_count, enter, exit, trade_lag)
-    datav <- sim_trend(signal_long, es1_returns, es1_close_high, es1_close_low, enter, exit, trade_lag)
+    # datav <- sim_revert(signal_short, retv, close_high, close_high_count, close_low, close_low_count, enter, exit, trade_lag)
+    datav <- sim_trend(signal_long, es1_retv, es1_close_high, es1_close_low, enter, exit, trade_lag)
     datav <- cbind(Cl(es1), datav)
     colnames(datav)[1] <- symbol
     datav
-    # sim_trend(signal_long, returns, close_high, close_low, enter, exit, trade_lag)
-    # sim_revert_trending(signal_short, signal_long, returns, close_high, close_low, enter, exit, trade_lag)
+    # sim_trend(signal_long, retv, close_high, close_low, enter, exit, trade_lag)
+    # sim_revert_trending(signal_short, signal_long, retv, close_high, close_low, enter, exit, trade_lag)
     # posit <- xts(posit, index(ohlc))
     # colnames(posit) <- "strategy"
     # pnls

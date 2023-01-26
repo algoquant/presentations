@@ -23,7 +23,7 @@ tick_size <- 0.25
 load(paste0(symbol, "_ohlc.RData"))
 nrows <- NROW(ohlc)
 ohlc_data <- coredata(ohlc)
-returns <- rutils::diffit(ohlc_data[, 4])
+retv <- rutils::diffit(ohlc_data[, 4])
 ohlc_lag <- rutils::lagit(ohlc_data)
 colnamev <- c("Strategy PnL", "Inventory", "Realized PnL", "Unrealized PnL", "EWMA")
 # calculate EWMA variance using filter()
@@ -102,7 +102,7 @@ servfun <- function(input, output) {
     #                           lagg=input$lagg,
     #                           warm_up=100)
 
-    pnls <- trade_median(returns=returns, ohlc=ohlc_data,
+    pnls <- trade_median(retv=retv, ohlc=ohlc_data,
                           ohlc_lag=rutils::lagit(ohlc_data, lagg=input$lagg),
                           look_back=input$look_back, 
                           threshold=input$threshold, 

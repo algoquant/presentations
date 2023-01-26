@@ -37,10 +37,10 @@ switch(data_type,
          dates <- index(ohlc)
          nrows <- NROW(ohlc)
          endp <- xts::endpoints(ohlc, on="hours")
-         prices <- log(Cl(ohlc))
-         returns <- rutils::diffit(prices)
-         stdev <- sd(returns[returns<0])
-         # prices <- prices[endp]
+         pricev <- log(Cl(ohlc))
+         retv <- rutils::diffit(pricev)
+         stdev <- sd(retv[returns<0])
+         # pricev <- pricev[endp]
        },
        "otherbars" = {
          captiont <- "Strategy for 1-minute LODE Bars"
@@ -52,9 +52,9 @@ switch(data_type,
          closep <- log(ohlc$close)
          dates <- seq.POSIXt(from=as.POSIXct("2021-03-10 09:30:00", origin="1970-01-01"), by="min", length.out=nrows)
          closep <- xts::xts(closep, dates)
-         returns <- rutils::diffit(closep)
-         stdev <- sd(returns[returns<0])
-         endp <- xts::endpoints(returns, on="hours")
+         retv <- rutils::diffit(closep)
+         stdev <- sd(retv[returns<0])
+         endp <- xts::endpoints(retv, on="hours")
          # Coerce ohlc into a matrix
          ohlc <- ohlc[, c(4, 6, 7, 5)]
          colnames(ohlc) <- c("Open", "High", "Low", "Close")
@@ -78,18 +78,18 @@ switch(data_type,
          foo[, price := (price + bar)]
          raw_ticks <- rbind(raw_ticks, foo)
          big_ticks <- raw_ticks[volume >= 400]
-         prices <- log(big_ticks$price)
-         returns <- HighFreq::diff_vec(prices)
-         nrows <- NROW(returns)
-         stdev <- sd(returns[returns<0])
-         # nrows <- NROW(returns)
-         # dim(returns) <- c(nrows, 1)
+         pricev <- log(big_ticks$price)
+         retv <- HighFreq::diff_vec(pricev)
+         nrows <- NROW(retv)
+         stdev <- sd(retv[returns<0])
+         # nrows <- NROW(retv)
+         # dim(retv) <- c(nrows, 1)
          # Make dates unique:
          # dates <- as.POSIXct(big_ticks$seconds, origin="1970-01-01")
          # dates <- xts::make.index.unique(dates)
          endp <- 100*(1:(nrows %/% 100))
          dates <- seq.POSIXt(from=as.POSIXct("2020-01-01", origin="1970-01-01"), by="sec", length.out=nrows)
-         returns <- xts::xts(returns, dates)
+         retv <- xts::xts(retv, dates)
        },
        "futures" = {
          # Load the 5-second ES futures bar data collected from IB.
@@ -104,11 +104,11 @@ switch(data_type,
          dates <- index(ohlc)
          nrows <- NROW(ohlc)
          endp <- xts::endpoints(ohlc, on="hours")
-         prices <- log(Cl(ohlc))
-         returns <- rutils::diffit(prices)
-         stdev <- sd(returns[returns<0])
-         # prices <- prices[endp]
-         # returns <- c(0, returns)
+         pricev <- log(Cl(ohlc))
+         retv <- rutils::diffit(pricev)
+         stdev <- sd(retv[returns<0])
+         # pricev <- pricev[endp]
+         # retv <- c(0, retv)
          captiont <- paste("Contrarian Strategy for", symbol, "Bars")
        },
        "etf" = {
@@ -123,10 +123,10 @@ switch(data_type,
          dates <- index(ohlc)
          nrows <- NROW(ohlc)
          endp <- xts::endpoints(ohlc, on="days")
-         prices <- log(Cl(ohlc))
-         returns <- rutils::diffit(prices)
-         stdev <- sd(returns[returns<0])
-         # prices <- prices[endp]
+         pricev <- log(Cl(ohlc))
+         retv <- rutils::diffit(pricev)
+         stdev <- sd(retv[returns<0])
+         # pricev <- pricev[endp]
        },
        "sp500" = {
          captiont <- "Strategy for S&P500 Stocks"
@@ -143,10 +143,10 @@ switch(data_type,
          dates <- index(ohlc)
          nrows <- NROW(ohlc)
          endp <- xts::endpoints(ohlc, on="days")
-         prices <- log(Cl(ohlc))
-         returns <- rutils::diffit(prices)
-         stdev <- sd(returns[returns<0])
-         # prices <- prices[endp]
+         pricev <- log(Cl(ohlc))
+         retv <- rutils::diffit(pricev)
+         stdev <- sd(retv[returns<0])
+         # pricev <- pricev[endp]
        }
 )  # end switch
 
@@ -255,10 +255,10 @@ servfun <- function(input, output) {
              dates <- index(ohlc)
              nrows <- NROW(ohlc)
              endp <- xts::endpoints(ohlc, on="days")
-             prices <- log(Cl(ohlc))
-             returns <- rutils::diffit(prices)
-             stdev <- sd(returns[returns<0])
-             # prices <- prices[endp]
+             pricev <- log(Cl(ohlc))
+             retv <- rutils::diffit(pricev)
+             stdev <- sd(retv[returns<0])
+             # pricev <- pricev[endp]
            },
            "sp500" = {
              # captiont <- "Rolling Portfolio Optimization Strategy for Sub-Portfolio of S&P500 Stocks"
@@ -267,21 +267,21 @@ servfun <- function(input, output) {
              dates <- index(ohlc)
              nrows <- NROW(ohlc)
              endp <- xts::endpoints(ohlc, on="days")
-             prices <- log(Cl(ohlc))
-             returns <- rutils::diffit(prices)
-             stdev <- sd(returns[returns<0])
-             # prices <- prices[endp]
+             pricev <- log(Cl(ohlc))
+             retv <- rutils::diffit(pricev)
+             stdev <- sd(retv[returns<0])
+             # pricev <- pricev[endp]
            },
            "tick_data" = {
              big_ticks <- raw_ticks[volume >= volumes]
-             prices <- log(big_ticks$price)
-             returns <- HighFreq::diff_vec(prices)
-             stdev <- sd(returns[returns<0])
-             nrows <- NROW(returns)
-             # dim(returns) <- c(nrows, 1)
+             pricev <- log(big_ticks$price)
+             retv <- HighFreq::diff_vec(pricev)
+             stdev <- sd(retv[returns<0])
+             nrows <- NROW(retv)
+             # dim(retv) <- c(nrows, 1)
              endp <- 100*(1:(nrows %/% 100))
              dates <- seq.POSIXt(from=as.POSIXct("2020-01-01", origin="1970-01-01"), by="sec", length.out=nrows)
-             returns <- xts::xts(returns, dates)
+             retv <- xts::xts(retv, dates)
            }
     )  # end switch
     
@@ -313,7 +313,7 @@ servfun <- function(input, output) {
            },
            "sharpe_ohlc" = {  # For OHLC data
              # Scale the cumulative returns by the trailing volatility
-             rangev <- HighFreq::roll_sum(returns, look_back=look_back)
+             rangev <- HighFreq::roll_sum(retv, look_back=look_back)
              var_rolling <- sqrt(HighFreq::roll_var_ohlc(ohlc, look_back=look_back, scale=FALSE))
              look_back <- sqrt(look_back)
              re_scaled <- ifelse((var_rolling==0) | (rangev==0),
@@ -345,8 +345,8 @@ servfun <- function(input, output) {
              # Scale the cumulative returns by the trailing volatility
              maxv <- RcppRoll::rolregmodax(Hi(ohlc), n=look_back, align="right")
              # minv <- -RcppRoll::rolregmodax(-Lo(ohlc), n=look_back, align="right")
-             # me_an <- RcppRoll::rolregmodean(returns, n=look_back, align="right")
-             medianv <- RcppRoll::roll_median(returns, n=look_back, align="right")
+             # me_an <- RcppRoll::rolregmodean(retv, n=look_back, align="right")
+             medianv <- RcppRoll::roll_median(retv, n=look_back, align="right")
              re_scaled <- (maxv - medianv)/medianv
              re_scaled <- c(rep(1, look_back-1), re_scaled)
              # rangev <- returns
@@ -378,8 +378,8 @@ servfun <- function(input, output) {
            },
            "sharpe_ticks" = {
              # Scale the cumulative returns by the trailing volatility
-             rangev <- HighFreq::roll_sum(returns, look_back=look_back)
-             var_rolling <- sqrt(HighFreq::roll_var(returns, look_back=look_back))
+             rangev <- HighFreq::roll_sum(retv, look_back=look_back)
+             var_rolling <- sqrt(HighFreq::roll_var(retv, look_back=look_back))
              look_back <- sqrt(look_back)
              re_scaled <- ifelse((var_rolling==0) | (rangev==0),
                                  0.0,
@@ -417,9 +417,9 @@ servfun <- function(input, output) {
            },
            "zscore" = {
              # Calculate trailing z-scores
-             # predictor <- matrix(1:nrows, nc=1)
-             predictor <- matrix(1:nrows, nc=1)
-             zscores <- HighFreq::roll_reg(response=returns, predictor=predictor, look_back=look_back)
+             # predv <- matrix(1:nrows, nc=1)
+             predv <- matrix(1:nrows, nc=1)
+             zscores <- HighFreq::roll_reg(respv=retv, predictor=predv, look_back=look_back)
              zscores <- zscores[, NCOL(zscores), drop=FALSE]
              # colnames(zscores) <- "zscore"
              zscores[1:look_back] <- 0
@@ -450,14 +450,14 @@ servfun <- function(input, output) {
     # Calculate number of trades
     # sum(turn_over)/NROW(posit)
     # Calculate strategy pnls
-    pnls <- (coeff*posit*returns)
+    pnls <- (coeff*posit*retv)
 
     # Calculate transaction costs
     costs <- bid_offer*turn_over
     pnls <- (pnls - costs)
 
     pnls <- stdev*pnls/sd(pnls[pnls<0])
-    pnls <- cbind(pnls, returns)
+    pnls <- cbind(pnls, retv)
     # sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x))
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
     sharper <- round(sharper, 3)

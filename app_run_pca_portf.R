@@ -1,5 +1,5 @@
 ##############################
-# This is a shiny app for backtesting a running portfolio 
+# This is a shiny app for backtesting a running PCA portfolio 
 # strategy, which produces an interactive dygraphs plot.
 # It runs compiled Rcpp code for either a portfolio 
 # optimization strategy or a momentum strategy.
@@ -13,55 +13,69 @@
 library(shiny)
 library(dygraphs)
 library(HighFreq)
-# Compile Rcpp code for the portfolio model
-Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/back_test_run.cpp")
+
+# Load daily S&P500 percentage stock returns.
+load(file="/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
+retsp <- retv["2000/"]
+
+# symbolv <- rutils::etfenv$symbolv
+# symbolv <- symbolv[!(symbolv %in% c("TLT", "IEF", "MTUM", "QUAL", "VLUE", "USMV", "VXX", "SVXY", "IVE", "VTV"))]
+# retsp <- rutils::etfenv$returns[, symbolv]
+# retsp <- rutils::etfenv$returns[, c("VTI", "IEF", "DBC")]
+
+# Overwrite NA values in returns
+retsp[is.na(retsp)] <- 0
+retsp <- retsp[!(rowSums(retsp) == 0), ]
+datev <- zoo::index(retsp) # dates
+nrows <- NROW(retsp) # number of rows
+nzeros <- colSums(retsp == 0)
+# Remove stocks with very little data
+retsp <- retsp[, nzeros < nrows/2]
+nstocks <- NCOL(retsp) # number of stocks
+
+indeks <- rowMeans(retsp)
+indeks <- xts::xts(indeks, order.by=datev)
+colnames(indeks) <- "Index"
+indeksd <- sd(indeks)
 
 
-## Model and data setup
+# Define in-sample and out-of-sample intervals
+cutoff <- nrows %/% 2
+insample <- 1:cutoff
+outsample <- (cutoff + 1):nrows
+# Calculate the PCA weights in-sample
+retsp <- retsp[, !(colSums(retsp[insample]) == 0)]
+pcad <- prcomp(retsp[insample], center=FALSE, scale=TRUE)
+# Calculate the out-of-sample PCA time series
+retscaled <- lapply(retsp, function(x) x[outsample]/sd(x[insample]))
+retscaled <- do.call(cbind, retscaled)
+retspca <- xts::xts(retscaled %*% pcad$rotation, order.by=datev[outsample])
+indeks <- indeks[outsample]
 
-# Load S&P500 returns.
-# load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
-# modelcap <- "S&P500 Sub-portfolio"
-# retv <- returns100["2007/"]
-# set.seed(1121)
-# retv <- retv[, sample(NCOL(retv100), 30)]
-# retv[1, is.na(retv[1, ])] <- 0
-# retv <- zoo::na.locf(retv, na.rm=FALSE)
+# pcad <- prcomp(retsp, center=FALSE, scale=TRUE)
+# retspca <- pcad$x
 
-# Load ETF returns.
-# Select all the ETF symbols except "VXX", "SVXY" "MTUM", "QUAL", "VLUE", and "USMV"
-modelcap <- "ETF Portfolio"
-symbolv <- colnames(rutils::etfenv$returns)
-symbolv <- symbolv[!(symbolv %in% c("VXX", "SVXY", "MTUM", "QUAL", "VLUE", "USMV"))]
-retv <- na.omit(rutils::etfenv$returns[, symbolv])
-
-nweights <- NCOL(retv)
-riskf <- 0.03/260
-# excess <- (retv - riskf)
-# calculate returns on equal weight portfolio
-indeks <- xts(retv %*% rep(1/sqrt(nweights), nweights), index(retv))
-
-captiont <- paste("Running Portfolio Strategy for", modelcap)
 
 # End setup code
 
 
 ## Create elements of the user interface
 uifun <- shiny::fluidPage(
-  titlePanel(captiont),
+  titlePanel("Running Momentum Strategy"),
   
-  fluidRow(
-    # The Shiny App is recalculated when the actionButton is clicked and the recalcb variable is updated
-    column(width=12, 
-           h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
-           actionButton("recalcb", "Recalculate the Model"))
-  ),  # end fluidRow
+  # fluidRow(
+  #   # The Shiny App is recalculated when the actionButton is clicked and the recalcb variable is updated
+  #   column(width=12, 
+  #          h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
+  #          actionButton("recalcb", "Recalculate the Model"))
+  # ),  # end fluidRow
   
   # Create single row with two slider inputs
   fluidRow(
     # Input number of eigenvalues for regularized matrix inverse
     column(width=3, sliderInput("dimax", label="Number of eigenvalues::", min=2, max=20, value=4, step=1)),
-    column(width=3, sliderInput("lambda", label="lambda:", min=0.98, max=0.999, value=0.99, step=0.001))
+    column(width=3, sliderInput("lambda", label="Decay:", min=0.7, max=0.99, value=0.95, step=0.01)),
+    column(width=3, sliderInput("lambdah", label="Weight decay:", min=0.7, max=0.99, value=0.95, step=0.01))
     # Input end points interval
     # column(width=4, selectInput("interval", label="End points Interval",
     #             choices=c("weeks", "months", "years"), selected="months")),
@@ -88,13 +102,13 @@ servfun <- function(input, output) {
   pnls <- shiny::reactive({
     # Get model parameters from input argument
     # interval <- isolate(input$interval)
-    # dimax <- isolate(input$dimax)
-    # alpha <- isolate(input$alpha)
     dimax <- input$dimax
+    # alpha <- isolate(input$alpha)
     lambda <- input$lambda
+    lambdah <- input$lambdah
     # end_stub <- input$end_stub
     # Model is recalculated when the recalcb variable is updated
-    input$recalcb
+    # input$recalcb
     
     # Define end points
     # endp <- ifelse(endp<(nweights+1), nweights+1, endp)
@@ -102,11 +116,24 @@ servfun <- function(input, output) {
     # nrows <- NROW(endp)
     # Define startp
     # startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
+
+    retsp=retspca[, 1:dimax]
+    
     # Rerun the model
-    pnls <- back_test(retv=retv, dimax=dimax, lambda=lambda)
-    pnls[which(is.na(pnls)), ] <- 0
+    varm <- HighFreq::run_var(retsp, lambda=lambda)
+    perfstat <- HighFreq::run_mean(retsp, lambda=lambda, weightv=0)
+    weightv <- perfstat/varm
+    weightv[varm == 0] <- 0
+    weightv[1, ] <- 1
+    weightv <- weightv/sqrt(rowSums(weightv^2))
+    # Average the weights over holding period
+    weightv <- HighFreq::run_mean(weightv, lambda=lambdah, weightv=0)
+    weightv <- rutils::lagit(weightv)
+    # Calculate the momentum profits and losses
+    pnls <- as.numeric(rowSums(weightv*retsp))
+
     # pnls <- back_test_r(excess, retv, startp, endp, alpha, dimax, end_stub)
-    pnls <- sd(indeks)*pnls/sd(pnls)
+    pnls <- indeksd*pnls/sd(pnls)
     pnls <- cbind(indeks, pnls)
     colnames(pnls) <- c("Index", "Strategy")
     pnls

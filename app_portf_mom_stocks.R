@@ -157,9 +157,9 @@ servfun <- function(input, output) {
       # Scale the weights
       weights <- weights/sum(abs(weights))
       # Subset the rets
-      sub_returns <- rets[(endp[it-1]+1):endp[it], ]
+      sub_retv <- rets[(endp[it-1]+1):endp[it], ]
       # Calculate the out-of-sample portfolio returns
-      xts(sub_returns %*% weights, index(sub_returns))
+      xts(sub_retv %*% weights, index(sub_retv))
     }  # end anonymous function
     )  # end lapply
     

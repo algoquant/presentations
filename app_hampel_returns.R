@@ -46,7 +46,7 @@ closep <- log(Cl(ohlc))
 # load(file="/Users/jerzy/Develop/data/vix_data/vix_cboe.RData")
 # closep <- log(Cl(vix_env$chain_ed))
 
-returns <- rutils::diffit(closep)
+retv <- rutils::diffit(closep)
 
 captiont <- paste("Contrarian Strategy for", symbol, "Using the Hampel Filter Over Returns")
 
@@ -125,11 +125,11 @@ servfun <- function(input, output) {
     # half_window <- look_back %/% 2
     
     # Rerun the model
-    medianv <- TTR::runMedian(returns, n=look_back)
+    medianv <- TTR::runMedian(retv, n=look_back)
     medianv[1:look_back, ] <- 1
-    madv <- TTR::runMAD(returns, n=look_back)
+    madv <- TTR::runMAD(retv, n=look_back)
     madv[1:look_back, ] <- 1
-    zscores <- ifelse(madv != 0, (returns-medianv)/madv, 0)
+    zscores <- ifelse(madv != 0, (retv-medianv)/madv, 0)
     zscores[1:look_back, ] <- 0
     # mad_zscores <- TTR::runMAD(zscores, n=look_back)
     # mad_zscores[1:look_back, ] <- 0
@@ -146,9 +146,9 @@ servfun <- function(input, output) {
     posit <- zoo::na.locf(posit, na.rm=FALSE)
     posit <- rutils::lagit(posit, lagg=lagg)
     
-    # returns <- rutils::diffit(closep)
-    pnls <- cumsum(posit*returns)
-    pnls <- cbind(pnls, cumsum(returns))
+    # retv <- rutils::diffit(closep)
+    pnls <- cumsum(posit*retv)
+    pnls <- cbind(pnls, cumsum(retv))
     colnames(pnls) <- c("Strategy", "Index")
     # pnls[rutils::calc_endpoints(pnls, interval="minutes")]
     # pnls[rutils::calc_endpoints(pnls, interval="hours")]

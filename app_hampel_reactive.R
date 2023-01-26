@@ -179,7 +179,7 @@ servfun <- function(input, output) {
     cat("Calculating posit and pnls\n")
     threshold <- input$threshold
     lagg <- input$lagg
-    returns <- rutils::diffit(closep())
+    retv <- rutils::diffit(closep())
     nrows <- NROW(closep())
     # Determine if the zscores have exceeded the threshold
     indic <- rep(0, nrows)
@@ -218,10 +218,10 @@ servfun <- function(input, output) {
     # Lag the positions to trade in next period
     posit <- rutils::lagit(posit, lagg=1)
     # Calculate strategy pnls
-    pnls <- cumsum(posit*returns)
+    pnls <- cumsum(posit*retv)
     
     # Bind together strategy pnls
-    retsum <- cumsum(returns)
+    retsum <- cumsum(retv)
     pnls <- cbind(retsum, pnls)
     colnames(pnls) <- c("Index", "Strategy")
     

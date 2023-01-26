@@ -22,7 +22,7 @@ source("/Users/jerzy/Develop/R/scripts/backtest_functions.R")
 # data_env <- "etfenv"
 # symbolv <- etfenv$symbolv
 # symbol <- "SVXY"
-# returns <- etfenv$returns
+# retv <- etfenv$returns
 
 data_env <- rutils::etfenv
 symbolv <- get("symbolv", data_env)

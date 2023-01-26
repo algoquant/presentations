@@ -1,6 +1,6 @@
 ##############################
 # This is a shiny app for simulating a contrarian strategy based 
-# on the z-scores from running regressions of daily returns, using 
+# on the z-scores from running regressions of daily retv, using 
 # function HighFreq::run_reg(). 
 # The model flips the position only if the indicator persists over 
 # several consecutive periods equal to lagg.
@@ -26,16 +26,16 @@ captiont <- paste("Running Z-score of SVXY Prices Versus VXX app_runreg_daily_st
 # symbol <- "VTI"
 # predictor_symbol <- "VXX"
 # response_symbol <- "SVXY"
-# symbolv <- c(response_symbol, symbol, predictor_symbol)
+# symbolv <- c(respv_symbol, symbol, predictor_symbol)
 # lambda <- 0.8
 # threshold1 <- 1
 # threshold2 <- (-1)
 # coeff <- (-1)
 # lagg <- 1
-# prices <- log(na.omit(rutils::etfenv$prices[, symbolv]))
-# returns <- rutils::diffit(prices[, 2])
+# pricev <- log(na.omit(rutils::etfenv$prices[, symbolv]))
+# retv <- rutils::diffit(pricev[, 2])
 # Or
-# returns <- na.omit(rutils::etfenv$returns[, symbolv])
+# retv <- na.omit(rutils::etfenv$returns[, symbolv])
 
 ## End setup code
 
@@ -90,7 +90,7 @@ servfun <- function(input, output) {
 
   
   ## Calculate the returns
-  returns <- shiny::reactive({
+  retv <- shiny::reactive({
     
     symbol <- input$symbol
     response_symbol <- input$response_symbol
@@ -98,14 +98,14 @@ servfun <- function(input, output) {
     cat("Loading the data for ", symbol, "\n")
     
     # Load the data
-    symbolv <- c(response_symbol, symbol, predictor_symbol)
+    symbolv <- c(respv_symbol, symbol, predictor_symbol)
 
     na.omit(rutils::etfenv$returns[, symbolv])
     # na.omit(mget(symbolv, rutils::etfenv$returns))
     # na.omit(cbind(
     #   get(symbol, rutils::etfenv$returns),
-    #   get(predictor_symbol, rutils::etfenv$returns),
-    #   get(response_symbol, rutils::etfenv$returns)))
+    #   get(predv_symbol, rutils::etfenv$returns),
+    #   get(respv_symbol, rutils::etfenv$returns)))
     
   })  # end Load the data
   
@@ -116,33 +116,33 @@ servfun <- function(input, output) {
     lambda <- input$lambda
     
     # Calculate the response and predictor
-    returns <- returns()
-    response <- returns[, 1]
-    predictor <- returns[, -1]
+    retv <- returns()
+    respv <- retv[, 1]
+    predv <- retv[, -1]
 
     symbol <- input$symbol
     ohlc <- log(get(symbol, rutils::etfenv))
-    variance <- HighFreq::run_var_ohlc(ohlc[zoo::index(returns)], lambda=lambda)
+    variance <- HighFreq::run_var_ohlc(ohlc[zoo::index(retv)], lambda=lambda)
     variance[variance == 0] <- 1
     variance <- rutils::diffit(variance)
-    predictor <- cbind(predictor, variance)
+    predv <- cbind(predv, variance)
     
     predictor_symbol <- input$predictor_symbol
-    ohlc <- log(get(predictor_symbol, rutils::etfenv))
-    variance <- HighFreq::run_var_ohlc(ohlc[zoo::index(returns)], lambda=lambda)
+    ohlc <- log(get(predv_symbol, rutils::etfenv))
+    variance <- HighFreq::run_var_ohlc(ohlc[zoo::index(retv)], lambda=lambda)
     variance[variance == 0] <- 1
     variance <- rutils::diffit(variance)
-    predictor <- cbind(predictor, variance)
+    predv <- cbind(predv, variance)
     
     # response_symbol <- input$response_symbol
-    # ohlc <- log(get(response_symbol, rutils::etfenv))
-    # variance <- HighFreq::run_var_ohlc(ohlc[zoo::index(returns)], lambda=lambda)
+    # ohlc <- log(get(respv_symbol, rutils::etfenv))
+    # variance <- HighFreq::run_var_ohlc(ohlc[zoo::index(retv)], lambda=lambda)
     # variance[variance == 0] <- 1
     # variance <- rutils::diffit(variance)
-    # predictor <- cbind(predictor, variance)
+    # predv <- cbind(predv, variance)
     
     # Calculate the trailing z-scores
-    zscores <- HighFreq::run_reg(response=response, predictor=predictor, lambda=lambda, method="standardize")
+    zscores <- HighFreq::run_reg(respv=respv, predictor=predv, lambda=lambda, method="standardize")
     zscores <- zscores[, 1, drop=FALSE]
     # zscores[1:look_back] <- 0
     zscores[is.infinite(zscores)] <- 0
@@ -168,11 +168,11 @@ servfun <- function(input, output) {
     lagg <- input$lagg
     # lambda <- input$lambda
     
-    returns <- returns()[, 2]
+    retv <- returns()[, 2]
     zscores <- zscores()
-    # returns <- returns/sd(returns)
-    retsum <- cumsum(returns)
-    nrows <- NROW(returns)
+    # retv <- returns/sd(retv)
+    retsum <- cumsum(retv)
+    nrows <- NROW(retv)
 
     # Calculate rolling volatility
     # variance <- HighFreq::roll_var_ohlc(ohlc=vtis, look_back=look_back, scale=FALSE)
@@ -228,10 +228,10 @@ servfun <- function(input, output) {
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(returns, pnls)
+    pnls <- cbind(retv, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
@@ -255,7 +255,7 @@ servfun <- function(input, output) {
 
     # Get the zscores
     # zscores <- zscores()
-    # returns <- returns()[, 1]
+    # retv <- returns()[, 1]
     
     # Get the pnls
     pnls <- pnls()
@@ -289,7 +289,7 @@ servfun <- function(input, output) {
         dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="red")
     }  # end if
     
-    # datav <- cbind(cumsum(returns), zscores)
+    # datav <- cbind(cumsum(retv), zscores)
     # colnames(datav) <- c("VTI", "Zscores")
     # colnamev <- colnames(datav)
     # dygraphs::dygraph(datav, main="VXX Zscores") %>%
@@ -297,7 +297,7 @@ servfun <- function(input, output) {
     #     dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
     #     dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%
     #     dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="red")
-    # dygraph(xts(zscores, index(returns)), main="VXX Zscores")
+    # dygraph(xts(zscores, index(retv)), main="VXX Zscores")
 
   })  # end output plot
 

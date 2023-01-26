@@ -191,7 +191,7 @@ servfun <- function(input, output) {
     nperiods <- globals$nperiods
     
     # Scale the returns and call them excess
-    switch(returns_scaling,
+    switch(retv_scaling,
            "none" = {
              cat("No returns scaling \n")
              excess <- (rets - riskf)
@@ -423,8 +423,8 @@ servfun <- function(input, output) {
     dygraphs::dygraph(pnls, main=captiont) %>%
       dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
       dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
-      dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="red") %>%
-      dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="blue") %>%
+      dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=2, col="red") %>%
+      dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=2, col="blue") %>%
       dyLegend(width=300)
   })  # end output plot
   

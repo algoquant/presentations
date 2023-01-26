@@ -150,7 +150,7 @@ servfun <- function(input, output) {
     medianv[1:short_back, ] <- 1
     # Don't divide zscores by the madv because it's redundant since zscores is divided by the mad_zscores.
     # Old code:
-    # madv <- TTR::runMAD(returns, n=short_back)
+    # madv <- TTR::runMAD(retv, n=short_back)
     # madv[1:short_back, ] <- 1
     # zscores <- ifelse(madv != 0, (closep-medianv)/madv, 0)
     # Calculate cumulative return
@@ -182,7 +182,7 @@ servfun <- function(input, output) {
     cat("Calculating posit and pnls\n")
     threshold <- input$threshold
     lagg <- input$lagg
-    returns <- rutils::diffit(closep())
+    retv <- rutils::diffit(closep())
     nrows <- NROW(closep())
     # Determine if the zscores have exceeded the threshold
     indic <- rep(0, nrows)
@@ -214,8 +214,8 @@ servfun <- function(input, output) {
     posit <- rutils::lagit(posit, lagg=1)
 
     # Calculate pnls
-    pnls <- cumsum(posit*returns)
-    cumsumv <- cumsum(returns)
+    pnls <- cumsum(posit*retv)
+    cumsumv <- cumsum(retv)
     pnls <- cbind(cumsumv, pnls)
     colnames(pnls) <- c("Index", "Strategy")
     

@@ -72,7 +72,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     # simulate strategy
     score <- xts(indicator_s %*% weights, order.by=index(ohlc))
     score <- rutils::lagit(score)
-    pnls <- cumsum(score*returns)
+    pnls <- cumsum(score*retv)
     colnames(pnls) <- "strategy"
     pnls
   })  # end reactive code

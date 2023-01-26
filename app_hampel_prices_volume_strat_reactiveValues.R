@@ -164,7 +164,7 @@ servfun <- function(input, output) {
   # })  # end reactive
   
   # Calculate log returns
-  # returns <- shiny::reactive({
+  # retv <- shiny::reactive({
   #   cat("Calculating log returns\n")
   #   rutils::diffit(closep())
   # })  # end reactive
@@ -179,7 +179,7 @@ servfun <- function(input, output) {
     # volumes <- Vo(ohlc())
     # Scale the volume by the rolling volume
     volumes <- short_back*values$volumes/HighFreq::roll_sum(values$volumes, look_back=short_back)
-    # returns <- rutils::diffit(closep())
+    # retv <- rutils::diffit(closep())
     # Calculate the cumulative returns scaled by the rolling volume
     cumsumv <- cumsum(values$returns/volumes)
     cumsumv[is.na(cumsumv)] <- 0
@@ -192,7 +192,7 @@ servfun <- function(input, output) {
     cat("Calculated medianv\n")
     # Don't divide zscores by the madv because it's redundant since zscores is divided by the mad_zscores.
     # Old code:
-    # madv <- TTR::runMAD(returns, n=short_back)
+    # madv <- TTR::runMAD(retv, n=short_back)
     # madv[1:short_back, ] <- 1
     # zscores <- ifelse(madv != 0, (closep-medianv)/madv, 0)
     # Calculate the zscores as the rolling cumulative returns
@@ -227,7 +227,7 @@ servfun <- function(input, output) {
     # long_back <- input$long_back
     threshold <- input$threshold
     lagg <- input$lagg
-    # returns <- rutils::diffit(closep())
+    # retv <- rutils::diffit(closep())
     # nrows <- NROW(values$closep)
     # Determine if the zscores have exceeded the threshold
     # indic <- rep(0, values$nrows)

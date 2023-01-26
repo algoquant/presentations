@@ -16,7 +16,7 @@ library(dygraphs)
 
 ## VTI ETF daily bars
 # symbol <- "VTI"
-# prices <- Cl(rutils::etfenv$VTI)
+# pricev <- Cl(rutils::etfenv$VTI)
 
 
 ## Set up S&P500 data
@@ -89,7 +89,7 @@ uifun <- shiny::fluidPage(
 servfun <- function(input, output) {
   
   # Load the prices
-  prices <- shiny::reactive({
+  pricev <- shiny::reactive({
     
     # Get model parameters from input argument
     symbol <- input$symbol
@@ -107,15 +107,15 @@ servfun <- function(input, output) {
     
     look_back <- input$look_back
 
-    prices <- prices()
+    pricev <- prices()
     
     # Rerun the model
-    medianv <- TTR::runMedian(prices, n=look_back)
+    medianv <- TTR::runMedian(pricev, n=look_back)
     medianv[1:look_back, ] <- 1
-    # madv <- TTR::runMAD(prices, n=look_back)
+    # madv <- TTR::runMAD(pricev, n=look_back)
     # madv[1:look_back, ] <- 1
-    # zscores <- ifelse(madv!=0, (prices-medianv)/madv, 0)
-    zscores <- (prices-medianv)
+    # zscores <- ifelse(madv!=0, (pricev-medianv)/madv, 0)
+    zscores <- (pricev-medianv)
     mad_zscores <- TTR::runMAD(zscores, n=look_back)
     mad_zscores[1:look_back, ] <- 0
     
@@ -141,9 +141,9 @@ servfun <- function(input, output) {
     posit <- zoo::na.locf(posit, na.rm=FALSE)
     posit <- rutils::lagit(posit, lagg=lagg)
     
-    returns <- rutils::diffit(prices())
-    pnls <- cumsum(posit*returns)
-    pnls <- cbind(pnls, cumsum(returns))
+    retv <- rutils::diffit(pricev())
+    pnls <- cumsum(posit*retv)
+    pnls <- cbind(pnls, cumsum(retv))
     colnames(pnls) <- c("Strategy", symbol)
     
     pnls

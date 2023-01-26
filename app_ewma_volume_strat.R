@@ -75,24 +75,24 @@ servfun <- function(input, output) {
       ## SPY ETF 1-minute bars
       ohlc <- HighFreq::SPY["2009"]
       closep <- quantmod::Cl(ohlc)
-      returns <- rutils::diffit(log(closep))
+      retv <- rutils::diffit(log(closep))
       # Aggregate to daily data
-      retsum <- cumsum(returns)
+      retsum <- cumsum(retv)
       retsum <- xts::to.daily(retsum)
-      returns <- rutils::diffit(quantmod::Cl(retsum))
-      returns <- returns/sd(returns)
+      retv <- rutils::diffit(quantmod::Cl(retsum))
+      retv <- returns/sd(retv)
       volumes <- quantmod::Vo(ohlc)
       volumes <- xts::xts(cumsum(volumes), index(datav()))
       volumes <- xts::to.daily(volumes)
       volumes <- rutils::diffit(quantmod::Cl(volumes))
-      cbind(returns, volumes)
+      cbind(retv, volumes)
     } else {
       ohlc <- get(symbol, rutils::etfenv)
       closep <- quantmod::Cl(ohlc)
-      returns <- rutils::diffit(log(closep))
-      returns <- returns/sd(returns)
+      retv <- rutils::diffit(log(closep))
+      retv <- returns/sd(retv)
       volumes <- quantmod::Vo(ohlc)
-      cbind(returns, volumes)
+      cbind(retv, volumes)
     }  # end if
     
   })  # end Load the data
@@ -111,9 +111,9 @@ servfun <- function(input, output) {
     # input$recalcb
     
     # Get the data
-    returns <- datav()[, 1]
-    predictor <- datav()[, 2]
-    nrows <- NROW(returns)
+    retv <- datav()[, 1]
+    predv <- datav()[, 2]
+    nrows <- NROW(retv)
     
     # Calculate EWMA weights
     fast_weights <- exp(-fast_lambda*1:look_back)
@@ -122,9 +122,9 @@ servfun <- function(input, output) {
     slow_weights <- slow_weights/sum(slow_weights)
     
     # Calculate EWMA prices by filtering with the weights
-    fast_ewma <- .Call(stats:::C_cfilter, predictor, filter=fast_weights, sides=1, circular=FALSE)
+    fast_ewma <- .Call(stats:::C_cfilter, predv, filter=fast_weights, sides=1, circular=FALSE)
     fast_ewma[1:(look_back-1)] <- fast_ewma[look_back]
-    slow_ewma <- .Call(stats:::C_cfilter, predictor, filter=slow_weights, sides=1, circular=FALSE)
+    slow_ewma <- .Call(stats:::C_cfilter, predv, filter=slow_weights, sides=1, circular=FALSE)
     slow_ewma[1:(look_back-1)] <- slow_ewma[look_back]
     
     # Determine dates when the EWMAs have crossed
@@ -158,7 +158,7 @@ servfun <- function(input, output) {
     posit <- rutils::lagit(posit, lagg=1)
     # Calculate strategy pnls
     coeff <- (-1)
-    # pnls <- 0.5*((coeff*posit*returns) + returns)
+    # pnls <- 0.5*((coeff*posit*retv) + retv)
     pnls <- coeff*posit*returns
     
     # Calculate transaction costs
@@ -166,10 +166,10 @@ servfun <- function(input, output) {
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(returns, pnls)
+    pnls <- cbind(retv, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
@@ -177,7 +177,7 @@ servfun <- function(input, output) {
     
     # Bind with indicators
     pnls <- cumsum(pnls)
-    retsum <- cumsum(returns)
+    retsum <- cumsum(retv)
     pnls <- cbind(pnls, retsum[indic_buy], retsum[indic_sell])
     colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
 

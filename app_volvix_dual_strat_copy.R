@@ -36,9 +36,9 @@ captiont <- paste("Regression Z-score of VXX and SVXY Prices Versus VTI Volatili
 # coeff <- (-1)
 # lagg <- 1
 # closep <- quantmod::Cl(ohlc)
-# returns <- rutils::diffit(closep)
-# retsum <- cumsum(returns)
-# nrows <- NROW(returns)
+# retv <- rutils::diffit(closep)
+# retsum <- cumsum(retv)
+# nrows <- NROW(retv)
 
 
 ## End setup code
@@ -112,10 +112,10 @@ servfun <- function(input, output) {
     # Calculate cumulative returns
     ohlc <- ohlc()
     closep <- quantmod::Cl(ohlc)
-    returns <- rutils::diffit(closep)
-    # returns <- returns/sd(returns)
-    retsum <- cumsum(returns)
-    nrows <- NROW(returns)
+    retv <- rutils::diffit(closep)
+    # retv <- returns/sd(retv)
+    retsum <- cumsum(retv)
+    nrows <- NROW(retv)
 
     # Calculate rolling volatility
     variance <- HighFreq::run_var_ohlc(vtis, lambda=lambda)
@@ -132,12 +132,12 @@ servfun <- function(input, output) {
     threshold <- input$threshold
     
     # Calculate trailing z-scores of SVXY
-    predictor <- cbind(sqrt(variance), vxx, vti_close)
-    response <- svxy
-    # zscores <- drop(HighFreq::roll_reg(response=response, predictor=predictor, look_back=look_back))
-    rollreg <- HighFreq::roll_reg(response=response, predictor=predictor, intercept=TRUE, look_back=look_back)
+    predv <- cbind(sqrt(variance), vxx, vti_close)
+    respv <- svxy
+    # zscores <- drop(HighFreq::roll_reg(respv=respv, predictor=predv, look_back=look_back))
+    rollreg <- HighFreq::roll_reg(respv=respv, predictor=predv, intercept=TRUE, look_back=look_back)
     zscores <- rollreg[, NCOL(rollreg), drop=TRUE]
-    # zscores <- HighFreq::run_reg(response=response, predictor=predictor, lambda=lambda, method="scale")
+    # zscores <- HighFreq::run_reg(respv=respv, predictor=predv, lambda=lambda, method="scale")
     # zscores <- zscores[, 1, drop=TRUE]
     # zscores[1:look_back] <- 0
     # zscores[is.infinite(zscores)] <- 0
@@ -178,10 +178,10 @@ servfun <- function(input, output) {
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(returns, pnls)
+    pnls <- cbind(retv, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))

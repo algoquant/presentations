@@ -95,26 +95,26 @@ servfun <- function(input, output) {
     # Calculate cumulative returns
     ohlc <- ohlc()
     closep <- log(quantmod::Cl(ohlc))
-    returns <- rutils::diffit(closep)
-    # returns <- returns/sd(returns)
-    retsum <- cumsum(returns)
-    nrows <- NROW(returns)
+    retv <- rutils::diffit(closep)
+    # retv <- returns/sd(retv)
+    retsum <- cumsum(retv)
+    nrows <- NROW(retv)
 
     # Calculate rolling volatility
     variance <- HighFreq::roll_var_ohlc(ohlc=vtis, look_back=look_back, scale=FALSE)
 
     # Calculate trailing SVXY z-scores
-    predictor <- cbind(sqrt(variance), vxx, vti_close)
-    response <- svxy
-    svxy_scores <- drop(HighFreq::roll_zscores(response=response, predictor=predictor, look_back=look_back))
+    predv <- cbind(sqrt(variance), vxx, vti_close)
+    respv <- svxy
+    svxy_scores <- drop(HighFreq::roll_zscores(respv=respv, predictor=predv, look_back=look_back))
     svxy_scores[1:look_back] <- 0
     svxy_scores[is.infinite(svxy_scores)] <- 0
     svxy_scores[is.na(svxy_scores)] <- 0
 
     # Calculate trailing VXX z-scores
-    predictor <- cbind(sqrt(variance), svxy, vti_close)
-    response <- vxx
-    vxx_scores <- drop(HighFreq::roll_zscores(response=response, predictor=predictor, look_back=look_back))
+    predv <- cbind(sqrt(variance), svxy, vti_close)
+    respv <- vxx
+    vxx_scores <- drop(HighFreq::roll_zscores(respv=respv, predictor=predv, look_back=look_back))
     vxx_scores[1:look_back] <- 0
     vxx_scores[is.infinite(vxx_scores)] <- 0
     vxx_scores[is.na(vxx_scores)] <- 0
@@ -165,10 +165,10 @@ servfun <- function(input, output) {
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(returns, pnls)
+    pnls <- cbind(retv, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))

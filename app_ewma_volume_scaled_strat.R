@@ -88,18 +88,18 @@ servfun <- function(input, output) {
       # nrows <- NROW(ohlc)
       closep <- quantmod::Cl(ohlc)
       volumes <- quantmod::Vo(ohlc)
-      returns <- rutils::diffit(log(closep))
-      returns <- returns/sd(returns)
-      cbind(returns, volumes)
+      retv <- rutils::diffit(log(closep))
+      retv <- returns/sd(retv)
+      cbind(retv, volumes)
     } else {
       values$minute_ly <- FALSE
       ohlc <- get(symbol, rutils::etfenv)
       # nrows <- NROW(ohlc)
       closep <- quantmod::Cl(ohlc)
       volumes <- quantmod::Vo(ohlc)
-      returns <- rutils::diffit(log(closep))
-      returns <- returns/sd(returns)
-      cbind(returns, volumes)
+      retv <- rutils::diffit(log(closep))
+      retv <- returns/sd(retv)
+      cbind(retv, volumes)
     }  # end if
     
   })  # end Load the data
@@ -113,7 +113,7 @@ servfun <- function(input, output) {
     look_back <- input$look_back
     floo_r <- input$floo_r
     
-    returns <- datav()[, 1]
+    retv <- datav()[, 1]
     volumes <- datav()[, 2]
     
     # Set the floor on volume using the rolling volume
@@ -129,16 +129,16 @@ servfun <- function(input, output) {
     
     # Calculate daily returns from minutely prices
     if (values$minute_ly) {
-      retsum <- cumsum(returns)
+      retsum <- cumsum(retv)
       retsum <- xts::to.daily(retsum)
-      returns <- rutils::diffit(quantmod::Cl(retsum))
+      retv <- rutils::diffit(quantmod::Cl(retsum))
       cum_scaled <- xts::xts(cumsum(rets_scaled), index(datav()))
       cum_scaled <- xts::to.daily(cum_scaled)
       rets_scaled <- rutils::diffit(quantmod::Cl(cum_scaled))
       # cum_scaled <- cumsum(rets_scaled)
     } # end if
     
-    cbind(returns, rets_scaled)
+    cbind(retv, rets_scaled)
     
   })  # end Scale the data
 
@@ -155,10 +155,10 @@ servfun <- function(input, output) {
     # input$recalcb
     
     # Calculate cumulative returns
-    returns <- scaled_data()[, 1]
+    retv <- scaled_data()[, 1]
     rets_scaled <- scaled_data()[, 2]
     cum_scaled <- cumsum(rets_scaled)
-    nrows <- NROW(returns)
+    nrows <- NROW(retv)
     
     # Calculate EWMA weights
     fast_weights <- exp(-fast_lambda*1:look_back)
@@ -207,7 +207,7 @@ servfun <- function(input, output) {
     
     # Calculate strategy pnls
     # pnls <- as.numeric(input$coeff)*posit*returns
-    # pnls <- 0.5*((coeff*posit*returns) + returns)
+    # pnls <- 0.5*((coeff*posit*retv) + retv)
     pnls <- posit*returns
     
     # Calculate transaction costs
@@ -215,10 +215,10 @@ servfun <- function(input, output) {
     pnls <- (pnls - costs)
     
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(returns, pnls)
+    pnls <- cbind(retv, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
@@ -226,7 +226,7 @@ servfun <- function(input, output) {
 
     # Bind with indicators
     pnls <- cumsum(pnls)
-    retsum <- cumsum(returns)
+    retsum <- cumsum(retv)
     pnls <- cbind(pnls, retsum[indic_buy], retsum[indic_sell])
     colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
 

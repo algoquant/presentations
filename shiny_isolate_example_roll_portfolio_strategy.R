@@ -56,28 +56,28 @@ serv_er <- function(input, output) {
     # Data setup code
     load("/Users/jerzy/Develop/R/data/returns_percent_sp500.RData")
     # Subset 100 columns to reduce computations
-    returns <- returns[, sample(1:NCOL(returns), 100)]
-    stock_symbols <- colnames(returns)
-    ncols <- NCOL(returns)
-    endp <- rutils::calc_endpoints(returns, interval="weeks")
+    retv <- retv[, sample(1:NCOL(retv), 100)]
+    stock_symbols <- colnames(retv)
+    ncols <- NCOL(retv)
+    endp <- rutils::calc_endpoints(retv, interval="weeks")
     endp <- endp[endp > (ncols+1)]
     nrows <- NROW(endp)
     # Calculate returns on equal weight portfolio
-    indeks <- xts::xts(cumsum(returns %*% rep(1/sqrt(ncols), ncols)), index(returns))
+    indeks <- xts::xts(cumsum(retv %*% rep(1/sqrt(ncols), ncols)), index(retv))
     
     # Define the strategy function
-    run_strategy <- function(returns, look_back, alpha, dimax, lagg) {
+    run_strategy <- function(retv, look_back, alpha, dimax, lagg) {
         # browser()
         # cat("look_back =", look_back, "\nalpha =", alpha, "\ndimax =", dimax, "\nlagg =", lagg, "\n")
         startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
         # Perform backtest in RcppArmadillo
-        pnls <- HighFreq::back_test(excess=returns, 
-                                     returns=returns,
+        pnls <- HighFreq::back_test(excess=retv, 
+                                     returns=retv,
                                      startp=startp-1,
                                      endp=endp-1,
                                      alpha=alpha,
                                      dimax=dimax)
-        xts(cumsum(pnls), order.by=index(returns))
+        xts(cumsum(pnls), order.by=index(retv))
     }  # end run_strategy
     
     
@@ -91,7 +91,7 @@ serv_er <- function(input, output) {
         input$recalcb
         
         # Run the trading strategy and plot it
-        pnls <- run_strategy(returns, look_back, alpha, dimax, lagg)
+        pnls <- run_strategy(retv, look_back, alpha, dimax, lagg)
         pnls <- cbind(pnls, indeks*max(pnls)/max(indeks))
         colnames(pnls) <- c("Strategy", "Index")
         pnls[c(1, endp), ]

@@ -54,20 +54,20 @@ library(dygraphs)
 symbolv <- c("IVW", "VTI", "IWF", "IWD", "IWB", "VYM", "DBC", "VEU", "SVXY", "VXX")
 
 nweights <- NROW(symbolv)
-returns <- rutils::etfenv$returns[, symbolv]
+retv <- rutils::etfenv$returns[, symbolv]
 # Select rows with IEF data
-# returns <- returns[index(rutils::etfenv$IEF)]
+# retv <- retv[index(rutils::etfenv$IEF)]
 # 
 # Or
 # Calculate the first non-NA values and their positions.
-first_non_na <- sapply(returns, function(xtes) {
+first_non_na <- sapply(retv, function(xtes) {
   match(TRUE, !is.na(xtes))
 })  # end sapply
 # Find first row containing at least 3 non-NA values.
 sort(first_non_na)[3]
 # Select rows containing at least 3 non-NA values.
-returns <- returns[(sort(first_non_na)[3]):NROW(returns)]
-# returns <- returns[-(1:(sort(first_non_na)[7]-1))]
+retv <- retv[(sort(first_non_na)[3]):NROW(retv)]
+# retv <- retv[-(1:(sort(first_non_na)[7]-1))]
 
 
 # Calculate the volumes
@@ -76,7 +76,7 @@ returns <- returns[(sort(first_non_na)[3]):NROW(returns)]
 # })  # end lapply
 # volume_s <- rutils::do_call(cbind, volume_s)
 # colnames(volume_s) <- symbolv
-# volume_s <- volume_s[index(returns)]
+# volume_s <- volume_s[index(retv)]
 # volume_s[volume_s == 0] <- NA
 # volume_s <- zoo::na.locf(volume_s, na.rm=FALSE)
 # volume_s <- zoo::na.locf(volume_s, fromLast=TRUE)
@@ -86,25 +86,25 @@ returns <- returns[(sort(first_non_na)[3]):NROW(returns)]
 ############
 # S&P100
 # load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
-# returns <- returns["2000-01-01/"]
-# symbolv <- colnames(returns)
+# retv <- retv["2000-01-01/"]
+# symbolv <- colnames(retv)
 # nweights <- NROW(symbolv)
 
 
 # Copy over NA values with zeros
-returns[1, is.na(returns[1, ])] <- 0
-returns <- zoo::na.locf(returns, na.rm=FALSE)
-# sum(is.na(returns))
-# excess <- matrixStats::rowRanks(returns)
+retv[1, is.na(retv[1, ])] <- 0
+retv <- zoo::na.locf(retv, na.rm=FALSE)
+# sum(is.na(retv))
+# excess <- matrixStats::rowRanks(retv)
 # excess <- (excess - rowMeans(excess))
 # Scale returns by the volumes
 # excess <- returns/sqrt(volume_s)
 excess <- returns
 
 # Benchmark index
-# indeks <- xts(cumsum(rowMeans(returns)), index(returns))
-# indeks <- Cl(rutils::etfenv$VTI)[index(returns)]
-indeks <- rutils::etfenv$returns[index(returns), "VTI"]
+# indeks <- xts(cumsum(rowMeans(retv)), index(retv))
+# indeks <- Cl(rutils::etfenv$VTI)[index(retv)]
+indeks <- rutils::etfenv$returns[index(retv), "VTI"]
 indeks[1] <- 0
 indeks <- zoo::na.locf(indeks, na.rm=FALSE)
 indeks <- cumsum(indeks)
@@ -113,7 +113,7 @@ indeks <- cumsum(indeks)
 # Portfolio with largest Hurst
 # weights <- read.csv(file="/Users/jerzy/Develop/lecture_slides/data/etf_hurst_weights.csv", stringsAsFactors=FALSE)
 # weights <- structure(as.numeric(weights$x), names=weights$X)
-# portf_hurst <- -drop(returns %*% weights)
+# portf_hurst <- -drop(retv %*% weights)
 # portf_hurst <- sd(excess$VTI)/sd(portf_hurst)*portf_hurst
 
 
@@ -181,7 +181,7 @@ servfun <- function(input, output) {
     input$recalcb
 
     # Define end points
-    endp <- rutils::calc_endpoints(returns, interval=interval)
+    endp <- rutils::calc_endpoints(retv, interval=interval)
     # endp <- ifelse(endp<(nweights+1), nweights+1, endp)
     endp <- endp[endp > 2*nweights]
     nrows <- NROW(endp)
@@ -202,7 +202,7 @@ servfun <- function(input, output) {
     
     # Rerun the model
     pnls <- HighFreq::back_test(excess=excess, 
-                                 returns=returns,
+                                 returns=retv,
                                  startp=startp-1,
                                  endp=endp-1,
                                  probv=probv,

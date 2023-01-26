@@ -74,7 +74,7 @@ servfun <- function(input, output) {
              # cat("sp500 init load \n")
              load("/Users/jerzy/Develop/data/sp500_returns.RData")
              # Select data after 2000
-             rets <- returns["2000/"]
+             rets <- retv["2000/"]
            }
     )  # end switch
     

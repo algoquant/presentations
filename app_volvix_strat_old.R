@@ -104,17 +104,17 @@ servfun <- function(input, output) {
     ohlc <- ohlc()[dates]
     closep <- log(quantmod::Cl(ohlc))
 
-    returns <- rutils::diffit(closep)
-    # returns <- returns/sd(returns)
-    retsum <- cumsum(returns)
-    nrows <- NROW(returns)
+    retv <- rutils::diffit(closep)
+    # retv <- returns/sd(retv)
+    retsum <- cumsum(retv)
+    nrows <- NROW(retv)
 
     variance <- HighFreq::roll_var_ohlc(ohlc=ohlc, look_back=look_back, scale=FALSE)
     
     # Calculate trailing z-scores
-    # predictor <- matrix(1:nrows, nc=1)
-    predictor <- cbind(sqrt(variance), svxy, closep)
-    zscores <- drop(HighFreq::roll_zscores(response=vxx, predictor=predictor, look_back=look_back))
+    # predv <- matrix(1:nrows, nc=1)
+    predv <- cbind(sqrt(variance), svxy, closep)
+    zscores <- drop(HighFreq::roll_zscores(respv=vxx, predictor=predv, look_back=look_back))
     # colnames(zscores) <- "zscore"
     zscores[1:look_back] <- 0
     zscores[is.infinite(zscores)] <- 0
@@ -164,10 +164,10 @@ servfun <- function(input, output) {
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(returns, pnls)
+    pnls <- cbind(retv, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))

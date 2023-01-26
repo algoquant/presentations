@@ -1,6 +1,6 @@
 ##############################
 # This is a shiny app for simulating a contrarian strategy based 
-# on the z-scores from regressions of returns, using function 
+# on the z-scores from regressions of retv, using function 
 # HighFreq::run_reg(). 
 # The model flips the position only if the indicator persists over 
 # several consecutive periods equal to lagg.
@@ -31,7 +31,7 @@ threshold1 <- 1
 threshold2 <- (-1)
 coeff <- (-1)
 lagg <- 1
-returns <- na.omit(rutils::etfenv$returns[, symbolv])
+retv <- na.omit(rutils::etfenv$returns[, symbolv])
 
 ## End setup code
 
@@ -86,7 +86,7 @@ servfun <- function(input, output) {
 
   
   ## Calculate the returns
-  returns <- shiny::reactive({
+  retv <- shiny::reactive({
     
     symbol <- input$symbol
     predictor_symbol <- input$predictor_symbol
@@ -100,8 +100,8 @@ servfun <- function(input, output) {
     # na.omit(mget(symbolv, rutils::etfenv$returns))
     # na.omit(cbind(
     #   get(symbol, rutils::etfenv$returns),
-    #   get(predictor_symbol, rutils::etfenv$returns),
-    #   get(response_symbol, rutils::etfenv$returns)))
+    #   get(predv_symbol, rutils::etfenv$returns),
+    #   get(respv_symbol, rutils::etfenv$returns)))
     
   })  # end Load the data
   
@@ -112,13 +112,13 @@ servfun <- function(input, output) {
     lambda <- input$lambda
     
     # Calculate the response and predictor
-    returns <- returns()
-    response <- returns[, 1]
-    predictor <- returns[, -(1:2)]
+    retv <- returns()
+    respv <- retv[, 1]
+    predv <- retv[, -(1:2)]
 
     # Calculate the trailing z-scores
-    # zscores <- drop(HighFreq::roll_zscores(response=response, predictor=predictor, look_back=look_back))
-    zscores <- HighFreq::run_reg(response=response, predictor=predictor, lambda=lambda, method="scale")
+    # zscores <- drop(HighFreq::roll_zscores(respv=respv, predictor=predv, look_back=look_back))
+    zscores <- HighFreq::run_reg(respv=respv, predictor=predv, lambda=lambda, method="scale")
     zscores <- zscores[, 1, drop=FALSE]
     # zscores[1:look_back] <- 0
     zscores[is.infinite(zscores)] <- 0
@@ -144,11 +144,11 @@ servfun <- function(input, output) {
     lagg <- input$lagg
     lambda <- input$lambda
     
-    returns <- returns()[, 1]
+    retv <- returns()[, 1]
     zscores <- zscores()
-    # returns <- returns/sd(returns)
-    retsum <- cumsum(returns)
-    nrows <- NROW(returns)
+    # retv <- returns/sd(retv)
+    retsum <- cumsum(retv)
+    nrows <- NROW(retv)
 
     # Calculate rolling volatility
     # variance <- HighFreq::roll_var_ohlc(ohlc=vtis, look_back=look_back, scale=FALSE)
@@ -188,9 +188,9 @@ servfun <- function(input, output) {
     posit <- -sign(zscores+threshold1)
 
     # Calculate trailing z-scores of VXX
-    # predictor <- cbind(sqrt(variance), svxy, vti_close)
-    # response <- vxx
-    # zscores <- drop(HighFreq::roll_zscores(response=response, predictor=predictor, look_back=look_back))
+    # predv <- cbind(sqrt(variance), svxy, vti_close)
+    # respv <- vxx
+    # zscores <- drop(HighFreq::roll_zscores(respv=respv, predictor=predv, look_back=look_back))
     # zscores[1:look_back] <- 0
     # zscores[is.infinite(zscores)] <- 0
     # zscores[is.na(zscores)] <- 0
@@ -231,10 +231,10 @@ servfun <- function(input, output) {
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(returns, pnls)
+    pnls <- cbind(retv, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
@@ -258,7 +258,7 @@ servfun <- function(input, output) {
 
     # Get the zscores
     zscores <- zscores()
-    returns <- returns()[, 1]
+    retv <- returns()[, 1]
     
     # Get the pnls
     # pnls <- pnls()
@@ -292,8 +292,8 @@ servfun <- function(input, output) {
     #     dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="red")
     # }  # end if
     
-    # dygraph(xts(zscores, index(returns)), main="VXX Zscores")
-    datav <- cbind(cumsum(returns), zscores)
+    # dygraph(xts(zscores, index(retv)), main="VXX Zscores")
+    datav <- cbind(cumsum(retv), zscores)
     colnames(datav) <- c("VTI", "Zscores")
     colnamev <- colnames(datav)
     dygraphs::dygraph(datav, main="VXX Zscores") %>%

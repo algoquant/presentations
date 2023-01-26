@@ -19,10 +19,10 @@ library(dygraphs)
 # symbolv <- names(data_env)
 symbolv <- rutils::etfenv$symbolv
 # symbolv <- symbolv[!(symbolv %in% c("TLT", "IEF", "MTUM", "QUAL", "VLUE", "USMV"))]
-# returns <- rutils::etfenv$returns[, symbolv]
+# retv <- rutils::etfenv$returns[, symbolv]
 
 # load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
-# symbolv <- sort(colnames(returns))
+# symbolv <- sort(colnames(retv))
 
 
 captiont <- paste("Trend Following and Mean Reverting Strategies")
@@ -104,19 +104,19 @@ servfun <- function(input, output) {
     switch(data_type,
            "Returns" = {
              cat("Loading Returns data \n")
-             returns <- na.omit(rutils::etfenv$returns[, symbol])
-             cumrets <- HighFreq::roll_sum(returns, look_back=look_back)
-             variance <- HighFreq::roll_var(returns, look_back=look_back)
+             retv <- na.omit(rutils::etfenv$returns[, symbol])
+             cumrets <- HighFreq::roll_sum(retv, look_back=look_back)
+             variance <- HighFreq::roll_var(retv, look_back=look_back)
            },
            "OHLC" = {
              ohlc <- get(symbol, envir=rutils::etfenv)
-             returns <- rutils::diffit(log(quantmod::Cl(ohlc)))
-             cumrets <- HighFreq::roll_sum(returns, look_back=look_back)
+             retv <- rutils::diffit(log(quantmod::Cl(ohlc)))
+             cumrets <- HighFreq::roll_sum(retv, look_back=look_back)
              variance <- HighFreq::roll_var_ohlc(log(ohlc), look_back=look_back)
            }
     )  # end switch
     
-    datav <- cbind(returns, cumrets, variance)
+    datav <- cbind(retv, cumrets, variance)
     colnames(datav) <- c(symbol, "cumrets", "variance")
     datav
     
@@ -125,12 +125,12 @@ servfun <- function(input, output) {
 
 
   # Calculate predictor
-  predictor <- shiny::reactive({
+  predv <- shiny::reactive({
     cat("Calculating predictor\n")
     predictor_type <- input$predictor_type
 
     # Calculate the predictor
-    switch(predictor_type,
+    switch(predv_type,
            "Returns" = {
              datav()[, 2]
            },
@@ -149,11 +149,11 @@ servfun <- function(input, output) {
   })  # end Calculate predictors
   
   # Plot histogram of predictor
-  # range(predictor)
-  # predictor <- predictor[predictor > quantile(predictor, 0.05)]
-  # predictor <- predictor[predictor < quantile(predictor, 0.95)]
+  # range(predv)
+  # predv <- predv[predictor > quantile(predv, 0.05)]
+  # predv <- predv[predictor < quantile(predv, 0.95)]
   # x11(width=6, height=5)
-  # hist(predictor, xlim=c(quantile(predictor, 0.05), quantile(predictor, 0.95)), breaks=50, main=paste("Z-scores for", "look_back =", look_back))
+  # hist(predv, xlim=c(quantile(predv, 0.05), quantile(predv, 0.95)), breaks=50, main=paste("Z-scores for", "look_back =", look_back))
   
   # Calculate pnls
   pnls <- shiny::reactive({

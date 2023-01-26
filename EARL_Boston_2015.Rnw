@@ -122,7 +122,7 @@ knit_theme$set(thm)
     \column{0.5\textwidth}
       Investor preference for higher \emph{returns} and for lower \emph{volatility} is expressed by maximizing the \emph{Sharpe} ratio, 
       \vskip1ex
-      Stock price \emph{momentum} refers to the fact that stocks with high past returns tend to have high future returns, and vice versa, 
+      Stock price \emph{momentum} refers to the fact that stocks with high past returns tend to have high future returnv, and vice versa, 
       \vskip1ex
       Stock price \emph{momentum} has been observed, that is driven by approximately one-year of past returns:\\
 Eugene Fama and Kenneth French, \href{http://papers.ssrn.com/sol3/papers.cfm?abstract_id=911960}{\emph{Dissecting Anomalies}}\\
@@ -135,7 +135,7 @@ Eugene Fama and Kenneth French, \href{http://papers.ssrn.com/sol3/papers.cfm?abs
       \vskip1ex
       Stocks typically have negative skew and excess kurtosis, the opposite of what investors prefer, 
       \vskip1ex
-      Higher moments are hard to estimate from low frequency (daily) returns, 
+      Higher moments are hard to estimate from low frequency (daily) returnv, 
     \column{0.5\textwidth}
       \vspace{-3em}
       \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_ret_hist-1}
@@ -147,18 +147,18 @@ symbol <- "SPY"  # define symbol
 # load OHLC data
 output_dir <- "/Users/jerzy/Develop/data/hfreq/scrub/"
 symbol <- load(file.path(output_dir, paste0(symbol, ".RData")))
-returns <- calc_rets(xts_data=to.daily(get(symbol)))
-len_rets <- nrow(returns)  # number of observations
-mean_rets <- mean(returns[, 1])  # calculate mean
-sd_rets <- sd(returns[, 1])  # calculate standard deviation
+returnv <- calc_rets(xts_data=to.daily(get(symbol)))
+len_rets <- nrow(returnv)  # number of observations
+mean_rets <- mean(returnv[, 1])  # calculate mean
+sd_rets <- sd(returnv[, 1])  # calculate standard deviation
 # calculate skew and kurtosis
-(sum(((returns[, 1] - mean_rets)/sd_rets)^3))/len_rets
-(sum(((returns[, 1] - mean_rets)/sd_rets)^4))/len_rets
+(sum(((returnv[, 1] - mean_rets)/sd_rets)^3))/len_rets
+(sum(((returnv[, 1] - mean_rets)/sd_rets)^4))/len_rets
       @
       \vspace{-3em}
       <<earl_ret_hist,echo=TRUE,eval=FALSE,fig.width=7,fig.height=6,fig.show='hide'>>=
 library(PerformanceAnalytics)
-chart.Histogram(returns[, 1], main="", 
+chart.Histogram(returnv[, 1], main="", 
   xlim=c(-6e-5, 6e-5), 
   methods = c("add.density", "add.normal"))
 # add title
@@ -442,12 +442,12 @@ chart_Series(
       \vspace{-1em}
       <<eval=TRUE,echo=(-(1:1))>>=
 # skew scatterplot
-returns <- calc_rets(xts_data=get(symbol))
+returnv <- calc_rets(xts_data=get(symbol))
 skew <- skew_ohlc(log_ohlc=log(get(symbol)[, -5]))
 colnames(skew) <- paste(symbol, "skew", sep=".")
 lag_skew <- lag(skew)
 lag_skew[1, ] <- 0
-datav <- cbind(returns[, 1], sign(lag_skew))
+datav <- cbind(returnv[, 1], sign(lag_skew))
 formulav <- as.formula(paste(colnames(datav)[1], 
           paste(paste(colnames(datav)[-1], 
             collapse=" + "), "- 1"), sep="~"))
@@ -494,7 +494,7 @@ abline(regmod, col="blue", lwd=2)
 posit <- -sign(lag_skew)
 posit[1, ] <- 0
 # cumulative PnL
-cumu_pnl <- cumsum(posit*returns[, 1])
+cumu_pnl <- cumsum(posit*returnv[, 1])
 # calculate frequency of trades
 50*sum(abs(sign(skew)-sign(lag_skew)))/nrow(skew)
 # calculate transaction costs
@@ -570,14 +570,14 @@ add_TA(vwap_diff[dates] < 0, on=-1,
       \vspace{-1em}
       <<eval=TRUE,echo=(-(1:6))>>=
 # vwap scatterplot
-returns <- calc_rets(xts_data=get(symbol))
+returnv <- calc_rets(xts_data=get(symbol))
 vwap_short <- vwapv(xtes=get(symbol), look_back=70)
 vwap_long <- vwapv(xtes=get(symbol), look_back=225)
 vwap_diff <- vwap_short - vwap_long
 colnames(vwap_diff) <- paste(symbol, "vwap", sep=".")
 lag_vwap <- lag(vwap_diff)
 lag_vwap[1, ] <- 0
-datav <- cbind(returns[, 1], sign(lag_vwap))
+datav <- cbind(returnv[, 1], sign(lag_vwap))
 formulav <- as.formula(paste(colnames(datav)[1], 
           paste(paste(colnames(datav)[-1], 
             collapse=" + "), "- 1"), sep="~"))
@@ -594,7 +594,7 @@ summary(lm(formulav,
       \includegraphics[width=0.5\paperwidth,valign=t]{figure/earl_vwap_scatter-1}
       <<earl_vwap_scatter,eval=FALSE,echo=TRUE,fig.width=7,fig.height=6,fig.show='hide'>>=
 dates <- "2013-12-01/"
-plot(formulav, data=cbind(returns[, 1], lag_vwap)[dates], 
+plot(formulav, data=cbind(returnv[, 1], lag_vwap)[dates], 
      cex=0.6, xlab="skew", ylab="rets")
 abline(regmod, col="blue", lwd=2)
       @
@@ -621,7 +621,7 @@ abline(regmod, col="blue", lwd=2)
       <<eval=TRUE,echo=(-(1:1))>>=
 # momentum trading strategy
 # cumulative PnL
-cumu_pnl <- cumsum(sign(lag_vwap)*returns[, 1])
+cumu_pnl <- cumsum(sign(lag_vwap)*returnv[, 1])
 # calculate frequency of trades
 50*sum(abs(sign(vwap_diff)-sign(lag_vwap)))/nrow(vwap_diff)
 # calculate transaction costs

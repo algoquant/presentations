@@ -20,7 +20,7 @@ library(dygraphs)
 # data_env <- "etfenv"
 # symbolv <- etfenv$symbolv
 # symbol <- "SVXY"
-# returns <- etfenv$returns
+# retv <- etfenv$returns
 
 data_env <- rutils::etfenv
 symbolv <- sort(get("symbolv", data_env))
@@ -89,12 +89,12 @@ server <- shiny::shinyServer(function(input, output) {
     # symbol2 <- "VXX"
     ohlc <- get(symbol, data_env)
     # ohlc2 <- get(symbol2, data_env)
-    prices <- log(quantmod::Cl(ohlc))
-    startd <- as.numeric(prices[1])
-    # returns <- na.omit(get(symbol, returns))
-    returns <- rutils::diffit(prices)
-    # returns2 <- na.omit(get(symbol2, returns))
-    # com_bined <- cbind(returns, -na.omit(returns2))
+    pricev <- log(quantmod::Cl(ohlc))
+    startd <- as.numeric(pricev[1])
+    # retv <- na.omit(get(symbol, retv))
+    retv <- rutils::diffit(pricev)
+    # returns2 <- na.omit(get(symbol2, retv))
+    # com_bined <- cbind(retv, -na.omit(retv2))
     # which_na <- which(is.na(com_bined$VXX))
     # com_bined$VXX[which_na] <- com_bined$SVXY[which_na]
     # closep <- cumprod(1+rowMeans(com_bined))
@@ -108,10 +108,10 @@ server <- shiny::shinyServer(function(input, output) {
     volumes <- quantmod::Vo(ohlc)
     
     # Simulate strategy
-    vwapv <- HighFreq::run_mean(prices, lambda=lambda, weights=volumes)
+    vwapv <- HighFreq::run_mean(pricev, lambda=lambda, weights=volumes)
 
     # Calculate VWAP indicator
-    indic <- sign(prices - vwapv)
+    indic <- sign(pricev - vwapv)
     # indic_lag <- rutils::lagit(indic, lagg=1)
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
@@ -119,7 +119,7 @@ server <- shiny::shinyServer(function(input, output) {
     # posit <- ifelse(indic == indic_lag, indic, posit)
     indic_sum <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
     indic_sum[1:lagg] <- 0
-    posit <- rep(NA_integer_, NROW(prices))
+    posit <- rep(NA_integer_, NROW(pricev))
     posit[1] <- 0
     posit <- ifelse(indic_sum == lagg, 1, posit)
     posit <- ifelse(indic_sum == (-lagg), -1, posit)
@@ -136,13 +136,13 @@ server <- shiny::shinyServer(function(input, output) {
     # Lag the positions to trade in next period
     posit <- rutils::lagit(posit, lagg=1)
     # Calculate log strategy returns
-    # returns <- rutils::diffit(prices)
+    # retv <- rutils::diffit(pricev)
     # Calculate strategy profits and losses
     pnls <- coeff*returns*posit
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
     
-    pnls <- cbind(returns, pnls)
+    pnls <- cbind(retv, pnls)
     colnames(pnls) <- c(symbol, "Strategy")
     
     # Calculate Sharpe ratios

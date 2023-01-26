@@ -50,8 +50,8 @@ uifun <- shiny::fluidPage(
   
   # create single row with two slider inputs
   fluidRow(
-    # Input end points interval
-    column(width=2, selectInput("interval", label="End points Interval",
+    # Input rebalancing interval
+    column(width=2, selectInput("interval", label="Rebalancing Interval",
                                 choices=c("weeks", "months", "years"), selected="months")),
     # Input number of eigenvalues for regularized matrix inverse
     column(width=2, sliderInput("dimax", label="Number of eigenvalues:",

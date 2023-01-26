@@ -44,7 +44,7 @@ closep <- log(Cl(ohlc))
 # dates <- seq.POSIXt(from=as.POSIXct("2021-03-10 09:30:00", origin="1970-01-01"), by="min", length.out=nrows)
 # closep <- log(ohlc$close)
 # closep <- xts::xts(closep, dates)
-# returns <- rutils::diffit(closep)
+# retv <- rutils::diffit(closep)
 
 
 ## Load QM futures 5-second bars
@@ -70,7 +70,7 @@ closep <- log(Cl(ohlc))
 # load(file="/Users/jerzy/Develop/data/vix_data/vix_cboe.RData")
 # closep <- log(Cl(vix_env$chain_ed))
 
-returns <- rutils::diffit(closep)
+retv <- rutils::diffit(closep)
 
 captiont <- paste("Contrarian Strategy for", symbol, "Using the Hampel Filter Over Prices")
 
@@ -154,7 +154,7 @@ servfun <- function(input, output) {
     # Calculate the zscores
     medianv <- TTR::runMedian(closep, n=input$look_back)
     medianv[1:input$look_back, ] <- 1
-    # madv <- TTR::runMAD(returns, n=look_back)
+    # madv <- TTR::runMAD(retv, n=look_back)
     # madv[1:look_back, ] <- 1
     # zscores <- ifelse(madv != 0, (closep-medianv)/madv, 0)
     # Don't divide zscores by the madv because it's redundant since zscores is divided by the mad_zscores.
@@ -205,8 +205,8 @@ servfun <- function(input, output) {
     ntrades <- sum(abs(rutils::diffit(posit)))# / nrows
     captiont <- paste("Number of trades =", ntrades)
     
-    pnls <- cumsum(posit*returns)
-    pnls <- cbind(pnls, cumsum(returns))
+    pnls <- cumsum(posit*retv)
+    pnls <- cbind(pnls, cumsum(retv))
     colnames(pnls) <- c("Strategy", "Index")
     # pnls[rutils::calc_endpoints(pnls, interval="minutes")]
     # pnls[rutils::calc_endpoints(pnls, interval="hours")]

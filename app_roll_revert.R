@@ -18,15 +18,15 @@ library(HighFreq)
 # Source("/Users/jerzy/Develop/lecture_slides/scripts/roll_portf_new.R")
 # dimax <- 2
 load("/Users/jerzy/Develop/lecture_slides/data/sp500_prices.RData")
-returns <- returns["2000/"]
+retv <- retv["2000/"]
 # Random data
-# returns <- xts(matrix(rnorm(NROW(returns100)*NCOL(returns100)), nc=NCOL(returns100)), 
-#                 index(returns100))
-ncols <- NCOL(returns)
+# retv <- xts(matrix(rnorm(NROW(retv100)*NCOL(retv100)), nc=NCOL(retv100)), 
+#                 index(retv100))
+ncols <- NCOL(retv)
 riskf <- 0.03/260
-excess <- (returns - riskf)
+excess <- (retv - riskf)
 # Calculate returns on equal weight portfolio
-indeks <- xts(cumsum(rowMeans(returns)), index(returns))
+indeks <- xts(cumsum(rowMeans(retv)), index(retv))
 
 
 ## End setup code
@@ -95,7 +95,7 @@ servfun <- function(input, output) {
     input$recalcb
     
     # Define end points
-    endp <- rutils::calc_endpoints(returns, interval=interval)
+    endp <- rutils::calc_endpoints(retv, interval=interval)
     # endp <- ifelse(endp< ncols+1), ncols+1, endp)
     endp <- endp[endp > (ncols+1)]
     nrows <- NROW(endp)
@@ -106,12 +106,12 @@ servfun <- function(input, output) {
     # weights <- exp(-lambda*1:look_back)
     # weights <- weights/sum(weights)
     # weights <- matrix(weights, nc=1)
-    # excess <- HighFreq::roll_conv(returns, weights=weights)
+    # excess <- HighFreq::roll_conv(retv, weights=weights)
     # excess <- rutils::lagit(excess, lagg=look_lag)
     
     # Rerun the model
     pnls <- HighFreq::back_test(excess=excess, 
-                                 returns=returns,
+                                 returns=retv,
                                  startp=startp-1,
                                  endp=endp-1,
                                  dimax=dimax, 

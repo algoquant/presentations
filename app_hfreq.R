@@ -39,7 +39,7 @@ symbol <- rutils::get_name(colnames(taq)[1])
 # taq <- taq[taq$SIZE > 200]
 # closep <- matrix(taq$PRICE, nc=1)
 # volumes <- matrix(taq$SIZE, nc=1)
-# returns <- rutils::diffit(closep)
+# retv <- rutils::diffit(closep)
 
 
 ## End setup code
@@ -104,7 +104,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     closep <- quantmod::Cl(taq)
     # closep <- (max(closep) + 10 - closep)
     volumes <- quantmod::Vo(taq)
-    returns <- rutils::diffit(closep)
+    retv <- rutils::diffit(closep)
     nrows <- NROW(taq)
 
 
@@ -120,11 +120,11 @@ servfun <- shiny::shinyServer(function(input, output) {
       # End VWAP model
     } else if (model_type == "Hampel") {
       # Hampel model
-      medianv <- TTR::runMedian(returns, n=look_back)
+      medianv <- TTR::runMedian(retv, n=look_back)
       medianv[1:look_back] <- 1
-      madv <- TTR::runMAD(returns, n=look_back)
+      madv <- TTR::runMAD(retv, n=look_back)
       madv[1:look_back] <- 1
-      zscores <- ifelse(madv!=0, (returns-medianv)/madv, 0)
+      zscores <- ifelse(madv!=0, (retv-medianv)/madv, 0)
       zscores[1:look_back] <- 0
       mad_zscores <- TTR::runMAD(zscores, n=look_back)
       mad_zscores[1:look_back] <- 0
@@ -133,8 +133,8 @@ servfun <- shiny::shinyServer(function(input, output) {
       # End Hampel model
     } else if (model_type == "ZScore") {
       # Z-Score regression model
-      predictor <- matrix(1:nrows, nc=1)
-      score <- HighFreq::roll_zscores(response=closep, predictor=predictor, look_back=look_back)
+      predv <- matrix(1:nrows, nc=1)
+      score <- HighFreq::roll_zscores(respv=closep, predictor=predv, look_back=look_back)
       colnames(score) <- "score"
       score[1:look_back] <- 0
       score[is.infinite(score)] <- 0

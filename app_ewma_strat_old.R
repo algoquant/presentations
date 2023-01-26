@@ -37,9 +37,9 @@ closep <- log(ohlc$close)
 # closep <- log(ohlc$SPY.Close)
 
 
-returns <- rutils::diffit(closep)
-stdev <- sd(returns[returns<0])
-cumsumv <- cumsum(returns)
+retv <- rutils::diffit(closep)
+stdev <- sd(retv[returns<0])
+cumsumv <- cumsum(retv)
 # rangev <- (highp - lowp)
 # The re_scaled returns are skewed towards negative returns 
 # because volumes is larger for positive returns. 
@@ -219,7 +219,7 @@ servfun <- function(input, output) {
     posit <- rutils::lagit(posit, lagg=1)
     
     # Calculate strategy pnls
-    pnls <- (coeff*posit*returns)
+    pnls <- (coeff*posit*retv)
 
     # Calculate position turnover
     turn_over <- abs(rutils::diffit(posit))/2
@@ -231,7 +231,7 @@ servfun <- function(input, output) {
     pnls <- (pnls - costs)
 
     pnls <- stdev*pnls/sd(pnls[pnls<0])
-    pnls <- cbind(pnls, returns)
+    pnls <- cbind(pnls, retv)
     # Coerce pnls to xts
     pnls <- xts::xts(pnls, dates)
     

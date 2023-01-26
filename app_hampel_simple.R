@@ -72,7 +72,7 @@ servfun <- function(input, output) {
   })  # end reactive
   
   # Calculate log returns
-  returns <- shiny::reactive({
+  retv <- shiny::reactive({
     cat("Calculating log returns\n")
     rutils::diffit(log(Cl(ohlc())))
   })  # end reactive
@@ -95,7 +95,7 @@ servfun <- function(input, output) {
   pnls <- shiny::reactive({
     cat("Calculating posit and pnls\n")
     threshold <- input$threshold
-    # returns <- rutils::diffit(closep())
+    # retv <- rutils::diffit(closep())
     retsp <- returns()
     zscores <- zscores()
     nrows <- NROW(retsp)

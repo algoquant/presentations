@@ -1,5 +1,5 @@
 ##############################
-# This is a shiny app for a HighCharts candlestick plot of OHLC stock prices, 
+# This is a shiny app for a HighCharts candlestick plot of OHLC stock pricev, 
 # with a moving average line.
 # Just press the "Run App" button on the upper right of RStudio.
 # Or run the app in MacBook terminal:  

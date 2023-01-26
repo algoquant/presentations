@@ -99,20 +99,20 @@ symbol <- "SPY"  # define symbol
 output_dir <- "/Users/jerzy/Develop/data/hfreq/scrub/"
 symbol <- load(file.path(output_dir, 
             paste0(symbol, ".RData")))
-returns <- calc_rets(xts_data=to.daily(get(symbol)))
-len_rets <- nrow(returns)  # number of observations
-mean_rets <- mean(returns[, 1])  # calculate mean
-sd_rets <- sd(returns[, 1])  # calculate standard deviation
+returnv <- calc_rets(xts_data=to.daily(get(symbol)))
+len_rets <- nrow(returnv)  # number of observations
+mean_rets <- mean(returnv[, 1])  # calculate mean
+sd_rets <- sd(returnv[, 1])  # calculate standard deviation
 # calculate skew and kurtosis
-(sum(((returns[, 1] - mean_rets)/sd_rets)^3))/len_rets
-(sum(((returns[, 1] - mean_rets)/sd_rets)^4))/len_rets
+(sum(((returnv[, 1] - mean_rets)/sd_rets)^3))/len_rets
+(sum(((returnv[, 1] - mean_rets)/sd_rets)^4))/len_rets
       @
     \column{0.5\textwidth}
       \includegraphics[width=0.5\paperwidth,valign=t]{figure/rfin_ret_hist-1}
       \vspace{-2em}
       <<rfin_ret_hist,echo=TRUE,eval=FALSE,fig.width=7,fig.height=6,fig.show='hide'>>=
 library(PerformanceAnalytics)
-chart.Histogram(returns[, 1], main="", 
+chart.Histogram(returnv[, 1], main="", 
   xlim=c(-6e-5, 6e-5), 
   methods = c("add.density", "add.normal"))
 # add title
@@ -372,12 +372,12 @@ chartSeries(skew[rangev],
 par(oma=c(15, 1, 1, 1), mgp=c(0, 0.5, 0), mar=c(1, 1, 1, 1), cex.lab=0.8, cex.axis=0.8, cex.main=0.8, cex.sub=0.5)
 par(mfrow=c(2,1))  # set plot panels
 # daily contrarian trading strategy
-returns <- get(symbol)[index(skew), 4]
-returns <- diff(log(returns))
-colnames(returns) <- paste(symbol, "Ret", sep=".")
+returnv <- get(symbol)[index(skew), 4]
+returnv <- diff(log(returnv))
+colnames(returnv) <- paste(symbol, "Ret", sep=".")
 position <- -lag(skew)
 colnames(position) <- paste0(symbol, ".Position")
-position <- na.omit(merge(position, returns))
+position <- na.omit(merge(position, returnv))
 # scatterplot of skew and returns
 rangev <- "2008-09/2009-05"
 plot(coredata(position[rangev]))
@@ -404,7 +404,7 @@ plot(position)
     \column{0.5\textwidth}
       <<rfin_intradaystrat,eval=FALSE,echo=TRUE,fig.width=7,fig.height=6,fig.show='hide'>>=
 # intraday contrarian trading strategy
-returns <- calc_rets(xts_data=get(symbol))
+returnv <- calc_rets(xts_data=get(symbol))
 threshold <- 0.2  # signal threshold trading level
 position <- NA*numeric(nrow(skew))
 position <- ifelse(skew>threshold, -1, position)
@@ -418,7 +418,7 @@ position <- merge(skew, position)
 colnames(position)[2] <- 
   paste0(symbol, ".Position")
 # cumulative PnL
-cumu_pnl <- cumsum(position[, 2]*returns[, 1])
+cumu_pnl <- cumsum(position[, 2]*returnv[, 1])
 plot(cumu_pnl, format.labels="%Y-%m")
       @
     \column{0.5\textwidth}

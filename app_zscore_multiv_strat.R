@@ -95,11 +95,11 @@ servfun <- function(input, output) {
     # Extract log OHLC prices
     ohlc <- get(symbol, rutils::etfenv)[dates]
     closep <- log(quantmod::Cl(ohlc))
-    returns <- rutils::diffit(closep)
+    retv <- rutils::diffit(closep)
     
     # Calculate SVXY z-scores
     in_deks <- matrix(1:nrows, nc=1)
-    svxy_scores <- HighFreq::roll_reg(response=svxy_close, predictor=in_deks, look_back=look_back)
+    svxy_scores <- HighFreq::roll_reg(respv=svxy_close, predictor=in_deks, look_back=look_back)
     svxy_scores <- svxy_scores[, NCOL(svxy_scores)]
     svxy_scores[1:look_back] <- 0
     svxy_scores[is.infinite(svxy_scores)] <- 0
@@ -110,7 +110,7 @@ servfun <- function(input, output) {
     # svxy_scores <- (svxy_close - roll_svxy)/var_rolling
     
     # Calculate VXX z-scores
-    vxx_scores <- HighFreq::roll_reg(response=vxx_close, predictor=in_deks, look_back=look_back)
+    vxx_scores <- HighFreq::roll_reg(respv=vxx_close, predictor=in_deks, look_back=look_back)
     vxx_scores <- vxx_scores[, NCOL(vxx_scores)]
     vxx_scores[1:look_back] <- 0
     vxx_scores[is.infinite(vxx_scores)] <- 0
@@ -121,7 +121,7 @@ servfun <- function(input, output) {
     # vxx_scores <- (vxx_close - roll_vxx)/var_rolling
     
     # Calculate stock z-scores
-    stock_scores <- HighFreq::roll_reg(response=closep, predictor=in_deks, look_back=look_back)
+    stock_scores <- HighFreq::roll_reg(respv=closep, predictor=in_deks, look_back=look_back)
     stock_scores <- stock_scores[, NCOL(stock_scores)]
     stock_scores[1:look_back] <- 0
     stock_scores[is.infinite(stock_scores)] <- 0
@@ -133,7 +133,7 @@ servfun <- function(input, output) {
 
     # Calculate volatility z-scores
     volat <- log(quantmod::Hi(ohlc))-log(quantmod::Lo(ohlc))
-    volat_scores <- HighFreq::roll_reg(response=volat, predictor=in_deks, look_back=look_back)
+    volat_scores <- HighFreq::roll_reg(respv=volat, predictor=in_deks, look_back=look_back)
     volat_scores <- volat_scores[, NCOL(volat_scores)]
     volat_scores[1:look_back] <- 0
     volat_scores[is.infinite(volat_scores)] <- 0
@@ -145,7 +145,7 @@ servfun <- function(input, output) {
     
     # Calculate volume z-scores
     volumes <- quantmod::Vo(ohlc)
-    volume_scores <- HighFreq::roll_reg(response=volumes, predictor=in_deks, look_back=look_back)
+    volume_scores <- HighFreq::roll_reg(respv=volumes, predictor=in_deks, look_back=look_back)
     volume_scores <- volume_scores[, NCOL(volume_scores)]
     volume_scores[1:look_back] <- 0
     volume_scores[is.infinite(volume_scores)] <- 0
@@ -156,16 +156,16 @@ servfun <- function(input, output) {
     # volume_scores <- (volumes - roll_volume)/var_rolling
     
     # Define predictor matrix
-    predictor <- cbind(vxx_scores - svxy_scores, volat_scores, stock_scores, volume_scores)
-    colnames(predictor) <- c("vxx", "stock", "volat", "volume")
+    predv <- cbind(vxx_scores - svxy_scores, volat_scores, stock_scores, volume_scores)
+    colnames(predv) <- c("vxx", "stock", "volat", "volume")
     
     # Get weights parameters from input argument
     weights <- c(input$weight_vxx, input$weightstock, input$weight_volat, input$weight_volume)
     names(weights) <- c("vxx", "stock", "volat", "volume")
     
     # Simulate strategy
-    # score <- xts(predictor %*% weights, order.by=dates)
-    score <- drop(predictor %*% weights)
+    # score <- xts(predv %*% weights, order.by=dates)
+    score <- drop(predv %*% weights)
     # Calculate the vectors of tops and bottoms
     tops <- (score > input$thresh_top)
     bottoms <- (score < input$thresh_bot)
@@ -212,10 +212,10 @@ servfun <- function(input, output) {
 
     # Scale the pnls so they have same SD as returns
     if (values$ntrades > 0)
-      pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
+      pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(returns, pnls)
+    pnls <- cbind(retv, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
@@ -224,7 +224,7 @@ servfun <- function(input, output) {
     # Bind with indicators
     pnls <- cumsum(pnls)
     if (values$ntrades > 1) {
-      retsum <- cumsum(returns)
+      retsum <- cumsum(retv)
       pnls <- cbind(pnls, retsum[indic_buy], retsum[indic_sell])
       colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
     }  # end if

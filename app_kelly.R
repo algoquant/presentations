@@ -13,31 +13,31 @@ library(HighFreq)
 
 # Model and data setup
 
-returns <- na.omit(rutils::etfenv$returns[, "VTI"])
+retv <- na.omit(rutils::etfenv$returns[, "VTI"])
 
 
 ## Load QM futures 5-second bars
 # symbol <- "ES"  # S&P500 Emini futures
 # symbol <- "QM"  # oil
 # load(file=paste0("/Users/jerzy/Develop/data/ib_data/", symbol, "_ohlc.RData"))
-# prices <- Cl(ohlc)
+# pricev <- Cl(ohlc)
 # Or random prices
-# prices <- xts(exp(cumsum(rnorm(NROW(ohlc)))), index(ohlc))
+# pricev <- xts(exp(cumsum(rnorm(NROW(ohlc)))), index(ohlc))
 
 ## Load VX futures 5-second bars
 # symbol <- "VX"
 # load(file="/Users/jerzy/Develop/data/vix_data/vix_cboe.RData")
-# prices <- Cl(vix_env$chain_ed)
+# pricev <- Cl(vix_env$chain_ed)
 
 ## VTI ETF daily bars
 # symbol <- "VTI"
-# prices <- Cl(rutils::etfenv$VTI)
+# pricev <- Cl(rutils::etfenv$VTI)
 
 ## SPY ETF minute bars
 # symbol <- "SPY"
-# prices <- Cl(HighFreq::SPY["2011"])["T09:31:00/T15:59:00"]
+# pricev <- Cl(HighFreq::SPY["2011"])["T09:31:00/T15:59:00"]
 
-# returns <- rutils::diffit(log(prices))
+# retv <- rutils::diffit(log(pricev))
 
 captiont <- paste("VTI Strategy Using Rolling Kelly Weight")
 # captiont <- paste("Contrarian Strategy for", symbol, "Using the Hampel Filter Over Prices")
@@ -117,29 +117,29 @@ servfun <- function(input, output) {
     # half_window <- look_back %/% 2
     
     # Rerun the VTI model
-    # var_rolling <- roll::roll_var(returns, width=look_back)
-    # weights <- roll::roll_sum(returns, width=look_back)/look_back
+    # var_rolling <- roll::roll_var(retv, width=look_back)
+    # weights <- roll::roll_sum(retv, width=look_back)/look_back
     # weights <- weights/var_rolling
     # weights <- zoo::na.locf(weights, fromLast=TRUE)
     # weights <- drop(HighFreq::lag_vec(weights))
     # weights <- 10*weights/sum(abs(range(weights)))
-    # wealth <- cumprod(1 + weights*returns)
+    # wealth <- cumprod(1 + weights*retv)
 
     # Rerun the VTI and IEF model
-    var_rolling <- roll::roll_var(returns, width=look_back)
-    weights <- roll::roll_sum(returns, width=look_back)/look_back
+    var_rolling <- roll::roll_var(retv, width=look_back)
+    weights <- roll::roll_sum(retv, width=look_back)/look_back
     weights <- weights/var_rolling
     weights <- zoo::na.locf(weights, fromLast=TRUE)
     # Calculate compounded wealth from returns
     weights <- HighFreq::lagit(weights)
     # weights <- 10*weights/sum(abs(range(weights)))
     weights <- apply(weights, 2, function(x) 10*x/sum(abs(range(x))))
-    wealth <- cumprod(1 + rowSums(weights*returns))
-    wealth <- xts(wealth, index(returns))
+    wealth <- cumprod(1 + rowSums(weights*retv))
+    wealth <- xts(wealth, index(retv))
     
         
     # Calculate posit and pnls from z-scores and rangev
-    # posit <- rep(NA_integer_, NROW(prices))
+    # posit <- rep(NA_integer_, NROW(pricev))
     # posit[1] <- 0
     # threshold <- 3*mad(zscores)
     # posit <- ifelse(zscores > threshold, -1, posit)
@@ -148,8 +148,8 @@ servfun <- function(input, output) {
     # posit <- ifelse(zscores < (-threshold*mad_zscores), 1, posit)
     # posit <- na.locf(posit)
     # positions_lag <- rutils::lagit(posit, lagg=lagg)
-    # pnls <- cumsum(positions_lag*returns)
-    pnls <- cbind(wealth, cumsum(returns))
+    # pnls <- cumsum(positions_lag*retv)
+    pnls <- cbind(wealth, cumsum(retv))
     colnames(pnls) <- c("Strategy", "Index")
     # pnls[rutils::calc_endpoints(pnls, interval="minutes")]
     # pnls[rutils::calc_endpoints(pnls, interval="hours")]

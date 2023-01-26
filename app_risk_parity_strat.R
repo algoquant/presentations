@@ -14,10 +14,10 @@ library(dygraphs)
 # Model and data setup
 
 # Calculate dollar and percentage returns for VTI and IEF
-prices <- rutils::etfenv$prices[, c("VTI", "IEF")]
-prices <- na.omit(prices)
-retsd <- rutils::diffit(prices)
-retsp <- retsd/rutils::lagit(prices, lagg=1, pad_zeros=FALSE)
+pricev <- rutils::etfenv$prices[, c("VTI", "IEF")]
+pricev <- na.omit(pricev)
+retsd <- rutils::diffit(pricev)
+retsp <- retsd/rutils::lagit(pricev, lagg=1, pad_zeros=FALSE)
 
 captiont <- "Log Wealth of Risk Parity vs Fixed Dollar Allocations for VTI and IEF"
 
@@ -94,7 +94,7 @@ servfun <- function(input, output) {
     
     # Calculate standardized prices and portfolio allocations
     volat <- volat()
-    alloc <- lapply(1:NCOL(prices), function(x) weights[x]/volat[, x])
+    alloc <- lapply(1:NCOL(pricev), function(x) weights[x]/volat[, x])
     alloc <- do.call(cbind, alloc)
     # Scale allocations to 1 dollar total
     alloc <- alloc/rowSums(alloc)
@@ -106,7 +106,7 @@ servfun <- function(input, output) {
     
     # Calculate log wealths
     wealth <- log(cbind(wealth_pda, wealth_risk_parity))
-    wealth <- xts(wealth, index(prices))
+    wealth <- xts(wealth, index(pricev))
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(rutils::diffit(wealth), function (x) mean(x)/sd(x[x<0]))
     values$sharper <- round(sharper, 3)

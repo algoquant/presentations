@@ -120,7 +120,7 @@ servfun <- function(input, output) {
 
     # Calculate trailing price regression z-scores
     dates <- matrix(zoo::index(closep))
-    regz <- drop(HighFreq::roll_zscores(response=closep, predictor=dates, look_back=look_back))
+    regz <- drop(HighFreq::roll_zscores(respv=closep, predictor=dates, look_back=look_back))
     regz[1:look_back] <- 0
     
     # Calculate SVXY z-scores
@@ -134,22 +134,22 @@ servfun <- function(input, output) {
     # vxxz <- ifelse(stdev > 0, (vxxc - meanv)/stdev, 0)
     
     # Define predictor matrix
-    # predictor <- cbind(vxxz, svxyz, volatz, volumez)
-    predictor <- cbind(volatz, volumez, regz)
-    predictor <- coredata(predictor)
-    predictor[1, ] <- 0
-    # colnames(predictor) <- c("vxx", "svxy", "volat", "volume")
-    # colnames(predictor) <- c("volat", "volume")
-    predictor <- rutils::lagit(predictor)
+    # predv <- cbind(vxxz, svxyz, volatz, volumez)
+    predv <- cbind(volatz, volumez, regz)
+    predv <- coredata(predv)
+    predv[1, ] <- 0
+    # colnames(predv) <- c("vxx", "svxy", "volat", "volume")
+    # colnames(predv) <- c("volat", "volume")
+    predv <- rutils::lagit(predv)
     
     # Calculate in-sample forecasts of tops from logistic regression
-    logmod <- glm(tops ~ predictor, family=binomial(logit))
+    logmod <- glm(tops ~ predv, family=binomial(logit))
     fittedv <- logmod$fitted.values
     threshv <- quantile(fittedv, input$confitop)
     forecastops <- (fittedv > threshv)
     
     # Calculate in-sample forecasts of bottoms from logistic regression
-    logmod <- glm(bottoms ~ predictor, family=binomial(logit))
+    logmod <- glm(bottoms ~ predv, family=binomial(logit))
     fittedv <- logmod$fitted.values
     threshv <- quantile(fittedv, input$confibot)
     forecastbot <- (fittedv > threshv)

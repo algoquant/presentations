@@ -124,7 +124,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     indeks <- zoo::index(ohlc)
     closep <- Cl(ohlc)
     close_num <- as.numeric(closep)
-    # returns <- rutils::diffit(closep)
+    # retv <- rutils::diffit(closep)
     openp <- Op(ohlc)
     highp <- Hi(ohlc)
     highp <- as.numeric(highp)
@@ -148,7 +148,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     # Set up data for trading
     closep <- com_bo[indeks, paste(symbol_asset, "Close", sep=".")]
     closep <- zoo::na.locf(closep, fromLast=TRUE)
-    returns <- rutils::diffit(closep)
+    retv <- rutils::diffit(closep)
 
     ## Simulate strategy
     
@@ -168,7 +168,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     # NROW(posit)/sum(turn_over)
     
     # Calculate pnls
-    pnls <- cumsum(posit*returns)
+    pnls <- cumsum(posit*retv)
     pnls <- cbind(closep, pnls)#[xts::endpoints(pnls, on="days")]
     # pnls <- xts::to.daily(cbind(closep, pnls))
     # colnames(pnls) <- c("asset", "strategy")
@@ -183,19 +183,19 @@ servfun <- shiny::shinyServer(function(input, output) {
     # score <- closep
     # trending signal
     # signal_trend <- calc_signal(ohlc=ohlc, closep=close_num,
-    #                             predictor=predictor,
+    #                             predictor=predv,
     #                             look_short=look_short, look_long=look_long, high_freq=FALSE)
     # signal_trend <- calc_ma(ohlc=ohlc, closep=close_num,
-    #                         predictor=predictor,
+    #                         predictor=predv,
     #                         look_back=look_long, high_freq=FALSE)
     
     # mean reverting signal
     # signal_revert <- ohlc[, 1]  # dummy signal
     # signal_revert <- calc_signal(ohlc=ohlc, closep=close_num,
-    #                             predictor=predictor,
+    #                             predictor=predv,
     #                             look_short=look_short)
-    # signal_revert <- HighFreq::roll_zscores(response=close_num, 
-    #                         predictor=predictor, 
+    # signal_revert <- HighFreq::roll_zscores(respv=close_num, 
+    #                         predictor=predv, 
     #                         look_back=look_short)
     # score[1:look_short, ] <- 0
     # scale score using HighFreq::roll_scale()
@@ -218,8 +218,8 @@ servfun <- shiny::shinyServer(function(input, output) {
     # posit <- rutils::lagit(posit, lagg=lagg)
 
     # trending signal
-    # score <- HighFreq::roll_zscores(response=closep, 
-    #                         predictor=predictor, 
+    # score <- HighFreq::roll_zscores(respv=closep, 
+    #                         predictor=predv, 
     #                         look_back=look_long)
     # score[1:look_long, ] <- 0
     # score <- rutils::lagit(score)
@@ -231,15 +231,15 @@ servfun <- shiny::shinyServer(function(input, output) {
     # posit[score>beta_vol] <- 1
     # posit <- na.locf(posit)
     # pnls <- signal_revert
-    # pnls <- cumsum(posit*returns)
+    # pnls <- cumsum(posit*retv)
     # colnames(pnls) <- "strategy"
     
     # sim_revert(signal_revert, returns_trade, close_high, close_high_count, close_low, close_low_count, enter, exit, lagg)
     
     # sim_trend(signal_trend, returns_trade, enter, exit, close_high_trade, close_low_trade, lagg)
     
-    # sim_trend(signal_trend, returns, close_high, close_low, enter, exit, lagg)
-    # sim_revert_trending(signal_revert, signal_trend, returns, enter, exit, close_high_trade, close_low_trade, lagg)
+    # sim_trend(signal_trend, retv, close_high, close_low, enter, exit, lagg)
+    # sim_revert_trending(signal_revert, signal_trend, retv, enter, exit, close_high_trade, close_low_trade, lagg)
     # posit <- xts(posit, index(ohlc))
     # colnames(posit) <- "strategy"
     # pnls

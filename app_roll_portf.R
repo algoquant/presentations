@@ -16,21 +16,21 @@ library(rutils)
 
 symbolv <- c("DBC", "IEF", "VTI", "XLB", "XLE", "XLF", "XLI", "XLK", "XLP", "XLU", "XLV", "XLY")
 nweights <- NROW(symbolv)
-returns <- rutils::etfenv$returns[, symbolv]
-returns <- zoo::na.locf(returns, na.rm=FALSE)
-returns <- zoo::na.locf(returns, fromLast=TRUE)
+retv <- rutils::etfenv$returns[, symbolv]
+retv <- zoo::na.locf(retv, na.rm=FALSE)
+retv <- zoo::na.locf(retv, fromLast=TRUE)
 # Calculate the vector of average daily excess returns.
 # riskf is the daily risk-free rate.
 riskf <- 0.03/260
 excess <- returns - riskf
 
 # Calculate equal weight portfolio
-# ncols <- NCOL(returns)
-indeks <- xts::xts(cumprod(1 + rowMeans(returns)),
-                        index(returns))
+# ncols <- NCOL(retv)
+indeks <- xts::xts(cumprod(1 + rowMeans(retv)),
+                        index(retv))
 
 # Define endpoints
-endpoints <- rutils::calc_endpoints(returns, interval="months")
+endpoints <- rutils::calc_endpoints(retv, interval="months")
 endpoints <- endpoints[endpoints > 2*nweights]
 nrows <- NROW(endpoints)
 
@@ -73,7 +73,7 @@ servfunc <- shiny::shinyServer(function(input, output) {
     startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
     # rerun the model
     retsp <- drop(HighFreq::back_test(excess=excess, 
-                             returns=returns, 
+                             returns=retv, 
                              startpoints=startpoints-1, 
                              endpoints=endpoints-1, 
                              alpha=alpha, 

@@ -50,7 +50,7 @@ volumes <- Vo(ohlc)
 # load(file="/Users/jerzy/Develop/data/vix_data/vix_cboe.RData")
 # closep <- log(Cl(vix_env$chain_ed))
 
-returns <- rutils::diffit(closep)
+retv <- rutils::diffit(closep)
 
 captiont <- paste("Contrarian Strategy for", symbol, "Using the Hampel Filter Over Prices")
 
@@ -131,7 +131,7 @@ servfun <- function(input, output) {
     # Calculate zscores for prices
     medianv <- TTR::runMedian(closep, n=look_back)
     medianv[1:look_back, ] <- 1
-    madv <- TTR::runMAD(returns, n=look_back)
+    madv <- TTR::runMAD(retv, n=look_back)
     madv[1:look_back, ] <- 1
     zscores <- ifelse(madv != 0, (closep-medianv)/madv, 0)
     zscores[1:look_back, ] <- 0
@@ -183,9 +183,9 @@ servfun <- function(input, output) {
     posit <- zoo::na.locf(posit, na.rm=FALSE)
     positions_lag <- rutils::lagit(posit, lagg=1)
     
-    returns <- rutils::diffit(closep)
-    pnls <- cumsum(positions_lag*returns)
-    pnls <- cbind(pnls, cumsum(returns))
+    retv <- rutils::diffit(closep)
+    pnls <- cumsum(positions_lag*retv)
+    pnls <- cbind(pnls, cumsum(retv))
     colnames(pnls) <- c("Strategy", "Index")
     # pnls[rutils::calc_endpoints(pnls, interval="minutes")]
     # pnls[rutils::calc_endpoints(pnls, interval="hours")]

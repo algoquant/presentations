@@ -76,10 +76,10 @@ servfun <- function(input, output) {
     # Calculate cumulative returns
     ohlc <- ohlc()
     closep <- quantmod::Cl(ohlc)
-    returns <- rutils::diffit(log(closep))
-    returns <- returns/sd(returns)
-    retsum <- cumsum(returns)
-    nrows <- NROW(returns)
+    retv <- rutils::diffit(log(closep))
+    retv <- returns/sd(retv)
+    retsum <- cumsum(retv)
+    nrows <- NROW(retv)
     
     # Calculate the slow and fast volatilities
     if (fast_back > 1) {
@@ -129,10 +129,10 @@ servfun <- function(input, output) {
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(returns, pnls)
+    pnls <- cbind(retv, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))

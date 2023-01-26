@@ -19,12 +19,12 @@ library(HighFreq)
 Rcpp::sourceCpp(file="/Users/jerzy/Develop/lecture_slides/assignments/rcpp_strat.cpp")
 # Model and data setup
 load("/Users/jerzy/Develop/lecture_slides/data/sp500_prices.RData")
-returns <- returns100
-nweights <- NCOL(returns)
+retv <- returns100
+nweights <- NCOL(retv)
 riskf <- 0.03/260
-excess <- (returns - riskf)
+excess <- (retv - riskf)
 # calculate returns on equal weight portfolio
-indeks <- xts(cumsum(returns %*% rep(1/sqrt(nweights), nweights)), index(returns))
+indeks <- xts(cumsum(retv %*% rep(1/sqrt(nweights), nweights)), index(retv))
 
 
 # End setup code
@@ -79,21 +79,21 @@ servfun <- function(input, output) {
     input$recalcb
     
     # Define end points
-    endp <- rutils::calc_endpoints(returns, interval=interval)
+    endp <- rutils::calc_endpoints(retv, interval=interval)
     # endp <- ifelse(endp<(nweights+1), nweights+1, endp)
     endp <- endp[endp > (nweights+1)]
     nrows <- NROW(endp)
     # Define startp
     startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
     # Rerun the model
-    pnls <- back_test(excess=returns, 
-                        returns=returns,
+    pnls <- back_test(excess=retv, 
+                        returns=retv,
                         startp=startp-1,
                         endp=endp-1,
                         dimax=dimax, 
                         alpha=alpha)
     pnls[which(is.na(pnls)), ] <- 0
-    # pnls <- back_test_r(excess, returns, startp, endp, alpha, dimax, end_stub)
+    # pnls <- back_test_r(excess, retv, startp, endp, alpha, dimax, end_stub)
     # pnls <- sd(rutils::diffit(indeks))*pnls/sd(rutils::diffit(pnls))
     pnls <- cumsum(pnls)
     pnls <- cbind(pnls, indeks)

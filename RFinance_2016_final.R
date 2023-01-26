@@ -8,15 +8,15 @@ knit_theme$set(thm)
 library(HighFreq)
 symbol <- "SPY"  # define symbol
 # load OHLC data
-returns <- calc_rets(xts_data=to.daily(SPY))
-nrows <- nrow(returns)  # number of observations
-mean_rets <- mean(returns[, 1])  # calculate mean
-sd_rets <- sd(returns[, 1])  # calculate standard deviation
+retv <- calc_rets(xts_data=to.daily(SPY))
+nrows <- nrow(retv)  # number of observations
+mean_rets <- mean(retv[, 1])  # calculate mean
+sd_rets <- sd(retv[, 1])  # calculate standard deviation
 # calculate skew and kurtosis
-(sum(((returns[, 1] - mean_rets)/sd_rets)^3)) nrows
-(sum(((returns[, 1] - mean_rets)/sd_rets)^4)) nrows
+(sum(((retv[, 1] - mean_rets)/sd_rets)^3)) nrows
+(sum(((retv[, 1] - mean_rets)/sd_rets)^4)) nrows
 library(PerformanceAnalytics)
-chart.Histogram(returns[, 1], main="", 
+chart.Histogram(retv[, 1], main="", 
   xlim=c(-6e-5, 6e-5), 
   methods = c("add.density", "add.normal"))
 # add title
@@ -211,12 +211,12 @@ chart_Series(dailyvar[interval],
 chart_Series(daily_skew[interval],
        name=paste(symbol, "skew"))
 # skew scatterplot
-returns <- calc_rets(xts_data=SPY)
+retv <- calc_rets(xts_data=SPY)
 skew <- skew_ohlc(log_ohlc=log(SPY[, -5]))
 colnames(skew) <- paste0(symbol, ".skew")
 lag_skew <- lag(skew)
 lag_skew[1, ] <- 0
-datav <- cbind(returns[, 1], sign(lag_skew))
+datav <- cbind(retv[, 1], sign(lag_skew))
 formulav <- as.formula(paste(colnames(datav)[1], 
     paste(paste(colnames(datav)[-1], 
       collapse=" + "), "- 1"), sep="~"))
@@ -235,7 +235,7 @@ abline(regmod, col="blue", lwd=2)
 posit <- -sign(lag_skew)
 posit[1, ] <- 0
 # cumulative PnL
-cumu_pnl <- cumsum(posit*returns[, 1])
+cumu_pnl <- cumsum(posit*retv[, 1])
 # calculate frequency of trades
 50*sum(abs(sign(skew)-sign(lag_skew)))/nrow(skew)
 # calculate transaction costs
@@ -267,14 +267,14 @@ invisible(
 add_TA(vwap_diff[interval] < 0, on=-1,
  col="lightgrey", border="lightgrey")
 # vwap scatterplot
-# returns <- calc_rets(xts_data=SPY)
+# retv <- calc_rets(xts_data=SPY)
 vwap_short <- vwapv(xtes=SPY, look_back=70)
 vwap_long <- vwapv(xtes=SPY, look_back=225)
 vwap_diff <- vwap_short - vwap_long
 colnames(vwap_diff) <- paste0(symbol, ".vwap")
 lag_vwap <- lag(vwap_diff)
 lag_vwap[1, ] <- 0
-datav <- cbind(returns[, 1], sign(lag_vwap))
+datav <- cbind(retv[, 1], sign(lag_vwap))
 formulav <- as.formula(paste(colnames(datav)[1], 
     paste(paste(colnames(datav)[-1], 
       collapse=" + "), "- 1"), sep="~"))
@@ -284,12 +284,12 @@ summary(regmod)$coef
 summary(lm(formulav, data=datav["/2011-01-01"]))$coef
 summary(lm(formulav, data=datav["2011-01-01/"]))$coef
 interval <- "2013-12-01/"
-plot(formulav, data=cbind(returns[, 1], lag_vwap)[interval],
+plot(formulav, data=cbind(retv[, 1], lag_vwap)[interval],
      cex=0.6, xlab="skew", ylab="rets")
 abline(regmod, col="blue", lwd=2)
 # momentum trading strategy
 # cumulative PnL
-cumu_pnl <- cumsum(sign(lag_vwap)*returns[, 1])
+cumu_pnl <- cumsum(sign(lag_vwap)*retv[, 1])
 # calculate frequency of trades
 50*sum(abs(sign(vwap_diff)-sign(lag_vwap)))/nrow(vwap_diff)
 # calculate transaction costs

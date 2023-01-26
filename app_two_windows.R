@@ -15,8 +15,8 @@ library(HighFreq)
 # Model and data setup
 
 symbol <- "VTI"
-prices <- Cl(rutils::etfenv$VTI)
-returns <- rutils::diffit(log(prices))
+pricev <- Cl(rutils::etfenv$VTI)
+retv <- rutils::diffit(log(pricev))
 
 captiont <- paste("Strategy for", symbol, "Using Weekly and Monthly Returns")
 
@@ -92,16 +92,16 @@ servfun <- function(input, output) {
     # input$recalcb
 
     
-    week_ly <- rutils::diffit(log(prices), lagg=look_back1)
+    week_ly <- rutils::diffit(log(pricev), lagg=look_back1)
     week_ly <- as.numeric(week_ly)
-    month_ly <- rutils::diffit(log(prices), lagg=look_back2)
+    month_ly <- rutils::diffit(log(pricev), lagg=look_back2)
     month_ly <- as.numeric(month_ly)
     
     # Rerun the model
     posit <- sign(wei_ght*week_ly + (1-wei_ght)*month_ly)
     positions_lag <- rutils::lagit(posit, lagg=2)
-    pnls <- -cumsum(positions_lag*returns)
-    pnls <- cbind(pnls, cumsum(returns))
+    pnls <- -cumsum(positions_lag*retv)
+    pnls <- cbind(pnls, cumsum(retv))
     colnames(pnls) <- c("Strategy", "Index")
     # pnls[c(1, endp), ]
     pnls

@@ -62,8 +62,8 @@ servfun <- function(input, output) {
     
     ohlc <- get(symbol, rutils::etfenv)
     closep <- quantmod::Cl(ohlc)
-    returns <- rutils::diffit(log(closep))
-    returns <- returns/sd(returns)
+    retv <- rutils::diffit(log(closep))
+    retv <- returns/sd(retv)
     closep
 
   })  # end Load the data
@@ -80,9 +80,9 @@ servfun <- function(input, output) {
     lagg <- input$lagg
 
     # Calculate cumulative returns
-    returns <- datav
-    retsum <- cumsum(returns)
-    nrows <- NROW(returns)
+    retv <- datav
+    retsum <- cumsum(retv)
+    nrows <- NROW(retv)
     
     # Calculate EWMA weights
     fast_weights <- exp(-fast_lambda*1:look_back)
@@ -135,10 +135,10 @@ servfun <- function(input, output) {
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- c(returns, pnls)
+    pnls <- c(retv, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*lapply(pnls, function(x) mean(x)/sd(x[x<0]))

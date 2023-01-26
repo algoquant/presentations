@@ -15,11 +15,11 @@ library(dygraphs)
 ## Model and data setup
 
 # Select ETFs
-# returns <- rutils::etfenv$returns
-# symbolv <- colnames(returns)
+# retv <- rutils::etfenv$returns
+# symbolv <- colnames(retv)
 # symbolv <- symbolv[!(symbolv %in% c("VXX", "SVXY", "MTUM", "IEF"))]
 symbolv <- c("VTI", "VXX", "SVXY")
-returns <- na.omit(rutils::etfenv$returns[, symbolv])
+retv <- na.omit(rutils::etfenv$returns[, symbolv])
 
 
 # End setup code
@@ -56,7 +56,7 @@ servfun <- function(input, output) {
     weight3 <- input$weight3
     
     weights <- c(weight1, weight2, weight3)
-    (returns %*% weights)
+    (retv %*% weights)
   })  # end reactive code
   
   # Return to output argument a dygraph plot with two y-axes
@@ -64,7 +64,7 @@ servfun <- function(input, output) {
     pnls <- pnls()
     # Variance ratio
     # tre_nd <- HighFreq::calcvar_ag(pnls, lagg)/HighFreq::calcvar_ag(pnls)/lagg
-    pnls <- xts::xts(cumsum(pnls), zoo::index(returns))
+    pnls <- xts::xts(cumsum(pnls), zoo::index(retv))
     dygraphs::dygraph(pnls, main="Static Portfolio of ETFs")
     # colnamev <- colnames(pnls())
     # dygraphs::dygraph(pnls(), main="ETF Portfolio Optimization") %>%

@@ -14,15 +14,15 @@ library(dygraphs)
 # Model and data setup
 # dimax <- 2
 load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
-# returns <- returns100
-returns <- returns[, !is.na(returns[NROW(returns), ])]
-returns <- returns[, !is.na(returns[NROW(returns)-1000, ])]
-returns <- na.omit(returns)
-nweights <- NCOL(returns)
+# retv <- returns100
+retv <- retv[, !is.na(retv[NROW(retv), ])]
+retv <- retv[, !is.na(retv[NROW(retv)-1000, ])]
+retv <- na.omit(retv)
+nweights <- NCOL(retv)
 # riskf <- 0.03/260
-# excess <- (returns - riskf)
+# excess <- (retv - riskf)
 # calculate returns on equal weight portfolio
-# indeks <- xts(cumsum(returns %*% rep(1/sqrt(nweights), nweights)), index(returns))
+# indeks <- xts(cumsum(retv %*% rep(1/sqrt(nweights), nweights)), index(retv))
 
 
 # End setup code
@@ -68,17 +68,17 @@ servfun <- function(input, output) {
     # alpha <- input$alpha
     
     # Define end points
-    # endp <- rutils::calc_endpoints(returns, interval=interval)
+    # endp <- rutils::calc_endpoints(retv, interval=interval)
     # endp <- ifelse(endp<(nweights+1), nweights+1, endp)
     # endp <- endp[endp > (nweights+1)]
     # nrows <- NROW(endp)
     # Define startp
     # startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
     # rerun the model
-    weightv <- HighFreq::calc_weights(returns, dimax=dimax);
+    weightv <- HighFreq::calc_weights(retv, dimax=dimax);
     
-    # pnls <- roll_portf_n(excess=returns, 
-    #                               returns=returns,
+    # pnls <- roll_portf_n(excess=retv, 
+    #                               returns=retv,
     #                               startp=startp-1,
     #                               endp=endp-1,
     #                       dimax=dimax, 

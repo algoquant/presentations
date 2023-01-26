@@ -14,10 +14,10 @@ library(dygraphs)
 # Model and data setup
 
 # Calculate VTI returns
-returns <- na.omit(rutils::etfenv$returns$VTI["2007/2012"])
-dates <- zoo::index(returns)
-nrows <- NROW(returns)
-returns <- drop(zoo::coredata(returns))
+retv <- na.omit(rutils::etfenv$returns$VTI["2007/2012"])
+dates <- zoo::index(retv)
+nrows <- NROW(retv)
+retv <- drop(zoo::coredata(retv))
 
 captiont <- "CPPI Strategy"
 
@@ -81,13 +81,13 @@ servfun <- function(input, output) {
     
     # Simulate CPPI strategy
     for (t in 2:nrows) {
-      portfv[t] <- portfv[t-1] + stockv[t-1]*returns[t]
+      portfv[t] <- portfv[t-1] + stockv[t-1]*retv[t]
       stockv[t] <- min(coeff*(portfv[t] - bfloor), portfv[t])
       bondv[t] <- (portfv[t] - stockv[t])
     }  # end for
     
     # Return the data
-    vti <- 100*cumprod(1+returns)
+    vti <- 100*cumprod(1+retv)
     datav <- cbind(stockv, bondv, vti, portfv)
     datav <- xts::xts(datav, dates)
     colnames(datav) <- c("Stocks", "Bonds", "VTI", "CPPI")

@@ -95,10 +95,10 @@ servfun <- function(input, output) {
     # Calculate cumulative returns
     ohlc <- ohlc()
     closep <- log(quantmod::Cl(ohlc))
-    returns <- rutils::diffit(closep)
-    # returns <- returns/sd(returns)
-    retsum <- cumsum(returns)
-    nrows <- NROW(returns)
+    retv <- rutils::diffit(closep)
+    # retv <- returns/sd(retv)
+    retsum <- cumsum(retv)
+    nrows <- NROW(retv)
 
     # Calculate rolling volatility
     variance <- HighFreq::roll_var_ohlc(ohlc=vtis, look_back=look_back, scale=FALSE)
@@ -106,16 +106,16 @@ servfun <- function(input, output) {
     # Create predictor matrix
     if (symbol == "SVXY") {
       # If traded symbol is SVXY then regression of SVXY against VXX
-      predictor <- cbind(sqrt(variance), vxx, vti_close)
-      response <- svxy
+      predv <- cbind(sqrt(variance), vxx, vti_close)
+      respv <- svxy
     } else {
       # Regression of VXX against SVXY
-      predictor <- cbind(sqrt(variance), svxy, vti_close)
-      response <- vxx
+      predv <- cbind(sqrt(variance), svxy, vti_close)
+      respv <- vxx
     }  # end if
     
     # Calculate trailing z-scores
-    zscores <- HighFreq::roll_reg(response=returns, predictor=predictor, look_back=look_back)
+    zscores <- HighFreq::roll_reg(respv=retv, predictor=predv, look_back=look_back)
     zscores <- zscores[, NCOL(zscores)]
     # colnames(zscores) <- "zscore"
     zscores[1:look_back] <- 0
@@ -166,10 +166,10 @@ servfun <- function(input, output) {
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(returns, pnls)
+    pnls <- cbind(retv, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))

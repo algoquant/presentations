@@ -16,7 +16,7 @@ library(rutils)
 # Calculate indicator_s matrix of OHLC technical indicators
 source(file="/Users/jerzy/Develop/R/scripts/technical_indicators.R")
 
-indicator_s <- cbind(returns, zscores, volat, skew)
+indicator_s <- cbind(retv, zscores, volat, skew)
 
 # End setup code
 
@@ -89,7 +89,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     posit[score>1.5] <- (-1)
     posit <- na.locf(posit)
     # posit <- xts(posit, order.by=index(ohlc))
-    pnls <- cumsum(posit*returns)
+    pnls <- cumsum(posit*retv)
     colnames(pnls) <- "strategy"
     pnls
   })  # end reactive code

@@ -67,7 +67,7 @@ servfun <- function(input, output) {
   values <- reactiveValues()
   
   # Load the prices
-  prices <- shiny::reactive({
+  pricev <- shiny::reactive({
     
     # Get model parameters from input argument
     symbolstock <- input$symbolstock
@@ -80,8 +80,8 @@ servfun <- function(input, output) {
     # Load ETF prices from rutils::etfenv
     ohlc <- get(symboletf, rutils::etfenv)
     closetf <- log(quantmod::Cl(ohlc))
-    prices <- na.omit(cbind(closep, closetf))
-    colnames(prices) <- c(symbolstock, symboletf)
+    pricev <- na.omit(cbind(closep, closetf))
+    colnames(pricev) <- c(symbolstock, symboletf)
     prices
     
   })  # end Load the data

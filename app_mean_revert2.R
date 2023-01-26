@@ -55,19 +55,19 @@ close_high <- (close_num == drop(highp))
 # close_high_count <- HighFreq::roll_count(close_high)
 close_low <- (close_num == drop(lowp))
 # close_low_count <- HighFreq::roll_count(close_low)
-# returns <- rutils::diffit(closep)
-# colnames(returns) <- "returns"
+# retv <- rutils::diffit(closep)
+# colnames(retv) <- "returns"
 dates <- 1:NROW(ohlc)
 # dates <- xts::.index(ohlc)
-predictor <- matrix(dates, nc=1)
+predv <- matrix(dates, nc=1)
 # dates <- xts::.index(ohlc)
-# predictor <- matrix(xts::.index(ohlc), nc=1)
-# indicator_s <- cbind(returns, zscores, volat, skew)
+# predv <- matrix(xts::.index(ohlc), nc=1)
+# indicator_s <- cbind(retv, zscores, volat, skew)
 
 # set up data for trading
 symbol <- "ES1"
 closep <- com_bo[, paste(symbol, "Close", sep=".")]
-returns <- rutils::diffit(log(closep))
+retv <- rutils::diffit(log(closep))
 # create random time series of minutely OHLC prices
 # ohlc_trade <- HighFreq::random_ohlc(volat = 1e-03, 
 #   indeks=seq(from=(Sys.time()-5e6), length.out=5e6, by="1 sec"))
@@ -76,8 +76,8 @@ returns <- rutils::diffit(log(closep))
 # lowp <- Lo(ohlc_trade)
 # close_high_trade <- (close_num == drop(highp))
 # close_low_trade <- (close_num == drop(lowp))
-# returns <- rutils::diffit(closep)
-colnames(returns) <- "returns"
+# retv <- rutils::diffit(closep)
+colnames(retv) <- "returns"
 
 
 # End setup code
@@ -160,19 +160,19 @@ servfun <- shiny::shinyServer(function(input, output) {
     # score <- closep
     # trending signal
     # signal_trend <- calc_signal(ohlc=ohlc_log, closep=close_num,
-    #                             predictor=predictor,
+    #                             predictor=predv,
     #                             look_short=look_short, look_long=look_long, high_freq=FALSE)
     # signal_trend <- calc_ma(ohlc=ohlc_log, closep=close_num,
-    #                         predictor=predictor,
+    #                         predictor=predv,
     #                         look_back=look_long, high_freq=FALSE)
     
     # mean reverting signal
     # signal_revert <- ohlc_log[, 1]  # dummy signal
     signal_revert <- calc_signal(ohlc=ohlc_log, closep=close_num,
-                                predictor=predictor,
+                                predictor=predv,
                                 look_short=look_short)
-    # signal_revert <- HighFreq::roll_zscores(response=close_num, 
-    #                         predictor=predictor, 
+    # signal_revert <- HighFreq::roll_zscores(respv=close_num, 
+    #                         predictor=predv, 
     #                         look_back=look_short)
     # score[1:look_short, ] <- 0
     # scale score using HighFreq::roll_scale()
@@ -195,8 +195,8 @@ servfun <- shiny::shinyServer(function(input, output) {
     # posit <- rutils::lagit(posit, lagg=trade_lag)
 
     # trending signal
-    # score <- HighFreq::roll_zscores(response=closep, 
-    #                         predictor=predictor, 
+    # score <- HighFreq::roll_zscores(respv=closep, 
+    #                         predictor=predv, 
     #                         look_back=look_long)
     # score[1:look_long, ] <- 0
     # score <- rutils::lagit(score)
@@ -208,15 +208,15 @@ servfun <- shiny::shinyServer(function(input, output) {
     # posit[score>beta_vol] <- 1
     # posit <- na.locf(posit)
     # pnls <- signal_revert
-    # pnls <- cumsum(posit*returns)
+    # pnls <- cumsum(posit*retv)
     # colnames(pnls) <- "strategy"
     
-    pnls <- sim_revert(signal_revert, returns, close_high, close_high_count, close_low, close_low_count, enter, exit, trade_lag)
+    pnls <- sim_revert(signal_revert, retv, close_high, close_high_count, close_low, close_low_count, enter, exit, trade_lag)
     
-    # sim_trend(signal_trend, returns, enter, exit, close_high_trade, close_low_trade, trade_lag)
+    # sim_trend(signal_trend, retv, enter, exit, close_high_trade, close_low_trade, trade_lag)
     
-    # sim_trend(signal_trend, returns, close_high, close_low, enter, exit, trade_lag)
-    # sim_revert_trending(signal_revert, signal_trend, returns, enter, exit, close_high_trade, close_low_trade, trade_lag)
+    # sim_trend(signal_trend, retv, close_high, close_low, enter, exit, trade_lag)
+    # sim_revert_trending(signal_revert, signal_trend, retv, enter, exit, close_high_trade, close_low_trade, trade_lag)
     # posit <- xts(posit, index(ohlc))
     pnls <- cbind(closep, pnls)[xts::endpoints(pnls, on="days")]
     # pnls <- xts::to.daily(cbind(closep, pnls))

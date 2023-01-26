@@ -126,9 +126,9 @@ knit_theme$set(thm)
 library(quantmod)
 # Load stock returns
 load("/Users/jerzy/Develop/data/sp500_returns.RData")
-dim(returns)
+dim(returnv)
 # Calculate MSFT percentage returns
-rets <- na.omit(returns$MSFT)
+rets <- na.omit(returnv$MSFT)
 # Define endp at each point in time
 nrows <- NROW(rets)
 endp <- 1:nrows
@@ -228,7 +228,7 @@ summary(microbenchmark(
       \vspace{-1em}
       <<echo=TRUE,eval=FALSE>>=
 # Select returns after 2000 and overwrite NA values
-rets <- returns["2000/"]
+rets <- returnv["2000/"]
 nstocks <- NCOL(rets)
 rets[1, is.na(rets[1, ])] <- 0
 rets <- zoo::na.locf(rets, na.rm=FALSE)
@@ -272,7 +272,7 @@ dygraphs::dygraph(cumsum(pnls)[endp], main="Optimal Portfolio Returns") %>%
 \begin{block}{}
   \begin{columns}[T]
     \column{0.5\textwidth}
-      To avoid the problem of forecasting the returns, we may choose to select a \emph{minimum variance} portfolio.
+      To avoid the problem of forecasting the returnv, we may choose to select a \emph{minimum variance} portfolio.
       \vskip1ex
       If the portfolio weights $\mathbf{w}$ are subject to \emph{linear} constraints: $\mathbf{w}^T \mathbbm{1} = {\sum_{i=1}^n w_i} = 1$, then the weights that minimize the portfolio variance ($\mathbf{w}^T \mathbb{C} \, \mathbf{w}$) can be found by minimizing the \emph{Lagrangian}:
       \begin{displaymath}
@@ -836,7 +836,7 @@ dygraphs::dygraph(cumsum(wealth)[endp], main="Rolling S&P500 Portfolio Optimizat
 \vspace{-2em}
       \begin{lstlisting}[language=R,basicstyle=\tiny\ttfamily\bfseries,backgroundcolor=\color{anti_flashwhite},showstringspaces=FALSE]
 arma::mat back_test(const arma::mat& excess, // Asset excess returns
-                    const arma::mat& returns, // Asset returns
+                    const arma::mat& returnv, // Asset returns
                     arma::uvec startp, // Start points
                     arma::uvec endp, // End points
                     double lambda = 0.0, // Decay factor for averaging the portfolio weights
@@ -856,7 +856,7 @@ arma::mat back_test(const arma::mat& excess, // Asset excess returns
   arma::uword nweights = returns.ncols;
   arma::vec weights(nweights, fill::zeros);
   arma::vec weights_past = ones(nweights)/sqrt(nweights);
-  arma::mat pnls = zeros(returns.nrows, 1);
+  arma::mat pnls = zeros(returnv.nrows, 1);
 
   // Perform loop over the end points
   for (arma::uword it = 1; it < endp.size(); it++) {
@@ -898,7 +898,7 @@ arma::mat back_test(const arma::mat& excess, // Asset excess returns
     % \column{0.5\textwidth}
       Fast portfolio optimization using matrix algebra can be implemented using \protect\emph{RcppArmadillo}.
       \begin{lstlisting}[language=R,basicstyle=\tiny\ttfamily\bfseries,backgroundcolor=\color{anti_flashwhite},showstringspaces=FALSE]
-arma::vec calc_weights(const arma::mat& returns, // Asset returns
+arma::vec calc_weights(const arma::mat& returnv, // Asset returns
                        std::string method = "maxsharpe", // Method for calculating the weights
                        double eigen_thresh = 1e-5, // Threshold level for discarding small singular values
                        arma::uword dimax = 0, // Regularization intensity
@@ -915,13 +915,13 @@ arma::vec calc_weights(const arma::mat& returns, // Asset returns
   // No regularization so set dimax to ncols
   if (dimax == 0)  dimax = ncols;
   // Calculate the covariance matrix
-  arma::mat covmat = calc_covar(returns);
+  arma::mat covmat = calc_covar(returnv);
   
   // Apply different calculation methods for weights
   switch(calc_method(method)) {
   case methodenum::maxsharpe: {
     // Mean returns of columns
-    arma::vec colmeans = arma::trans(arma::mean(returns, 0));
+    arma::vec colmeans = arma::trans(arma::mean(returnv, 0));
     // Shrink colmeans to the mean of returns
     colmeans = ((1-alpha)*colmeans + alpha*arma::mean(colmeans));
     // Calculate weights using regularized inverse
@@ -930,7 +930,7 @@ arma::vec calc_weights(const arma::mat& returns, // Asset returns
   }  // end maxsharpe
   case methodenum::maxsharpemed: {
     // Median returns of columns
-    arma::vec colmeans = arma::trans(arma::median(returns, 0));
+    arma::vec colmeans = arma::trans(arma::median(returnv, 0));
     // Shrink colmeans to the median of returns
     colmeans = ((1-alpha)*colmeans + alpha*arma::median(colmeans));
     // Calculate weights using regularized inverse
@@ -955,7 +955,7 @@ arma::vec calc_weights(const arma::mat& returns, // Asset returns
   case methodenum::sharpem: {
     // Momentum weights equal to Sharpe ratios
     // Mean returns of columns
-    arma::vec colmeans = arma::trans(arma::mean(returns, 0));
+    arma::vec colmeans = arma::trans(arma::mean(returnv, 0));
     // Standard deviation of columns
     arma::vec colsd = arma::sqrt(covmat.diag());
     colsd.replace(0, 1);
@@ -966,7 +966,7 @@ arma::vec calc_weights(const arma::mat& returns, // Asset returns
   case methodenum::kellym: {
     // Momentum weights equal to Kelly ratios
     // Mean returns of columns
-    arma::vec colmeans = arma::trans(arma::mean(returns, 0));
+    arma::vec colmeans = arma::trans(arma::mean(returnv, 0));
     // Variance of columns
     arma::vec colvar = covmat.diag();
     colvar.replace(0, 1);
@@ -977,7 +977,7 @@ arma::vec calc_weights(const arma::mat& returns, // Asset returns
   case methodenum::robustm: {
     // Momentum weights equal to robust Sharpe ratios
     // Median returns of columns
-    arma::vec colmeans = arma::trans(arma::median(returns, 0));
+    arma::vec colmeans = arma::trans(arma::median(returnv, 0));
     // Standard deviation of columns
     arma::vec colsd = arma::sqrt(covmat.diag());
     colsd.replace(0, 1);
@@ -988,7 +988,7 @@ arma::vec calc_weights(const arma::mat& returns, // Asset returns
   case methodenum::quantile: {
     // Momentum weights equal to sum of quantiles for columns
     arma::vec levels = {confl, 1-confl};
-    weights = conv_to<vec>::from(arma::sum(arma::quantile(returns, levels, 0), 0));
+    weights = conv_to<vec>::from(arma::sum(arma::quantile(returnv, levels, 0), 0));
     break;
   }  // end quantile
   default : {
@@ -1011,12 +1011,12 @@ arma::vec calc_weights(const arma::mat& returns, // Asset returns
   switch(calc_method(scalew)) {
   case methodenum::voltarget: {
     // Scale the weights so the portfolio has the volatility equal to vol_target
-    weights = weights*vol_target/arma::stddev(returns*weights);
+    weights = weights*vol_target/arma::stddev(returnv*weights);
     break;
   }  // end voltarget
   case methodenum::voleqw: {
     // Scale the weights to the volatility of the equal weight portfolio
-    weights = weights*arma::stddev(arma::mean(returns, 1))/arma::stddev(returns*weights);
+    weights = weights*arma::stddev(arma::mean(returnv, 1))/arma::stddev(returnv*weights);
     break;
   }  // end voleqw
   case methodenum::sumone: {

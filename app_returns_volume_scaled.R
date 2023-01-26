@@ -104,13 +104,13 @@ servfun <- function(input, output) {
   # values <- reactiveValues()
   
   ## Calculate log returns
-  returns <- shiny::reactive({
+  retv <- shiny::reactive({
     symbol <- input$symbol
     cat("Loading data for ", symbol, "\n")
     ohlc <- rutils::etfenv[[symbol]]
-    returns <- cbind(rutils::diffit(log(Cl(ohlc))),
+    retv <- cbind(rutils::diffit(log(Cl(ohlc))),
                       Vo(ohlc))
-    colnames(returns) <- c("returns", "volume")
+    colnames(retv) <- c("returns", "volume")
     returns
   })  # end reactive
   
@@ -121,16 +121,16 @@ servfun <- function(input, output) {
     # long_back <- input$long_back
     
     # Calculate the rolling volume
-    returns <- returns()$returns
-    volumes <- (returns()$volume)
+    retv <- returns()$returns
+    volumes <- (retv()$volume)
     # Scale the volume by the rolling volume
     volumes <- short_back*volumes/HighFreq::roll_sum(volumes, look_back=short_back)
-    # returns <- rutils::diffit(closep())
+    # retv <- rutils::diffit(closep())
     # Calculate the cumulative returns scaled by the rolling volume
     scaled <- ifelse(volumes > 0, returns/(volumes^input$exponent), 0)
     scaled[is.na(scaled) | is.infinite(scaled)] <- 0
 
-    scaled <- cbind(returns, scaled)
+    scaled <- cbind(retv, scaled)
     colnames(scaled) <- c("returns", "scaled")
     scaled
     
@@ -143,30 +143,30 @@ servfun <- function(input, output) {
     cat("Plotting data for ", symbol, "\n")
     
     n_bins <- input$n_bins
-    returns <- scaled()$returns
+    retv <- scaled()$returns
     scaled <- scaled()$scaled
     
     # Calculate kurtosis of the returns
-    nrows <- NROW(returns)
-    kurto_sis <- sum((returns/sd(returns))^4) nrows
+    nrows <- NROW(retv)
+    kurto_sis <- sum((retv/sd(retv))^4) nrows
     kurtosis_scaled <- sum((scaled/sd(scaled))^4) nrows
-    pacfd <- pacf(returns, lag=10, plot=FALSE)
+    pacfd <- pacf(retv, lag=10, plot=FALSE)
     pacfd <- sum(drop(pacfd$acf))
     pacf_scaled <- pacf(scaled, lag=10, plot=FALSE)
     pacf_scaled <- sum(drop(pacf_scaled$acf))
     
     # Calculate breaks based on input$bins from ui.R
-    madv <- mad(returns)
-    break_s <- seq(min(returns), max(returns), length.out=n_bins+1)
+    madv <- mad(retv)
+    break_s <- seq(min(retv), max(retv), length.out=n_bins+1)
     # Calculate the kernel density using density()
-    # b_w <- mad(rutils::diffit(returns, lagg=10))/10
-    densityv <- density(returns, bw=madv/10)
+    # b_w <- mad(rutils::diffit(retv, lagg=10))/10
+    densityv <- density(retv, bw=madv/10)
     
     # Plot the histogram with the specified number of breaks
     captiont <- paste("Histogram of", symbol, "Returns Scaled by the Trading Volumes \n", 
                       "kurtosis=", round(kurto_sis, 2), "kurtosis scaled=", round(kurtosis_scaled, 2), "\n", 
                       "pacf=", round(pacfd, 2), "pacf scaled=", round(pacf_scaled, 2))
-    hist(returns, breaks=break_s, main=captiont, 
+    hist(retv, breaks=break_s, main=captiont, 
          xlim=c(-5*madv, 5*madv), ylim=1.05*range(densityv$y),  
          xlab="returns", ylab="", 
          freq=FALSE, col="darkgray", border="white")
@@ -175,7 +175,7 @@ servfun <- function(input, output) {
     # Draw kernel density of scaled
     lines(density(scaled, bw=madv/10), col="red", lwd=3)
     # Add density of normal distribution
-    curve(expr=dnorm(x, mean=mean(returns), sd=sd(returns)),
+    curve(expr=dnorm(x, mean=mean(retv), sd=sd(retv)),
           add=TRUE, lwd=2, col="green")
     # Add legend
     legend("topright", inset=0.05, bty="n", cex=1.5, 

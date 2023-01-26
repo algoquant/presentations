@@ -1,6 +1,6 @@
 ##############################
 # This is a shiny app for simulating a contrarian strategy based 
-# on the z-scores from regressions of returns, using function 
+# on the z-scores from regressions of retv, using function 
 # HighFreq::run_reg(). 
 # The model flips the position only if the indicator persists over 
 # several consecutive periods equal to lagg.
@@ -155,7 +155,7 @@ servfun <- function(input, output) {
   # })  # end reactive
   
   # Calculate log returns
-  returns <- shiny::reactive({
+  retv <- shiny::reactive({
     cat("Calculating log returns\n")
     rutils::diffit(log(Cl(ohlc())))
   })  # end reactive
@@ -171,9 +171,9 @@ servfun <- function(input, output) {
     # weights <- exp(-lambda*1:long_back)
     # weights <- weights/sum(weights)
 
-    predictor <- matrix(rep(1, NROW(returns())))
+    predv <- matrix(rep(1, NROW(retv())))
     # This need update
-    zscores <- HighFreq::run_reg(response=returns(), predictor=predictor, lambda=lambda, method="standardize")
+    zscores <- HighFreq::run_reg(respv=returns(), predictor=predv, lambda=lambda, method="standardize")
     zscores <- zscores[, 1, drop=FALSE]
     zscores <- HighFreq::lagit(zscores, pad_zeros=TRUE)
     # zscores[is.infinite(zscores)] <- 0
@@ -196,13 +196,13 @@ servfun <- function(input, output) {
     # volumes <- Vo(ohlc())
     # Scale the volume by the rolling volume
     # volumes <- short_back*volumes/HighFreq::roll_sum(volumes, look_back=short_back)
-    # returns <- rutils::diffit(closep())
+    # retv <- rutils::diffit(closep())
     # Calculate the cumulative returns scaled by the rolling volume
     # volumes <- rutils::lagit(volumes, pad_zeros=FALSE)
-    # returns <- ifelse(volumes > 0, returns()/volumes, 0)
-    # returns[is.na(returns) | is.infinite(returns)] <- 0
-    # returns <- rutils::diffit(closep)
-    # cum_scaled <- cumsum(returns)
+    # retv <- ifelse(volumes > 0, returns()/volumes, 0)
+    # retv[is.na(retv) | is.infinite(retv)] <- 0
+    # retv <- rutils::diffit(closep)
+    # cum_scaled <- cumsum(retv)
 
     # Calculate the rolling median of the cumulative returns
     # minv <- roll::rolregmodin(lowp, width=short_back)
@@ -213,7 +213,7 @@ servfun <- function(input, output) {
     # maxv <- rutils::lagit(maxv, pad_zeros=FALSE)
     # Don't divide zscores by the madv because it's redundant since zscores is divided by the mad_zscores.
     # Old code:
-    # madv <- TTR::runMAD(returns, n=short_back)
+    # madv <- TTR::runMAD(retv, n=short_back)
     # madv[1:short_back, ] <- 1
     # zscores <- ifelse(madv != 0, (closep-minv)/madv, 0)
     # Calculate the zscores as the rolling cumulative returns
@@ -251,8 +251,8 @@ servfun <- function(input, output) {
     cat("Calculating posit and pnls\n")
     threshold <- input$threshold
     lagg <- input$lagg
-    # returns <- rutils::diffit(closep())
-    nrows <- NROW(returns())
+    # retv <- rutils::diffit(closep())
+    nrows <- NROW(retv())
     # Determine if the zscores have exceeded the threshold
     indic <- rep(0, nrows)
     # indic[1] <- 0
@@ -289,7 +289,7 @@ servfun <- function(input, output) {
     values$sharper <- round(sqrt(252)*sharper, 3)
 
     # pnls <- cumsum(posit*returns())
-    # cum_scaled <- cumsum(returns())
+    # cum_scaled <- cumsum(retv())
     pnls <- cumsum(pnls)
     cum_scaled <- pnls[, 2]
     colnames(pnls) <- c("Strategy", "Index")

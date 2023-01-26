@@ -15,12 +15,12 @@ library(dygraphs)
 ## Model and data setup
 
 # Find ETFs with largest variance ratios
-prices <- log(rutils::etfenv$prices)
-symbolv <- colnames(prices)
+pricev <- log(rutils::etfenv$prices)
+symbolv <- colnames(pricev)
 symbolv <- symbolv[!(symbolv %in% c("VXX", "SVXY", "MTUM", "IEF"))]
-prices <- prices[, symbolv]
+pricev <- pricev[, symbolv]
 lagg <- 5
-ratio_s <- sapply(prices, function(x) {
+ratio_s <- sapply(pricev, function(x) {
   cat("x=", names(x), "\n")
   x <- na.omit(x)
   if (NROW(x) > 100)
@@ -33,12 +33,12 @@ symbolv <- names(ratio_s)
 # Select ETFs with largest variance ratios
 ncols <- 4
 namesv <- names(ratio_s)[1:ncols]
-returns <- rutils::etfenv$returns[, namesv]
-returns <- na.omit(returns)
+retv <- rutils::etfenv$returns[, namesv]
+retv <- na.omit(retv)
 
 
 # Calculate Hurst exponent from returns
-endp <- rutils::calc_endpoints(returns, interval=lagg)
+endp <- rutils::calc_endpoints(retv, interval=lagg)
 calc_hurst_rets <- function(rets, endp) {
   cumsumv <- cumsum(rets)
   range_ratios <- sapply(seq_along(endp)[-1], function(it) {
@@ -88,7 +88,7 @@ servfun <- function(input, output) {
     weight4 <- input$weight4
 
     weights <- c(weight1, weight2, weight3, weight4)
-    (returns %*% weights)
+    (retv %*% weights)
   })  # end reactive code
   
   # Return to output argument a dygraph plot with two y-axes
@@ -101,7 +101,7 @@ servfun <- function(input, output) {
     # Autocorrelation
     # pnls <- (pnls - mean(pnls))
     # tre_nd <- mean(pnls*rutils::lagit(pnls))/drop(var(pnls))
-    pnls <- xts::xts(cumsum(pnls), zoo::index(returns))
+    pnls <- xts::xts(cumsum(pnls), zoo::index(retv))
     dygraphs::dygraph(pnls, main=paste("Static Portfolio for", ncols, "ETFs", 
                                         "Trend indicator =", round(tre_nd, 4)))
     # colnamev <- colnames(datav())

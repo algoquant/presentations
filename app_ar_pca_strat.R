@@ -66,8 +66,8 @@ servfun <- function(input, output) {
     ohlc <- get(symbol, rutils::etfenv)
     nrows <- NROW(ohlc)
     closep <- log(quantmod::Cl(ohlc))
-    returns <- rutils::diffit(closep)
-    returns <- returns/sd(returns)
+    retv <- rutils::diffit(closep)
+    retv <- returns/sd(retv)
 
     ## Divide the returns by the volume - use trading time (volume clock)
     # Need to scale the volume by the rolling average volume
@@ -87,13 +87,13 @@ servfun <- function(input, output) {
     # Don't scale by the volume
     rets_scaled <- returns
     
-    cbind(returns, rets_scaled)
+    cbind(retv, rets_scaled)
     
   })  # end Load the data
   
 
   # Recalculate the predictor
-  predictor <- shiny::reactive({
+  predv <- shiny::reactive({
     
     cat("Recalculating PCA Predictor For ", input$symbol, "\n")
     
@@ -102,39 +102,39 @@ servfun <- function(input, output) {
     # lagg <- input$lagg
 
     # Calculate cumulative returns
-    returns <- datav()[, 1]
+    retv <- datav()[, 1]
     rets_scaled <- datav()[, 2]
-    dates <- zoo::index(returns)
-    nrows <- NROW(returns)
+    dates <- zoo::index(retv)
+    nrows <- NROW(retv)
     
-    # response <- rutils::lagit(predictor[, max_back], lagg=(-max_back))
+    # respv <- rutils::lagit(predv[, max_back], lagg=(-max_back))
     numagg <- input$numagg
-    response <- sqrt(numagg)*roll::rolregmodean(returns, numagg, min_obs=1)
-    # response[1:(numagg-1)] <- 0
+    respv <- sqrt(numagg)*roll::rolregmodean(retv, numagg, min_obs=1)
+    # respv[1:(numagg-1)] <- 0
     
     look_backs <- numagg*(1:max_back)
-    # predictor <- lapply(look_backs, function(x) sqrt(x)*roll::rolregmodean(rets_scaled, x, min_obs=1))
-    predictor <- lapply(look_backs, rutils::lagit, input=response)
-    predictor <- do.call(cbind, predictor)
-    # predictor[1, ] <- 0
-    # predictor <- zoo::na.locf(predictor)
-    # sum(is.na(predictor))
-    predictor <- cbind(response, predictor)
+    # predv <- lapply(look_backs, function(x) sqrt(x)*roll::rolregmodean(rets_scaled, x, min_obs=1))
+    predv <- lapply(look_backs, rutils::lagit, input=respv)
+    predv <- do.call(cbind, predv)
+    # predv[1, ] <- 0
+    # predv <- zoo::na.locf(predv)
+    # sum(is.na(predv))
+    predv <- cbind(respv, predv)
     
-    response <- rutils::lagit(response, lagg=(-numagg))
+    respv <- rutils::lagit(respv, lagg=(-numagg))
     
     ## Define predictors as the principal components of predictor
     # Calculate covariance matrix of predictor
-    # covmat <- cov(predictor)
+    # covmat <- cov(predv)
     # Calculate eigenvectors and eigenvalues
     # eigend <- eigen(covmat)
     
     # Define predictors as the principal components of predictor
     # eigenvec <- eigend$vectors
-    # predictor <- xts::xts(predictor %*% eigend$vectors, order.by=dates)
-    # colnames(predictor) <- paste0("pc", 1:NCOL(predictor))
-    # round(cov(predictor), 3)
-    cbind(response, rep(1, nrows), predictor)
+    # predv <- xts::xts(predv %*% eigend$vectors, order.by=dates)
+    # colnames(predv) <- paste0("pc", 1:NCOL(predv))
+    # round(cov(predv), 3)
+    cbind(respv, rep(1, nrows), predv)
 
   })  # end Recalculate the predictor
   
@@ -147,23 +147,23 @@ servfun <- function(input, output) {
     # Get model parameters from input argument
     dimax <- input$dimax
 
-    response <- predictor()[, 1]
-    predictor <- predictor()[, -1]
-    returns <- datav()[, 1]
-    # dimax <- min(dimax, NCOL(predictor))
-    dimax <- NCOL(predictor)
+    respv <- predictor()[, 1]
+    predv <- predictor()[, -1]
+    retv <- datav()[, 1]
+    # dimax <- min(dimax, NCOL(predv))
+    dimax <- NCOL(predv)
     
-    nrows <- NROW(returns)
+    nrows <- NROW(retv)
     insample <- 1:(nrows %/% 2)
     outsample <- (nrows %/% 2 + 1):nrows
     
     # Calculate in-sample fitted coefficients
-    inverse <- MASS::ginv(predictor[insample, 1:dimax])
-    coeff_fit <- drop(inverse %*% response[insample])
+    inverse <- MASS::ginv(predv[insample, 1:dimax])
+    coeff_fit <- drop(inverse %*% respv[insample])
     
     # Calculate out-sample forecasts of returns
-    # forecasts <- drop(predictor[outsample, 1:3] %*% coeff_fit[1:3])
-    forecasts <- drop(predictor[outsample, 1:dimax] %*% coeff_fit)
+    # forecasts <- drop(predv[outsample, 1:3] %*% coeff_fit[1:3])
+    forecasts <- drop(predv[outsample, 1:dimax] %*% coeff_fit)
     # Lag the positions to trade in next period
     posit <- sign(rutils::lagit(forecasts))
     
@@ -177,7 +177,7 @@ servfun <- function(input, output) {
     indic_sell <- (indic < 0)
     
     # Calculate strategy pnls
-    returns <- returns[outsample]
+    retv <- retv[outsample]
     pnls <- posit*returns
     
     # Calculate transaction costs
@@ -185,10 +185,10 @@ servfun <- function(input, output) {
     pnls <- (pnls - costs)
     
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(returns[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(returns, pnls)
+    pnls <- cbind(retv, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
@@ -197,7 +197,7 @@ servfun <- function(input, output) {
     # Bind with indicators
     pnls <- cumsum(pnls)
     if (values$ntrades > 1) {
-      retsum <- cumsum(returns)
+      retsum <- cumsum(retv)
       pnls <- cbind(pnls, retsum[indic_buy], retsum[indic_sell])
       colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
     }  # end if
