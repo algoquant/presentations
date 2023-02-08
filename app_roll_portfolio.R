@@ -262,7 +262,7 @@ servfun <- function(input, output) {
     # weights <- weights/sum(weights)
     # weights <- matrix(weights, nc=1)
     # Calculate smoothed excess returns
-    # excess <- HighFreq::roll_conv(excess, weights=weights)
+    # excess <- HighFreq::roll_conv(excess, weightv=weights)
     
     excess
 

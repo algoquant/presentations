@@ -68,9 +68,9 @@ servfun <- function(input, output) {
 
     pricev <- spyticks
     # Remove prices with very small size
-    pricev <- pricev[(pricev$size >= minsize), ]
+    pricev <- prices[(pricev$size >= minsize), ]
     # Remove prices with very large size
-    pricev <- pricev[(pricev$size <= maxsize), ]
+    pricev <- prices[(pricev$size <= maxsize), ]
     
     pricev
     

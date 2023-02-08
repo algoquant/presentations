@@ -33,7 +33,7 @@ captiont <- paste("Running Z-score of SVXY Prices Versus VXX app_runreg_daily_st
 # coeff <- (-1)
 # lagg <- 1
 # pricev <- log(na.omit(rutils::etfenv$prices[, symbolv]))
-# retv <- rutils::diffit(pricev[, 2])
+# retv <- rutils::diffit(prices[, 2])
 # Or
 # retv <- na.omit(rutils::etfenv$returns[, symbolv])
 

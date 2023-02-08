@@ -90,7 +90,7 @@ server <- shiny::shinyServer(function(input, output) {
     ohlc <- get(symbol, data_env)
     # ohlc2 <- get(symbol2, data_env)
     pricev <- log(quantmod::Cl(ohlc))
-    startd <- as.numeric(pricev[1])
+    startd <- as.numeric(prices[1])
     # retv <- na.omit(get(symbol, retv))
     retv <- rutils::diffit(pricev)
     # returns2 <- na.omit(get(symbol2, retv))
@@ -108,7 +108,7 @@ server <- shiny::shinyServer(function(input, output) {
     volumes <- quantmod::Vo(ohlc)
     
     # Simulate strategy
-    vwapv <- HighFreq::run_mean(pricev, lambda=lambda, weights=volumes)
+    vwapv <- HighFreq::run_mean(pricev, lambda=lambda, weightv=volumes)
 
     # Calculate VWAP indicator
     indic <- sign(pricev - vwapv)

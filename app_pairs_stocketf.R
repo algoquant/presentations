@@ -15,7 +15,7 @@ library(dygraphs)
 ## Load S&P500 prices
 load(file="/Users/jerzy/Develop/lecture_slides/data/sp500_prices.RData")
 
-symbolstocks <- colnames(pricev)
+symbolstocks <- sort(colnames(prices))
 symbolstock <- "AAPL"
 
 symbolsetf <- colnames(rutils::etfenv$prices)
@@ -65,7 +65,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     symboletf <- input$symboletf
 
     # Prepare data
-    closep <- get(symbolstock, pricev)
+    closep <- get(symbolstock, prices)
     closetf <- get(symboletf, rutils::etfenv$prices)
     closep <- log(na.omit(cbind(closep, closetf)))
     colnames(closep) <- c("Stock", "ETF")
@@ -99,7 +99,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     retsres <- rutils::diffit(residv)
     vars <- HighFreq::run_var(retsres, lambda=lambda)
 
-    resids <- HighFreq::run_mean(retsres, lambda=lambda, weights=0)
+    resids <- HighFreq::run_mean(retsres, lambda=lambda, weightv=0)
     resids <- resids/sqrt(vars)
     resids[1] <- 0
     # resids <- xts::xts(resids, datev)

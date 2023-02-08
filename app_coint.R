@@ -81,7 +81,7 @@ servfun <- function(input, output) {
     ohlc <- get(symboletf, rutils::etfenv)
     closetf <- log(quantmod::Cl(ohlc))
     pricev <- na.omit(cbind(closep, closetf))
-    colnames(pricev) <- c(symbolstock, symboletf)
+    sort(colnames(prices)) <- c(symbolstock, symboletf)
     prices
     
   })  # end Load the data

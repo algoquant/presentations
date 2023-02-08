@@ -40,7 +40,7 @@ switch(data_type,
          pricev <- log(Cl(ohlc))
          retv <- rutils::diffit(pricev)
          stdev <- sd(retv[returns<0])
-         # pricev <- pricev[endp]
+         # pricev <- prices[endp]
        },
        "otherbars" = {
          captiont <- "Strategy for 1-minute LODE Bars"
@@ -107,7 +107,7 @@ switch(data_type,
          pricev <- log(Cl(ohlc))
          retv <- rutils::diffit(pricev)
          stdev <- sd(retv[returns<0])
-         # pricev <- pricev[endp]
+         # pricev <- prices[endp]
          # retv <- c(0, retv)
          captiont <- paste("Contrarian Strategy for", symbol, "Bars")
        },
@@ -126,7 +126,7 @@ switch(data_type,
          pricev <- log(Cl(ohlc))
          retv <- rutils::diffit(pricev)
          stdev <- sd(retv[returns<0])
-         # pricev <- pricev[endp]
+         # pricev <- prices[endp]
        },
        "sp500" = {
          captiont <- "Strategy for S&P500 Stocks"
@@ -146,7 +146,7 @@ switch(data_type,
          pricev <- log(Cl(ohlc))
          retv <- rutils::diffit(pricev)
          stdev <- sd(retv[returns<0])
-         # pricev <- pricev[endp]
+         # pricev <- prices[endp]
        }
 )  # end switch
 
@@ -258,7 +258,7 @@ servfun <- function(input, output) {
              pricev <- log(Cl(ohlc))
              retv <- rutils::diffit(pricev)
              stdev <- sd(retv[returns<0])
-             # pricev <- pricev[endp]
+             # pricev <- prices[endp]
            },
            "sp500" = {
              # captiont <- "Rolling Portfolio Optimization Strategy for Sub-Portfolio of S&P500 Stocks"
@@ -270,7 +270,7 @@ servfun <- function(input, output) {
              pricev <- log(Cl(ohlc))
              retv <- rutils::diffit(pricev)
              stdev <- sd(retv[returns<0])
-             # pricev <- pricev[endp]
+             # pricev <- prices[endp]
            },
            "tick_data" = {
              big_ticks <- raw_ticks[volume >= volumes]

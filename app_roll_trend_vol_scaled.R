@@ -86,7 +86,7 @@ retv <- retv[(sort(first_non_na)[3]):NROW(retv)]
 ############
 # S&P100
 # load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
-# retv <- retv["2000-01-01/"]
+# retv <- returns["2000-01-01/"]
 # symbolv <- colnames(retv)
 # nweights <- NROW(symbolv)
 
@@ -193,7 +193,7 @@ servfun <- function(input, output) {
     # weights <- weights/sum(weights)
     # weights <- matrix(weights, nc=1)
     # Calculate smoothed excess returns
-    # excess <- HighFreq::roll_conv(excess, weights=weights)
+    # excess <- HighFreq::roll_conv(excess, weightv=weights)
     # excess <- HighFreq::lagit(excess, lagg=1)
     
     # needs more work: Shrink to portfolio with largest Hurst

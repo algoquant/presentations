@@ -16,9 +16,9 @@ library(dygraphs)
 
 # Find ETFs with largest variance ratios
 pricev <- log(rutils::etfenv$prices)
-symbolv <- colnames(pricev)
+symbolv <- sort(colnames(prices))
 symbolv <- symbolv[!(symbolv %in% c("VXX", "SVXY", "MTUM", "IEF"))]
-pricev <- pricev[, symbolv]
+pricev <- prices[, symbolv]
 lagg <- 5
 ratio_s <- sapply(pricev, function(x) {
   cat("x=", names(x), "\n")

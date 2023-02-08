@@ -18,7 +18,7 @@ library(HighFreq)
 # Source("/Users/jerzy/Develop/lecture_slides/scripts/roll_portf_new.R")
 # dimax <- 2
 load("/Users/jerzy/Develop/lecture_slides/data/sp500_prices.RData")
-retv <- retv["2000/"]
+retv <- returns["2000/"]
 # Random data
 # retv <- xts(matrix(rnorm(NROW(retv100)*NCOL(retv100)), nc=NCOL(retv100)), 
 #                 index(retv100))
@@ -106,7 +106,7 @@ servfun <- function(input, output) {
     # weights <- exp(-lambda*1:look_back)
     # weights <- weights/sum(weights)
     # weights <- matrix(weights, nc=1)
-    # excess <- HighFreq::roll_conv(retv, weights=weights)
+    # excess <- HighFreq::roll_conv(retv, weightv=weights)
     # excess <- rutils::lagit(excess, lagg=look_lag)
     
     # Rerun the model

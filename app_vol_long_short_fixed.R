@@ -33,9 +33,9 @@ load("/Users/jerzy/Develop/lecture_slides/data/sp500_prices.RData")
 # Subset (select) the prices after the start date of VTI
 retvti <- na.omit(rutils::etfenv$returns$VTI)
 colnames(retvti) <- "VTI"
-pricev <- pricev[zoo::index(retvti)]
+pricev <- prices[zoo::index(retvti)]
 # Select columns with non-NA prices at start
-pricev <- pricev[, !is.na(pricev[1, ])]
+pricev <- prices[, !is.na(prices[1, ])]
 # Copy over NA prices using the function zoo::na.locf()
 pricev <- zoo::na.locf(pricev, na.rm=FALSE)
 datev <- zoo::index(pricev)
@@ -124,8 +124,9 @@ servfun <- function(input, output) {
   # Return to the output argument a dygraph plot with two y-axes
   output$dyplot <- dygraphs::renderDygraph({
     
-    cat("Plotting for ", input$symbol, "\n")
+    cat("Plotting", "\n")
     wealthv <- wealthv()
+    colnamev <- colnames(wealthv)
 
     # Calculate the Sharpe and Sortino ratios
     sharper <- sqrt(252)*sapply(rutils::diffit(wealthv),

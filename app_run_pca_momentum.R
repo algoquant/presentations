@@ -1,10 +1,9 @@
 ##############################
-# This is a shiny app for backtesting a running PCA portfolio 
+# This is a shiny app for backtesting a running PCA momentum 
 # strategy, which produces an interactive dygraphs plot.
-# It performs the PCA in-sample and trades the principal 
-# components out-of-sample.
-# It runs compiled Rcpp code for either a portfolio 
-# optimization strategy or a momentum strategy.
+# It updates the principal components using an online model
+# and trades them.
+# It uses separate decay factors for returns and for covariance. 
 # 
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -18,14 +17,17 @@ library(HighFreq)
 
 ## Load daily S&P500 stock returns
 # load(file="/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
-# retsp <- returns["2000/"]
+# retsp <- returns100["2000/"]
 
 ## Load ETF returns
-# retsp <- rutils::etfenv$returns[, c("VTI", "IEF", "DBC")]
-retsp <- rutils::etfenv$returns[, c("VTI", "IEF", "DBC", "XLP", "XLE", "XLF", "XLV", "XLI", "XLB", "XLK", "XLU", "USO")]
+retsp <- rutils::etfenv$returns[, c("VTI", "TLT", "DBC", "USO", "XLF", "XLK")]
+# retsp <- rutils::etfenv$returns[, c("VTI", "IEF", "DBC", "XLP", "XLE", "XLF", "XLV", "XLI", "XLB", "XLK", "XLU", "USO")]
 # symbolv <- colnames(rutils::etfenv$returns)
 # symbolv <- symbolv[!(symbolv %in% c("TLT", "IEF", "MTUM", "QUAL", "VLUE", "USMV", "VXX", "SVXY", "IVE", "VTV"))]
 # retsp <- rutils::etfenv$returns[, symbolv]
+
+retsp <- na.omit(retsp)
+
 
 # Overwrite NA values in returns
 retsp[is.na(retsp)] <- 0
@@ -34,7 +36,7 @@ datev <- zoo::index(retsp) # dates
 nrows <- NROW(retsp) # number of rows
 nzeros <- colSums(retsp == 0)
 # Remove stocks with very little data
-retsp <- retsp[, nzeros < nrows/4]
+retsp <- retsp[, nzeros < nrows/2]
 nstocks <- NCOL(retsp) # number of stocks
 
 indeks <- rowMeans(retsp)
@@ -44,17 +46,17 @@ indeksd <- sd(indeks)
 
 
 # Define in-sample and out-of-sample intervals
-cutoff <- nrows %/% 2
-insample <- 1:cutoff
-outsample <- (cutoff + 1):nrows
+# cutoff <- nrows %/% 2
+# insample <- 1:cutoff
+# outsample <- (cutoff + 1):nrows
 # Calculate the PCA weights in-sample
-retsp <- retsp[, !(colSums(retsp[insample]) == 0)]
-pcad <- prcomp(retsp[insample], center=FALSE, scale=TRUE)
+# retsp <- retsp[, !(colSums(retsp[insample]) == 0)]
+# pcad <- prcomp(retsp[insample], center=FALSE, scale=TRUE)
 # Calculate the out-of-sample PCA time series
-retscaled <- lapply(retsp, function(x) x[outsample]/sd(x[insample]))
-retscaled <- do.call(cbind, retscaled)
-retspca <- xts::xts(retscaled %*% pcad$rotation, order.by=datev[outsample])
-indeks <- indeks[outsample]
+# retscaled <- lapply(retsp, function(x) x[outsample]/sd(x[insample]))
+# retscaled <- do.call(cbind, retscaled)
+# retspca <- xts::xts(retscaled %*% pcad$rotation, order.by=datev[outsample])
+# indeks <- indeks[outsample]
 
 # pcad <- prcomp(retsp, center=FALSE, scale=TRUE)
 # retspca <- pcad$x
@@ -77,9 +79,14 @@ uifun <- shiny::fluidPage(
   # Create single row with two slider inputs
   fluidRow(
     # Input number of eigenvalues for regularized matrix inverse
-    column(width=3, sliderInput("dimax", label="Number of principal components:", min=2, max=nstocks, value=4, step=1)),
-    column(width=3, sliderInput("lambda", label="Decay:", min=0.9, max=0.999, value=0.95, step=0.001)),
-    column(width=3, sliderInput("lambdah", label="Weight decay:", min=0.7, max=0.99, value=0.85, step=0.01))
+    # checkboxInput("scalit", label="Scale returns", value=TRUE),
+    column(width=2, sliderInput("dimax", label="Number of principal components:", min=2, max=nstocks, value=5, step=1)),
+    column(width=3, sliderInput("lambda", label="Returns decay:", min=0.9, max=0.999, value=0.98, step=0.001)),
+    column(width=3, sliderInput("lambdacov", label="Covariance decay:", min=0.9, max=0.999, value=0.98, step=0.001)),
+    # Scale returns
+    column(width=1, selectInput("scalit", label="Scale returns", choices=c("True", "False"), selected="TRUE")),
+    # Flip signs of the principal components
+    column(width=1, selectInput("flipc", label="Flip PC", choices=c("True", "False"), selected="TRUE"))
     # Input end points interval
     # column(width=4, selectInput("interval", label="End points Interval",
     #             choices=c("weeks", "months", "years"), selected="months")),
@@ -109,7 +116,9 @@ servfun <- function(input, output) {
     dimax <- input$dimax
     # alpha <- isolate(input$alpha)
     lambda <- input$lambda
-    lambdah <- input$lambdah
+    lambdacov <- input$lambdacov
+    scalit <- as.logical(input$scalit)
+    flipc <- as.logical(input$flipc)
     # end_stub <- input$end_stub
     # Model is recalculated when the recalcb variable is updated
     # input$recalcb
@@ -121,20 +130,24 @@ servfun <- function(input, output) {
     # Define startp
     # startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
 
-    retsp <- retspca[, 1:dimax]
+    # retsp <- retspca[, 1:dimax]
     
     # Rerun the model
-    varm <- HighFreq::run_var(retsp, lambda=lambda)
-    perfstat <- HighFreq::run_mean(retsp, lambda=lambda, weightv=0)
-    weightv <- perfstat/varm
-    weightv[varm == 0] <- 0
-    weightv[1, ] <- 1
-    weightv <- weightv/sqrt(rowSums(weightv^2))
+    pnls <- run_portf(retsp, dimax-1, lambda, lambdacov, scalit, flipc)
+    pnls <- pnls[, 1]
+    
+    
+    # varm <- HighFreq::run_var(retsp, lambda=lambda)
+    # perfstat <- HighFreq::run_mean(retsp, lambda=lambda, weightv=0)
+    # weightv <- perfstat/varm
+    # weightv[varm == 0] <- 0
+    # weightv[1, ] <- 1
+    # weightv <- weightv/sqrt(rowSums(weightv^2))
     # Average the weights over holding period
-    weightv <- HighFreq::run_mean(weightv, lambda=lambdah, weightv=0)
-    weightv <- rutils::lagit(weightv)
+    # weightv <- HighFreq::run_mean(weightv, lambda=lambdacov, weightv=0)
+    # weightv <- rutils::lagit(weightv)
     # Calculate the momentum profits and losses
-    pnls <- as.numeric(rowSums(weightv*retsp))
+    # pnls <- as.numeric(rowSums(weightv*retsp))
 
     # pnls <- back_test_r(excess, retv, startp, endp, alpha, dimax, end_stub)
     pnls <- indeksd*pnls/sd(pnls)

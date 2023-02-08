@@ -130,7 +130,7 @@ servfun <- function(input, output) {
     # weights <- exp(-lambda*1:look_back)
     # weights <- weights/sum(weights)
     # weights <- matrix(weights, nc=1)
-    # excess <- HighFreq::roll_conv(rets, weights=weights)
+    # excess <- HighFreq::roll_conv(rets, weightv=weights)
     # excess <- rutils::lagit(excess, lagg=look_lag)
     
     # Rerun the model
