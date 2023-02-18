@@ -99,7 +99,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     retsres <- rutils::diffit(residv)
     vars <- HighFreq::run_var(retsres, lambda=lambda)
 
-    resids <- HighFreq::run_mean(retsres, lambda=lambda, weightv=0)
+    resids <- HighFreq::run_mean(retsres, lambda=lambda)
     resids <- resids/sqrt(vars)
     resids[1] <- 0
     # resids <- xts::xts(resids, datev)

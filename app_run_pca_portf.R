@@ -125,13 +125,13 @@ servfun <- function(input, output) {
     
     # Rerun the model
     varm <- HighFreq::run_var(retsp, lambda=lambda)
-    perfstat <- HighFreq::run_mean(retsp, lambda=lambda, weightv=0)
+    perfstat <- HighFreq::run_mean(retsp, lambda=lambda)
     weightv <- perfstat/varm
     weightv[varm == 0] <- 0
     weightv[1, ] <- 1
     weightv <- weightv/sqrt(rowSums(weightv^2))
     # Average the weights over holding period
-    weightv <- HighFreq::run_mean(weightv, lambda=lambdah, weightv=0)
+    weightv <- HighFreq::run_mean(weightv, lambda=lambdah)
     weightv <- rutils::lagit(weightv)
     # Calculate the momentum profits and losses
     pnls <- as.numeric(rowSums(weightv*retsp))

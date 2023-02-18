@@ -80,13 +80,14 @@ uifun <- shiny::fluidPage(
   fluidRow(
     # Input number of eigenvalues for regularized matrix inverse
     # checkboxInput("scalit", label="Scale returns", value=TRUE),
-    column(width=2, sliderInput("dimax", label="Number of principal components:", min=2, max=nstocks, value=5, step=1)),
-    column(width=3, sliderInput("lambda", label="Returns decay:", min=0.9, max=0.999, value=0.98, step=0.001)),
-    column(width=3, sliderInput("lambdacov", label="Covariance decay:", min=0.9, max=0.999, value=0.98, step=0.001)),
+    column(width=2, sliderInput("dimax", label="Number of eigen vectors:", min=2, max=nstocks, value=6, step=1)),
+    column(width=3, sliderInput("lambda", label="Returns decay:", min=0.96, max=0.999, value=0.995, step=0.001)),
+    column(width=3, sliderInput("lambdacov", label="Covariance decay:", min=0.96, max=0.999, value=0.992, step=0.001)),
+    column(width=3, sliderInput("lambdaw", label="Weight decay:", min=0.3, max=0.9, value=0.7, step=0.1))
     # Scale returns
-    column(width=1, selectInput("scalit", label="Scale returns", choices=c("True", "False"), selected="TRUE")),
+    # column(width=2, selectInput("scalit", label="Scale returns", choices=c("True", "False"), selected="TRUE")),
     # Flip signs of the principal components
-    column(width=1, selectInput("flipc", label="Flip PC", choices=c("True", "False"), selected="TRUE"))
+    # column(width=2, selectInput("flipc", label="Flip PC", choices=c("True", "False"), selected="TRUE"))
     # Input end points interval
     # column(width=4, selectInput("interval", label="End points Interval",
     #             choices=c("weeks", "months", "years"), selected="months")),
@@ -117,8 +118,9 @@ servfun <- function(input, output) {
     # alpha <- isolate(input$alpha)
     lambda <- input$lambda
     lambdacov <- input$lambdacov
-    scalit <- as.logical(input$scalit)
-    flipc <- as.logical(input$flipc)
+    lambdaw <- input$lambdaw
+    # scalit <- as.logical(input$scalit)
+    # flipc <- as.logical(input$flipc)
     # end_stub <- input$end_stub
     # Model is recalculated when the recalcb variable is updated
     # input$recalcb
@@ -133,18 +135,18 @@ servfun <- function(input, output) {
     # retsp <- retspca[, 1:dimax]
     
     # Rerun the model
-    pnls <- run_portf(retsp, dimax-1, lambda, lambdacov, scalit, flipc)
+    pnls <- run_portf(retsp, dimax, lambda, lambdacov, lambdaw)
     pnls <- pnls[, 1]
     
     
     # varm <- HighFreq::run_var(retsp, lambda=lambda)
-    # perfstat <- HighFreq::run_mean(retsp, lambda=lambda, weightv=0)
+    # perfstat <- HighFreq::run_mean(retsp, lambda=lambda)
     # weightv <- perfstat/varm
     # weightv[varm == 0] <- 0
     # weightv[1, ] <- 1
     # weightv <- weightv/sqrt(rowSums(weightv^2))
     # Average the weights over holding period
-    # weightv <- HighFreq::run_mean(weightv, lambda=lambdacov, weightv=0)
+    # weightv <- HighFreq::run_mean(weightv, lambda=lambdacov)
     # weightv <- rutils::lagit(weightv)
     # Calculate the momentum profits and losses
     # pnls <- as.numeric(rowSums(weightv*retsp))

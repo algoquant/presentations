@@ -143,10 +143,10 @@ servfun <- function(input, output) {
     zscores <- na.locf(zscores)
     zscores[is.na(zscores)] <- 0
     # Scale the zscores by the volatility of the zscores
-    # mea_n <- HighFreq::run_mean(zscores, lambda=lambda)
+    # meanv <- HighFreq::run_mean(zscores, lambda=lambda)
     # volat <- HighFreq::run_var(zscores, lambda=lambda)
     # volat <- sqrt(HighFreq::lagit(tseries=volat))
-    # zscores <- ifelse(volat > 0, (zscores - mea_n)/volat, 0)
+    # zscores <- ifelse(volat > 0, (zscores - meanv)/volat, 0)
     zscores
     
   })  # end Load the data

@@ -105,7 +105,7 @@ servfun <- shiny::shinyServer(function(input, output) {
 
     resids <- residv/sqrt(vars)
     resids[1] <- 0
-    resids <- HighFreq::run_mean(resids, lambda=lambda, weightv=0)
+    resids <- HighFreq::run_mean(resids, lambda=lambda)
     # resids <- xts::xts(resids, datev)
     
     # Calculate indicator
