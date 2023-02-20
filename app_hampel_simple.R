@@ -96,9 +96,9 @@ servfun <- function(input, output) {
     cat("Calculating posit and pnls\n")
     threshold <- input$threshold
     # retv <- rutils::diffit(closep())
-    retsp <- returns()
+    retp <- returns()
     zscores <- zscores()
-    nrows <- NROW(retsp)
+    nrows <- NROW(retp)
     posit <- rep(NA_integer_, nrows)
     posit[1] <- 0
     posit[zscores < -threshold] <- 1
@@ -109,7 +109,7 @@ servfun <- function(input, output) {
     # Number of trades
     values$ntrades <- sum(abs(rutils::diffit(posit)))/2
     
-    pnls <- cbind(posit*retsp, retsp)
+    pnls <- cbind(posit*retp, retp)
     
     # Sharpe
     sharper <- sapply(pnls, function(x) mean(x)/sd(x[x<0]))

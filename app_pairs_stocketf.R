@@ -94,7 +94,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     nrows <- NROW(datav)
     datev <- zoo::index(datav)
     
-    retsp <- rutils::diffit(datav$ETF)
+    retp <- rutils::diffit(datav$ETF)
     residv <- datav$residv
     retsres <- rutils::diffit(residv)
     vars <- HighFreq::run_var(retsres, lambda=lambda)
@@ -122,7 +122,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     values$ntrades <- sum(abs(rutils::diffit(posit)) > 0)
     
     pnls <- retsres*posit
-    wealthv <- cbind(retsp, pnls)
+    wealthv <- cbind(retp, pnls)
     colnames(wealthv) <- c(symboletf, "Strategy")
     
     # Calculate Sharpe ratios

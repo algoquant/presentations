@@ -79,7 +79,7 @@ servfun <- function(input, output) {
     ohlc <- get(symbol, rutils::etfenv)[datev]
     ohlc <- log(ohlc)
     closep <- quantmod::Cl(ohlc)
-    retsp <- rutils::diffit(closep)
+    retp <- rutils::diffit(closep)
     
     cat("Recalculating GLM for ", symbol, "\n")
     # Get model parameters from input argument
@@ -87,7 +87,7 @@ servfun <- function(input, output) {
     half_back <- look_back %/% 2
     
     # Calculate the centered volatility
-    stdev <- roll::roll_sd(retsp, width=look_back, min_obs=1)
+    stdev <- roll::roll_sd(retp, width=look_back, min_obs=1)
     stdev <- rutils::lagit(stdev, lagg=(-half_back))
     
     # Calculate the z-scores of prices
@@ -155,7 +155,7 @@ servfun <- function(input, output) {
     forecastbot <- (fittedv > threshv)
     
     # Return fitted values
-    fittedv <- cbind(retsp, forecastops, forecastbot)
+    fittedv <- cbind(retp, forecastops, forecastbot)
     colnames(fittedv) <- c("returns", "tops", "bottoms")
     fittedv
     
@@ -174,7 +174,7 @@ servfun <- function(input, output) {
     # Extract fitted values
     forecastops <- as.logical(fittedv()$tops)
     forecastbot <- as.logical(fittedv()$bottoms)
-    retsp <- fittedv()$returns
+    retp <- fittedv()$returns
     
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
@@ -204,17 +204,17 @@ servfun <- function(input, output) {
     posit <- rutils::lagit(posit, lagg=1)
     
     # Calculate strategy pnls
-    pnls <- posit*retsp
+    pnls <- posit*retp
     
     # Calculate transaction costs
     costs <- 0.5*input$bid_offer*abs(indic)
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(retsp[retsp<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retp[retp<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(retsp, pnls)
+    pnls <- cbind(retp, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))

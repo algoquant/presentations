@@ -18,26 +18,26 @@ library(HighFreq)
 
 ## Load daily S&P500 stock returns
 # load(file="/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
-# retsp <- returns["2000/"]
+# retp <- returns["2000/"]
 
 ## Load ETF returns
-# retsp <- rutils::etfenv$returns[, c("VTI", "IEF", "DBC")]
-retsp <- rutils::etfenv$returns[, c("VTI", "IEF", "DBC", "XLP", "XLE", "XLF", "XLV", "XLI", "XLB", "XLK", "XLU", "USO")]
+# retp <- rutils::etfenv$returns[, c("VTI", "IEF", "DBC")]
+retp <- rutils::etfenv$returns[, c("VTI", "IEF", "DBC", "XLP", "XLE", "XLF", "XLV", "XLI", "XLB", "XLK", "XLU", "USO")]
 # symbolv <- colnames(rutils::etfenv$returns)
 # symbolv <- symbolv[!(symbolv %in% c("TLT", "IEF", "MTUM", "QUAL", "VLUE", "USMV", "VXX", "SVXY", "IVE", "VTV"))]
-# retsp <- rutils::etfenv$returns[, symbolv]
+# retp <- rutils::etfenv$returns[, symbolv]
 
 # Overwrite NA values in returns
-retsp[is.na(retsp)] <- 0
-retsp <- retsp[!(rowSums(retsp) == 0), ]
-datev <- zoo::index(retsp) # dates
-nrows <- NROW(retsp) # number of rows
-nzeros <- colSums(retsp == 0)
+retp[is.na(retp)] <- 0
+retp <- retp[!(rowSums(retp) == 0), ]
+datev <- zoo::index(retp) # dates
+nrows <- NROW(retp) # number of rows
+nzeros <- colSums(retp == 0)
 # Remove stocks with very little data
-retsp <- retsp[, nzeros < nrows/4]
-nstocks <- NCOL(retsp) # number of stocks
+retp <- retp[, nzeros < nrows/4]
+nstocks <- NCOL(retp) # number of stocks
 
-indeks <- rowMeans(retsp)
+indeks <- rowMeans(retp)
 indeks <- xts::xts(indeks, order.by=datev)
 colnames(indeks) <- "Index"
 indeksd <- sd(indeks)
@@ -48,15 +48,15 @@ cutoff <- nrows %/% 2
 insample <- 1:cutoff
 outsample <- (cutoff + 1):nrows
 # Calculate the PCA weights in-sample
-retsp <- retsp[, !(colSums(retsp[insample]) == 0)]
-pcad <- prcomp(retsp[insample], center=FALSE, scale=TRUE)
+retp <- retp[, !(colSums(retp[insample]) == 0)]
+pcad <- prcomp(retp[insample], center=FALSE, scale=TRUE)
 # Calculate the out-of-sample PCA time series
-retscaled <- lapply(retsp, function(x) x[outsample]/sd(x[insample]))
+retscaled <- lapply(retp, function(x) x[outsample]/sd(x[insample]))
 retscaled <- do.call(cbind, retscaled)
 retspca <- xts::xts(retscaled %*% pcad$rotation, order.by=datev[outsample])
 indeks <- indeks[outsample]
 
-# pcad <- prcomp(retsp, center=FALSE, scale=TRUE)
+# pcad <- prcomp(retp, center=FALSE, scale=TRUE)
 # retspca <- pcad$x
 
 
@@ -121,11 +121,11 @@ servfun <- function(input, output) {
     # Define startp
     # startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
 
-    retsp <- retspca[, 1:dimax]
+    retp <- retspca[, 1:dimax]
     
     # Rerun the model
-    varm <- HighFreq::run_var(retsp, lambda=lambda)
-    perfstat <- HighFreq::run_mean(retsp, lambda=lambda)
+    varm <- HighFreq::run_var(retp, lambda=lambda)
+    perfstat <- HighFreq::run_mean(retp, lambda=lambda)
     weightv <- perfstat/varm
     weightv[varm == 0] <- 0
     weightv[1, ] <- 1
@@ -134,7 +134,7 @@ servfun <- function(input, output) {
     weightv <- HighFreq::run_mean(weightv, lambda=lambdah)
     weightv <- rutils::lagit(weightv)
     # Calculate the momentum profits and losses
-    pnls <- as.numeric(rowSums(weightv*retsp))
+    pnls <- as.numeric(rowSums(weightv*retp))
 
     # pnls <- back_test_r(excess, retv, startp, endp, alpha, dimax, end_stub)
     pnls <- indeksd*pnls/sd(pnls)

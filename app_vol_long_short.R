@@ -33,13 +33,13 @@ load(file="/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
 # Subset (select) the stock returns after the start date of VTI
 retvti <- na.omit(rutils::etfenv$returns$VTI)
 colnames(retvti) <- "VTI"
-retsp <- retv[zoo::index(retvti)]
-datev <- zoo::index(retsp)
+retp <- retv[zoo::index(retvti)]
+datev <- zoo::index(retp)
 retvti <- retvti[datev]
-nrows <- NROW(retsp)
-nstocks <- NCOL(retsp)
+nrows <- NROW(retp)
+nstocks <- NCOL(retp)
 # Replace NA returns with zeros
-retsna <- retsp
+retsna <- retp
 retsna[is.na(retsna)] <- 0
 
 # Wealth of price-weighted (fixed shares) portfolio
@@ -83,13 +83,13 @@ servfun <- function(input, output) {
     alloc <- matrix(integer(nrows*nstocks), ncol=nstocks)
     alloc[volat <= medianv] <- 1
     alloc <- rutils::lagit(alloc)
-    retlow <- rowSums(alloc*retsp, na.rm=TRUE)
+    retlow <- rowSums(alloc*retp, na.rm=TRUE)
     wealth_lovol <- exp(cumsum(retlow))
     # Calculate wealth of high volatility stocks
     alloc <- matrix(integer(nrows*nstocks), ncol=nstocks)
     alloc[volat > medianv] <- 1
     alloc <- rutils::lagit(alloc)
-    rethigh <- rowSums(alloc*retsp, na.rm=TRUE)
+    rethigh <- rowSums(alloc*retp, na.rm=TRUE)
     wealth_hivol <- exp(cumsum(rethigh))
     
     # Calculate the volatilities of the low and high volatility stocks

@@ -17,9 +17,9 @@ library(rutils)
 library(parallel)  # Load package parallel
 
 # Extract the percentage returns for VTI and IEF.
-retsp <- rutils::etfenv$returns[, c("VTI", "IEF")]
-retsp <- zoo::coredata(na.omit(retsp))
-nrows <- NROW(retsp)
+retp <- rutils::etfenv$returns[, c("VTI", "IEF")]
+retp <- zoo::coredata(na.omit(retp))
+nrows <- NROW(retp)
 
 # Define the risk-adjusted wealth measure.
 
@@ -31,7 +31,7 @@ riskretfun <- function(wealthv) {
 }  # end riskretfun
 
 
-## Bootstrap the retsp returns.
+## Bootstrap the retp returns.
 nboot <- 1e3
 set.seed(1121)
 

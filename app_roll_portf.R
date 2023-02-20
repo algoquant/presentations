@@ -72,14 +72,14 @@ servfunc <- shiny::shinyServer(function(input, output) {
     # define startpoints
     startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
     # rerun the model
-    retsp <- drop(HighFreq::back_test(excess=excess, 
+    retp <- drop(HighFreq::back_test(excess=excess, 
                              returns=retv, 
                              startpoints=startpoints-1, 
                              endpoints=endpoints-1, 
                              alpha=alpha, 
                              dimax=dimax))
     strat_rets <- cbind(indeks,
-                        cumprod(1 + retsp))
+                        cumprod(1 + retp))
     colnames(strat_rets) <- c("equal_weight", "strat_rets")
     strat_rets
   })  # end reactive code

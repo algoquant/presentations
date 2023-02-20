@@ -50,29 +50,36 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("symbol", label="Symbol to Trade",
+    column(width=1, selectInput("symbol", label="Symbol to Trade",
                                 choices=rutils::etfenv$symbolv, selected="VTI")),
     # Input VIX symbol
     # column(width=2, selectInput("symbol_vix", label="Symbol VIX",
     #                             choices=c("VXX", "SVXY"), selected="VXX")),
     # Input add annotations Boolean
-    column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
+    column(width=1, selectInput("add_annotations", label="Buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the bid-offer spread
-    column(width=2, numericInput("bid_offer", label="Bid-offer:", value=0.0, step=0.0001))
-  ),  # end fluidRow
-
-  fluidRow(
+    column(width=1, numericInput("bid_offer", label="Bid-offer:", value=0.0, step=0.0001)),
     # Input look-back interval
     column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=41, step=1)),
     # Input threshold interval
     column(width=2, sliderInput("threshold", label="Threshold", min=0.001, max=0.1, value=0.03, step=0.001)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
-    column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
+    column(width=1, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
+    column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=1, step=1))
+  ),  # end fluidRow
+
+  # fluidRow(
+    # Input look-back interval
+    # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=41, step=1)),
+    # Input threshold interval
+    # column(width=2, sliderInput("threshold", label="Threshold", min=0.001, max=0.1, value=0.03, step=0.001)),
+    # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
+    # column(width=1, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),
     # column(width=2, sliderInput("slow_back", label="slow_back:", min=11, max=251, value=151, step=1)),
     # Input the trade lag
-    column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=1, step=1))
-  ),  # end fluidRow
+    # column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=1, step=1))
+  # ),  # end fluidRow
   
   # Create output plot panel
   mainPanel(dygraphs::dygraphOutput("dyplot", width="100%", height="600px"), height=10, width=12)
@@ -86,15 +93,15 @@ servfun <- function(input, output) {
   # Create an empty list of reactive values.
   values <- reactiveValues()
 
-  # Load the data
+  # Load the OHLC prices
   ohlc <- shiny::reactive({
     
     symbol <- input$symbol
-    cat("Loading data for ", symbol, "\n")
+    cat("Loading OHLC prices for ", symbol, "\n")
     
     log(get(symbol, rutils::etfenv)[dates])
 
-  })  # end Load the data
+  })  # end Load the OHLC prices
   
 
   # Recalculate the strategy
@@ -111,7 +118,7 @@ servfun <- function(input, output) {
     ohlc <- ohlc()
     closep <- quantmod::Cl(ohlc)
     retv <- rutils::diffit(closep)
-    # retv <- returns/sd(retv)
+    # retv <- retv/sd(retv)
     retsum <- cumsum(retv)
     nrows <- NROW(retv)
 
@@ -132,7 +139,8 @@ servfun <- function(input, output) {
     predv <- cbind(sqrt(variance), vxx, vti_close)
     respv <- svxy
     
-    rollreg <- HighFreq::roll_reg(respv=respv, predictor=predv, intercept=TRUE, look_back=look_back)
+    controlv <- HighFreq::param_reg(intercept=TRUE)
+    rollreg <- HighFreq::roll_reg(respv=respv, predv=predv, look_back=look_back, controlv=controlv)
     zscores <- rollreg[, NCOL(rollreg), drop=TRUE]
     # zscores[1:look_back] <- 0
     # zscores[is.infinite(zscores)] <- 0
@@ -144,7 +152,7 @@ servfun <- function(input, output) {
     indic[zscores > threshold] <- coeff
     indic[zscores < (-threshold)] <- (-coeff)
     indic <- zoo::na.locf(indic, na.rm=FALSE)
-    indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
+    indic_sum <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
     indic_sum[1:lagg] <- 0
     posit <- rep(NA_integer_, nrows)
     posit[1] <- 0
@@ -191,14 +199,14 @@ servfun <- function(input, output) {
     posit <- rutils::lagit(posit, lagg=1)
     
     # Calculate strategy pnls
-    pnls <- posit*returns
+    pnls <- posit*retv
     
     # Calculate transaction costs
     costs <- 0.5*input$bid_offer*abs(indic)
     pnls <- (pnls - costs)
 
-    # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
+    # Scale the pnls so they have same SD as retv
+    pnls <- pnls*sd(retv[retv<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
     pnls <- cbind(retv, pnls)

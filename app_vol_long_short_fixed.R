@@ -44,9 +44,9 @@ nrows <- NROW(pricev)
 nstocks <- NCOL(pricev)
 
 # Calculate log stock returns
-retsp <- rutils::diffit(log(pricev))
+retp <- rutils::diffit(log(pricev))
 # Wealth of price-weighted (fixed shares) portfolio
-pricen <- exp(cumsum(retsp))
+pricen <- exp(cumsum(retp))
 wealth_pw <- rowMeans(pricen)
 
 ## End setup code
@@ -81,7 +81,7 @@ servfun <- function(input, output) {
     cat("Recalculating strategy", "\n")
 
     # Calculate the volatilities
-    volat <- HighFreq::run_var(retsp, lambda=lambda)
+    volat <- HighFreq::run_var(retp, lambda=lambda)
     volat <- sqrt(volat)
     # medianv <- matrixStats::rowMedians(volat)
     
@@ -89,12 +89,12 @@ servfun <- function(input, output) {
     alloc <- matrix(integer(nrows*nstocks), ncol=nstocks)
     alloc[volat <= volevel] <- 1
     alloc <- rutils::lagit(alloc)
-    retlow <- rowSums(alloc*retsp)
+    retlow <- rowSums(alloc*retp)
     # Calculate wealth of high volatility stocks
     alloc <- matrix(integer(nrows*nstocks), ncol=nstocks)
     alloc[volat > volevel] <- 1
     alloc <- rutils::lagit(alloc)
-    rethigh <- rowSums(alloc*retsp)
+    rethigh <- rowSums(alloc*retp)
 
     # Calculate the volatilities of the low and high volatility stocks
     retvol <- cbind(retlow, rethigh)

@@ -72,13 +72,13 @@ servfun <- shiny::shinyServer(function(input, output) {
     closetf <- get(symboletf, rutils::etfenv$prices)
     closep <- log(na.omit(cbind(closep, closetf)))
     colnames(closep) <- c("Stock", "ETF")
-    retsp <- rutils::diffit(closep)
+    retp <- rutils::diffit(closep)
     # Calculate the regression coefficients of Stock ~ ETF
     covars <- HighFreq::run_covar(closep, lambda=input$lambdab)
     betav <- covars[, 1]/covars[, 3]
     betav <- rutils::lagit(betav, lagg=1)
     # Calculate the regression residuals
-    datav <- cbind(retsp, (retsp$Stock - betav*retsp$ETF))
+    datav <- cbind(retp, (retp$Stock - betav*retp$ETF))
     colnames(datav)[3] <- "residv"
     datav
   })  # end reactive code

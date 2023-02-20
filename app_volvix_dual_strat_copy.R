@@ -135,7 +135,8 @@ servfun <- function(input, output) {
     predv <- cbind(sqrt(variance), vxx, vti_close)
     respv <- svxy
     # zscores <- drop(HighFreq::roll_reg(respv=respv, predictor=predv, look_back=look_back))
-    rollreg <- HighFreq::roll_reg(respv=respv, predictor=predv, intercept=TRUE, look_back=look_back)
+    controlv <- HighFreq::param_reg(intercept=TRUE)
+    rollreg <- HighFreq::roll_reg(respv=respv, predv=predv, look_back=look_back, controlv=controlv)
     zscores <- rollreg[, NCOL(rollreg), drop=TRUE]
     # zscores <- HighFreq::run_reg(respv=respv, predictor=predv, lambda=lambda, method="scale")
     # zscores <- zscores[, 1, drop=TRUE]
@@ -148,7 +149,7 @@ servfun <- function(input, output) {
     indic[zscores > threshold] <- coeff
     indic[zscores < (-threshold)] <- (-coeff)
     indic <- zoo::na.locf(indic, na.rm=FALSE)
-    indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
+    indic_sum <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
     indic_sum[1:lagg] <- 0
     posit <- rep(NA_integer_, nrows)
     posit[1] <- 0
@@ -171,14 +172,14 @@ servfun <- function(input, output) {
     posit <- rutils::lagit(posit, lagg=1)
     
     # Calculate strategy pnls
-    pnls <- posit*returns
+    pnls <- posit*retv
     
     # Calculate transaction costs
     costs <- 0.5*input$bid_offer*abs(indic)
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[retv<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
     pnls <- cbind(retv, pnls)

@@ -17,9 +17,9 @@ library(rutils)
 library(parallel)  # Load package parallel
 
 # Extract the percentage returns for VTI and IEF.
-retsp <- rutils::etfenv$returns[, c("VTI", "IEF")]
-retsp <- zoo::coredata(na.omit(retsp))
-nrows <- NROW(retsp)
+retp <- rutils::etfenv$returns[, c("VTI", "IEF")]
+retp <- zoo::coredata(na.omit(retp))
+nrows <- NROW(retp)
 
 # Define the risk-adjusted wealth measure.
 
@@ -31,7 +31,7 @@ riskretfun <- function(wealthv) {
 }  # end riskretfun
 
 
-## Bootstrap the retsp returns.
+## Bootstrap the retp returns.
 nboot <- 1e3
 set.seed(1121)
 
@@ -41,17 +41,17 @@ ncores <- detectCores() - 1  # Number of cores
 # cluster <- makeCluster(ncores)  # Initialize compute cluster under Windows
 # Perform parallel bootstrap under Windows
 # clusterSetRNGStream(cluster, 1121)  # Reset random number generator in all cores
-# clusterExport(cluster, c("retsp", "nrows"))
+# clusterExport(cluster, c("retp", "nrows"))
 # bootd <- parLapply(cluster, 1:nboot,
 #                        function(x) {
-#                          retsp[sample.int(nrows, replace=TRUE), ]
+#                          retp[sample.int(nrows, replace=TRUE), ]
 #                        })  # end parLapply
 # Stop R processes over cluster under Windows.
 # stopCluster(cluster)
 
 ## Mac-OSX code
 bootd <- mclapply(1:nboot, function(x) {
-  retsp[sample.int(nrows, replace=TRUE), ]
+  retp[sample.int(nrows, replace=TRUE), ]
 }, mc.cores=ncores)  # end mclapply
 
 
@@ -97,8 +97,8 @@ servfun <- function(input, output) {
     weightv <- c(weightvti, 1-weightvti)
     
     # Calculate the wealth distribution from bootd
-    wealthv <- sapply(bootd, function(retsp) {
-      wealth <- apply(retsp[1:holdp, ], 2, function(x) prod(1+x))
+    wealthv <- sapply(bootd, function(retp) {
+      wealth <- apply(retp[1:holdp, ], 2, function(x) prod(1+x))
       drop(wealth %*% weightv)
     })  # end sapply
     wealthv

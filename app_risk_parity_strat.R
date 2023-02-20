@@ -16,8 +16,8 @@ library(dygraphs)
 # Calculate dollar and percentage returns for VTI and IEF
 pricev <- rutils::etfenv$prices[, c("VTI", "IEF")]
 pricev <- na.omit(pricev)
-retsd <- rutils::diffit(pricev)
-retsp <- retsd/rutils::lagit(pricev, lagg=1, pad_zeros=FALSE)
+retd <- rutils::diffit(pricev)
+retp <- retd/rutils::lagit(pricev, lagg=1, pad_zeros=FALSE)
 
 captiont <- "Log Wealth of Risk Parity vs Fixed Dollar Allocations for VTI and IEF"
 
@@ -71,7 +71,7 @@ servfun <- function(input, output) {
     # exponent <- input$exponent
 
     # Calculate rolling percentage volatility
-    volat <- HighFreq::roll_var(retsp, look_back=look_back)
+    volat <- HighFreq::roll_var(retp, look_back=look_back)
     iszero <- (rowSums(volat) == 0)
     volat[iszero, ] <- 1
     # volat^exponent
@@ -89,7 +89,7 @@ servfun <- function(input, output) {
 
     # Calculate wealth of proportional dollar allocation (fixed ratio of dollar amounts)
     weights <- c(weights, 1-weights)
-    rets_weighted <- retsp %*% weights
+    rets_weighted <- retp %*% weights
     wealth_pda <- cumprod(1 + rets_weighted)
     
     # Calculate standardized prices and portfolio allocations
@@ -101,7 +101,7 @@ servfun <- function(input, output) {
     # Lag the allocations
     alloc <- rutils::lagit(alloc)
     # Calculate wealth of risk parity
-    rets_weighted <- rowSums(retsp*alloc)
+    rets_weighted <- rowSums(retp*alloc)
     wealth_risk_parity <- cumprod(1 + rets_weighted)
     
     # Calculate log wealths

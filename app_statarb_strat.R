@@ -1,6 +1,6 @@
 ##############################
 # This is a shiny app for simulating a contrarian stat-arb portfolio strategy
-# based on the z-scores from regressions of retv, using function
+# based on the z-scores from regressions of returns, using function
 # HighFreq::run_reg(). 
 # The strategy invests in a portfolio with weights equal to the betas. 
 # The model flips the position only if the indicator persists over 
@@ -19,6 +19,13 @@ library(dygraphs)
 
 ## Model and data setup
 
+## Load daily S&P500 stock returns
+# load(file="/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
+# symbolstocks <- sort(colnames(returns))
+# symbolstock <- "AAPL"
+
+
+
 captiont <- paste("Stat-arb Portfolio Strategy app_statarb_strat.R")
 
 ## End setup code
@@ -31,7 +38,10 @@ uifun <- shiny::fluidPage(
   fluidRow(
     # Input stock symbols
     column(width=2, selectInput("symbol", label="Symbol for Reference",
-                                choices=rutils::etfenv$symbolv, selected="VTI")),
+                                choices=rutils::etfenv$symbolv, selected="XLF")),
+    # Input stock symbol
+    # column(width=1, selectInput("symbol", label="Stock", choices=symbolstocks, selected=symbolstock)),
+    # Input predictors
     column(width=2, selectInput("predictor1", label="Predictor1",
                                 choices=rutils::etfenv$symbolv, selected="SVXY")),
     column(width=2, selectInput("predictor2", label="Predictor2",
@@ -48,9 +58,9 @@ uifun <- shiny::fluidPage(
   fluidRow(
     # Input look-back interval
     # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=50, step=1)),
-    column(width=3, sliderInput("lambda", label="lambda:", min=0.01, max=0.9, value=0.83, step=0.01)),
+    column(width=3, sliderInput("lambda", label="lambda:", min=0.01, max=0.99, value=0.35, step=0.01)),
     # Input threshold interval
-    column(width=3, sliderInput("threshold", label="Threshold", min=0.3, max=2.0, value=0.45, step=0.05)),
+    column(width=3, sliderInput("threshold", label="Threshold", min=0.0001, max=0.01, value=0.002, step=0.0001)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),
@@ -80,10 +90,17 @@ servfun <- function(input, output) {
     predictor2 <- input$predictor2
     cat("Loading the data for ", symbol, "\n")
     
-    # Load the data
+    # Load the stock data
+    # retv <- get(symbol, returns)
+    
+    
+    # Load the ETF data
+    # symbolv <- predictor1
+    # symbolv <- c(predictor1, predictor2)
     symbolv <- c(symbol, predictor1, predictor2)
 
     na.omit(rutils::etfenv$returns[, symbolv])
+    # na.omit(cbind(retv, rutils::etfenv$returns[, symbolv]))
     # na.omit(mget(symbolv, rutils::etfenv$returns))
     # na.omit(cbind(
     #   get(symbol, rutils::etfenv$returns),
@@ -99,12 +116,12 @@ servfun <- function(input, output) {
     lambda <- input$lambda
     
     # Calculate the response and predictor
-    retv <- returns()
+    retv <- retv()
     respv <- retv[, 1]
     predv <- retv[, -1]
 
     # Calculate the trailing z-scores
-    regdata <- HighFreq::run_reg(respv=respv, predictor=predv, lambda=lambda, method="scale")
+    regdata <- HighFreq::run_reg(respv=respv, predv=predv, lambda=lambda, method="scale")
     # regdata <- regdata[, 1, drop=FALSE]
     # regdata[1:look_back] <- 0
     # regdata[is.infinite(regdata)] <- 0
@@ -125,7 +142,7 @@ servfun <- function(input, output) {
     lagg <- input$lagg
     lambda <- input$lambda
     
-    retv <- returns()
+    retv <- retv()
     regdata <- regdata()
     # retv <- returns/sd(retv)
     retsum <- xts::xts(cumsum(rowSums(retv)), zoo::index(retv))
@@ -145,16 +162,16 @@ servfun <- function(input, output) {
     threshold <- input$threshold
     
     # Scale the threshold by the volatility of the zscores
-    zscores <- regdata[, 1, drop=FALSE]
-    variance <- HighFreq::run_var(tseries=HighFreq::diffit(zscores), lambda=lambda)
-    variance <- HighFreq::lagit(tseries=variance)
-    threshold <- variance*threshold
+    zscores <- regdata[, 2, drop=FALSE] # Use alpha instead of residual
+    # variance <- HighFreq::run_var(tseries=HighFreq::diffit(zscores), lambda=lambda)
+    # variance <- HighFreq::lagit(tseries=variance)
+    # threshold <- variance*threshold
     
     # zscores <- zscores/sqrt(look_back)
     indic <- rep(NA_integer_, nrows)
     indic[1] <- 0
-    indic[zscores > threshold] <- coeff
-    indic[zscores < (-threshold)] <- (-coeff)
+    indic[zscores > threshold] <- 1
+    indic[zscores < (-threshold)] <- (-1)
     indic <- zoo::na.locf(indic, na.rm=FALSE)
     # indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
     # indic_sum[1:lagg] <- 0
@@ -162,11 +179,11 @@ servfun <- function(input, output) {
     # ncols <- (NCOL(zscores)-1)/2
     weights <- matrix(rep(NA_integer_, (ncols-2)*nrows), ncol=(ncols-2))
     weights[1, ] <- 1
-    betas <- regdata[, 3:ncols]
-    indic <- (zscores > threshold)
-    weights[indic, ] <- coeff*betas[indic, ]
-    indic <- (zscores < (-threshold))
-    weights[indic, ] <- -coeff*betas[indic, ]
+    betas <- regdata[, -(1:2), drop=FALSE]
+    # indic <- (zscores > threshold)
+    weights[indic>0, ] <- coeff*betas[indic>0, ]
+    # indic <- (zscores < (-threshold))
+    weights[indic<0, ] <- -coeff*betas[indic<0, ]
     weights <- cbind(rep(1, nrows), weights)
     weights <- zoo::na.locf(weights, na.rm=FALSE)
     # positions_svxy <- posit
@@ -174,7 +191,7 @@ servfun <- function(input, output) {
     # Calculate trailing z-scores of VXX
     # predv <- cbind(sqrt(variance), svxy, vti_close)
     # respv <- vxx
-    # zscores <- HighFreq::run_reg(respv=respv, predictor=predv, lambda=lambda, method="scale")
+    # zscores <- HighFreq::run_reg(respv=respv, predv=predv, lambda=lambda, method="scale")
     # zscores[1:look_back] <- 0
     # zscores[is.infinite(zscores)] <- 0
     # zscores[is.na(zscores)] <- 0

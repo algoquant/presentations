@@ -38,7 +38,7 @@ dates <- zoo::index(rets)
 riskf <- 0.03/260
 # excess <- (rets - riskf)
 # Calculate returns on equal weight portfolio
-retsd <- zoo::coredata(rets)
+retd <- zoo::coredata(rets)
 indeks <- xts::xts(rowMeans(rets), dates)
 
 # End setup code
@@ -99,7 +99,7 @@ servfun <- function(input, output) {
     # pnls <- roll_portf(excess=excess, returns=rets, look_back=look_back, endp=endp, alpha=alpha, dimax=dimax)
     
     # Warmup
-    warmup <- retsd[1:endp[1], ]
+    warmup <- retd[1:endp[1], ]
     pcav <- princomp(warmup)
     meanv <- pcav$center
     pcav <- list(values=pcav$sdev[1:nstocks]^2, vectors=pcav$loadings[, 1:nstocks])
@@ -115,7 +115,7 @@ servfun <- function(input, output) {
     pnls <- lapply(2:npts, function(ep) {
       # cat("weightv =", head(weightv), "\n")
       # Calculate the out-of-sample portfolio returns
-      outsample <- retsd[(endp[ep-1]+1):endp[ep], ]
+      outsample <- retd[(endp[ep-1]+1):endp[ep], ]
       pnls <- outsample %*% weightv
       # weightv <- drop(weightv/sqrt(sum(weightv^2)))
       # Update the PCA
