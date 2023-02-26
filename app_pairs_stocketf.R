@@ -1,11 +1,11 @@
 ##############################
 # This is a shiny app for backtesting a stock versus ETF pairs strategy
-# using a fixed beta.
+# using a fixed beta of prices.
 # 
 # Just press the "Run App" button on upper right of this panel.
 ##############################
 
-## Below is the setup code that runs once when the shiny app is started
+## Below is the setup code that runs only once when the shiny app is started
 
 ## Load packages
 library(HighFreq)
@@ -27,7 +27,7 @@ symboletf <- "XLK"
 
 ## Create elements of the user interface
 uifun <- shiny::fluidPage(
-  titlePanel("Stock vs ETF Pairs Strategy Using a Fixed Beta"),
+  titlePanel("Stock vs ETF Pairs Strategy Using a Fixed Beta of Prices"),
   
   # create single row with four slider inputs
   fluidRow(
