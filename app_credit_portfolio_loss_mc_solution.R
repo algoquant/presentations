@@ -15,12 +15,12 @@
 
 
 # Define portfolio parameters
-nassets <- 100; nsimu <- 1000
+nbonds <- 100; nsimu <- 1000
 set.seed(1121)
 # Simulate vector of systematic factors
 sysv <- rnorm(nsimu)
 # Simulate matrix of idiosyncratic factors
-idiosyncv <- matrix(rnorm(nsimu*nassets), ncol=nsimu)
+isync <- matrix(rnorm(nsimu*nbonds), ncol=nsimu)
 
 
 
@@ -74,14 +74,14 @@ servfun <- function(input, output) {
     defthresh <- qnorm(defprob)
     
     # Define correlation parameters
-    rho_sqrt <- sqrt(rho); rho_sqrtm <- sqrt(1-rho)
+    rhos <- sqrt(rho); rhosm <- sqrt(1-rho)
     
     # Calculate the portfolio losses
-    assets <- t(rho_sqrt*sysv + t(rho_sqrtm*idiosyncv))
-    losses <- lgd*colSums(assets < defthresh)/nassets
+    assetm <- t(rhos*sysv + t(rhosm*isync))
+    lossm <- lgd*colSums(assetm < defthresh)/nbonds
     
     # Return the losses
-    losses
+    lossm
 
   })  # end reactive code
   
@@ -93,11 +93,11 @@ servfun <- function(input, output) {
     # Extract model parameters from the argument "input"
     confl <- input$confl
     
-    losses <- losses()
+    lossm <- losses()
     # Calculate VaR from confidence level
-    varisk <- quantile(losses, confl)
+    varisk <- quantile(lossm, confl)
     # Calculate the CVaR as the mean losses in excess of VaR
-    cvar <- mean(losses[losses > varisk])
+    cvar <- mean(lossm[lossm > varisk])
     
     # Return the VaR and CVaR
     c(varisk, cvar)
@@ -117,8 +117,8 @@ servfun <- function(input, output) {
     # defthresh <- qnorm(defprob)
     
     # Extract the loss distribution
-    losses <- losses()
-    densv <- density(losses, from=0)
+    lossm <- losses()
+    densv <- density(lossm, from=0)
     xmax <- max(densv$x)
     ymax <- max(densv$y)
     

@@ -24,7 +24,7 @@ library(dygraphs)
 
 ## SPY ETF 1-minute bars - works really well !!!
 symbol <- "SPY"
-load(file="/Users/jerzy/Develop/data/spy_ticks.RData")
+load(file="/Users/jerzy/Develop/data/spy_ticks_20220617.RData")
 # closep <- spyticks$price
 # volumes <- spyticks$size
 
@@ -73,7 +73,7 @@ maxsizem <- median(spyticks$size)
 
 # rets <- rutils::diffit(closep)
 
-captiont <- paste("Contrarian Strategy for", symbol, "Using the Hampel Filter Over Prices")
+captiont <- paste("Hampel Strategy for", symbol, "Over Prices")
 
 ## End setup code
 
@@ -264,29 +264,29 @@ servfun <- function(input, output) {
     # Calculate number of consecutive indicators in same direction.
     # This is designed to avoid trading on microstructure noise.
     # indic <- ifelse(indic == indic_lag, indic, indic)
-    indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
-    indic_sum[1:lagg] <- 0
+    indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    indics[1:lagg] <- 0
     
-    # Calculate posit and pnls from indic_sum.
-    # posit <- rep(NA_integer_, nrows)
-    # posit[1] <- 0
+    # Calculate posv and pnls from indics.
+    # posv <- rep(NA_integer_, nrows)
+    # posv[1] <- 0
     # threshold <- 3*mad(zscores)
-    # Flip position only if the indic_sum is at least equal to lagg.
+    # Flip position only if the indics is at least equal to lagg.
     # Otherwise keep previous position.
-    posit <- rep(NA_integer_, nrows)
-    posit[1] <- 0
-    posit <- ifelse(indic_sum >= lagg, 1, posit)
-    posit <- ifelse(indic_sum <= (-lagg), -1, posit)
-    # posit <- ifelse(zscores > threshold, -1, posit)
-    # posit <- ifelse(zscores < (-threshold), 1, posit)
-    posit <- zoo::na.locf(posit, na.rm=FALSE)
-    posit <- rutils::lagit(posit, lagg=1)
+    posv <- rep(NA_integer_, nrows)
+    posv[1] <- 0
+    posv <- ifelse(indics >= lagg, 1, posv)
+    posv <- ifelse(indics <= (-lagg), -1, posv)
+    # posv <- ifelse(zscores > threshold, -1, posv)
+    # posv <- ifelse(zscores < (-threshold), 1, posv)
+    posv <- zoo::na.locf(posv, na.rm=FALSE)
+    posv <- rutils::lagit(posv, lagg=1)
     
     # Number of trades
-    ntrades <- sum(abs(rutils::diffit(posit)))# / nrows
+    ntrades <- sum(abs(rutils::diffit(posv)))# / nrows
     captiont <- paste("Number of trades =", ntrades)
     
-    pnls <- cumsum(posit*rets)
+    pnls <- cumsum(posv*rets)
     pnls <- cbind(pnls, cumsum(rets))
     colnames(pnls) <- c("Strategy", "Index")
     # pnls[rutils::calc_endpoints(pnls, interval="minutes")]

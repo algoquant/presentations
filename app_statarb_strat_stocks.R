@@ -156,7 +156,7 @@ servfun <- function(input, output) {
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
     # This is designed to prevent whipsaws and over-trading.
-    # posit <- ifelse(indic == indic_lag, indic, posit)
+    # posv <- ifelse(indic == indic_lag, indic, posv)
     
     # Flip position if the scaled returns exceed threshold
     threshold <- input$threshold
@@ -176,8 +176,8 @@ servfun <- function(input, output) {
     # Calculate strategy pnls
     pnls <- coeff*rowSums(rutils::lagit(indic)*retv[, 1])
     
-    # indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
-    # indic_sum[1:lagg] <- 0
+    # indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    # indics[1:lagg] <- 0
     # Define z-score weights
     # ncols <- (NCOL(zscores)-1)/2
     weights <- matrix(rep(NA_integer_, (ncols-2)*nrows), ncol=(ncols-2))
@@ -189,7 +189,7 @@ servfun <- function(input, output) {
     weights[indic<0, ] <- -coeff*betas[indic<0, ]
     weights <- cbind(rep(1, nrows), weights)
     weights <- zoo::na.locf(weights, na.rm=FALSE)
-    # positions_svxy <- posit
+    # positions_svxy <- posv
     
     # Calculate trailing z-scores of VXX
     # predv <- cbind(sqrt(variance), svxy, vti_close)
@@ -204,16 +204,16 @@ servfun <- function(input, output) {
     # indic[zscores > threshold] <- coeff
     # indic[zscores < (-threshold)] <- (-coeff)
     # indic <- zoo::na.locf(indic, na.rm=FALSE)
-    # indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
-    # indic_sum[1:lagg] <- 0
-    # posit <- rep(NA_integer_, nrows)
-    # posit[1] <- 0
-    # posit <- ifelse(indic_sum == lagg, 1, posit)
-    # posit <- ifelse(indic_sum == (-lagg), -1, posit)
-    # posit <- zoo::na.locf(posit, na.rm=FALSE)
-    # posit[1:lagg] <- 0
+    # indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    # indics[1:lagg] <- 0
+    # posv <- rep(NA_integer_, nrows)
+    # posv[1] <- 0
+    # posv <- ifelse(indics == lagg, 1, posv)
+    # posv <- ifelse(indics == (-lagg), -1, posv)
+    # posv <- zoo::na.locf(posv, na.rm=FALSE)
+    # posv[1:lagg] <- 0
     
-    # posit <- positions_svxy + posit
+    # posv <- positions_svxy + posv
     
     # Calculate indicator of flipping the positions
     indic <- rutils::diffit(indic)
@@ -221,8 +221,8 @@ servfun <- function(input, output) {
     values$ntrades <- sum(abs(indic)>0)
     
     # Add buy/sell indicators for annotations
-    indic_buy <- (indic > 0)
-    indic_sell <- (indic < 0)
+    longi <- (indic > 0)
+    shorti <- (indic < 0)
     
     # Lag the weights to trade in next period
     weights <- rutils::lagit(weights, lagg=1)
@@ -246,7 +246,7 @@ servfun <- function(input, output) {
 
     # Bind with indicators
     pnls <- cumsum(pnls)
-    pnls <- cbind(pnls, retsum[indic_buy], retsum[indic_sell])
+    pnls <- cbind(pnls, retsum[longi], retsum[shorti])
     colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
 
     pnls

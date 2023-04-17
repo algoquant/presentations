@@ -43,26 +43,26 @@ renderPlot({
 
   betas <- c(returns, variance, ske_w, hu_rst)
   n_col <- NCOL(SPY_predictor)
-  posit <- rep.int(NA, NROW(SPY_predictor))
-  posit[1] <- 0
+  posv <- rep.int(NA, NROW(SPY_predictor))
+  posv[1] <- 0
   # buy signal
   bu_y <- (SPY_predictor %*% betas[1:n_col] < -1)
-  posit[bu_y] <- 1.0
+  posv[bu_y] <- 1.0
   se_ll <- as.logical(rutils::lagit(bu_y, lag=interval))
   # sell signal
-  posit[se_ll] <- -1.0
-  posit[bu_y] <- 1.0
-  posit <- zoo::na.locf(posit)
+  posv[se_ll] <- -1.0
+  posv[bu_y] <- 1.0
+  posv <- zoo::na.locf(posv)
   # Lag the positions
-  posit <- c(0, posit[-NROW(posit)])
-  # pnls <- posit*returns
+  posv <- c(0, posv[-NROW(posv)])
+  # pnls <- posv*returns
   # betav <- (sum(pnls * returns) - sum(pnls) * sum(returns)) / (sum(pnls * pnls) - sum(pnls)^2 )
   # -(exp(sum(pnls) - betav * sum(returns)) - 1)
-  # -(exp(sum(posit*returns))-1) # / (sum(abs(rutils::diffit(posit))) / 2/ 1e5) / abs(sum(posit>0) - sum(posit<0))
-  # pnls <- xts(exp(cumsum((posit * returns_running)))-1, order.by=index(SPY_predictor))
-  chart_Series((exp(cumsum((posit * returns_running)))-1)[endpoints(SPY_predictor[, 1], on="days")], name="Backtest of static beta strategy for SPY")
+  # -(exp(sum(posv*returns))-1) # / (sum(abs(rutils::diffit(posv))) / 2/ 1e5) / abs(sum(posv>0) - sum(posv<0))
+  # pnls <- xts(exp(cumsum((posv * returns_running)))-1, order.by=index(SPY_predictor))
+  chart_Series((exp(cumsum((posv * returns_running)))-1)[endpoints(SPY_predictor[, 1], on="days")], name="Backtest of static beta strategy for SPY")
 
-  # plot(exp(cumsum((posit * returns_running)))-1, t="l", xlab="", ylab="")
+  # plot(exp(cumsum((posv * returns_running)))-1, t="l", xlab="", ylab="")
   # chobj <- chart_Series(HighFreq::SPY[rangev, 4])
   # plot(chobj)
   # abline(v=which(bu_y[rangev] < -1), col="red", lwd=1)

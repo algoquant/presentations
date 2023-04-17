@@ -1,7 +1,7 @@
 ##############################
 # This is a shiny app for simulating a contrarian strategy based 
 # on the z-scores from running regressions of daily retv, using 
-# function HighFreq::run_reg(). 
+# function run_reg_20220209() - old version of run_reg(). 
 # The model flips the position only if the indicator persists over 
 # several consecutive periods equal to lagg.
 # This is the new version which uses run_reg()
@@ -26,7 +26,7 @@ captiont <- paste("Running Z-score of SVXY Prices Versus VXX app_runreg_daily_st
 # symbol <- "VTI"
 # predictor_symbol <- "VXX"
 # response_symbol <- "SVXY"
-# symbolv <- c(respv_symbol, symbol, predictor_symbol)
+# symbolv <- c(response_symbol, symbol, predictor_symbol)
 # lambda <- 0.8
 # threshold1 <- 1
 # threshold2 <- (-1)
@@ -98,14 +98,14 @@ servfun <- function(input, output) {
     cat("Loading the data for ", symbol, "\n")
     
     # Load the data
-    symbolv <- c(respv_symbol, symbol, predictor_symbol)
+    symbolv <- c(response_symbol, symbol, predictor_symbol)
 
     na.omit(rutils::etfenv$returns[, symbolv])
     # na.omit(mget(symbolv, rutils::etfenv$returns))
     # na.omit(cbind(
     #   get(symbol, rutils::etfenv$returns),
-    #   get(predv_symbol, rutils::etfenv$returns),
-    #   get(respv_symbol, rutils::etfenv$returns)))
+    #   get(predictor_symbol, rutils::etfenv$returns),
+    #   get(response_symbol, rutils::etfenv$returns)))
     
   })  # end Load the data
   
@@ -116,7 +116,7 @@ servfun <- function(input, output) {
     lambda <- input$lambda
     
     # Calculate the response and predictor
-    retv <- returns()
+    retv <- retv()
     respv <- retv[, 1]
     predv <- retv[, -1]
 
@@ -125,24 +125,26 @@ servfun <- function(input, output) {
     variance <- HighFreq::run_var_ohlc(ohlc[zoo::index(retv)], lambda=lambda)
     variance[variance == 0] <- 1
     variance <- rutils::diffit(variance)
+    variance[1] <- variance[2]
     predv <- cbind(predv, variance)
     
     predictor_symbol <- input$predictor_symbol
-    ohlc <- log(get(predv_symbol, rutils::etfenv))
+    ohlc <- log(get(predictor_symbol, rutils::etfenv))
     variance <- HighFreq::run_var_ohlc(ohlc[zoo::index(retv)], lambda=lambda)
     variance[variance == 0] <- 1
     variance <- rutils::diffit(variance)
+    variance[1] <- variance[2]
     predv <- cbind(predv, variance)
     
     # response_symbol <- input$response_symbol
-    # ohlc <- log(get(respv_symbol, rutils::etfenv))
+    # ohlc <- log(get(response_symbol, rutils::etfenv))
     # variance <- HighFreq::run_var_ohlc(ohlc[zoo::index(retv)], lambda=lambda)
     # variance[variance == 0] <- 1
     # variance <- rutils::diffit(variance)
     # predv <- cbind(predv, variance)
     
     # Calculate the trailing z-scores
-    zscores <- HighFreq::run_reg(respv=respv, predictor=predv, lambda=lambda, method="standardize")
+    zscores <- run_reg_20220209(response=respv, predictor=predv, lambda=lambda, method="standardize")
     zscores <- zscores[, 1, drop=FALSE]
     # zscores[1:look_back] <- 0
     zscores[is.infinite(zscores)] <- 0
@@ -168,7 +170,7 @@ servfun <- function(input, output) {
     lagg <- input$lagg
     # lambda <- input$lambda
     
-    retv <- returns()[, 2]
+    retv <- retv()[, 2]
     zscores <- zscores()
     # retv <- returns/sd(retv)
     retsum <- cumsum(retv)
@@ -181,7 +183,7 @@ servfun <- function(input, output) {
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
     # This is designed to prevent whipsaws and over-trading.
-    # posit <- ifelse(indic == indic_lag, indic, posit)
+    # posv <- ifelse(indic == indic_lag, indic, posv)
     
     # Flip position if the scaled returns exceed threshold1
     threshold1 <- input$threshold1
@@ -199,36 +201,36 @@ servfun <- function(input, output) {
     indic[zscores > threshold1] <- coeff
     indic[zscores < (threshold1)] <- (-coeff)
     indic <- zoo::na.locf(indic, na.rm=FALSE)
-    indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
-    indic_sum[1:lagg] <- 0
-    posit <- rep(NA_integer_, nrows)
-    posit[1] <- 0
-    posit <- ifelse(indic_sum == lagg, 1, posit)
-    posit <- ifelse(indic_sum == (-lagg), -1, posit)
-    posit <- zoo::na.locf(posit, na.rm=FALSE)
-    posit[1:lagg] <- 0
+    indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    indics[1:lagg] <- 0
+    posv <- rep(NA_integer_, nrows)
+    posv[1] <- 0
+    posv <- ifelse(indics == lagg, 1, posv)
+    posv <- ifelse(indics == (-lagg), -1, posv)
+    posv <- zoo::na.locf(posv, na.rm=FALSE)
+    posv[1:lagg] <- 0
 
     # Calculate indicator of flipping the positions
-    indic <- rutils::diffit(posit)
+    indic <- rutils::diffit(posv)
     # Calculate number of trades
     globals$ntrades <- sum(abs(indic)>0)
     
     # Add buy/sell indicators for annotations
-    indic_buy <- (indic > 0)
-    indic_sell <- (indic < 0)
+    longi <- (indic > 0)
+    shorti <- (indic < 0)
     
     # Lag the positions to trade in next period
-    posit <- rutils::lagit(posit, lagg=1)
+    posv <- rutils::lagit(posv, lagg=1)
     
     # Calculate strategy pnls
-    pnls <- posit*returns
+    pnls <- posv*retv
     
     # Calculate transaction costs
     costs <- 0.5*input$bid_offer*abs(indic)
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[retv<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
     pnls <- cbind(retv, pnls)
@@ -239,7 +241,7 @@ servfun <- function(input, output) {
 
     # Bind with indicators
     pnls <- cumsum(pnls)
-    pnls <- cbind(pnls, retsum[indic_buy], retsum[indic_sell])
+    pnls <- cbind(pnls, retsum[longi], retsum[shorti])
     colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
 
     pnls
@@ -255,7 +257,7 @@ servfun <- function(input, output) {
 
     # Get the zscores
     # zscores <- zscores()
-    # retv <- returns()[, 1]
+    # retv <- retv()[, 1]
     
     # Get the pnls
     pnls <- pnls()

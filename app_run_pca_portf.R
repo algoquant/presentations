@@ -21,8 +21,8 @@ library(HighFreq)
 # retp <- returns["2000/"]
 
 ## Load ETF returns
-# retp <- rutils::etfenv$returns[, c("VTI", "IEF", "DBC")]
-retp <- rutils::etfenv$returns[, c("VTI", "IEF", "DBC", "XLP", "XLE", "XLF", "XLV", "XLI", "XLB", "XLK", "XLU", "USO")]
+retp <- rutils::etfenv$returns[, c("VTI", "IEF", "DBC")]
+# retp <- rutils::etfenv$returns[, c("VTI", "IEF", "DBC", "XLP", "XLE", "XLF", "XLV", "XLI", "XLB", "XLK", "XLU", "USO")]
 # symbolv <- colnames(rutils::etfenv$returns)
 # symbolv <- symbolv[!(symbolv %in% c("TLT", "IEF", "MTUM", "QUAL", "VLUE", "USMV", "VXX", "SVXY", "IVE", "VTV"))]
 # retp <- rutils::etfenv$returns[, symbolv]

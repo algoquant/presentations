@@ -1,6 +1,6 @@
 ---
 title: "Example R markdown Document"
-author: Jerzy Pawlowski
+author: "Jerzy Pawlowski"
 date: '`r format(Sys.time(), "%m/%d/%Y")`'
 output: html_document
 ---
@@ -81,7 +81,7 @@ $$
 
 Plots can also be embedded, for example:
 
-```{r pressure, echo=TRUE}
+```{r pressure, echo=FALSE}
 plot(pressure)
 ```
 

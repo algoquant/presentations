@@ -280,31 +280,31 @@ servfun <- function(input, output) {
     # Calculate number of consecutive indicators in same direction.
     # This is designed to avoid trading on microstructure noise.
     # indic <- ifelse(indic == indic_lag, indic, indic)
-    # indicsum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
+    # indicsum <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
     # indicsum[1:lagg] <- 0
     
-    # Calculate posit and pnls from indicsum.
-    # posit <- rep(NA_integer_, nrows)
-    # posit[1] <- 0
+    # Calculate posv and pnls from indicsum.
+    # posv <- rep(NA_integer_, nrows)
+    # posv[1] <- 0
     # threshold <- 3*mad(zscores)
     # Flip position only if the indicsum is at least equal to lagg.
     # Otherwise keep previous position.
-    posit <- rep(NA_integer_, nrows)
-    posit[1] <- 0
+    posv <- rep(NA_integer_, nrows)
+    posv[1] <- 0
     indicsum <- rowSums(zscores < (-threshold))
-    posit <- ifelse(indicsum == lagg, 1, posit)
+    posv <- ifelse(indicsum == lagg, 1, posv)
     indicsum <- rowSums(zscores > threshold)
-    posit <- ifelse(indicsum == lagg, -1, posit)
-    # posit <- ifelse(zscores > threshold, -1, posit)
-    # posit <- ifelse(zscores < (-threshold), 1, posit)
-    posit <- zoo::na.locf(posit, na.rm=FALSE)
-    posit <- rutils::lagit(posit, lagg=1)
+    posv <- ifelse(indicsum == lagg, -1, posv)
+    # posv <- ifelse(zscores > threshold, -1, posv)
+    # posv <- ifelse(zscores < (-threshold), 1, posv)
+    posv <- zoo::na.locf(posv, na.rm=FALSE)
+    posv <- rutils::lagit(posv, lagg=1)
     
     # Number of trades
-    ntrades <- sum(abs(rutils::diffit(posit)))# / nrows
+    ntrades <- sum(abs(rutils::diffit(posv)))# / nrows
     captiont <- paste("Number of trades =", ntrades)
     
-    pnls <- cumsum(posit*rets)
+    pnls <- cumsum(posv*rets)
     pnls <- cbind(pnls, cumsum(rets))
     colnames(pnls) <- c("Strategy", "Index")
     # pnls[rutils::calc_endpoints(pnls, interval="minutes")]

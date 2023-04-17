@@ -133,16 +133,16 @@ servfun <- function(input, output) {
     threshold <- input$threshold
 
     zscores <- zscores()
-    # Calculate posit and pnls from z-scores and rangev
-    posit <- rep(NA_integer_, NROW(zscores))
-    posit[1] <- 0
-    posit <- ifelse(zscores > threshold, -1, posit)
-    posit <- ifelse(zscores < (-threshold), 1, posit)
-    posit <- zoo::na.locf(posit, na.rm=FALSE)
-    posit <- rutils::lagit(posit, lagg=lagg)
+    # Calculate posv and pnls from z-scores and rangev
+    posv <- rep(NA_integer_, NROW(zscores))
+    posv[1] <- 0
+    posv <- ifelse(zscores > threshold, -1, posv)
+    posv <- ifelse(zscores < (-threshold), 1, posv)
+    posv <- zoo::na.locf(posv, na.rm=FALSE)
+    posv <- rutils::lagit(posv, lagg=lagg)
     
     retv <- rutils::diffit(pricev())
-    pnls <- cumsum(posit*retv)
+    pnls <- cumsum(posv*retv)
     pnls <- cbind(pnls, cumsum(retv))
     colnames(pnls) <- c("Strategy", symbol)
     

@@ -14,10 +14,11 @@
 
 # Load packages here (if needed)
 
-
 # Define cumulative loss distribution function
-cumlossdistr <- function(x, defthresh=(-2), rho=0.2, lgd=0.4)
-  pnorm((sqrt(1-rho)*qnorm(x/lgd) - defthresh)/sqrt(rho))
+cumlossdistr <- function(x, defthresh=(-2), rho=0.2, lgd=0.4) {
+  qnormv <- ifelse(x/lgd < 0.999, qnorm(x/lgd), 3.1)
+  pnorm((sqrt(1-rho)*qnormv - defthresh)/sqrt(rho))
+}  # end cumlossdistr
 
 # Define Vasicek loss distribution density function 
 lossdistr <- function(x, defthresh=(-2), rho=0.1, lgd=0.4) {
@@ -39,15 +40,15 @@ uifun <- shiny::fluidPage(
   # Create four slider inputs with parameters to lossdistr()
   fluidRow(
     column(width=2, sliderInput("rho", label="Correlation:",
-                                min=0.0, max=0.9, value=0.2, step=0.01)),
+                                min=0.01, max=0.9, value=0.2, step=0.01)),
     column(width=2, sliderInput("defprob", label="Default probability:",
-                                min=0.0, max=0.9, value=0.2, step=0.01)),
+                                min=0.01, max=0.9, value=0.2, step=0.01)),
     column(width=2, sliderInput("lgd", label="Loss severity:",
-                                min=0.0, max=0.9, value=0.4, step=0.01)),
+                                min=0.01, max=0.9, value=0.4, step=0.01)),
     column(width=2, sliderInput("attachp", label="Tranche attachment:",
-                                min=0.0, max=0.5, value=0.11, step=0.01)),
+                                min=0.01, max=0.5, value=0.11, step=0.01)),
     column(width=2, sliderInput("detachp", label="Tranche detachment:",
-                                min=0.0, max=0.5, value=0.14, step=0.01))
+                                min=0.01, max=0.5, value=0.14, step=0.01))
   ),  # end fluidRow
   
   # Render plot in panel

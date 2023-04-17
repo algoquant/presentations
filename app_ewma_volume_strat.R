@@ -35,8 +35,8 @@ uifun <- shiny::fluidPage(
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input EWMA decays
-    column(width=2, sliderInput("fast_lambda", label="fast_lambda:", min=0.1, max=0.3, value=0.2, step=0.001)),
-    column(width=2, sliderInput("slow_lambda", label="slow_lambda:", min=0.0, max=0.2, value=0.1, step=0.001)),
+    column(width=2, sliderInput("lambdaf", label="lambdaf:", min=0.1, max=0.3, value=0.2, step=0.001)),
+    column(width=2, sliderInput("lambdas", label="lambdas:", min=0.0, max=0.2, value=0.1, step=0.001)),
     # Input end points interval
     # column(width=2, selectInput("interval", label="End points Interval",
     #                             choices=c("days", "weeks", "months", "years"), selected="days")),
@@ -103,8 +103,8 @@ servfun <- function(input, output) {
     
     cat("Recalculating strategy for ", input$symbol, "\n")
     # Get model parameters from input argument
-    fast_lambda <- input$fast_lambda
-    slow_lambda <- input$slow_lambda
+    lambdaf <- input$lambdaf
+    lambdas <- input$lambdas
     look_back <- input$look_back
     lagg <- input$lagg
     # coeff <- input$coeff
@@ -116,50 +116,50 @@ servfun <- function(input, output) {
     nrows <- NROW(retv)
     
     # Calculate EWMA weights
-    fast_weights <- exp(-fast_lambda*1:look_back)
-    fast_weights <- fast_weights/sum(fast_weights)
-    slow_weights <- exp(-slow_lambda*1:look_back)
-    slow_weights <- slow_weights/sum(slow_weights)
+    weightf <- exp(-lambdaf*1:look_back)
+    weightf <- weightf/sum(weightf)
+    weightss <- exp(-lambdas*1:look_back)
+    weightss <- weightss/sum(weightss)
     
     # Calculate EWMA prices by filtering with the weights
-    fast_ewma <- .Call(stats:::C_cfilter, predv, filter=fast_weights, sides=1, circular=FALSE)
-    fast_ewma[1:(look_back-1)] <- fast_ewma[look_back]
-    slow_ewma <- .Call(stats:::C_cfilter, predv, filter=slow_weights, sides=1, circular=FALSE)
-    slow_ewma[1:(look_back-1)] <- slow_ewma[look_back]
+    ewmaf <- .Call(stats:::C_cfilter, predv, filter=weightf, sides=1, circular=FALSE)
+    ewmaf[1:(look_back-1)] <- ewmaf[look_back]
+    ewmas <- .Call(stats:::C_cfilter, predv, filter=weightss, sides=1, circular=FALSE)
+    ewmas[1:(look_back-1)] <- ewmas[look_back]
     
     # Determine dates when the EWMAs have crossed
-    indic <- sign(fast_ewma - slow_ewma)
+    indic <- sign(ewmaf - ewmas)
     
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
     # This is designed to prevent whipsaws and over-trading.
-    # posit <- ifelse(indic == indic_lag, indic, posit)
+    # posv <- ifelse(indic == indic_lag, indic, posv)
     
-    indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
-    indic_sum[1:lagg] <- 0
-    posit <- rep(NA_integer_, nrows)
-    posit[1] <- 0
-    posit <- ifelse(indic_sum == lagg, 1, posit)
-    posit <- ifelse(indic_sum == (-lagg), -1, posit)
-    posit <- zoo::na.locf(posit, na.rm=FALSE)
-    posit[1:lagg] <- 0
+    indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    indics[1:lagg] <- 0
+    posv <- rep(NA_integer_, nrows)
+    posv[1] <- 0
+    posv <- ifelse(indics == lagg, 1, posv)
+    posv <- ifelse(indics == (-lagg), -1, posv)
+    posv <- zoo::na.locf(posv, na.rm=FALSE)
+    posv[1:lagg] <- 0
     
     # Calculate indicator of flipping the positions
-    indic <- rutils::diffit(posit)
+    indic <- rutils::diffit(posv)
     # Calculate number of trades
     values$ntrades <- sum(abs(indic)>0)
 
     # Add buy/sell indicators for annotations
-    indic_buy <- (indic > 0)
-    indic_sell <- (indic < 0)
+    longi <- (indic > 0)
+    shorti <- (indic < 0)
     
     # Lag the positions to trade in next period
-    posit <- rutils::lagit(posit, lagg=1)
+    posv <- rutils::lagit(posv, lagg=1)
     # Calculate strategy pnls
     coeff <- (-1)
-    # pnls <- 0.5*((coeff*posit*retv) + retv)
-    pnls <- coeff*posit*returns
+    # pnls <- 0.5*((coeff*posv*retv) + retv)
+    pnls <- coeff*posv*returns
     
     # Calculate transaction costs
     costs <- 0.5*input$bid_offer*abs(indic)
@@ -178,7 +178,7 @@ servfun <- function(input, output) {
     # Bind with indicators
     pnls <- cumsum(pnls)
     retsum <- cumsum(retv)
-    pnls <- cbind(pnls, retsum[indic_buy], retsum[indic_sell])
+    pnls <- cbind(pnls, retsum[longi], retsum[shorti])
     colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
 
     pnls

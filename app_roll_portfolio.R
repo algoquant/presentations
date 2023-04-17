@@ -190,6 +190,7 @@ servfun <- function(input, output) {
     rets <- datav()$rets
     nperiods <- globals$nperiods
     
+    # retv_scaling not found
     # Scale the returns and call them excess
     switch(retv_scaling,
            "none" = {
@@ -326,32 +327,32 @@ servfun <- function(input, output) {
     if (method == "ranksimple") {
       cat("Rank simple model \n")
       # Run rank model
-      # posit <- matrix(rep(NA_integer_, nrows*ncols), ncol=ncols)
-      # posit[1, ] <- 0
+      # posv <- matrix(rep(NA_integer_, nrows*ncols), ncol=ncols)
+      # posv[1, ] <- 0
       # Reset the positions according to the sort data in excess
-      posit <- matrixStats::rowRanks(excess)
+      posv <- matrixStats::rowRanks(excess)
       # Reset the positions only at the endp and hold the position between the endp
-      # posit[endp, ] <- excess[endp, ]
-      # posit <- zoo::na.locf(posit, na.rm=FALSE)
-      posit <- (posit - rowMeans(posit))
-      posit <- HighFreq::lagit(posit, lagg=1)
-      pnls <- trend*posit*rets
+      # posv[endp, ] <- excess[endp, ]
+      # posv <- zoo::na.locf(posv, na.rm=FALSE)
+      posv <- (posv - rowMeans(posv))
+      posv <- HighFreq::lagit(posv, lagg=1)
+      pnls <- trend*posv*rets
       pnls <- rowMeans(pnls)
     } else if (method == "rank_hold") {
       cat("Rank hold model \n")
       # Run rank and hold model
-      # posit <- matrix(rep(NA_integer_, nrows*ncols), ncol=ncols)
-      # posit[1, ] <- 0
+      # posv <- matrix(rep(NA_integer_, nrows*ncols), ncol=ncols)
+      # posv[1, ] <- 0
       # Reset the positions according to the sort data in excess
-      posit <- matrixStats::rowRanks(excess)
+      posv <- matrixStats::rowRanks(excess)
       # Reset the positions only at the endp and hold the position between the endp
-      # posit[endp, ] <- excess[endp, ]
-      # posit <- zoo::na.locf(posit, na.rm=FALSE)
-      posit <- (posit - rowMeans(posit))
-      # Average the past posit to reflect holding the position for some time
-      posit <- HighFreq::roll_sum(posit, look_back=look_back)
-      posit <- HighFreq::lagit(posit, lagg=1)
-      pnls <- trend*posit*rets
+      # posv[endp, ] <- excess[endp, ]
+      # posv <- zoo::na.locf(posv, na.rm=FALSE)
+      posv <- (posv - rowMeans(posv))
+      # Average the past posv to reflect holding the position for some time
+      posv <- HighFreq::roll_sum(posv, look_back=look_back)
+      posv <- HighFreq::lagit(posv, lagg=1)
+      pnls <- trend*posv*rets
       pnls <- rowMeans(pnls)
     } else if (input$interval == "days") {
       cat("Daily HighFreq::back_test() \n")

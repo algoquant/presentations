@@ -232,10 +232,10 @@ plot(formulav, data=datav[interval],
 abline(regmod, col="blue", lwd=2)
 # contrarian skew trading strategy
 # lag the skew to get positions
-posit <- -sign(lag_skew)
-posit[1, ] <- 0
+posv <- -sign(lag_skew)
+posv[1, ] <- 0
 # cumulative PnL
-cumu_pnl <- cumsum(posit*retv[, 1])
+cumu_pnl <- cumsum(posv*retv[, 1])
 # calculate frequency of trades
 50*sum(abs(sign(skew)-sign(lag_skew)))/nrow(skew)
 # calculate transaction costs

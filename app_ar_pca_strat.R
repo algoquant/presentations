@@ -165,20 +165,20 @@ servfun <- function(input, output) {
     # forecasts <- drop(predv[outsample, 1:3] %*% coeff_fit[1:3])
     forecasts <- drop(predv[outsample, 1:dimax] %*% coeff_fit)
     # Lag the positions to trade in next period
-    posit <- sign(rutils::lagit(forecasts))
+    posv <- sign(rutils::lagit(forecasts))
     
     # Calculate indicator of flipping the positions
-    indic <- rutils::diffit(posit)
+    indic <- rutils::diffit(posv)
     # Calculate number of trades
     values$ntrades <- sum(abs(indic) > 0)
     
     # Add buy/sell indicators for annotations
-    indic_buy <- (indic > 0)
-    indic_sell <- (indic < 0)
+    longi <- (indic > 0)
+    shorti <- (indic < 0)
     
     # Calculate strategy pnls
     retv <- retv[outsample]
-    pnls <- posit*returns
+    pnls <- posv*returns
     
     # Calculate transaction costs
     costs <- 0.5*input$bid_offer*abs(indic)
@@ -198,7 +198,7 @@ servfun <- function(input, output) {
     pnls <- cumsum(pnls)
     if (values$ntrades > 1) {
       retsum <- cumsum(retv)
-      pnls <- cbind(pnls, retsum[indic_buy], retsum[indic_sell])
+      pnls <- cbind(pnls, retsum[longi], retsum[shorti])
       colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
     }  # end if
     

@@ -116,29 +116,29 @@ server <- shiny::shinyServer(function(input, output) {
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
     # This is designed to prevent whipsaws and over-trading.
-    # posit <- ifelse(indic == indic_lag, indic, posit)
-    indic_sum <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
-    indic_sum[1:lagg] <- 0
-    posit <- rep(NA_integer_, NROW(pricev))
-    posit[1] <- 0
-    posit <- ifelse(indic_sum == lagg, 1, posit)
-    posit <- ifelse(indic_sum == (-lagg), -1, posit)
-    posit <- zoo::na.locf(posit, na.rm=FALSE)
-    # posit[1:lagg] <- 0
+    # posv <- ifelse(indic == indic_lag, indic, posv)
+    indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    indics[1:lagg] <- 0
+    posv <- rep(NA_integer_, NROW(pricev))
+    posv[1] <- 0
+    posv <- ifelse(indics == lagg, 1, posv)
+    posv <- ifelse(indics == (-lagg), -1, posv)
+    posv <- zoo::na.locf(posv, na.rm=FALSE)
+    # posv[1:lagg] <- 0
     # Calculate indicator of flipping the positions
-    indic <- rutils::diffit(posit)
+    indic <- rutils::diffit(posv)
     # Calculate number of trades
     globals$ntrades <- sum(abs(indic)>0)
     
     # Add buy/sell indicators for annotations
-    indic_buy <- (indic > 0)
-    indic_sell <- (indic < 0)
+    longi <- (indic > 0)
+    shorti <- (indic < 0)
     # Lag the positions to trade in next period
-    posit <- rutils::lagit(posit, lagg=1)
+    posv <- rutils::lagit(posv, lagg=1)
     # Calculate log strategy returns
     # retv <- rutils::diffit(pricev)
     # Calculate strategy profits and losses
-    pnls <- coeff*returns*posit
+    pnls <- coeff*returns*posv
     # Scale the pnls so they have same SD as returns
     pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
     

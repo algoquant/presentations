@@ -135,19 +135,19 @@ servfun <- function(input, output) {
     # mad_zscores[1:look_back, ] <- 0
     mad_zscores <- 1
     
-    # Calculate posit and pnls from z-scores and rangev
-    posit <- rep(NA_integer_, nrows)
-    posit[1] <- 0
+    # Calculate posv and pnls from z-scores and rangev
+    posv <- rep(NA_integer_, nrows)
+    posv[1] <- 0
     # threshold <- 3*mad(zscores)
-    # posit <- ifelse(zscores > threshold, -1, posit)
-    # posit <- ifelse(zscores < (-threshold), 1, posit)
-    posit <- ifelse(zscores > threshold*mad_zscores, -1, posit)
-    posit <- ifelse(zscores < (-threshold*mad_zscores), 1, posit)
-    posit <- zoo::na.locf(posit, na.rm=FALSE)
-    posit <- rutils::lagit(posit, lagg=lagg)
+    # posv <- ifelse(zscores > threshold, -1, posv)
+    # posv <- ifelse(zscores < (-threshold), 1, posv)
+    posv <- ifelse(zscores > threshold*mad_zscores, -1, posv)
+    posv <- ifelse(zscores < (-threshold*mad_zscores), 1, posv)
+    posv <- zoo::na.locf(posv, na.rm=FALSE)
+    posv <- rutils::lagit(posv, lagg=lagg)
     
     # retv <- rutils::diffit(closep)
-    pnls <- cumsum(posit*retv)
+    pnls <- cumsum(posv*retv)
     pnls <- cbind(pnls, cumsum(retv))
     colnames(pnls) <- c("Strategy", "Index")
     # pnls[rutils::calc_endpoints(pnls, interval="minutes")]

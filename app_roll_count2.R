@@ -152,23 +152,23 @@ servfun <- shiny::shinyServer(function(input, output) {
 
     ## Simulate strategy
     
-    posit <- rep(NA_integer_, NROW(ohlc))
-    posit[1] <- 0
-    # posit[close_high] <- (-1)
-    # posit[close_low] <- 1
-    # posit[open_low & close_high] <- (-1)
-    # posit[open_high & close_low] <- 1
-    posit[close_high_count > close_high_thresh] <- (-1)
-    posit[close_low_count > close_low_thresh] <- 1
-    posit <- zoo::na.locf(posit)
-    posit <- rutils::lagit(posit, lagg=lagg)
+    posv <- rep(NA_integer_, NROW(ohlc))
+    posv[1] <- 0
+    # posv[close_high] <- (-1)
+    # posv[close_low] <- 1
+    # posv[open_low & close_high] <- (-1)
+    # posv[open_high & close_low] <- 1
+    posv[close_high_count > close_high_thresh] <- (-1)
+    posv[close_low_count > close_low_thresh] <- 1
+    posv <- zoo::na.locf(posv)
+    posv <- rutils::lagit(posv, lagg=lagg)
     # Calculate number of trades
-    # turn_over <- abs(rutils::diffit(posit)) / 2
-    # sum(turn_over)/NROW(posit)
-    # NROW(posit)/sum(turn_over)
+    # turn_over <- abs(rutils::diffit(posv)) / 2
+    # sum(turn_over)/NROW(posv)
+    # NROW(posv)/sum(turn_over)
     
     # Calculate pnls
-    pnls <- cumsum(posit*retv)
+    pnls <- cumsum(posv*retv)
     pnls <- cbind(closep, pnls)#[xts::endpoints(pnls, on="days")]
     # pnls <- xts::to.daily(cbind(closep, pnls))
     # colnames(pnls) <- c("asset", "strategy")
@@ -205,17 +205,17 @@ servfun <- shiny::shinyServer(function(input, output) {
     # score[is.infinite(score), ] <- 0
     # score <- rutils::lagit(score, lagg=1)
     # calculate positions, either: -1, 0, or 1
-    # posit <- -sign(score)
+    # posv <- -sign(score)
     # calculate positions, either: -1, 0, or 1
-    # posit <- rep(NA_integer_, NROW(ohlc))
-    # posit[1] <- 0
-    # posit[(score < (-enter)) & close_low] <- 1
-    # posit[(score > enter) & close_high] <- (-1)
-    # posit[abs(score) < exit] <- 0
-    # posit <- na.locf(posit)
-    # posit <- rutils::lagit(posit, lagg=1)
-    # # posit <- posit + rutils::lagit(posit, lagg=1) + rutils::lagit(posit, lagg=2)
-    # posit <- rutils::lagit(posit, lagg=lagg)
+    # posv <- rep(NA_integer_, NROW(ohlc))
+    # posv[1] <- 0
+    # posv[(score < (-enter)) & close_low] <- 1
+    # posv[(score > enter) & close_high] <- (-1)
+    # posv[abs(score) < exit] <- 0
+    # posv <- na.locf(posv)
+    # posv <- rutils::lagit(posv, lagg=1)
+    # # posv <- posv + rutils::lagit(posv, lagg=1) + rutils::lagit(posv, lagg=2)
+    # posv <- rutils::lagit(posv, lagg=lagg)
 
     # trending signal
     # score <- HighFreq::roll_zscores(respv=closep, 
@@ -224,14 +224,14 @@ servfun <- shiny::shinyServer(function(input, output) {
     # score[1:look_long, ] <- 0
     # score <- rutils::lagit(score)
     # calculate positions, either: -1, 0, or 1
-    # posit <- posit + sign(score)
-    # posit <- rep(NA_integer_, NROW(ohlc))
-    # posit[1] <- 0
-    # posit[score<beta_vol] <- (-1)
-    # posit[score>beta_vol] <- 1
-    # posit <- na.locf(posit)
+    # posv <- posv + sign(score)
+    # posv <- rep(NA_integer_, NROW(ohlc))
+    # posv[1] <- 0
+    # posv[score<beta_vol] <- (-1)
+    # posv[score>beta_vol] <- 1
+    # posv <- na.locf(posv)
     # pnls <- signal_revert
-    # pnls <- cumsum(posit*retv)
+    # pnls <- cumsum(posv*retv)
     # colnames(pnls) <- "strategy"
     
     # sim_revert(signal_revert, returns_trade, close_high, close_high_count, close_low, close_low_count, enter, exit, lagg)
@@ -240,8 +240,8 @@ servfun <- shiny::shinyServer(function(input, output) {
     
     # sim_trend(signal_trend, retv, close_high, close_low, enter, exit, lagg)
     # sim_revert_trending(signal_revert, signal_trend, retv, enter, exit, close_high_trade, close_low_trade, lagg)
-    # posit <- xts(posit, index(ohlc))
-    # colnames(posit) <- "strategy"
+    # posv <- xts(posv, index(ohlc))
+    # colnames(posv) <- "strategy"
     # pnls
   })  # end reactive code
   

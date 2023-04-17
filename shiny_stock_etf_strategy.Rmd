@@ -48,18 +48,18 @@ run_strategy <- function(stock_symbol, returns, predictor, look_back, threshold,
   zscores[which(!is.finite(zscores))] <- 0
   # Intitialize positions
   nrows <- NROW(stock_returns)
-  posit <- rep.int(NA_integer_, nrows)
-  posit[1] <- 0
+  posv <- rep.int(NA_integer_, nrows)
+  posv[1] <- 0
   # Handle signals
   bu_y <- (zscores < (-threshold))
-  posit[bu_y] <- 1
+  posv[bu_y] <- 1
   se_ll <- (zscores > threshold)
-  posit[se_ll] <- (-1)
-  posit <- zoo::na.locf(posit)
+  posv[se_ll] <- (-1)
+  posv <- zoo::na.locf(posv)
   # Lag the positions by two periods
-  posit <- rutils::lagit(posit, lagg=lagg)
+  posv <- rutils::lagit(posv, lagg=lagg)
   # Return strategy PnL
-  cumsum(posit*stock_returns)
+  cumsum(posv*stock_returns)
 }  # end run_strategy
 
 

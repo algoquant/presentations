@@ -73,7 +73,19 @@ servfun <- shiny::shinyServer(function(input, output) {
     pricetf <- get(symboletf, rutils::etfenv$prices)
     pricev <- na.omit(cbind(pricev, pricetf))
     colnames(pricev) <- c(symbolstock, symboletf)
-    pricev
+    log(pricev)
+    
+  })  # end reactive code
+  
+  
+  # Prepare the returns
+  retv <- shiny::reactive({
+    
+    cat("Preparing the returns", "\n")
+    retv <- rutils::diffit(pricev())
+    retv[1, ] <- retv[2, ]
+    colnames(retv) <- c(input$symbolstock, input$symboletf)
+    retv
     
   })  # end reactive code
   
@@ -84,7 +96,8 @@ servfun <- shiny::shinyServer(function(input, output) {
     cat("Recalculating the betas", "\n")
     # Get model parameters from input argument
     lambda <- input$lambda
-    pricev <- pricev()
+    retv <- retv()
+    # pricev <- pricev()
     
     # Get model parameters from input argument
     # betas <- input$beta
@@ -93,27 +106,35 @@ servfun <- shiny::shinyServer(function(input, output) {
     # betas <- HighFreq::run_reg(pricev[, 1, drop=FALSE], pricev[, 2, drop=FALSE], lambda=lambda)
     # betas <- betas[, 3, drop=FALSE]
     # betas <- HighFreq::lagit(betas[, 3, drop=FALSE])
-    covars <- HighFreq::run_covar(pricev, lambda=lambda)
-    covars[, 1]/covars[, 3]
+    covars <- HighFreq::run_covar(retv, lambda=lambda)
+    covars[1, ] <- 1
+    # covars[, 1]/covars[, 3]
+    rutils::lagit(covars[, 1]/covars[, 3])
+    # rep(1, NROW(retv))
 
   })  # end reactive code
   
   
   # Recalculate the residuals
-  resids <- shiny::reactive({
+  pricec <- shiny::reactive({
     
     cat("Recalculating the residuals", "\n")
     # Get model parameters from input argument
     # lambda <- input$lambda
+    # retv <- retv()
     pricev <- pricev()
     betas <- betas()
     
     # Recalculate the residuals
-    resids <- (pricev[, 1, drop=FALSE] - betas*pricev[, 2, drop=FALSE])
-    colnames(resids) <- "resids"
-    # resids - min(resids) + 1
-    resids
+    # pricec <- (pricev[, 1, drop=FALSE] - betas*pricev[, 2, drop=FALSE])
+    # colnames(pricec) <- "pricec"
+    # # pricec - min(pricec) + 1
+    # pricec
     
+    # regs <- HighFreq::run_reg(respv=retv[, 1], predv=retv[, 2], lambda=lambda)
+    regs <- HighFreq::run_reg(respv=pricev[, 1], predv=pricev[, 2], lambda=lambda)
+    regs[, NCOL(regs), drop=FALSE]
+
   })  # end reactive code
   
   
@@ -125,7 +146,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     lambda <- input$lambda
 
     # Recalculate the trailing means of residuals
-    HighFreq::run_mean(resids(), lambda=lambda)
+    HighFreq::run_mean(pricec(), lambda=lambda)
 
   })  # end reactive code
   
@@ -138,7 +159,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     lambda <- input$lambda
 
     # Recalculate the trailing variance of residuals
-    HighFreq::run_var(resids(), lambda=lambda)
+    HighFreq::run_var(pricec(), lambda=lambda)
 
   })  # end reactive code
   
@@ -157,7 +178,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     pricev <- pricev()
     nrows <- NROW(pricev)
     betas <- betas()
-    resids <- resids()
+    pricec <- pricec()
     meanv <- meanv()
     vars <- vars()
     # datev <- zoo::index(pricev)
@@ -165,64 +186,78 @@ servfun <- shiny::shinyServer(function(input, output) {
     # threshd <- threshold*HighFreq::lagit(sqrt(vars))
     threshd <- threshold*sqrt(vars)
     
-    posv <- 0
-    npos <- 0
-    betap <- betas[1]
-    pnls <- numeric(nrows)
-    # resids <- as.numeric(resids)
-    for (it in (lagg+1):nrows) {
-      # Recalculate the unwind price - the portfolio price with old beta
-      residn <- (pricev[it, 1] - betap*pricev[it, 2])
-      if ((posv > (-1)) && (resids[it-lagg] > (meanv[it-lagg] + threshd[it-lagg]))) {
-        # if (posv == 1) {
-        #   # Unwind long
-        #   pnls[it] <- residn
-        # }  # end if
-        # Enter short
-        pnls[it] <- pnls[it] + resids[it]
-        betap <- betas[it]
-        posv <- (-1)
-        npos <- npos+1
-      } else if ((posv < 1) && (resids[it-lagg] < (meanv[it-lagg] - threshd[it-lagg]))) {
-        # if (posv == (-1)) {
-        #   # Unwind short
-        #   pnls[it] <- (-residn)
-        # }  # end if
-        # Enter long
-        pnls[it] <- pnls[it] - resids[it]
-        betap <- betas[it]
-        posv <- 1
-        npos <- npos+1
-      } else if ((posv < 0) && (resids[it-lagg] < meanv[it-lagg])) {
-        # Unwind short
-        pnls[it] <- (-residn)
-        posv <- 0
-        npos <- npos+1
-      } else if ((posv > 0) && (resids[it-lagg] > meanv[it-lagg])) {
-        # Unwind long
-        pnls[it] <- residn
-        posv <- 0
-        npos <- npos+1
-      }  # end if
-    }  # end for
+    pricec <- pricec - meanv
+    pricen <- as.numeric(pricec)
     
+    # Code with loop in R
+    # posv <- integer(nrows) # Trade positions
+    # posv[1] <- 0 # Initial position
+    # npos <- 0
+    # betap <- betas[1]
+    # pnls <- numeric(nrows)
+    # for (it in (lagg+1):nrows) {
+    #   # Calculate the pnls
+    #   # pnls[it] <- posv[it-1]*(retv[it, 1] - betap*retv[it, 2])
+    #   if (pricen[it-lagg] > threshd[it-lagg]) {
+    #     # Enter short
+    #     # betap <- betas[it]
+    #     posv[it] <- coeff
+    #     npos <- npos+1
+    #   } else if (pricen[it-lagg] < -threshd[it-lagg]) {
+    #     # Enter long
+    #     # betap <- betas[it]
+    #     posv[it] <- (-coeff)
+    #     npos <- npos+1
+      # } else if ((posv[it-1] < 0) && (pricen[it-lagg] < 0)) {
+      #   # Unwind short
+      #   posv[it] <- 0
+      #   npos <- npos+1
+      # } else if ((posv[it-1] > 0) && (pricen[it-lagg] > 0)) {
+      #   # Unwind long
+      #   posv[it] <- 0
+      #   npos <- npos+1
+    #   } else {
+    #     # Do nothing
+    #     posv[it] <- posv[it-1]
+    #   }  # end if
+    # }  # end for
+    
+    # Equivalent code without loop in R
+    # Calculate positions
+    posv <- rep(NA_integer_, nrows)
+    posv[1] <- 0
+    posv <- ifelse(pricen > threshd, coeff, posv)
+    posv <- ifelse(pricen < -threshd, -coeff, posv)
+    posv <- zoo::na.locf(posv)
+    # Lag the positions to trade in next period
+    npos <-sum(abs(rutils::diffit(posv)) > 0)
+    posv <- rutils::lagit(posv, lagg=lagg)
+
+    # Calculate the pnls
+    # retr <- rutils::diffit(pricen) # wrong!
+    retv <- retv()
+    retr <- (retv[, 1] - betas*retv[, 2]) # correct
+    
+    pnls <- coeff*posv*retr
+    # pnls <- retr
+
     # Rescale strategy cashflows to volatility of ETF
-    retetf <- log(pricev[, 1])
-    pnls <- pnls*sd(retetf)/sd(pnls)
+    pricetf <- pricev[, 1]
+    pnls <- pnls*sd(rutils::diffit(pricetf))/sd(pnls)
     pnls <- cumsum(pnls)
     # plot(pnls, t="l")
     
     values$ntrades <- npos
     
-    wealthv <- cbind(retetf, pnls)
+    wealthv <- cbind(pricetf, pnls)
     colnames(wealthv) <- c(symbolstock, "Strategy")
 
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(rutils::diffit(wealthv), function(x) mean(x)/sd(x[x<0]))
     values$sharper <- round(sharper, 3)
     
-    wealthv <- cbind(retetf, log(pnls - min(pnls) + 1))
-    colnames(wealthv) <- c(symbolstock, "Strategy")
+    # wealthv <- cbind(pricetf, log(pnls - min(pnls) + 1))
+    # colnames(wealthv) <- c(symbolstock, "Strategy")
     
     wealthv
     

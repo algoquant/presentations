@@ -180,19 +180,19 @@ servfun <- function(input, output) {
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
     # This is designed to prevent whipsaws and over-trading.
-    # posit <- ifelse(indic == indic_lag, indic, posit)
+    # posv <- ifelse(indic == indic_lag, indic, posv)
     
-    # posit <- rep(NA_integer_, nrows)
-    # posit[1] <- 0
-    # posit[forecastops] <- (-1)
-    # posit[forecastbot] <- 1
-    # posit <- zoo::na.locf(posit)
+    # posv <- rep(NA_integer_, nrows)
+    # posv[1] <- 0
+    # posv[forecastops] <- (-1)
+    # posv[forecastbot] <- 1
+    # posv <- zoo::na.locf(posv)
     foo <- HighFreq::roll_sum(matrix(forecastops), lagg)
     bar <- HighFreq::roll_sum(matrix(forecastbot), lagg)
-    posit <- (bar-foo)
+    posv <- (bar-foo)
     
     # Calculate indicator of flipping the positions
-    indic <- rutils::diffit(posit)
+    indic <- rutils::diffit(posv)
     # Calculate number of trades
     values$ntrades <- sum(abs(indic)>0)
     
@@ -201,10 +201,10 @@ servfun <- function(input, output) {
     indics <- (indic < 0)
     
     # Lag the positions to trade in next period
-    posit <- rutils::lagit(posit, lagg=1)
+    posv <- rutils::lagit(posv, lagg=1)
     
     # Calculate strategy pnls
-    pnls <- posit*retp
+    pnls <- posv*retp
     
     # Calculate transaction costs
     costs <- 0.5*input$bid_offer*abs(indic)

@@ -172,9 +172,9 @@ servfun <- function(input, output) {
   # x11(width=6, height=5)
   # hist(zscores, xlim=c(quantile(zscores, 0.05), quantile(zscores, 0.95)), breaks=50, main=paste("Z-scores for", "look_back =", look_back))
   
-  # Calculate posit if new look_back or threshold values
+  # Calculate posv if new look_back or threshold values
   datav <- eventReactive(list(input$look_back, input$threshold), {
-    cat("Calculating posit\n")
+    cat("Calculating posv\n")
     # Determine if the zscores have exceeded the threshold
     indic <- rep(0, nrows)
     # indic[1] <- 0
@@ -183,29 +183,29 @@ servfun <- function(input, output) {
     # Calculate number of consecutive indicators in same direction.
     # This is designed to avoid trading on microstructure noise.
     # indic <- ifelse(indic == indic_lag, indic, indic)
-    indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=input$lagg)
-    indic_sum[1:input$lagg] <- 0
+    indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=input$lagg)
+    indics[1:input$lagg] <- 0
     
-    # Calculate posit and pnls from indic_sum.
-    # posit <- rep(NA_integer_, nrows)
-    # posit[1] <- 0
+    # Calculate posv and pnls from indics.
+    # posv <- rep(NA_integer_, nrows)
+    # posv[1] <- 0
     # threshold <- 3*mad(zscores)
-    # Flip position only if the indic_sum is at least equal to lagg.
+    # Flip position only if the indics is at least equal to lagg.
     # Otherwise keep previous position.
-    posit <- rep(NA_integer_, nrows)
-    posit[1] <- 0
-    posit <- ifelse(indic_sum >= input$lagg, 1, posit)
-    posit <- ifelse(indic_sum <= (-input$lagg), -1, posit)
-    # posit <- ifelse(zscores > threshold, -1, posit)
-    # posit <- ifelse(zscores < (-threshold), 1, posit)
-    posit <- zoo::na.locf(posit, na.rm=FALSE)
-    posit <- rutils::lagit(posit, lagg=1)
+    posv <- rep(NA_integer_, nrows)
+    posv[1] <- 0
+    posv <- ifelse(indics >= input$lagg, 1, posv)
+    posv <- ifelse(indics <= (-input$lagg), -1, posv)
+    # posv <- ifelse(zscores > threshold, -1, posv)
+    # posv <- ifelse(zscores < (-threshold), 1, posv)
+    posv <- zoo::na.locf(posv, na.rm=FALSE)
+    posv <- rutils::lagit(posv, lagg=1)
     
     # Number of trades
-    ntrades <- sum(abs(rutils::diffit(posit)))# / nrows
+    ntrades <- sum(abs(rutils::diffit(posv)))# / nrows
     captiont <- paste("Number of trades =", ntrades)
     
-    pnls <- cumsum(posit*retv)
+    pnls <- cumsum(posv*retv)
     pnls <- cbind(pnls, cumsum(retv))
     colnames(pnls) <- c("Strategy", "Index")
     # pnls[rutils::calc_endpoints(pnls, interval="minutes")]

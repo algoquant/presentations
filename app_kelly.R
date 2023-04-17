@@ -138,16 +138,16 @@ servfun <- function(input, output) {
     wealth <- xts(wealth, index(retv))
     
         
-    # Calculate posit and pnls from z-scores and rangev
-    # posit <- rep(NA_integer_, NROW(pricev))
-    # posit[1] <- 0
+    # Calculate posv and pnls from z-scores and rangev
+    # posv <- rep(NA_integer_, NROW(pricev))
+    # posv[1] <- 0
     # threshold <- 3*mad(zscores)
-    # posit <- ifelse(zscores > threshold, -1, posit)
-    # posit <- ifelse(zscores < (-threshold), 1, posit)
-    # posit <- ifelse(zscores > threshold*mad_zscores, -1, posit)
-    # posit <- ifelse(zscores < (-threshold*mad_zscores), 1, posit)
-    # posit <- na.locf(posit)
-    # positions_lag <- rutils::lagit(posit, lagg=lagg)
+    # posv <- ifelse(zscores > threshold, -1, posv)
+    # posv <- ifelse(zscores < (-threshold), 1, posv)
+    # posv <- ifelse(zscores > threshold*mad_zscores, -1, posv)
+    # posv <- ifelse(zscores < (-threshold*mad_zscores), 1, posv)
+    # posv <- na.locf(posv)
+    # positions_lag <- rutils::lagit(posv, lagg=lagg)
     # pnls <- cumsum(positions_lag*retv)
     pnls <- cbind(wealth, cumsum(retv))
     colnames(pnls) <- c("Strategy", "Index")

@@ -89,7 +89,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     startd <- as.numeric(closep[1, ])
     # Run model and calculate strategy profits and losses
     pnls <- backtest_ewma(ohlc, look_back=look_back, lagg=lagg, threshold=threshold, coeff=coeff)
-    # posit <- pnls[ ,"positions"]
+    # posv <- pnls[ ,"positions"]
     vwapv <- pnls[ ,"vwap"]
     pnls <- startd + cumsum(pnls[ ,"pnls"])
     pnls <- cbind(closep, pnls, vwapv)

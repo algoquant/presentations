@@ -174,37 +174,37 @@ servfun <- function(input, output) {
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
     # This is designed to prevent whipsaws and over-trading.
-    # posit <- ifelse(indic == indic_lag, indic, posit)
+    # posv <- ifelse(indic == indic_lag, indic, posv)
     
     indic <- rep(NA_integer_, nrows)
     indic[1] <- 0
     indic[bottoms] <- coeff
     indic[tops] <- (-coeff)
     indic <- zoo::na.locf(indic, na.rm=FALSE)
-    indic_sum <- roll::roll_sum(indic, width=lagg, min_obs=1)
-    indic_sum[1:lagg] <- 0
+    indics <- roll::roll_sum(indic, width=lagg, min_obs=1)
+    indics[1:lagg] <- 0
     
-    posit <- rep(NA_integer_, nrows)
-    posit[1] <- 0
-    posit <- ifelse(indic_sum == lagg, 1, posit)
-    posit <- ifelse(indic_sum == (-lagg), -1, posit)
-    posit <- zoo::na.locf(posit, na.rm=FALSE)
-    posit[1:lagg] <- 0
+    posv <- rep(NA_integer_, nrows)
+    posv[1] <- 0
+    posv <- ifelse(indics == lagg, 1, posv)
+    posv <- ifelse(indics == (-lagg), -1, posv)
+    posv <- zoo::na.locf(posv, na.rm=FALSE)
+    posv[1:lagg] <- 0
 
     # Calculate indicator of flipping the positions
-    indic <- rutils::diffit(posit)
+    indic <- rutils::diffit(posv)
     # Calculate number of trades
     values$ntrades <- sum(abs(indic) > 0)
     
     # Add buy/sell indicators for annotations
-    indic_buy <- (indic > 0)
-    indic_sell <- (indic < 0)
+    longi <- (indic > 0)
+    shorti <- (indic < 0)
     
     # Lag the positions to trade in next period
-    posit <- rutils::lagit(posit, lagg=1)
+    posv <- rutils::lagit(posv, lagg=1)
     
     # Calculate strategy pnls
-    pnls <- posit*returns
+    pnls <- posv*returns
     
     # Calculate transaction costs
     costs <- 0.5*input$bid_offer*abs(indic)
@@ -225,7 +225,7 @@ servfun <- function(input, output) {
     pnls <- cumsum(pnls)
     if (values$ntrades > 1) {
       retsum <- cumsum(retv)
-      pnls <- cbind(pnls, retsum[indic_buy], retsum[indic_sell])
+      pnls <- cbind(pnls, retsum[longi], retsum[shorti])
       colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
     }  # end if
 

@@ -182,17 +182,17 @@ servfun <- shiny::shinyServer(function(input, output) {
     # score[is.infinite(score), ] <- 0
     # score <- rutils::lagit(score, lagg=1)
     # calculate positions, either: -1, 0, or 1
-    # posit <- -sign(score)
+    # posv <- -sign(score)
     # calculate positions, either: -1, 0, or 1
-    # posit <- rep(NA_integer_, NROW(ohlc))
-    # posit[1] <- 0
-    # posit[(score < (-enter)) & close_low] <- 1
-    # posit[(score > enter) & close_high] <- (-1)
-    # posit[abs(score) < exit] <- 0
-    # posit <- na.locf(posit)
-    # posit <- rutils::lagit(posit, lagg=1)
-    # # posit <- posit + rutils::lagit(posit, lagg=1) + rutils::lagit(posit, lagg=2)
-    # posit <- rutils::lagit(posit, lagg=trade_lag)
+    # posv <- rep(NA_integer_, NROW(ohlc))
+    # posv[1] <- 0
+    # posv[(score < (-enter)) & close_low] <- 1
+    # posv[(score > enter) & close_high] <- (-1)
+    # posv[abs(score) < exit] <- 0
+    # posv <- na.locf(posv)
+    # posv <- rutils::lagit(posv, lagg=1)
+    # # posv <- posv + rutils::lagit(posv, lagg=1) + rutils::lagit(posv, lagg=2)
+    # posv <- rutils::lagit(posv, lagg=trade_lag)
 
     # trending signal
     # score <- HighFreq::roll_zscores(respv=closep, 
@@ -201,14 +201,14 @@ servfun <- shiny::shinyServer(function(input, output) {
     # score[1:look_long, ] <- 0
     # score <- rutils::lagit(score)
     # calculate positions, either: -1, 0, or 1
-    # posit <- posit + sign(score)
-    # posit <- rep(NA_integer_, NROW(ohlc))
-    # posit[1] <- 0
-    # posit[score<beta_vol] <- (-1)
-    # posit[score>beta_vol] <- 1
-    # posit <- na.locf(posit)
+    # posv <- posv + sign(score)
+    # posv <- rep(NA_integer_, NROW(ohlc))
+    # posv[1] <- 0
+    # posv[score<beta_vol] <- (-1)
+    # posv[score>beta_vol] <- 1
+    # posv <- na.locf(posv)
     # pnls <- signal_revert
-    # pnls <- cumsum(posit*retv)
+    # pnls <- cumsum(posv*retv)
     # colnames(pnls) <- "strategy"
     
     pnls <- sim_revert(signal_revert, retv, close_high, close_high_count, close_low, close_low_count, enter, exit, trade_lag)
@@ -217,7 +217,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     
     # sim_trend(signal_trend, retv, close_high, close_low, enter, exit, trade_lag)
     # sim_revert_trending(signal_revert, signal_trend, retv, enter, exit, close_high_trade, close_low_trade, trade_lag)
-    # posit <- xts(posit, index(ohlc))
+    # posv <- xts(posv, index(ohlc))
     pnls <- cbind(closep, pnls)[xts::endpoints(pnls, on="days")]
     # pnls <- xts::to.daily(cbind(closep, pnls))
     # colnames(pnls) <- c("asset", "strategy")

@@ -83,13 +83,13 @@ servfun <- function(input, output) {
     score[1,] <- 0
     score <- rutils::lagit(score)
     # calculate positions, either: -1, 0, or 1
-    posit <- rep(NA_integer_, NROW(ohlc))
-    posit[1] <- 0
-    posit[score<(-1.5)] <- 1
-    posit[score>1.5] <- (-1)
-    posit <- na.locf(posit)
-    # posit <- xts(posit, order.by=index(ohlc))
-    pnls <- cumsum(posit*retv)
+    posv <- rep(NA_integer_, NROW(ohlc))
+    posv[1] <- 0
+    posv[score<(-1.5)] <- 1
+    posv[score>1.5] <- (-1)
+    posv <- na.locf(posv)
+    # posv <- xts(posv, order.by=index(ohlc))
+    pnls <- cumsum(posv*retv)
     colnames(pnls) <- "strategy"
     pnls
   })  # end reactive code

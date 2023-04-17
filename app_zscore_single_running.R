@@ -93,16 +93,16 @@ servfun <- shiny::shinyServer(function(input, output) {
     # rangev <- (log(quantmod::Hi(ohlc)) - log(quantmod::Lo(ohlc)))
     # Run model from /Users/jerzy/Develop/R/backtest_functions.R
     pnls <- backtest_zscores(ohlc, lambda=lambda, lagg=lagg, threshold=threshold, coeff=coeff)
-    posit <- pnls[ ,"positions"]
+    posv <- pnls[ ,"positions"]
     
     # Calculate number of trades
-    values$ntrades <- sum(abs(rutils::diffit(posit)) > 0)
+    values$ntrades <- sum(abs(rutils::diffit(posv)) > 0)
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(cbind(rutils::diffit(closep), pnls[ ,"pnls"]), function(x) mean(x)/sd(x[x<0]))
     values$sharper <- round(sharper, 3)
     
     pnls <- cumsum(pnls[ ,"pnls"])
-    # pnls <- cbind(closep, pnls, closep + coeff*posit*rangev)
+    # pnls <- cbind(closep, pnls, closep + coeff*posv*rangev)
     # colnames(pnls) <- c(symbol, "Strategy", "Positions")
     pnls <- cbind(closep, pnls)
     colnames(pnls) <- c(symbol, "Strategy")

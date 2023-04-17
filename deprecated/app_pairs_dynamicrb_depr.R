@@ -1,6 +1,6 @@
 ##############################
 # This is a shiny app for backtesting a stock versus ETF pairs strategy
-# using a dynamic beta of prices and Bollinger trading logic.
+# using a dynamic beta.  Uses separate lambda decay for beta.
 # 
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -37,9 +37,11 @@ uifun <- shiny::fluidPage(
     # Input ETF symbol
     column(width=1, selectInput("symboletf", label="ETF", choices=symbolsetf, selected=symboletf)),
     # Input beta parameter
-    column(width=3, sliderInput("beta", label="beta:", min=0.1, max=3.0, value=1.0, step=0.1)),
+    # column(width=3, sliderInput("beta", label="beta:", min=0.1, max=3.0, value=1.0, step=0.1)),
     # Input lambda decay parameter
     column(width=3, sliderInput("lambda", label="lambda:", min=0.01, max=0.99, value=0.3, step=0.01)),
+    # Input beta decay parameter
+    column(width=3, sliderInput("lambdab", label="lambda beta:", min=0.1, max=0.99, value=0.3, step=0.01)),
     # Input threshold parameter
     column(width=2, sliderInput("threshold", label="Threshold", min=0.1, max=3.0, value=1.0, step=0.1)),
     # Input lag trade parameter
@@ -60,40 +62,46 @@ servfun <- shiny::shinyServer(function(input, output) {
   # Create an empty list of reactive values.
   values <- reactiveValues()
   
+  # Prepare the prices
   # Recalculate the prices
   pricev <- shiny::reactive({
     
-    cat("Preparing the prices", "\n")
-    # Get model parameters from input argument
-    symbolstock <- input$symbolstock
-    symboletf <- input$symboletf
-
-    # Prepare the prices
-    pricev <- get(symbolstock, prices)
-    pricetf <- get(symboletf, rutils::etfenv$prices)
-    pricev <- na.omit(cbind(pricev, pricetf))
-    colnames(pricev) <- c(symbolstock, symboletf)
+    cat("Recalculating prices", "\n")
+    # Prepare prices
+    pricev <- get(input$symbolstock, prices)
+    pricetf <- get(input$symboletf, rutils::etfenv$prices)
+    pricev <- log(na.omit(cbind(pricev, pricetf)))
+    colnames(pricev) <- c("Stock", "ETF")
     pricev
     
   })  # end reactive code
   
   
+  # Recalculate the returns
+  retv <- shiny::reactive({
+    
+    cat("Recalculating the returns", "\n")
+    rutils::diffit(pricev())
+    
+  })  # end reactive code
+  
+  
   # Recalculate the betas
-  betas <- shiny::reactive({
+  betav <- shiny::reactive({
     
     cat("Recalculating the betas", "\n")
     # Get model parameters from input argument
-    lambda <- input$lambda
+    lambdab <- input$lambdab
     pricev <- pricev()
     
     # Get model parameters from input argument
-    # betas <- input$beta
+    # betav <- input$beta
     
-    # betas <- drop(cov(pricev[, 1], pricev[, 2])/var(pricev[, 2]))
-    # betas <- HighFreq::run_reg(pricev[, 1, drop=FALSE], pricev[, 2, drop=FALSE], lambda=lambda)
-    # betas <- betas[, 3, drop=FALSE]
-    # betas <- HighFreq::lagit(betas[, 3, drop=FALSE])
-    covars <- HighFreq::run_covar(pricev, lambda=lambda)
+    # betav <- drop(cov(pricev[, 1], pricev[, 2])/var(pricev[, 2]))
+    # betav <- HighFreq::run_reg(pricev[, 1, drop=FALSE], pricev[, 2, drop=FALSE], lambda=lambda)
+    # betav <- betav[, 3, drop=FALSE]
+    # betav <- HighFreq::lagit(betav[, 3, drop=FALSE])
+    covars <- HighFreq::run_covar(pricev, lambda=lambdab)
     covars[, 1]/covars[, 3]
 
   })  # end reactive code
@@ -106,10 +114,10 @@ servfun <- shiny::shinyServer(function(input, output) {
     # Get model parameters from input argument
     # lambda <- input$lambda
     pricev <- pricev()
-    betas <- betas()
+    betav <- betav()
     
     # Recalculate the residuals
-    resids <- (pricev[, 1, drop=FALSE] - betas*pricev[, 2, drop=FALSE])
+    resids <- (pricev[, 1, drop=FALSE] - betav*pricev[, 2, drop=FALSE])
     colnames(resids) <- "resids"
     # resids - min(resids) + 1
     resids
@@ -156,7 +164,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     
     pricev <- pricev()
     nrows <- NROW(pricev)
-    betas <- betas()
+    betav <- betav()
     resids <- resids()
     meanv <- meanv()
     vars <- vars()
@@ -167,7 +175,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     
     posv <- 0
     npos <- 0
-    betap <- betas[1]
+    betap <- betav[1]
     pnls <- numeric(nrows)
     # resids <- as.numeric(resids)
     for (it in (lagg+1):nrows) {

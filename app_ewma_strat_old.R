@@ -95,8 +95,8 @@ uifun <- shiny::fluidPage(
     # column(width=2, selectInput("symbol", label="Symbol",
     #                             choices=symbolv, selected=symbol)),
     # Input EWMA decays
-    column(width=2, sliderInput("fast_lambda", label="fast_lambda:", min=0.01, max=0.9, value=0.7, step=0.01)),
-    column(width=2, sliderInput("slow_lambda", label="slow_lambda:", min=0.01, max=0.9, value=0.25, step=0.01)),
+    column(width=2, sliderInput("lambdaf", label="lambdaf:", min=0.01, max=0.9, value=0.7, step=0.01)),
+    column(width=2, sliderInput("lambdas", label="lambdas:", min=0.01, max=0.9, value=0.25, step=0.01)),
     # Input end points interval
     # column(width=2, selectInput("interval", label="End points Interval",
     #                             choices=c("days", "weeks", "months", "years"), selected="days")),
@@ -147,8 +147,8 @@ servfun <- function(input, output) {
   # recalculate the data and rerun the strategy
   datav <- shiny::reactive({
     # Get model parameters from input argument
-    fast_lambda <- isolate(input$fast_lambda)
-    slow_lambda <- isolate(input$slow_lambda)
+    lambdaf <- isolate(input$lambdaf)
+    lambdas <- isolate(input$lambdas)
     # symbol <- isolate(input$symbol)
     # model_type <- isolate(input$model_type)
     look_back <- isolate(input$look_back)
@@ -169,60 +169,60 @@ servfun <- function(input, output) {
     input$recalcb
 
     # Calculate EWMA weights
-    fast_weights <- exp(-fast_lambda*1:look_back)
-    fast_weights <- fast_weights/sum(fast_weights)
-    slow_weights <- exp(-slow_lambda*1:look_back)
-    slow_weights <- slow_weights/sum(slow_weights)
+    weightf <- exp(-lambdaf*1:look_back)
+    weightf <- weightf/sum(weightf)
+    weightss <- exp(-lambdas*1:look_back)
+    weightss <- weightss/sum(weightss)
     
     # Calculate EWMA prices by filtering with the weights
-    fast_ewma <- .Call(stats:::C_cfilter, cumsumv, filter=fast_weights, sides=1, circular=FALSE)
-    fast_ewma[1:(look_back-1)] <- fast_ewma[look_back]
-    slow_ewma <- .Call(stats:::C_cfilter, cumsumv, filter=slow_weights, sides=1, circular=FALSE)
-    slow_ewma[1:(look_back-1)] <- slow_ewma[look_back]
+    ewmaf <- .Call(stats:::C_cfilter, cumsumv, filter=weightf, sides=1, circular=FALSE)
+    ewmaf[1:(look_back-1)] <- ewmaf[look_back]
+    ewmas <- .Call(stats:::C_cfilter, cumsumv, filter=weightss, sides=1, circular=FALSE)
+    ewmas[1:(look_back-1)] <- ewmas[look_back]
     # Determine dates when the EWMAs have crossed
-    indic <- sign(fast_ewma - slow_ewma)
+    indic <- sign(ewmaf - ewmas)
     
     # Older code
     # trade_dates <- (rutils::diffit(indic) != 0)
     # trade_dates <- which(trade_dates)
     # trade_dates <- trade_dates[trade_dates < nrows]
-    # posit <- rep(NA_integer_, nrows)
-    # posit[1] <- 0
+    # posv <- rep(NA_integer_, nrows)
+    # posv[1] <- 0
     # Flip position if the scaled returns exceed threshold
-    # posit[re_scaled > threshold] <- 1
-    # posit[re_scaled < (-threshold)] <- (-1)
+    # posv[re_scaled > threshold] <- 1
+    # posv[re_scaled < (-threshold)] <- (-1)
     # LOCF
-    # posit <- zoo::na.locf(posit, na.rm=FALSE)
-    # posit <- rutils::lagit(posit, lagg=lagg)
+    # posv <- zoo::na.locf(posv, na.rm=FALSE)
+    # posv <- rutils::lagit(posv, lagg=lagg)
     # Calculate positions, either: -1, 0, or 1
-    # posit <- rep(NA_integer_, NROW(closep))
-    # posit[1] <- 0
-    # posit[trade_dates] <- indic[trade_dates]
-    # posit[trade_dates] <- rutils::lagit(indic)[trade_dates]
-    # posit <- na.locf(posit)
-    # posit <- rutils::lagit(posit)
+    # posv <- rep(NA_integer_, NROW(closep))
+    # posv[1] <- 0
+    # posv[trade_dates] <- indic[trade_dates]
+    # posv[trade_dates] <- rutils::lagit(indic)[trade_dates]
+    # posv <- na.locf(posv)
+    # posv <- rutils::lagit(posv)
     
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
     # This is designed to prevent whipsaws and over-trading.
-    # posit <- ifelse(indic == indic_lag, indic, posit)
-    indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
-    indic_sum[1:lagg] <- 0
-    posit <- rep(NA_integer_, nrows)
-    posit[1] <- 0
-    posit <- ifelse(indic_sum == lagg, 1, posit)
-    posit <- ifelse(indic_sum == (-lagg), -1, posit)
-    posit <- zoo::na.locf(posit, na.rm=FALSE)
-    # posit[1:lagg] <- 0
+    # posv <- ifelse(indic == indic_lag, indic, posv)
+    indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    indics[1:lagg] <- 0
+    posv <- rep(NA_integer_, nrows)
+    posv[1] <- 0
+    posv <- ifelse(indics == lagg, 1, posv)
+    posv <- ifelse(indics == (-lagg), -1, posv)
+    posv <- zoo::na.locf(posv, na.rm=FALSE)
+    # posv[1:lagg] <- 0
     # Lag the positions to trade in next period
-    posit <- rutils::lagit(posit, lagg=1)
+    posv <- rutils::lagit(posv, lagg=1)
     
     # Calculate strategy pnls
-    pnls <- (coeff*posit*retv)
+    pnls <- (coeff*posv*retv)
 
     # Calculate position turnover
-    turn_over <- abs(rutils::diffit(posit))/2
+    turn_over <- abs(rutils::diffit(posv))/2
     ntrades <- sum(2*turn_over)# / nrows
     # Calculate number of trades
     # sum(turn_over) nrows
@@ -240,7 +240,7 @@ servfun <- function(input, output) {
     sharper <- round(sharper, 3)
     # pnls <- apply(pnls, MARGIN=2, cumsum)
     pnls <- cumsum(pnls)
-    pnls <- cbind(pnls, fast_ewma, slow_ewma)
+    pnls <- cbind(pnls, ewmaf, ewmas)
     colnames(pnls) <- c(paste0(c("Strategy SR=", "Index SR="), sharper), "fast", "slow")
     pnls
   })  # end reactive code

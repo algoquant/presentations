@@ -124,7 +124,8 @@ servfun <- function(input, output) {
     captiont <- paste0("Sortino ratios: ", paste0(paste0(colnamev, " = ", values$sharper), collapse=" / "))
 
     # Plot log wealths
-    dygraphs::dygraph(wealth, main=captiont) %>%
+    endd <- rutils::calc_endpoints(wealth, interval="weeks")
+    dygraphs::dygraph(wealth[endd], main=captiont) %>%
       dyOptions(colors=c("blue","red"), strokeWidth=2) %>%
       dyLegend(show="always", width=500)
   })  # end output plot

@@ -1,6 +1,6 @@
 ##############################
 # This is a shiny app for backtesting a stock versus ETF pairs strategy
-# using a fixed beta of returns.
+# using a fixed beta of returns and Bollinger trading logic.
 # 
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -12,9 +12,10 @@ library(HighFreq)
 library(shiny)
 library(dygraphs)
 
-## Load daily S&P500 stock returns
-load(file="/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
-symbolstocks <- sort(colnames(returns))
+## Load daily S&P500 stock prices and returns
+load(file="/Users/jerzy/Develop/lecture_slides/data/sp500_prices.RData")
+# load(file="/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
+symbolstocks <- sort(colnames(prices))
 symbolstock <- "AAPL"
 
 symbolsetf <- colnames(rutils::etfenv$prices)
@@ -28,7 +29,7 @@ symboletf <- "XLK"
 
 ## Create elements of the user interface
 uifun <- shiny::fluidPage(
-  titlePanel("Stock vs ETF Pairs Strategy Using a Fixed Beta of Returns"),
+  titlePanel("Stock vs ETF Pairs Strategy Using a Fixed Beta"),
   
   # create single row with four slider inputs
   fluidRow(
@@ -37,13 +38,13 @@ uifun <- shiny::fluidPage(
     # Input ETF symbol
     column(width=1, selectInput("symboletf", label="ETF", choices=symbolsetf, selected=symboletf)),
     # Input beta parameter
-    column(width=3, sliderInput("beta", label="beta:", min=0.1, max=3.0, value=1.0, step=0.1)),
+    column(width=3, sliderInput("betav", label="beta:", min=0.1, max=3.0, value=1.0, step=0.1)),
     # Input lambda decay parameter
-    column(width=3, sliderInput("lambda", label="lambda:", min=0.01, max=0.99, value=0.9, step=0.01)),
-    # Input threshold parameter
-    column(width=2, sliderInput("threshold", label="Threshold", min=0.1, max=3.0, value=1.5, step=0.1)),
+    column(width=3, sliderInput("lambda", label="lambda:", min=0.01, max=0.99, value=0.5, step=0.01)),
+    # Input threshold level
+    column(width=2, sliderInput("threshd", label="Threshold level", min=0.1, max=3.0, value=1.0, step=0.1)),
     # Input lag trade parameter
-    column(width=1, sliderInput("lagg", label="Confirmation", min=1, max=3, value=2, step=1)),
+    column(width=1, sliderInput("lagg", label="Confirmation", min=1, max=3, value=1, step=1)),
     # Input trending or reverting (contrarian) strategy
     column(width=1, selectInput("coeff", label="Trend (1) Revert (-1)", choices=c(1, -1), selected=(-1)))
   ),  # end fluidRow
@@ -60,20 +61,26 @@ servfun <- shiny::shinyServer(function(input, output) {
   # Create an empty list of reactive values.
   values <- reactiveValues()
   
-  # Prepare the returns
+  # Recalculate the prices
+  pricev <- shiny::reactive({
+    
+    cat("Recalculating the prices", "\n")
+    
+    # Recalculate the prices
+    pricev <- get(input$symbolstock, prices)
+    pricetf <- get(input$symboletf, rutils::etfenv$prices)
+    pricev <- log(na.omit(cbind(pricev, pricetf)))
+    colnames(pricev) <- c("Stock", "ETF")
+    pricev
+
+  })  # end reactive code
+  
+  
+  # Recalculate the returns
   retv <- shiny::reactive({
     
-    cat("Preparing the returns", "\n")
-    # Get model parameters from input argument
-    symbolstock <- input$symbolstock
-    symboletf <- input$symboletf
-
-    # Prepare the returns
-    rets <- get(symbolstock, returns)
-    retetf <- get(symboletf, rutils::etfenv$returns)
-    retv <- na.omit(cbind(rets, retetf))
-    colnames(retv) <- c(symbolstock, symboletf)
-    retv
+    cat("Recalculating the returns", "\n")
+    rutils::diffit(pricev())
     
   })  # end reactive code
   
@@ -82,17 +89,11 @@ servfun <- shiny::shinyServer(function(input, output) {
   resids <- shiny::reactive({
     
     cat("Recalculating the residuals", "\n")
+    pricev <- pricev()
     
     # Get model parameters from input argument
-    beta <- input$beta
-    retv <- retv()
-    
-    # beta <- drop(cov(retv[, 1], retv[, 2])/var(retv[, 2]))
-    # Recalculate the residuals
-    resids <- (retv[, 1, drop=FALSE] - beta*retv[, 2, drop=FALSE])
-    colnames(resids) <- "resids"
-    resids
-    
+    (pricev$Stock - input$betav*pricev$ETF)
+
   })  # end reactive code
   
   
@@ -100,14 +101,18 @@ servfun <- shiny::shinyServer(function(input, output) {
   meanv <- shiny::reactive({
     
     cat("Recalculating the trailing means", "\n")
-    # Get model parameters from input argument
-    lambda <- input$lambda
-    resids <- resids()
-
     # Recalculate the trailing means of residuals
-    meanv <- HighFreq::run_mean(resids, lambda=lambda)
-    vars <- HighFreq::run_var(resids, lambda=lambda)
-    cbind(meanv, vars)
+    HighFreq::run_mean(resids(), lambda=input$lambda)
+
+  })  # end reactive code
+  
+  
+  # Recalculate the trailing standard deviation of residuals
+  vars <- shiny::reactive({
+    
+    cat("Recalculating the trailing standard deviation", "\n")
+    # Recalculate the trailing variance of residuals
+    sqrt(HighFreq::run_var(resids(), lambda=input$lambda))
     
   })  # end reactive code
   
@@ -120,39 +125,34 @@ servfun <- shiny::shinyServer(function(input, output) {
     symbolstock <- input$symbolstock
     symboletf <- input$symboletf
     lagg <- input$lagg
-    threshold <- input$threshold
     coeff <- as.numeric(input$coeff)
     
+    residm <- resids() - meanv()
     retv <- retv()
     nrows <- NROW(retv)
-    resids <- resids()
-    meanv <- meanv()
-    vars <- meanv[, 2, drop=FALSE]
-    meanv <- meanv[, 1, drop=FALSE]
-    # datev <- zoo::index(retv)
-    threshd <- threshold*sqrt(vars)
+    threshd <- input$threshd*rutils::lagit(vars())
 
     # Calculate indicator
     indic <- integer(nrows)
-    indic <- ifelse(resids < (meanv-threshd), 1, indic)
-    indic <- ifelse(resids > meanv+threshd, -1, indic)
-    indic <- roll::roll_sum(indic, width=lagg, min_obs=1)
+    indic <- ifelse(residm < (-threshd), -coeff, indic)
+    indic <- ifelse(residm > threshd, coeff, indic)
+    indic <- HighFreq::roll_sum(indic, lagg)
     # Calculate positions from indicator
-    posit <- rep(NA_integer_, nrows)
-    posit[1] <- 0
-    posit <- ifelse(indic == lagg, coeff, posit)
-    posit <- ifelse(indic == (-lagg), -coeff, posit)
-    posit <- zoo::na.locf(posit)
+    posv <- rep(NA_integer_, nrows)
+    posv[1] <- 0
+    posv <- ifelse(indic == lagg, 1, posv)
+    posv <- ifelse(indic == (-lagg), -1, posv)
+    posv <- zoo::na.locf(posv)
     # Lag the positions to trade in next period
-    posit <- HighFreq::lagit(posit, lagg=1)
+    posv <- rutils::lagit(posv, lagg=1)
     
     # Calculate number of trades
-    values$ntrades <- sum(abs(rutils::diffit(posit)) > 0)
+    values$ntrades <- sum(abs(rutils::diffit(posv)) > 0)
     
-    pnls <- resids*posit
-    wealthv <- cbind(retv[, 1], pnls)
+    pnls <-  posv*(retv$Stock - input$betav*retv$ETF)
+    wealthv <- cbind(retv$Stock, pnls)
     colnames(wealthv) <- c(symbolstock, "Strategy")
-
+    
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(wealthv, function(x) mean(x)/sd(x[x<0]))
     values$sharper <- round(sharper, 3)
@@ -170,10 +170,9 @@ servfun <- shiny::shinyServer(function(input, output) {
     wealthv <- wealthv()
     colnamev <- colnames(wealthv)
     
-    captiont <- paste("Strategy for", symbolstock, "vs", symboletf, "/ \n", 
-                      paste0(c("Index SR=", "Strategy SR="), values$sharper, collapse=" / "), "/ \n",
+    captiont <- paste(paste0(paste(colnamev[1:2], "Sharpe =", values$sharper), collapse=" / "), "/ \n",
                       "Number of trades=", values$ntrades)
-    
+
     endd <- rutils::calc_endpoints(wealthv, interval="weeks")
     dygraphs::dygraph(cumsum(wealthv)[endd], main=captiont) %>%
       dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%

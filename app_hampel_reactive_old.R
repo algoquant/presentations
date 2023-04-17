@@ -177,9 +177,9 @@ servfun <- function(input, output) {
   # x11(width=6, height=5)
   # hist(zscores, xlim=c(quantile(zscores, 0.05), quantile(zscores, 0.95)), breaks=50, main=paste("Z-scores for", "short_back =", short_back))
   
-  # Calculate posit and pnls if there's new threshold value
+  # Calculate posv and pnls if there's new threshold value
   pnls <- shiny::reactive({
-    cat("Calculating posit and pnls\n")
+    cat("Calculating posv and pnls\n")
     threshold <- input$threshold
     lagg <- input$lagg
     retv <- rutils::diffit(closep())
@@ -192,29 +192,29 @@ servfun <- function(input, output) {
     # Calculate number of consecutive indicators in same direction.
     # This is designed to avoid trading on microstructure noise.
     # indic <- ifelse(indic == indic_lag, indic, indic)
-    indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
-    indic_sum[1:lagg] <- 0
+    indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    indics[1:lagg] <- 0
     
-    # Calculate posit and pnls from indic_sum.
-    # posit <- rep(NA_integer_, nrows)
-    # posit[1] <- 0
+    # Calculate posv and pnls from indics.
+    # posv <- rep(NA_integer_, nrows)
+    # posv[1] <- 0
     # threshold <- 3*mad(zscores)
-    # Flip position only if the indic_sum is at least equal to lagg.
+    # Flip position only if the indics is at least equal to lagg.
     # Otherwise keep previous position.
-    posit <- rep(NA_integer_, nrows)
-    posit[1] <- 0
-    posit <- ifelse(indic_sum >= lagg, 1, posit)
-    posit <- ifelse(indic_sum <= (-lagg), -1, posit)
-    # posit <- ifelse(zscores > threshold, -1, posit)
-    # posit <- ifelse(zscores < (-threshold), 1, posit)
-    posit <- zoo::na.locf(posit, na.rm=FALSE)
+    posv <- rep(NA_integer_, nrows)
+    posv[1] <- 0
+    posv <- ifelse(indics >= lagg, 1, posv)
+    posv <- ifelse(indics <= (-lagg), -1, posv)
+    # posv <- ifelse(zscores > threshold, -1, posv)
+    # posv <- ifelse(zscores < (-threshold), 1, posv)
+    posv <- zoo::na.locf(posv, na.rm=FALSE)
     # Calculate indicator of flipping the positions
-    indic <- rutils::diffit(posit)
+    indic <- rutils::diffit(posv)
     # Lag the positions to reflect trade on next day
-    posit <- rutils::lagit(posit, lagg=1)
+    posv <- rutils::lagit(posv, lagg=1)
 
     # Calculate pnls
-    pnls <- cumsum(posit*retv)
+    pnls <- cumsum(posv*retv)
     cumsumv <- cumsum(retv)
     pnls <- cbind(cumsumv, pnls)
     colnames(pnls) <- c("Index", "Strategy")
@@ -223,17 +223,17 @@ servfun <- function(input, output) {
     values$ntrades <- sum(abs(indic)>0)
     
     # Add buy/sell indicators
-    indic_buy <- (indic > 0)
-    indic_sell <- (indic < 0)
+    longi <- (indic > 0)
+    shorti <- (indic < 0)
 
-    pnls <- cbind(pnls, cumsumv[indic_buy], cumsumv[indic_sell])
+    pnls <- cbind(pnls, cumsumv[longi], cumsumv[shorti])
     colnames(pnls)[3:4] <- c("Buy", "Sell")
     pnls
     # list(caption=captiont, pnls=pnls)
   })  # end reactive
   
 
-  # Calculate posit if there's new threshold value
+  # Calculate posv if there's new threshold value
   dyplot <- shiny::reactive({
     cat("Plotting pnls\n")
     # Model is recalculated when the add_annotations variable is updated
@@ -245,7 +245,7 @@ servfun <- function(input, output) {
     # cat(paste("pnls\n", tail(pnls), "\n"))
     
     # Number of trades
-    # ntrades <- sum(abs(rutils::diffit(posit)))# / nrows
+    # ntrades <- sum(abs(rutils::diffit(posv)))# / nrows
     # captiont <- paste("Number of trades =", ntrades)
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(rutils::diffit(pnls[, 1:2]), function(x) mean(x)/sd(x[x<0]))

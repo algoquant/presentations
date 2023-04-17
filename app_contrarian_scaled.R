@@ -7,7 +7,7 @@
 
 
 ## To-do
-# Adapt lagg confirmation signal code from app_ewma.R using HighFreq::roll_vec() or HighFreq::roll_count()
+# Adapt lagg confirmation signal code from app_ewma.R using HighFreq::roll_sum() or HighFreq::roll_count()
 
 
 ## Below is the setup code that runs once when the shiny app is started
@@ -302,14 +302,14 @@ servfun <- function(input, output) {
              # re_scaled <- ifelse(volumes>0, returns/sqrt(volumes), 0)
              # re_scaled <- re_scaled/sd(re_scaled)
              ## Backtest strategy for flipping if two consecutive positive and negative returns
-             posit <- rep(NA_integer_, nrows)
-             posit[1] <- 0
+             posv <- rep(NA_integer_, nrows)
+             posv[1] <- 0
              # Flip position if the scaled returns exceed threshold
-             posit[re_scaled > threshold] <- 1
-             posit[re_scaled < (-threshold)] <- (-1)
+             posv[re_scaled > threshold] <- 1
+             posv[re_scaled < (-threshold)] <- (-1)
              # LOCF
-             posit <- zoo::na.locf(posit, na.rm=FALSE)
-             posit <- rutils::lagit(posit, lagg=lagg)
+             posv <- zoo::na.locf(posv, na.rm=FALSE)
+             posv <- rutils::lagit(posv, lagg=lagg)
            },
            "sharpe_ohlc" = {  # For OHLC data
              # Scale the cumulative returns by the trailing volatility
@@ -324,21 +324,21 @@ servfun <- function(input, output) {
              # quantiles are calculated over first decile to avoid snooping
              quantiles <- quantile(re_scaled[1:(nrows %/% 10), ], c(1-threshold, threshold))
              # quantiles <- quantile(re_scaled, c(1-threshold, threshold))
-             posit <- rep(NA_integer_, nrows)
-             posit[1] <- 0
+             posv <- rep(NA_integer_, nrows)
+             posv[1] <- 0
 
              if (confirm == "False") {
-               posit <- ifelse(re_scaled > quantiles[2], 1, posit)
-               posit <- ifelse(re_scaled < quantiles[1], -1, posit)
+               posv <- ifelse(re_scaled > quantiles[2], 1, posv)
+               posv <- ifelse(re_scaled < quantiles[1], -1, posv)
              } else if (confirm == "True") {
                # Flip only if two consecutive signals in same direction
                lagg_ed <- rutils::lagit(re_scaled, 1)
-               posit <- ifelse((re_scaled > quantiles[2]) & (lagg_ed > quantiles[2]), 1, posit)
-               posit <- ifelse((re_scaled < quantiles[1]) & (lagg_ed < quantiles[1]), -1, posit)
+               posv <- ifelse((re_scaled > quantiles[2]) & (lagg_ed > quantiles[2]), 1, posv)
+               posv <- ifelse((re_scaled < quantiles[1]) & (lagg_ed < quantiles[1]), -1, posv)
              }  # end if
              
-             posit <- zoo::na.locf(posit)
-             posit <- rutils::lagit(posit, lagg)
+             posv <- zoo::na.locf(posv)
+             posv <- rutils::lagit(posv, lagg)
              
            },
            "rescaled_ohlc" = {  # For OHLC data
@@ -360,21 +360,21 @@ servfun <- function(input, output) {
              # quantiles are calculated over first decile to avoid snooping
              quantiles <- quantile(re_scaled[1:(nrows %/% 10), ], c(1-threshold, threshold))
              # quantiles <- quantile(re_scaled, c(1-threshold, threshold))
-             posit <- rep(NA_integer_, nrows)
-             posit[1] <- 0
+             posv <- rep(NA_integer_, nrows)
+             posv[1] <- 0
              
              if (confirm == "False") {
-               posit <- ifelse(re_scaled > quantiles[2], 1, posit)
-               posit <- ifelse(re_scaled < quantiles[1], -1, posit)
+               posv <- ifelse(re_scaled > quantiles[2], 1, posv)
+               posv <- ifelse(re_scaled < quantiles[1], -1, posv)
              } else if (confirm == "True") {
                # Flip only if two consecutive signals in same direction
                lagg_ed <- rutils::lagit(re_scaled, 1)
-               posit <- ifelse((re_scaled > quantiles[2]) & (lagg_ed > quantiles[2]), 1, posit)
-               posit <- ifelse((re_scaled < quantiles[1]) & (lagg_ed < quantiles[1]), -1, posit)
+               posv <- ifelse((re_scaled > quantiles[2]) & (lagg_ed > quantiles[2]), 1, posv)
+               posv <- ifelse((re_scaled < quantiles[1]) & (lagg_ed < quantiles[1]), -1, posv)
              }  # end if
              
-             posit <- zoo::na.locf(posit)
-             posit <- rutils::lagit(posit, lagg)
+             posv <- zoo::na.locf(posv)
+             posv <- rutils::lagit(posv, lagg)
            },
            "sharpe_ticks" = {
              # Scale the cumulative returns by the trailing volatility
@@ -387,33 +387,33 @@ servfun <- function(input, output) {
              re_scaled <- rutils::na_locf(re_scaled)
              # quantiles are calculated over first decile to avoid snooping
              quantiles <- quantile(re_scaled[1:(nrows %/% 10), ], c(1-threshold, threshold))
-             posit <- rep(NA_integer_, nrows)
-             posit[1] <- 0
+             posv <- rep(NA_integer_, nrows)
+             posv[1] <- 0
              
              if (confirm == "False") {
-               posit <- ifelse(re_scaled > quantiles[2], 1, posit)
-               posit <- ifelse(re_scaled < quantiles[1], -1, posit)
+               posv <- ifelse(re_scaled > quantiles[2], 1, posv)
+               posv <- ifelse(re_scaled < quantiles[1], -1, posv)
              } else if (confirm == "True") {
                # Flip only if two consecutive signals in same direction
                lagg_ed <- rutils::lagit(re_scaled, 1)
-               posit <- ifelse((re_scaled > quantiles[2]) & (lagg_ed > quantiles[2]), 1, posit)
-               posit <- ifelse((re_scaled < quantiles[1]) & (lagg_ed < quantiles[1]), -1, posit)
+               posv <- ifelse((re_scaled > quantiles[2]) & (lagg_ed > quantiles[2]), 1, posv)
+               posv <- ifelse((re_scaled < quantiles[1]) & (lagg_ed < quantiles[1]), -1, posv)
              }  # end if
 
-             posit <- zoo::na.locf(posit)
-             posit <- rutils::lagit(posit, lagg)
+             posv <- zoo::na.locf(posv)
+             posv <- rutils::lagit(posv, lagg)
            },
            "volatility" = {  # For OHLC data
              # Calculate trailing volatilities
              var_rolling <- sqrt(HighFreq::roll_var_ohlc(ohlc, look_back=look_back, scale=FALSE))
              # quantiles <- quantile(var_rolling, c(1-threshold, threshold))
              quantiles <- quantile(var_rolling[1:(nrows %/% 10), ], c(1-threshold, threshold))
-             posit <- rep(NA_integer_, nrows)
-             posit[1] <- 0
-             posit <- ifelse(var_rolling > quantiles[2], 1, posit)
-             posit <- ifelse(var_rolling < quantiles[1], -1, posit)
-             posit <- zoo::na.locf(posit)
-             posit <- rutils::lagit(posit, lagg)
+             posv <- rep(NA_integer_, nrows)
+             posv[1] <- 0
+             posv <- ifelse(var_rolling > quantiles[2], 1, posv)
+             posv <- ifelse(var_rolling < quantiles[1], -1, posv)
+             posv <- zoo::na.locf(posv)
+             posv <- rutils::lagit(posv, lagg)
            },
            "zscore" = {
              # Calculate trailing z-scores
@@ -427,30 +427,30 @@ servfun <- function(input, output) {
              zscores[is.na(zscores)] <- 0
              quantiles <- quantile(zscores[1:(nrows %/% 10), ], c(1-threshold, threshold))
              # quantiles <- quantile(zscores, c(1-threshold, threshold))
-             posit <- rep(NA_integer_, nrows)
-             posit[1] <- 0
+             posv <- rep(NA_integer_, nrows)
+             posv[1] <- 0
              
              if (confirm == "False") {
-               posit <- ifelse(zscores > quantiles[2], 1, posit)
-               posit <- ifelse(zscores < quantiles[1], -1, posit)
+               posv <- ifelse(zscores > quantiles[2], 1, posv)
+               posv <- ifelse(zscores < quantiles[1], -1, posv)
              } else if (confirm == "True") {
                # Flip only if two consecutive signals in same direction
                lagg_ed <- rutils::lagit(zscores, 1)
-               posit <- ifelse((zscores > quantiles[2]) & (lagg_ed > quantiles[2]), 1, posit)
-               posit <- ifelse((zscores < quantiles[1]) & (lagg_ed < quantiles[1]), -1, posit)
+               posv <- ifelse((zscores > quantiles[2]) & (lagg_ed > quantiles[2]), 1, posv)
+               posv <- ifelse((zscores < quantiles[1]) & (lagg_ed < quantiles[1]), -1, posv)
              }  # end if
              
-             posit <- zoo::na.locf(posit)
-             posit <- rutils::lagit(posit, lagg)
+             posv <- zoo::na.locf(posv)
+             posv <- rutils::lagit(posv, lagg)
            }
     )  # end switch
 
     # Calculate position turnover
-    turn_over <- abs(rutils::diffit(posit)) / 2
+    turn_over <- abs(rutils::diffit(posv)) / 2
     # Calculate number of trades
-    # sum(turn_over)/NROW(posit)
+    # sum(turn_over)/NROW(posv)
     # Calculate strategy pnls
-    pnls <- (coeff*posit*retv)
+    pnls <- (coeff*posv*retv)
 
     # Calculate transaction costs
     costs <- bid_offer*turn_over

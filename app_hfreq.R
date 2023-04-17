@@ -144,16 +144,16 @@ servfun <- shiny::shinyServer(function(input, output) {
     }  # end if
     
     ## Calculate the positions
-    posit <- rep(NA_integer_, nrows)
-    posit[1] <- 0
+    posv <- rep(NA_integer_, nrows)
+    posv[1] <- 0
     indic <- HighFreq::roll_count(indic_long)
-    posit <- ifelse(indic >= lagg, 1, posit)
+    posv <- ifelse(indic >= lagg, 1, posv)
     indic <- HighFreq::roll_count(indic_short)
-    posit <- ifelse(indic >= lagg, -1, posit)
+    posv <- ifelse(indic >= lagg, -1, posv)
     # Lag the positions to trade in next period
-    posit <- zoo::na.locf(posit, na.rm=FALSE)
-    posit <- rutils::lagit(posit, lagg=1)
-    pnls <- cumsum(coeff*returns*posit)
+    posv <- zoo::na.locf(posv, na.rm=FALSE)
+    posv <- rutils::lagit(posv, lagg=1)
+    pnls <- cumsum(coeff*returns*posv)
     pnls <- cbind(closep, pnls)
     # indeks <- seq.POSIXt(Sys.time()-NROW(pnls)+1, Sys.time(), by=1)
     # pnls <- xts::xts(coredata(pnls), indeks)

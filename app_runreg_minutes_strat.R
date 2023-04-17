@@ -118,26 +118,26 @@ servfun <- function(input, output) {
     lambda <- input$lambda
     
     # Calculate the response and predictor
-    retv <- returns()
+    retv <- retv()
     respv <- retv[, 1, drop=FALSE]
     predv <- retv[, -1, drop=FALSE]
 
     symbol <- input$symbol
     # ohlc <- log(get(symbol, rutils::etfenv))
-    variance <- HighFreq::run_var_ohlc(spyohlc[zoo::index(retv)], lambda=lambda)
-    variance[variance == 0] <- 1
-    variance <- rutils::diffit(variance)
-    predv <- cbind(predv, variance)
+    vars <- HighFreq::run_var_ohlc(spyohlc[zoo::index(retv)], lambda=lambda)
+    vars[vars == 0] <- 1
+    vars <- rutils::diffit(vars)
+    predv <- cbind(predv, vars)
 
     predictor_symbol <- input$predictor_symbol
-    variance <- HighFreq::run_var_ohlc(svxyohlc[zoo::index(retv)], lambda=lambda)
-    variance[variance == 0] <- 1
-    variance <- rutils::diffit(variance)
-    predv <- cbind(predv, variance)
+    vars <- HighFreq::run_var_ohlc(svxyohlc[zoo::index(retv)], lambda=lambda)
+    vars[vars == 0] <- 1
+    vars <- rutils::diffit(vars)
+    predv <- cbind(predv, vars)
     
     # Calculate the trailing z-scores
-    zscores <- HighFreq::run_reg(respv=respv, predictor=predv, lambda=lambda, method="standardize")
-    zscores <- zscores[, 1]
+    zscores <- HighFreq::run_reg(respv=respv, predv=predv, lambda=lambda, method="standardize")
+    zscores <- zscores[, NCOL(zscores)]
     # zscores[1:look_back] <- 0
     zscores[is.infinite(zscores)] <- 0
     zscores <- na.locf(zscores)
@@ -163,67 +163,67 @@ servfun <- function(input, output) {
     lagg <- input$lagg
     # lambda <- input$lambda
     
-    retv <- returns()[, 2]
+    retv <- retv()[, 2]
     zscores <- zscores()
-    # retv <- returns/sd(retv)
+    # retv <- retv/sd(retv)
     retsum <- cumsum(retv)
     nrows <- NROW(retv)
 
     # Calculate rolling volatility
-    # variance <- HighFreq::roll_var_ohlc(ohlc=vtis, look_back=look_back, scale=FALSE)
+    # vars <- HighFreq::roll_var_ohlc(ohlc=vtis, look_back=look_back, scale=FALSE)
 
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
     # Otherwise keep previous position.
     # This is designed to prevent whipsaws and over-trading.
-    # posit <- ifelse(indic == indic_lag, indic, posit)
+    # posv <- ifelse(indic == indic_lag, indic, posv)
     
     # Flip position if the scaled returns exceed threshold1
     threshold1 <- input$threshold1
     # threshold2 <- input$threshold2
     
     # Scale the threshold1 by the volatility of the zscores
-    # variance <- HighFreq::run_var(tseries=HighFreq::diffit(zscores), lambda=lambda)
-    # variance <- HighFreq::lagit(tseries=variance)
-    # threshold1 <- variance*threshold1
+    # vars <- HighFreq::run_var(tseries=HighFreq::diffit(zscores), lambda=lambda)
+    # vars <- HighFreq::lagit(tseries=vars)
+    # threshold1 <- vars*threshold1
     
-    # zscores <- ifelse(variance > 0, zscores/sqrt(variance), 0)
+    # zscores <- ifelse(vars > 0, zscores/sqrt(vars), 0)
     ##
     indic <- rep(NA_integer_, nrows)
     indic[1] <- 0
     indic[zscores > threshold1] <- coeff
-    indic[zscores < (threshold1)] <- (-coeff)
+    indic[zscores < (threshold1)] <- (-coeff) # Is this a bug?  Should be (-threshold1)?
     indic <- zoo::na.locf(indic, na.rm=FALSE)
-    indic_sum <- HighFreq::roll_vec(tseries=matrix(indic), look_back=lagg)
-    indic_sum[1:lagg] <- 0
-    posit <- rep(NA_integer_, nrows)
-    posit[1] <- 0
-    posit <- ifelse(indic_sum == lagg, 1, posit)
-    posit <- ifelse(indic_sum == (-lagg), -1, posit)
-    posit <- zoo::na.locf(posit, na.rm=FALSE)
-    posit[1:lagg] <- 0
+    indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    indics[1:lagg] <- 0
+    posv <- rep(NA_integer_, nrows)
+    posv[1] <- 0
+    posv <- ifelse(indics == lagg, 1, posv)
+    posv <- ifelse(indics == (-lagg), -1, posv)
+    posv <- zoo::na.locf(posv, na.rm=FALSE)
+    posv[1:lagg] <- 0
 
     # Calculate indicator of flipping the positions
-    indic <- rutils::diffit(posit)
+    indic <- rutils::diffit(posv)
     # Calculate number of trades
     globals$ntrades <- sum(abs(indic)>0)
     
     # Add buy/sell indicators for annotations
-    indic_buy <- (indic > 0)
-    indic_sell <- (indic < 0)
+    longi <- (indic > 0)
+    shorti <- (indic < 0)
     
     # Lag the positions to trade in next period
-    posit <- rutils::lagit(posit, lagg=1)
+    posv <- rutils::lagit(posv, lagg=1)
     
     # Calculate strategy pnls
-    pnls <- posit*returns
+    pnls <- posv*retv
     
     # Calculate transaction costs
     costs <- 0.5*input$bid_offer*abs(indic)
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[retv<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
     pnls <- cbind(retv, pnls)
@@ -234,7 +234,7 @@ servfun <- function(input, output) {
 
     # Bind with indicators
     pnls <- cumsum(pnls)
-    pnls <- cbind(pnls, retsum[indic_buy], retsum[indic_sell])
+    pnls <- cbind(pnls, retsum[longi], retsum[shorti])
     colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
 
     pnls

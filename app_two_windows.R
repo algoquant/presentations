@@ -98,8 +98,8 @@ servfun <- function(input, output) {
     month_ly <- as.numeric(month_ly)
     
     # Rerun the model
-    posit <- sign(wei_ght*week_ly + (1-wei_ght)*month_ly)
-    positions_lag <- rutils::lagit(posit, lagg=2)
+    posv <- sign(wei_ght*week_ly + (1-wei_ght)*month_ly)
+    positions_lag <- rutils::lagit(posv, lagg=2)
     pnls <- -cumsum(positions_lag*retv)
     pnls <- cbind(pnls, cumsum(retv))
     colnames(pnls) <- c("Strategy", "Index")

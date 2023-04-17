@@ -44,20 +44,21 @@ uifun <- shiny::fluidPage(
   # Create single row with inputs
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("symbol", label="Symbol",
-                                choices=symbolv, selected="VTI")),
+    column(width=2, selectInput("symbol", label="Symbol", choices=symbolv, selected="VTI")),
     # Input data type Boolean
     column(width=2, selectInput("data_type", label="Select data type", choices=c("Returns", "OHLC"), selected="Returns")),
-    # Input data type Boolean
+    # Input predictor type Boolean
     column(width=2, selectInput("predictor_type", label="Select predictor type", choices=c("Returns", "Sharpe", "Volatility", "Skew"), selected="Sharpe"))
   ),  # end fluidRow
   
   # Create single row with inputs
   fluidRow(
+    # Input lambda decay parameter
+    column(width=2, sliderInput("lambda", label="lambda:", min=0.1, max=0.99, value=0.36, step=0.01)),
     # Input Look back interval
-    column(width=2, sliderInput("look_back", label="Look back", min=3, max=250, value=100, step=1)),
-    # Input Look back interval
-    column(width=2, sliderInput("lambda", label="leverage parameter", min=0.1, max=10, value=1, step=0.1)),
+    # column(width=2, sliderInput("look_back", label="Look back", min=3, max=250, value=100, step=1)),
+    # Input leverage parameter
+    column(width=2, sliderInput("levp", label="leverage parameter", min=0.1, max=10, value=1, step=0.1)),
     # If trend=1 then trending, If trend=(-1) then contrarian
     column(width=2, selectInput("trend", label="Trend coefficient",
                                 choices=c(1, -1), selected=(1)))
@@ -77,7 +78,7 @@ servfun <- function(input, output) {
   # Get model parameters from input argument
   # dimax <- isolate(input$dimax)
   # look_lag <- isolate(input$look_lag
-  # lambda <- isolate(input$lambda)
+  # levp <- isolate(input$levp)
   # typev <- isolate(input$typev)
   # alpha <- isolate(input$alpha)
   # quant <- isolate(input$quant)
@@ -91,32 +92,32 @@ servfun <- function(input, output) {
   # half_window <- look_back %/% 2
 
   # Create an empty list of reactive values.
-  globals <- reactiveValues()
+  values <- reactiveValues()
   
   # Calculate returns and variance
   datav <- shiny::reactive({
     # Get model parameters from input argument
     data_type <- input$data_type
     symbol <- input$symbol
-    look_back <- input$look_back
+    lambda <- input$lambda
     
     # Load data if needed
     switch(data_type,
            "Returns" = {
              cat("Loading Returns data \n")
              retv <- na.omit(rutils::etfenv$returns[, symbol])
-             cumrets <- HighFreq::roll_sum(retv, look_back=look_back)
-             variance <- HighFreq::roll_var(retv, look_back=look_back)
+             cumrets <- HighFreq::run_mean(retv, lambda=lambda)
+             vars <- HighFreq::run_var(retv, lambda=lambda)
            },
            "OHLC" = {
              ohlc <- get(symbol, envir=rutils::etfenv)
              retv <- rutils::diffit(log(quantmod::Cl(ohlc)))
-             cumrets <- HighFreq::roll_sum(retv, look_back=look_back)
-             variance <- HighFreq::roll_var_ohlc(log(ohlc), look_back=look_back)
+             cumrets <- HighFreq::run_mean(retv, lambda=lambda)
+             vars <- HighFreq::run_var(retv, lambda=lambda)
            }
     )  # end switch
     
-    datav <- cbind(retv, cumrets, variance)
+    datav <- cbind(retv, cumrets, vars)
     colnames(datav) <- c(symbol, "cumrets", "variance")
     datav
     
@@ -130,13 +131,13 @@ servfun <- function(input, output) {
     predictor_type <- input$predictor_type
 
     # Calculate the predictor
-    switch(predv_type,
+    switch(predictor_type,
            "Returns" = {
              datav()[, 2]
            },
            "Sharpe" = {
-             variance <- datav()[, 3]
-             ifelse(variance > 0, datav()[, 2]/sqrt(variance), 0)
+             vars <- datav()[, 3]
+             ifelse(vars > 0, datav()[, 2]/sqrt(vars), 0)
            },
            "Volatility" = {
              sqrt(datav()[, 3])
@@ -158,12 +159,12 @@ servfun <- function(input, output) {
   # Calculate pnls
   pnls <- shiny::reactive({
     cat("Calculating pnls\n")
-    lambda <- input$lambda
+    levp <- input$levp
     trend <- as.numeric(input$trend)
     
-    posit <- tanh(lambda*predictor())
-    posit <- rutils::lagit(posit, lagg=1)
-    pnls <- trend*posit*datav()[, 1, drop=FALSE]
+    posv <- tanh(levp*predv())
+    posv <- rutils::lagit(posv, lagg=1)
+    pnls <- trend*posv*datav()[, 1, drop=FALSE]
     colnames(pnls) <- "Strategy"
     pnls
     

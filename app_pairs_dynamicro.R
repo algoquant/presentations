@@ -1,6 +1,6 @@
 ##############################
 # This is a shiny app for backtesting a stock versus ETF pairs strategy
-# using a dynamic beta of prices and Bollinger trading logic.
+# using a dynamic beta.
 # 
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -60,7 +60,7 @@ servfun <- shiny::shinyServer(function(input, output) {
   # Create an empty list of reactive values.
   values <- reactiveValues()
   
-  # Recalculate the prices
+  # Prepare the prices
   pricev <- shiny::reactive({
     
     cat("Preparing the prices", "\n")
@@ -78,38 +78,25 @@ servfun <- shiny::shinyServer(function(input, output) {
   })  # end reactive code
   
   
-  # Recalculate the betas
-  betas <- shiny::reactive({
-    
-    cat("Recalculating the betas", "\n")
-    # Get model parameters from input argument
-    lambda <- input$lambda
-    pricev <- pricev()
-    
-    # Get model parameters from input argument
-    # betas <- input$beta
-    
-    # betas <- drop(cov(pricev[, 1], pricev[, 2])/var(pricev[, 2]))
-    # betas <- HighFreq::run_reg(pricev[, 1, drop=FALSE], pricev[, 2, drop=FALSE], lambda=lambda)
-    # betas <- betas[, 3, drop=FALSE]
-    # betas <- HighFreq::lagit(betas[, 3, drop=FALSE])
-    covars <- HighFreq::run_covar(pricev, lambda=lambda)
-    covars[, 1]/covars[, 3]
-
-  })  # end reactive code
-  
-  
   # Recalculate the residuals
   resids <- shiny::reactive({
     
     cat("Recalculating the residuals", "\n")
     # Get model parameters from input argument
-    # lambda <- input$lambda
+    lambda <- input$lambda
     pricev <- pricev()
-    betas <- betas()
     
+    # Get model parameters from input argument
+    # beta <- input$beta
+    
+    # beta <- drop(cov(pricev[, 1], pricev[, 2])/var(pricev[, 2]))
+    # beta <- HighFreq::run_reg(pricev[, 1, drop=FALSE], pricev[, 2, drop=FALSE], lambda=lambda)
+    # beta <- beta[, 3, drop=FALSE]
+    # beta <- HighFreq::lagit(beta[, 3, drop=FALSE])
+    covars <- HighFreq::run_covar(pricev, lambda=lambda)
+    beta <- covars[, 1]/covars[, 3]
     # Recalculate the residuals
-    resids <- (pricev[, 1, drop=FALSE] - betas*pricev[, 2, drop=FALSE])
+    resids <- (pricev[, 1, drop=FALSE] - beta*pricev[, 2, drop=FALSE])
     colnames(resids) <- "resids"
     # resids - min(resids) + 1
     resids
@@ -156,7 +143,6 @@ servfun <- shiny::shinyServer(function(input, output) {
     
     pricev <- pricev()
     nrows <- NROW(pricev)
-    betas <- betas()
     resids <- resids()
     meanv <- meanv()
     vars <- vars()
@@ -167,40 +153,27 @@ servfun <- shiny::shinyServer(function(input, output) {
     
     posv <- 0
     npos <- 0
-    betap <- betas[1]
     pnls <- numeric(nrows)
     # resids <- as.numeric(resids)
     for (it in (lagg+1):nrows) {
-      # Recalculate the unwind price - the portfolio price with old beta
-      residn <- (pricev[it, 1] - betap*pricev[it, 2])
       if ((posv > (-1)) && (resids[it-lagg] > (meanv[it-lagg] + threshd[it-lagg]))) {
-        # if (posv == 1) {
-        #   # Unwind long
-        #   pnls[it] <- residn
-        # }  # end if
         # Enter short
-        pnls[it] <- pnls[it] + resids[it]
-        betap <- betas[it]
+        pnls[it] <- resids[it]
         posv <- (-1)
         npos <- npos+1
       } else if ((posv < 1) && (resids[it-lagg] < (meanv[it-lagg] - threshd[it-lagg]))) {
-        # if (posv == (-1)) {
-        #   # Unwind short
-        #   pnls[it] <- (-residn)
-        # }  # end if
         # Enter long
-        pnls[it] <- pnls[it] - resids[it]
-        betap <- betas[it]
+        pnls[it] <- (-resids[it])
         posv <- 1
         npos <- npos+1
       } else if ((posv < 0) && (resids[it-lagg] < meanv[it-lagg])) {
         # Unwind short
-        pnls[it] <- (-residn)
+        pnls[it] <- (-resids[it])
         posv <- 0
         npos <- npos+1
       } else if ((posv > 0) && (resids[it-lagg] > meanv[it-lagg])) {
         # Unwind long
-        pnls[it] <- residn
+        pnls[it] <- resids[it]
         posv <- 0
         npos <- npos+1
       }  # end if
