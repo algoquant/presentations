@@ -1,5 +1,6 @@
 ##############################
-# This is a shiny app for simulating a risk parity strategy.
+# This is a shiny app for simulating a risk parity strategy 
+# for VTI and TLT.
 # 
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -13,13 +14,13 @@ library(dygraphs)
 
 # Model and data setup
 
-# Calculate dollar and percentage returns for VTI and IEF
-pricev <- rutils::etfenv$prices[, c("VTI", "IEF")]
+# Calculate the dollar and percentage returns for stocks and bonds
+pricev <- rutils::etfenv$prices[, c("VTI", "TLT")]
 pricev <- na.omit(pricev)
 retd <- rutils::diffit(pricev)
 retp <- retd/rutils::lagit(pricev, lagg=1, pad_zeros=FALSE)
 
-captiont <- "Log Wealth of Risk Parity vs Fixed Dollar Allocations for VTI and IEF"
+captiont <- "Log Wealth of Risk Parity vs Proportional Dollar Allocations for VTI and TLT"
 
 ## End setup code
 
@@ -37,17 +38,10 @@ uifun <- shiny::fluidPage(
   
   # Create single row with two slider inputs
   fluidRow(
-    # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Lookback", min=11, max=130, value=21, step=1)),
-    # Input exponent for variance
-    # column(width=2, sliderInput("exponent", label="Std Dev exponent:",
-    #                             min=0.25, max=2.5, value=1.0, step=0.05)),
-    # Input weights
-    column(width=2, sliderInput("weights", label="VTI weight", min=0.4, max=0.6, value=0.5, step=0.01))
-    # Input lag trade parameter
-    # column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=2, step=1)),
-    # Input threshold interval
-    # column(width=2, sliderInput("threshold", label="threshold", min=0.5, max=3.0, value=1.0, step=0.1))
+    # Input lambda decay factor
+    column(width=2, sliderInput("lambda", label="Lambda decay factor:", min=0.1, max=0.9, value=0.2, step=0.01)),
+    # Input VTI weight
+    column(width=2, sliderInput("weightv", label="VTI weight", min=0.4, max=0.6, value=0.5, step=0.01))
   ),  # end fluidRow
   
   # Create output plot panel
@@ -67,65 +61,61 @@ servfun <- function(input, output) {
     cat("Calculating the volatilities\n")
     
     # Get model parameters from input argument
-    look_back <- input$look_back
-    # exponent <- input$exponent
+    lambda <- input$lambda
 
     # Calculate rolling percentage volatility
-    volat <- HighFreq::roll_var(retp, look_back=look_back)
-    iszero <- (rowSums(volat) == 0)
-    volat[iszero, ] <- 1
-    # volat^exponent
-    volat
-    
+    volat <- HighFreq::run_var(retp, lambda=lambda)
+    sqrt(volat)
+
   })  # end reactive code
   
   
   # Calculate wealths
-  wealth <- reactive({
+  wealthv <- reactive({
     cat("Calculating the wealths\n")
     
     # Get model parameters from input argument
-    weights <- input$weights
+    weightv <- input$weightv
 
     # Calculate wealth of proportional dollar allocation (fixed ratio of dollar amounts)
-    weights <- c(weights, 1-weights)
-    rets_weighted <- retp %*% weights
-    wealth_pda <- cumprod(1 + rets_weighted)
-    
-    # Calculate standardized prices and portfolio allocations
+    weightv <- c(weightv, 1-weightv)
+    retw <- retp %*% weightv
+    wealthpd <- cumprod(1 + retw)
+
+    # Calculate standardized prices and portfolio weights
     volat <- volat()
-    alloc <- lapply(1:NCOL(pricev), function(x) weights[x]/volat[, x])
-    alloc <- do.call(cbind, alloc)
-    # Scale allocations to 1 dollar total
-    alloc <- alloc/rowSums(alloc)
-    # Lag the allocations
-    alloc <- rutils::lagit(alloc)
+    weightv <- ifelse(volat > 1e-4, 1/volat, 0)
+    # Scale weights to 1 dollar total
+    weightv <- weightv/rowSums(weightv)
+    weightv[1, ] <- 0
+    # Lag the weights
+    weightv <- rutils::lagit(weightv)
     # Calculate wealth of risk parity
-    rets_weighted <- rowSums(retp*alloc)
-    wealth_risk_parity <- cumprod(1 + rets_weighted)
-    
+    retw <- rowSums(retp*weightv)
+    wealthrp <- cumprod(1 + retw)
+
     # Calculate log wealths
-    wealth <- log(cbind(wealth_pda, wealth_risk_parity))
-    wealth <- xts(wealth, index(pricev))
+    wealthv <- log(cbind(wealthpd, wealthrp))
+    wealthv <- xts::xts(wealthv, zoo::index(pricev))
+    colnames(wealthv) <- c("PropDollars", "Risk Parity")
     # Calculate Sharpe ratios
-    sharper <- sqrt(252)*sapply(rutils::diffit(wealth), function (x) mean(x)/sd(x[x<0]))
+    sharper <- sqrt(252)*sapply(rutils::diffit(wealthv), function (x) mean(x)/sd(x[x<0]))
     values$sharper <- round(sharper, 3)
-    colnames(wealth) <- c("Fixed Ratio", "Risk Parity")
-    wealth
+    wealthv
     
   })  # end reactive code
   
   
   # Return to the output argument a dygraph plot with two y-axes
   output$dyplot <- dygraphs::renderDygraph({
-    wealth <- wealth()
-    colnamev <- colnames(wealth)
+    wealthv <- wealthv()
+    colnamev <- colnames(wealthv)
     
     captiont <- paste0("Sortino ratios: ", paste0(paste0(colnamev, " = ", values$sharper), collapse=" / "))
 
     # Plot log wealths
-    endd <- rutils::calc_endpoints(wealth, interval="weeks")
-    dygraphs::dygraph(wealth[endd], main=captiont) %>%
+    endd <- rutils::calc_endpoints(wealthv, interval="weeks")
+    dygraphs::dygraph(wealthv[endd], main=captiont) %>%
       dyOptions(colors=c("blue","red"), strokeWidth=2) %>%
       dyLegend(show="always", width=500)
   })  # end output plot
