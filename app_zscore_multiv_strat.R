@@ -23,6 +23,8 @@ vxx <- log(get("VXX", rutils::etfenv))
 vxx <- vxx[dates]
 vxx_close <- quantmod::Cl(vxx)
 
+controlv <- HighFreq::param_reg()
+
 captiont <- paste("Strategy for Oversold and Overbought Extreme Price Points")
 
 ## End setup code
@@ -98,8 +100,8 @@ servfun <- function(input, output) {
     retv <- rutils::diffit(closep)
     
     # Calculate SVXY z-scores
-    in_deks <- matrix(1:nrows, nc=1)
-    svxy_scores <- HighFreq::roll_reg(respv=svxy_close, predictor=in_deks, look_back=look_back)
+    predm <- matrix(1:nrows, nc=1)
+    svxy_scores <- HighFreq::roll_reg(respv=svxy_close, predm=predm, look_back=look_back, controlv=controlv)
     svxy_scores <- svxy_scores[, NCOL(svxy_scores)]
     svxy_scores[1:look_back] <- 0
     svxy_scores[is.infinite(svxy_scores)] <- 0
@@ -110,7 +112,7 @@ servfun <- function(input, output) {
     # svxy_scores <- (svxy_close - roll_svxy)/var_rolling
     
     # Calculate VXX z-scores
-    vxx_scores <- HighFreq::roll_reg(respv=vxx_close, predictor=in_deks, look_back=look_back)
+    vxx_scores <- HighFreq::roll_reg(respv=vxx_close, predm=predm, look_back=look_back, controlv=controlv)
     vxx_scores <- vxx_scores[, NCOL(vxx_scores)]
     vxx_scores[1:look_back] <- 0
     vxx_scores[is.infinite(vxx_scores)] <- 0
@@ -121,7 +123,7 @@ servfun <- function(input, output) {
     # vxx_scores <- (vxx_close - roll_vxx)/var_rolling
     
     # Calculate stock z-scores
-    stock_scores <- HighFreq::roll_reg(respv=closep, predictor=in_deks, look_back=look_back)
+    stock_scores <- HighFreq::roll_reg(respv=closep, predm=predm, look_back=look_back, controlv=controlv)
     stock_scores <- stock_scores[, NCOL(stock_scores)]
     stock_scores[1:look_back] <- 0
     stock_scores[is.infinite(stock_scores)] <- 0
@@ -133,7 +135,7 @@ servfun <- function(input, output) {
 
     # Calculate volatility z-scores
     volat <- log(quantmod::Hi(ohlc))-log(quantmod::Lo(ohlc))
-    volat_scores <- HighFreq::roll_reg(respv=volat, predictor=in_deks, look_back=look_back)
+    volat_scores <- HighFreq::roll_reg(respv=volat, predm=predm, look_back=look_back, controlv=controlv)
     volat_scores <- volat_scores[, NCOL(volat_scores)]
     volat_scores[1:look_back] <- 0
     volat_scores[is.infinite(volat_scores)] <- 0
@@ -145,7 +147,7 @@ servfun <- function(input, output) {
     
     # Calculate volume z-scores
     volumes <- quantmod::Vo(ohlc)
-    volume_scores <- HighFreq::roll_reg(respv=volumes, predictor=in_deks, look_back=look_back)
+    volume_scores <- HighFreq::roll_reg(respv=volumes, predm=predm, look_back=look_back, controlv=controlv)
     volume_scores <- volume_scores[, NCOL(volume_scores)]
     volume_scores[1:look_back] <- 0
     volume_scores[is.infinite(volume_scores)] <- 0

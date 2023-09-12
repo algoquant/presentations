@@ -7,10 +7,6 @@
 # volatilities of VTI and SVXY.
 # The model flips the position only if the indicator persists over 
 # several consecutive periods equal to lagg.
-# It can also trade the regression forecast errors instead of the 
-# regression residuals, but it doesn't work better.
-# It can also perform regressions of prices instead of returns, 
-# but it doesn't work better.
 # It uses reactive code to avoid unnecessary calculations.
 # This is the best performing univariate strategy.
 #
@@ -68,12 +64,11 @@ uifun <- shiny::fluidPage(
   ),  # end fluidRow
 
   fluidRow(
-    # Input look-back parameter
+    # Input look-back interval
     # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=50, step=1)),
-    column(width=3, sliderInput("lambda", label="lambda:", min=0.98, max=0.999, value=0.99, step=0.001)),
-    # column(width=3, sliderInput("lambda", label="lambda:", min=0.1, max=0.99, value=0.98, step=0.01)),
+    column(width=3, sliderInput("lambda", label="lambda:", min=0.98, max=0.999, value=0.989, step=0.001)),
     # Input threshold interval
-    column(width=3, sliderInput("threshv", label="Threshold", min=0.1, max=1.3, value=0.76, step=0.02)),
+    column(width=3, sliderInput("threshv", label="Threshold", min=(0.1), max=1.3, value=0.68, step=0.02)),
     # column(width=3, sliderInput("threshold2", label="Threshold2", min=(-1), max=0, value=(-0.3), step=0.1)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
@@ -96,54 +91,38 @@ servfun <- function(input, output) {
   globals <- reactiveValues()
 
   
-  ## Calculate the prices
-  pricem <- shiny::reactive({
-    cat("Loading the prices\n")
+  ## Calculate the returns
+  retv <- shiny::reactive({
     
-    # Load the symbols
     symboln <- input$symboln # Symbol to trade
     symbolr <- input$symbolr # Symbol for response
     symbolp <- input$symbolp # Symbol for predictor
+    cat("Loading the data for ", symboln, "\n")
+    
+    # Load the data
     symbolv <- c(symbolr, symboln, symbolp)
-    
-    # Load the prices
-    na.omit(rutils::etfenv$prices[, symbolv])
 
+    na.omit(rutils::etfenv$returns[, symbolv])
+    # na.omit(mget(symbolv, rutils::etfenv$returns))
+    # na.omit(cbind(
+    #   get(symboln, rutils::etfenv$returns),
+    #   get(symbolp, rutils::etfenv$returns),
+    #   get(symbolr, rutils::etfenv$returns)))
+    
   })  # end Load the data
   
-  
-  ## Calculate the returns
-  retv <- shiny::reactive({
-    cat("Calculating the returns\n")
-    
-    retv <- rutils::diffit(log(pricem()))
-    # Overwrite leading zeros
-    retv[1, ] <- retv[2, ]
-    retv
-
-  })  # end Load the data
-
-
   ## Calculate the z-scores
   zscores <- shiny::reactive({
     
-    cat("Calculating the z-scores\n")
+    cat("Calculating the z-scores", "\n")
     lambda <- input$lambda
     
-    # Load the symbols
-    symboln <- input$symboln # Symbol to trade
-    symbolr <- input$symbolr # Symbol for response
-    symbolp <- input$symbolp # Symbol for predictor
     # Calculate the response and predictor
-    pricem <- pricem()
-    datev <- zoo::index(pricem)
-    respv <- pricem[, symbolr]
-    predm <- pricem[, c(symboln, symbolp)]
-    # retv <- retv()
-    # datev <- zoo::index(retv)
-    # respv <- retv[, symbolr]
-    # predm <- retv[, c(symboln, symbolp)]
-    
+    retv <- retv()
+    datev <- zoo::index(retv)
+    respv <- retv[, 1]
+    predm <- retv[, -1]
+
     # Calculate the trailing volatility of trading stock
     symboln <- input$symboln
     ohlc <- log(get(symboln, rutils::etfenv))
@@ -165,7 +144,7 @@ servfun <- function(input, output) {
     predm <- cbind(predm, volv)
     
     # Add intercept column to predictor matrix
-    predm <- cbind(rep(1, NROW(predm)), predm)
+    # predm <- cbind(rep(1, NROW(predm)), predm)
     
     # symbolr <- input$symbolr
     # ohlc <- log(get(symbolr, rutils::etfenv))
@@ -178,7 +157,7 @@ servfun <- function(input, output) {
     controlv <- HighFreq::param_reg(residscale="scale")
     # Calculate the trailing z-scores
     zscores <- HighFreq::run_reg(respv=respv, predm=predm, lambda=lambda, controlv=controlv)
-    zscores <- zscores[, NCOL(predm)+1, drop=FALSE]
+    zscores <- zscores[, NCOL(predm)+2, drop=FALSE]
     # zscores[1:look_back] <- 0
     zscores[is.infinite(zscores)] <- 0
     zscores[is.na(zscores)] <- 0
@@ -203,7 +182,7 @@ servfun <- function(input, output) {
     lagg <- input$lagg
     # lambda <- input$lambda
     
-    retv <- retv()[, input$symboln]
+    retv <- retv()[, 2]
     zscores <- zscores()
     # retv <- returns/sd(retv)
     retsum <- cumsum(retv)
@@ -315,15 +294,13 @@ servfun <- function(input, output) {
         dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%
         dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="red") %>%
         dySeries(name=colnamev[3], axis="y", label=colnamev[3], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
-        dySeries(name=colnamev[4], axis="y", label=colnamev[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green") %>%
-        dyLegend(show="always", width=300)
+        dySeries(name=colnamev[4], axis="y", label=colnamev[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
     } else if (add_annotations == "False") {
       dygraphs::dygraph(pnls[, 1:2], main=captiont) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
         dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%
-        dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="red") %>%
-        dyLegend(show="always", width=300)
+        dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="red")
     }  # end if
     
     # datav <- cbind(cumsum(retv), zscores)

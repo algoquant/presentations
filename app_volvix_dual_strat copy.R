@@ -1,7 +1,7 @@
 ##############################
 # This is a shiny app for simulating a contrarian strategy 
-# using z-scores of regressions for VXX and SVXY prices versus 
-# the rolling VTI volatility.
+# using the z-scores of rolling regressions of SVXY prices 
+# versus VXX and the rolling volatility of VTI as predictors.
 #
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -17,26 +17,27 @@ library(dygraphs)
 
 # Load the VIX data
 svxy <- log(quantmod::Cl(get("SVXY", rutils::etfenv)))
-dates <- zoo::index(svxy)
+datev <- zoo::index(svxy)
 vxx <- log(quantmod::Cl(get("VXX", rutils::etfenv)))
-vxx <- vxx[dates]
-vtis <- log(get("VTI", rutils::etfenv))
-vtis <- vtis[dates]
-vti_close <- quantmod::Cl(vtis)
+vxx <- vxx[datev]
+ohlc <- log(get("VTI", rutils::etfenv))
+ohlc <- ohlc[datev]
+vtip <- quantmod::Cl(ohlc)
+
 
 captiont <- paste("Regression Z-score of VXX and SVXY Prices Versus VTI Volatility")
 
 # Variable setup for testing
 # symbol <- "VTI"
-# ohlc <- log(get(symbol, rutils::etfenv)[dates])
+# ohlc <- log(get(symbol, rutils::etfenv)[datev])
 # lambda <- 0.85
 # bid_offer <- 0.0
 # look_back <- 41
-# threshold <- 0.03
+# threshv <- 0.03
 # coeff <- (-1)
 # lagg <- 1
-# closep <- quantmod::Cl(ohlc)
-# retv <- rutils::diffit(closep)
+# vtip <- quantmod::Cl(ohlc)
+# retv <- rutils::diffit(vtip)
 # retsum <- cumsum(retv)
 # nrows <- NROW(retv)
 
@@ -50,33 +51,41 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("symbol", label="Symbol to Trade",
+    column(width=1, selectInput("symboln", label="Symbol to Trade",
                                 choices=rutils::etfenv$symbolv, selected="VTI")),
     # Input VIX symbol
     # column(width=2, selectInput("symbol_vix", label="Symbol VIX",
     #                             choices=c("VXX", "SVXY"), selected="VXX")),
+    # Input decay parameter
+    column(width=2, sliderInput("lambda", label="lambda:", min=0.1, max=0.99, value=0.98, step=0.01)),
+    # Input look-back interval
+    # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=41, step=1)),
+    # Input threshold interval
+    column(width=3, sliderInput("threshv", label="Threshold", min=0.1, max=1.3, value=0.68, step=0.02)),
     # Input add annotations Boolean
-    column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
+    column(width=1, selectInput("add_annotations", label="Buy/sell annotations?", choices=c("True", "False"), selected="False")),
+    # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
+    column(width=1, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
+    column(width=1, sliderInput("lagg", label="lagg", min=1, max=4, value=1, step=1)),
     # Input the bid-offer spread
-    column(width=2, numericInput("bid_offer", label="Bid-offer:", value=0.0, step=0.0001))
+    column(width=1, numericInput("bid_offer", label="Bid-offer:", value=0.0, step=0.0001))
   ),  # end fluidRow
 
-  fluidRow(
+  # fluidRow(
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=41, step=1)),
-    column(width=3, sliderInput("lambda", label="lambda:", min=0.01, max=0.99, value=0.85, step=0.01)),
+    # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=41, step=1)),
     # Input threshold interval
-    column(width=2, sliderInput("threshold", label="Threshold", min=0.01, max=0.1, value=0.03, step=0.01)),
+    # column(width=2, sliderInput("threshold", label="Threshold", min=0.001, max=0.1, value=0.03, step=0.001)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
-    column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
+    # column(width=1, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),
     # column(width=2, sliderInput("slow_back", label="slow_back:", min=11, max=251, value=151, step=1)),
     # Input the trade lag
-    column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=1, step=1))
-  ),  # end fluidRow
+    # column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=1, step=1))
+  # ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dyplot", width="100%", height="600px"), height=10, width=12)
+  dygraphs::dygraphOutput("dyplot", width="90%", height="600px")
 
 )  # end fluidPage interface
 
@@ -87,40 +96,41 @@ servfun <- function(input, output) {
   # Create an empty list of reactive values.
   values <- reactiveValues()
 
-  # Load the data
+  # Load the OHLC prices
   ohlc <- shiny::reactive({
     
-    symbol <- input$symbol
-    cat("Loading data for ", symbol, "\n")
+    symboln <- input$symboln
+    cat("Loading OHLC prices for ", symboln, "\n")
     
-    log(get(symbol, rutils::etfenv)[dates])
+    log(get(symboln, rutils::etfenv)[datev])
 
-  })  # end Load the data
+  })  # end Load the OHLC prices
   
 
   # Recalculate the strategy
   pnls <- shiny::reactive({
     
-    symbol <- input$symbol
-    cat("Recalculating strategy for ", symbol, "\n")
+    symboln <- input$symboln
+    cat("Recalculating strategy for ", symboln, "\n")
     # Get model parameters from input argument
-    look_back <- input$look_back
     lambda <- input$lambda
+    # look_back <- input$look_back
     coeff <- as.numeric(input$coeff)
     lagg <- input$lagg
 
     # Calculate cumulative returns
     ohlc <- ohlc()
-    closep <- quantmod::Cl(ohlc)
-    retv <- rutils::diffit(closep)
-    # retv <- returns/sd(retv)
+    vtip <- quantmod::Cl(ohlc)
+    retv <- rutils::diffit(vtip)
+    # retv <- retv/sd(retv)
     retsum <- cumsum(retv)
     nrows <- NROW(retv)
 
-    # Calculate rolling volatility
-    variance <- HighFreq::run_var_ohlc(vtis, lambda=lambda)
-    # variance <- HighFreq::roll_var_ohlc(ohlc=vtis, look_back=look_back, scale=FALSE)
-    variance[variance == 0] <- 1
+    # Calculate the rolling variance
+    volv <- HighFreq::run_var_ohlc(ohlc[datev], lambda=lambda)
+    volv <- sqrt(volv)
+    # volv <- HighFreq::roll_var_ohlc(ohlc=ohlc, look_back=look_back, scale=FALSE)
+    # volv[volv == 0] <- 1
     
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
@@ -129,25 +139,38 @@ servfun <- function(input, output) {
     # posv <- ifelse(indic == indic_lag, indic, posv)
     
     # Flip position if the scaled returns exceed threshold
-    threshold <- input$threshold
+    threshv <- input$threshv
     
     # Calculate trailing z-scores of SVXY
-    predv <- cbind(sqrt(variance), vxx, vti_close)
+    predm <- cbind(volv, vxx, vtip)
+    # Get rid of NAs in VXX prices - VXX prices from 2019-02 to 2019-05 are missing
+    # predm <- na.omit(predm)
+    predm <- lapply(predm, function(x) {
+      x[is.na(x)] <- 0
+      x
+    }) # end lapply
+    predm <- rutils::do_call(cbind, predm)
+    # sum(is.na(predm))
+    # Add intercept column to the predictor matrix
+    predm <- cbind(rep(1, NROW(predm)), predm)
+    
+    # Response equals SVXY returns
     respv <- svxy
-    # zscores <- drop(HighFreq::roll_reg(respv=respv, predictor=predv, look_back=look_back))
-    controlv <- HighFreq::param_reg(intercept=TRUE)
-    rollreg <- HighFreq::roll_reg(respv=respv, predv=predv, look_back=look_back, controlv=controlv)
-    zscores <- rollreg[, NCOL(rollreg), drop=TRUE]
-    # zscores <- HighFreq::run_reg(respv=respv, predictor=predv, lambda=lambda, method="scale")
-    # zscores <- zscores[, 1, drop=TRUE]
+    
+    controlv <- HighFreq::param_reg(residscale="scale")
+    zscores <- HighFreq::run_reg(respv=respv, predm=predm, lambda=lambda, controlv=controlv)
+    # rollreg <- HighFreq::roll_reg(respv=respv, predm=predm, look_back=look_back, controlv=controlv)
+    zscores <- zscores[, NCOL(predm)+1, drop=TRUE]
+    # zscores <- rollreg[, NCOL(rollreg), drop=TRUE]
     # zscores[1:look_back] <- 0
     # zscores[is.infinite(zscores)] <- 0
+    
     # zscores[is.na(zscores)] <- 0
     # zscores <- zscores/sqrt(look_back)
     indic <- rep(NA_integer_, nrows)
     indic[1] <- 0
-    indic[zscores > threshold] <- coeff
-    indic[zscores < (-threshold)] <- (-coeff)
+    indic[zscores > threshv] <- coeff
+    indic[zscores < (-threshv)] <- (-coeff)
     indic <- zoo::na.locf(indic, na.rm=FALSE)
     indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
     indics[1:lagg] <- 0
@@ -159,14 +182,38 @@ servfun <- function(input, output) {
     posv[1:lagg] <- 0
     # positions_svxy <- posv
     
+    # Calculate trailing z-scores of VXX
+    # predm <- cbind(sqrt(volv), svxy, vtip)
+    # respv <- vxx
+    # rollreg <- HighFreq::roll_reg(respv=respv, predictor=predm, intercept=TRUE, look_back=look_back)
+    # zscores <- rollreg[, NCOL(rollreg), drop=TRUE]
+    # zscores[is.infinite(zscores)] <- 0
+    # zscores[is.na(zscores)] <- 0
+    # zscores <- zscores/sqrt(look_back)
+    # indic <- rep(NA_integer_, nrows)
+    # indic[1] <- 0
+    # indic[zscores > threshv] <- coeff
+    # indic[zscores < (-threshv)] <- (-coeff)
+    # indic <- zoo::na.locf(indic, na.rm=FALSE)
+    # indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    # indics[1:lagg] <- 0
+    # posv <- rep(NA_integer_, nrows)
+    # posv[1] <- 0
+    # posv <- ifelse(indics == lagg, 1, posv)
+    # posv <- ifelse(indics == (-lagg), -1, posv)
+    # posv <- zoo::na.locf(posv, na.rm=FALSE)
+    # posv[1:lagg] <- 0
+    
+    # posv <- positions_svxy + posv
+    
     # Calculate indicator of flipping the positions
     indic <- rutils::diffit(posv)
     # Calculate number of trades
     values$ntrades <- sum(abs(indic) > 0)
     
     # Add buy/sell indicators for annotations
-    longi <- (indic > 0)
-    shorti <- (indic < 0)
+    indicl <- (indic > 0)
+    indics <- (indic < 0)
     
     # Lag the positions to trade in next period
     posv <- rutils::lagit(posv, lagg=1)
@@ -178,7 +225,7 @@ servfun <- function(input, output) {
     costs <- 0.5*input$bid_offer*abs(indic)
     pnls <- (pnls - costs)
 
-    # Scale the pnls so they have same SD as returns
+    # Scale the pnls so they have same SD as retv
     pnls <- pnls*sd(retv[retv<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
@@ -190,8 +237,8 @@ servfun <- function(input, output) {
 
     # Bind with indicators
     pnls <- cumsum(pnls)
-    pnls <- cbind(pnls, retsum[longi], retsum[shorti])
-    colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
+    pnls <- cbind(pnls, retsum[indicl], retsum[indics])
+    colnames(pnls) <- c(paste(input$symboln, "Returns"), "Strategy", "Buy", "Sell")
 
     pnls
 
@@ -202,7 +249,7 @@ servfun <- function(input, output) {
   # Return to the output argument a dygraph plot with two y-axes
   output$dyplot <- dygraphs::renderDygraph({
     
-    cat("Plotting for ", input$symbol, "\n")
+    cat("Plotting for ", input$symboln, "\n")
     
     # Get the pnls
     pnls <- pnls()
@@ -213,7 +260,7 @@ servfun <- function(input, output) {
     # Get number of trades
     ntrades <- values$ntrades
     
-    captiont <- paste("Strategy for", input$symbol, "Regression Z-score / \n", 
+    captiont <- paste("Strategy for", input$symboln, "Regression Z-score / \n", 
                       paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
                       "Number of trades=", ntrades)
     
@@ -227,13 +274,15 @@ servfun <- function(input, output) {
         dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%
         dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="red") %>%
         dySeries(name=colnamev[3], axis="y", label=colnamev[3], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
-        dySeries(name=colnamev[4], axis="y", label=colnamev[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
+        dySeries(name=colnamev[4], axis="y", label=colnamev[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green") %>%
+        dyLegend(show="always", width=300)
     } else if (add_annotations == "False") {
       dygraphs::dygraph(pnls[, 1:2], main=captiont) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
         dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%
-        dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="red")
+        dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="red") %>%
+        dyLegend(show="always", width=300)
     }  # end if
     
   })  # end output plot

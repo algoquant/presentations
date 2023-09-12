@@ -135,7 +135,7 @@ servfun <- function(input, output) {
     # retp <- retspca[, 1:dimax]
     
     # Rerun the model
-    pnls <- run_portf(retp, dimax, lambda, lambdacov, lambdaw)
+    pnls <- sim_portfoptim(retp, dimax, lambda, lambdacov, lambdaw)
     pnls <- pnls[, 1]
     
     

@@ -120,7 +120,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     
     cat("Recalculating the residuals", "\n")
     # Get model parameters from input argument
-    # lambda <- input$lambda
+    lambda <- input$lambda
     # retv <- retv()
     pricev <- pricev()
     betas <- betas()
@@ -130,10 +130,14 @@ servfun <- shiny::shinyServer(function(input, output) {
     # colnames(pricec) <- "pricec"
     # # pricec - min(pricec) + 1
     # pricec
+
+    # Add unit intercept column to the predictor matrix
+    predm <- cbind(rep(1, NROW(pricev)), pricev[, 2])
     
-    # regs <- HighFreq::run_reg(respv=retv[, 1], predv=retv[, 2], lambda=lambda)
-    regs <- HighFreq::run_reg(respv=pricev[, 1], predv=pricev[, 2], lambda=lambda)
-    regs[, NCOL(regs), drop=FALSE]
+    controlv <- HighFreq::param_reg()    
+    # regs <- HighFreq::run_reg(respv=retv[, 1], predm=predm, lambda=lambda, controlv=controlv)
+    regs <- HighFreq::run_reg(respv=pricev[, 1], predm=predm, lambda=lambda, controlv=controlv)
+    regs[, NCOL(regs)-1, drop=FALSE]
 
   })  # end reactive code
   
@@ -243,7 +247,8 @@ servfun <- shiny::shinyServer(function(input, output) {
 
     # Rescale strategy cashflows to volatility of ETF
     pricetf <- pricev[, 1]
-    pnls <- pnls*sd(rutils::diffit(pricetf))/sd(pnls)
+    retp <- rutils::diffit(pricetf)
+    pnls <- pnls*sd(retp[retp<0])/sd(pnls[pnls<0])
     pnls <- cumsum(pnls)
     # plot(pnls, t="l")
     
