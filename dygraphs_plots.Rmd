@@ -28,17 +28,17 @@ Double-click your mouse to restore the plot.
 
 
 ```{r echo=FALSE}
-# extract the closing prices into a list of xts time series
+# Extract the closing prices into a list of xts time series
 prices <- lapply(rutils::etfenv$symbolv, function(symbol) {
   quantmod::Cl(get(symbol, envir=rutils::etfenv))
 })  # end lapply
 
-# flatten (cbind) list of prices into single xts series
+# Flatten (cbind) list of prices into single xts series
 prices <- rutils::do_call(cbind, prices)
 
-# overwrite NA values
-prices <- rutils::na_locf(prices)
-prices <- rutils::na_locf(prices, from_last=TRUE)
+# Overwrite NA values
+prices <- zoo::na.locf(prices)
+prices <- zoo::na.locf(prices, from_last=TRUE)
 
 # make nice column names
 colnames(prices) <- rutils::do_call_rbind(strsplit(colnames(prices), split="[.]"))[, 1]

@@ -39,7 +39,7 @@ uifun <- shiny::fluidPage(
   # Create single row with two slider inputs
   fluidRow(
     # Input lambda decay factor
-    column(width=2, sliderInput("lambda", label="Lambda decay factor:", min=0.1, max=0.9, value=0.2, step=0.01)),
+    column(width=2, sliderInput("lambda", label="Lambda decay factor:", min=0.01, max=0.9, value=0.2, step=0.01)),
     # Input VTI weight
     column(width=2, sliderInput("weightv", label="VTI weight", min=0.4, max=0.6, value=0.5, step=0.01))
   ),  # end fluidRow
@@ -64,7 +64,8 @@ servfun <- function(input, output) {
     lambda <- input$lambda
 
     # Calculate rolling percentage volatility
-    volat <- HighFreq::run_var(retp, lambda=lambda)
+    volat <- HighFreq::run_var(retd, lambda=lambda)
+
     sqrt(volat)
 
   })  # end reactive code
@@ -84,16 +85,18 @@ servfun <- function(input, output) {
 
     # Calculate standardized prices and portfolio weights
     volat <- volat()
-    weightv <- ifelse(volat > 1e-4, 1/volat, 0)
-    # Scale weights to 1 dollar total
-    weightv <- weightv/rowSums(weightv)
-    weightv[1, ] <- 0
-    # Lag the weights
-    weightv <- rutils::lagit(weightv)
-    # Calculate wealth of risk parity
-    retw <- rowSums(retp*weightv)
-    wealthrp <- cumprod(1 + retw)
-
+    volat <- rutils::lagit(volat)
+    volat[1:2, ] <- 1
+    
+    # Calculate the standardized prices with unit dollar volatility
+    pricerp <- pricev/volat
+    # Scale the sum of stock prices to $2
+    pricerp <- 2*pricerp/rowSums(pricerp)
+    # Calculate the risk parity returns
+    retsd <- retp*pricerp
+    # Calculate the wealth of risk parity
+    wealthrp <- 1 + cumsum(retsd %*% weightv)
+    
     # Calculate log wealths
     wealthv <- log(cbind(wealthpd, wealthrp))
     wealthv <- xts::xts(wealthv, zoo::index(pricev))

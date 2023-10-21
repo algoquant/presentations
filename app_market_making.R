@@ -120,10 +120,10 @@ servfun <- function(input, output) {
   output$dyplot <- dygraphs::renderDygraph({
     colnamev <- colnames(datav())
     dygraphs::dygraph(datav(), main=paste0("Market Making Strategy for ", symbol)) %>%
-      dyAxis("y", label=colnamev[2], independentTicks=TRUE) %>%
-      dyAxis("y2", label=colnamev[1], independentTicks=TRUE) %>%
-      dySeries(name=colnamev[2], axis="y", label=colnamev[2], strokeWidth=1, col="red") %>%
-      dySeries(name=colnamev[1], axis="y2", label=colnamev[1], strokeWidth=1, col="blue")
+      dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
+      dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
+      dySeries(name=colnamev[2], axis="y", strokeWidth=1, col="red") %>%
+      dySeries(name=colnamev[1], axis="y2", strokeWidth=1, col="blue")
   })  # end output plot
   # output$plotobj <- shiny::renderPlot({
   #   plot(datav(), t="l", main="Market Making Strategy")

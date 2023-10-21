@@ -55,9 +55,9 @@ library(dygraphs)
 # load(file="/Users/jerzy/Develop/data/QQQ_bigticks_202305.RData")
 # load(file="/Users/jerzy/Develop/data/SPY_second_202306.RData")
 # load(file="/Users/jerzy/Develop/data/SPY_second_2023.RData")
-# dataf <- "Seconds"
+dataf <- "Seconds"
 # load(file="/Users/jerzy/Develop/data/SPY_5second_202306.RData")
-dataf <- "5-Seconds"
+# dataf <- "5-Seconds"
 # load(file="/Users/jerzy/Develop/data/SPY_10second_202306.RData")
 # load(file="/Users/jerzy/Develop/data/SPY_10second_2023.RData")
 # dataf <- "10-Seconds"
@@ -104,7 +104,7 @@ uifun <- shiny::fluidPage(
     # column(width=2, sliderInput("lambda", label="lambda:", min=0.01, max=0.99, value=0.99, step=0.01)),
     # column(width=2, sliderInput("lambda", label="lambda:", min=0.8, max=0.999, value=0.994, step=0.001)),
     # Input slow lambda decay parameter
-    column(width=2, sliderInput("lambdas", label="lambda slow:", min=0.8, max=0.99, value=0.91, step=0.01)),
+    column(width=2, sliderInput("lambdas", label="lambda slow:", min=0.3, max=0.99, value=0.91, step=0.01)),
     # Input fast lambda decay parameter
     column(width=2, sliderInput("lambdaf", label="lambda fast:", min=0.4, max=0.99, value=0.74, step=0.01)),
     # Input beta decay parameter
@@ -159,7 +159,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     lambdaf <- input$lambdaf
     volf <- input$volf
     pricez <- (pricev - rutils::lagit(HighFreq::run_mean(pricev, lambda=lambdas)))
-    volv <- rutils::lagit(sqrt(HighFreq::run_var(pricev, lambda=lambdaf)))
+    volv <- rutils::lagit(sqrt(HighFreq::run_var(retp, lambda=lambdaf)))
     volv <- ifelse(volv > volf, volv, volf)
     pricez <- ifelse(volv > 0, pricez/volv, 0)
     pricez[1:5] <- 0
@@ -202,11 +202,7 @@ servfun <- shiny::shinyServer(function(input, output) {
       if (pricez[td] > threshu) { # The z-score is greater than the threshold level
         # Update the maximum and minimum z-scores
         zscoremin[td] <- 0
-        if (pricez[td] >= zscoremax[td-1]) {
-          zscoremax[td] <- pricez[td]
-        } else { # Do nothing
-          zscoremax[td] <- zscoremax[td-1]
-        } # end if
+        zscoremax[td] <- max(pricez[td], zscoremax[td-1])
         # Update the positions
         if (posv[td-1] > 0) { # Unwind long position
           posv[td] <- coeff
@@ -220,11 +216,7 @@ servfun <- shiny::shinyServer(function(input, output) {
       } else if (pricez[td] < threshl) { # The z-score is less than minus the threshold level
         # Update the maximum and minimum z-scores
         zscoremax[td] <- 0
-        if (pricez[td] <= zscoremin[td-1]) {
-          zscoremin[td] <- pricez[td]
-        } else { # Do nothing
-          zscoremin[td] <- zscoremin[td-1]
-        } # end if
+        zscoremin[td] <- min(pricez[td], zscoremin[td-1])
         # Update the positions
         if (posv[td-1] < 0) { # Unwind short position
           posv[td] <- -coeff

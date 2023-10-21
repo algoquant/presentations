@@ -157,19 +157,19 @@ servfun <- function(input, output) {
       dygraphs::dygraph(pnls, main=captiont) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
-        dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%
+        dySeries(name=colnamev[1], axis="y", strokeWidth=1, col="blue") %>%
         # Add second y-axis
-        dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="red") %>%
-        dySeries(name=colnamev[3], axis="y2", label=colnamev[3], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
-        dySeries(name=colnamev[4], axis="y2", label=colnamev[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
+        dySeries(name=colnamev[2], axis="y2", strokeWidth=1, col="red") %>%
+        dySeries(name=colnamev[3], axis="y2", drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
+        dySeries(name=colnamev[4], axis="y2", drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
     } else if (add_annotations == "False") {
       # Create a dygraph object without annotations (no plot is created)
       dygraphs::dygraph(pnls[endd, 1:2], main=captiont) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         # Add second y-axis
         dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
-        dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%
-        dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="red")
+        dySeries(name=colnamev[1], axis="y", strokeWidth=1, col="blue") %>%
+        dySeries(name=colnamev[2], axis="y2", strokeWidth=1, col="red")
     }  # end if
     
   })  # end reactive

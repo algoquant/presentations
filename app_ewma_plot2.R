@@ -73,8 +73,8 @@ servfun <- shiny::shinyServer(function(input, output) {
     cat("Plotting the dygraph\n")
     colnamev <- colnames(ewmap())
     dygraph(ewmap(), main=paste(colnamev[1], "EWMA Prices")) %>%
-      dySeries(name=colnamev[1], label=colnamev[1], strokeWidth=2, color="blue") %>%
-      dySeries(name=colnamev[2], label=colnamev[2], strokeWidth=2, color="red")
+      dySeries(name=colnamev[1], strokeWidth=2, color="blue") %>%
+      dySeries(name=colnamev[2], strokeWidth=2, color="red")
   })  # end output plot
 })  # end server code
 

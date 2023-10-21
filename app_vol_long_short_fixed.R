@@ -141,8 +141,8 @@ servfun <- function(input, output) {
     dygraphs::dygraph(wealthv[endd], main=captiont) %>%
       dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
       dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
-      dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=2, col="blue") %>%
-      dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=2, col="red") %>%
+      dySeries(name=colnamev[1], axis="y", strokeWidth=2, col="blue") %>%
+      dySeries(name=colnamev[2], axis="y2", strokeWidth=2, col="red") %>%
       dyLegend(show="always", width=500)
     
   })  # end output plot

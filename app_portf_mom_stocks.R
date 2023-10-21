@@ -181,8 +181,8 @@ servfun <- function(input, output) {
     dygraphs::dygraph(datav(), main="Momentum Strategy for S&P500 Portfolio") %>%
       dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
       dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
-      dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="red") %>%
-      dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="blue") %>%
+      dySeries(name=colnamev[1], axis="y", strokeWidth=1, col="red") %>%
+      dySeries(name=colnamev[2], axis="y2", strokeWidth=1, col="blue") %>%
       dyLegend(show="always", width=500)
   })  # end output plot
   

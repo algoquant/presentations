@@ -61,7 +61,8 @@ load(file="/Users/jerzy/Develop/data/SPY_minute_2023.RData")
 # colnames(pricev) <- "SPY"
 dataf <- "Minutes"
 
-# load(file="/Users/jerzy/Develop/data/SPY_second_202306.RData")
+# load(file="/Users/jerzy/Develop/data/SPY_second_2023.RData")
+# load(file="/Users/jerzy/Downloads/temp/SPY_20230922.RData")
 # dataf <- "Seconds"
 # load(file="/Users/jerzy/Develop/data/SPY_5second_202306.RData")
 # dataf <- "5-Seconds"
@@ -90,8 +91,8 @@ datev <- which(datev > 1000)
 # Set large overnight returns to zero
 # retp[abs(retp) > 10*sd(retp)] <- 0
 # retp[abs(retp) > 3*sd(retp)] <- 0
-# retp[datev] <- 0
-# pricev <- cumsum(retp)
+retp[datev] <- 0
+pricev <- cumsum(retp)
 
 captiont <- paste("EWMA Crossover Strategy For", symboln, dataf)
 
@@ -109,16 +110,16 @@ uifun <- shiny::fluidPage(
     # column(width=2, sliderInput("lambda", label="lambda:", min=0.8, max=0.999, value=0.99, step=0.001)),
     # Input slow lambda decay parameter
     # column(width=2, sliderInput("lambdas", label="lambda slow:", min=0.98, max=0.999, value=0.99, step=0.001)),
-    column(width=2, sliderInput("lambdas", label="lambda slow:", min=0.8, max=0.999, value=0.99, step=0.001)),
+    column(width=2, sliderInput("lambdas", label="lambda slow:", min=0.5, max=0.999, value=0.95, step=0.001)),
     # Input fast lambda decay parameter
     # column(width=2, sliderInput("lambdaf", label="lambda fast:", min=0.5, max=0.99, value=0.9, step=0.01)),
     column(width=2, sliderInput("lambdaf", label="lambda fast:", min=0.1, max=0.99, value=0.9, step=0.01)),
     # Input lag parameter
     column(width=1, sliderInput("lagg", label="lag", min=1, max=3, value=1, step=1)),
-    # Input the Bid-ask spread
-    column(width=2, numericInput("bidask", label="Bid-ask:", value=0.01, step=0.01)),
     # Input trending or reverting (contrarian) strategy
-    column(width=1, selectInput("coeff", label="Trend (1) Revert (-1)", choices=c(1, -1), selected=(-1)))
+    column(width=1, selectInput("coeff", label="Trend (1) Revert (-1)", choices=c(1, -1), selected=(-1))),
+    # Input the Bid-ask spread
+    column(width=1, numericInput("bidask", label="Bid-ask:", value=0.0, step=0.01))
   ),  # end fluidRow
   
   # create output plot panel
@@ -139,10 +140,12 @@ servfun <- shiny::shinyServer(function(input, output) {
     cat("Recalculating the EWMA prices", "\n")
     ## Calculate the fast and slow EWMA prices
     # pricem <- HighFreq::run_mean(pricev, lambda=input$lambda)
-    pricesl <- HighFreq::run_mean(pricev, lambda=input$lambdas)
-    pricef <- HighFreq::run_mean(pricev, lambda=input$lambdaf)
-    sign(zoo::coredata(pricef - pricesl))
+    # pricesl <- HighFreq::run_mean(pricev, lambda=input$lambdas)
+    # pricef <- HighFreq::run_mean(pricev, lambda=input$lambdaf)
+    # sign(zoo::coredata(pricef - pricesl))
 
+    sign(zoo::coredata(HighFreq::run_mean(retp, lambda=input$lambdas)))
+    
   })  # end reactive code
 
   
@@ -231,8 +234,9 @@ servfun <- shiny::shinyServer(function(input, output) {
                       "Number of trades=", values$ntrades)
     
     # endd <- rutils::calc_endpoints(wealthv, interval="days")
-    dygraphs::dygraph(cumsum(wealthv), main=captiont) %>%
-    # dygraphs::dygraph(cumsum(wealthv)[endd], main=captiont) %>%
+    endd <- rutils::calc_endpoints(wealthv, interval="minutes")
+    # dygraphs::dygraph(cumsum(wealthv), main=captiont) %>%
+    dygraphs::dygraph(cumsum(wealthv)[endd], main=captiont) %>%
       dyOptions(colors=c("blue", "red"), strokeWidth=2) %>%
       dyLegend(show="always", width=300)
   })  # end output plot

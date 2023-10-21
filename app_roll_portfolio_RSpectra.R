@@ -154,8 +154,8 @@ servfun <- function(input, output) {
     # dygraphs::dygraph(cumsum(pnls)[endp], main="Rolling Portfolio Optimization Strategy") %>%
     #   dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
     #   dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
-    #   dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokewidth=2, col="blue") %>%
-    #   dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokewidth=2, col="red")
+    #   dySeries(name=colnamev[1], axis="y", strokewidth=2, col="blue") %>%
+    #   dySeries(name=colnamev[2], axis="y2", strokewidth=2, col="red")
   })  # end output plot
   
   # output$dygraph <- dygraphs::renderDygraph({
