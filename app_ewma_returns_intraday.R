@@ -1,6 +1,8 @@
 ##############################
-# This is a shiny app for simulating a dual EWMA moving average 
-# crossover strategy for ETFs.
+# This is a shiny app for simulating an autoregressive strategy 
+# using the trailing fast and slow Sharpe ratios.
+# The trailing Sharpe ratio is equal to the EWMA of returns 
+# divided by the trailing volatility of intraday returns.
 #
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -14,7 +16,11 @@ library(dygraphs)
 
 ## Model and data setup
 
-captiont <- paste("Dual EWMA Moving Average Crossover Strategy")
+# Load the intraday returns.
+load("/Users/jerzy/Develop/data/SPY_second_20231113.RData")
+
+# symbol <- "AAPL"
+captiont <- paste("Autoregressive Strategy Using Trailing Fast And Slow Sharpe Ratios")
 
 ## End setup code
 
@@ -25,17 +31,20 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("symbol", label="Symbol", choices=rutils::etfenv$symbolv, selected="VTI")),
+    column(width=2, selectInput("symbol", label="Symbol", choices=c("SPY", "AAPL"), selected="SPY")),
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the bid-ask spread
-    column(width=2, numericInput("bidask", label="Bid-ask:", value=0.0000, step=0.0001))
+    column(width=2, numericInput("bidask", label="Bid-ask:", value=0.002, step=0.001))
   ),  # end fluidRow
 
   fluidRow(
     # Input the EWMA decays
-    column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.8, max=0.99, value=0.9, step=0.001)),
-    column(width=2, sliderInput("lambdas", label="Slow lambda:", min=0.8, max=0.99, value=0.95, step=0.001)),
+    column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.01, max=0.99, value=0.9, step=0.01)),
+    column(width=2, sliderInput("lambdas", label="Slow lambda:", min=0.99, max=0.9999, value=0.9993, step=0.0001)),
+    # Input the EWMA loadings
+    column(width=2, sliderInput("loadf", label="Fast load:", min=(-1.0), max=1.0, value=(-1.0), step=0.1)),
+    column(width=2, sliderInput("loads", label="Slow load:", min=(-1.0), max=1.0, value=(0.0), step=0.1)),
     # Input the trade lag
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=4, value=2, step=1))
   ),  # end fluidRow
@@ -51,89 +60,105 @@ servfun <- function(input, output) {
 
   # Create an empty list of reactive values.
   values <- reactiveValues()
-
   # Load the closing prices
-  closep <- shiny::reactive({
-    
-    symbol <- input$symbol
-    cat("Loading data for ", symbol, "\n")
-    
-    ohlc <- get(symbol, rutils::etfenv)
-    quantmod::Cl(ohlc)
-
-  })  # end Load the closing prices
+  # closep <- shiny::reactive({
+  #   
+  #   symbol <- input$symbol
+  #   cat("Loading data for ", symbol, "\n")
+  #   
+  #   # ohlc <- get(symbol, rutils::etfenv)
+  #   # quantmod::Cl(ohlc["2010/2019"])
+  #   pricel[[51]][, 1]
+  # 
+  # })  # end Load the closing prices
   
   # Load the log returns
-  retv <- shiny::reactive({
-    
-    cat("Recalculating returns for ", input$symbol, "\n")
-    
-    rutils::diffit(log(closep()))
-
-  })  # end Load the log returns
+  # retv <- shiny::reactive({
+  #   
+  #   cat("Recalculating returns for ", input$symbol, "\n")
+  #   
+  #   rutils::diffit(closep())
+  # 
+  # })  # end Load the log returns
   
 
   # Recalculate the strategy
   pnls <- shiny::reactive({
     
-    cat("Recalculating strategy for ", input$symbol, "\n")
+    cat("Recalculating strategy for", input$symbol, "\n")
     # Get model parameters from input argument
-    closep <- closep()
+    # closep <- closep()
     lambdaf <- input$lambdaf
     lambdas <- input$lambdas
+    loadf <- input$loadf
+    loads <- input$loads
+    bidask <- input$bidask
     # look_back <- input$look_back
     lagg <- input$lagg
-
-    # Calculate cumulative returns
-    retv <- retv()
-    retc <- cumsum(retv)
-    nrows <- NROW(retv)
     
-    # Calculate EWMA prices
-    ewmaf <- HighFreq::run_mean(closep, lambda=lambdaf)
-    ewmas <- HighFreq::run_mean(closep, lambda=lambdas)
+    # Calculate cumulative returns
+    # retv <- retv()
+    # retc <- cumsum(retv)
+    # nrows <- NROW(retv)
+    
 
     # Determine dates when the EWMAs have crossed
-    crossi <- sign(ewmaf - ewmas)
+    # crossi <- sign(ewmaf - ewmas)
     
     # Calculate cumulative sum of EWMA crossing indicator
-    crossc <- HighFreq::roll_sum(tseries=crossi, look_back=lagg)
-    crossc[1:lagg] <- 0
+    # crossc <- HighFreq::roll_sum(tseries=crossi, look_back=lagg)
+    # crossc[1:lagg] <- 0
     # Calculate the positions
     # Flip position only if the crossi and its recent past values are the same.
     # Otherwise keep previous position.
     # This is designed to prevent whipsaws and over-trading.
-    posv <- rep(NA_integer_, nrows)
-    posv[1] <- 0
-    posv <- ifelse(crossc == lagg, 1, posv)
-    posv <- ifelse(crossc == (-lagg), -1, posv)
-    posv <- zoo::na.locf(posv, na.rm=FALSE)
-    posv[1:lagg] <- 0
     
-    # Calculate indicator of flipped positions
-    flipi <- rutils::diffit(posv)
-    # Calculate number of trades
-    values$ntrades <- sum(abs(flipi)>0)
-    
-    # Add buy/sell indicators for annotations
-    longi <- (flipi > 0)
-    shorti <- (flipi < 0)
-    
-    # Lag the positions to trade in next period
-    posv <- rutils::lagit(posv, lagg=1)
-    
-    # Calculate strategy pnls
-    pnls <- posv*retv
-    
-    # Calculate transaction costs
-    costs <- 0.5*input$bidask*abs(flipi)
-    pnls <- (pnls - costs)
+    ntrades <- 0
+    pnls <- lapply(retl, function(retv) {
+      # Calculate EWMA prices
+      ewmaf <- HighFreq::run_mean(retv, lambda=lambdaf)
+      volf <- sqrt(HighFreq::run_var(retv, lambda=lambdaf))
+      volf[1:7, ] <- 1.0
+      ewmas <- HighFreq::run_mean(retv, lambda=lambdas)
+      vols <- sqrt(HighFreq::run_var(retv, lambda=lambdas))
+      # vols <- sqrt(HighFreq::run_mean(retv^2, lambda=lambdas))
+      vols[1:7, ] <- 1.0
+      # cat("head(vols) =", head(vols, 11), "\n")
+      # cat("tail(vols) =", tail(vols), "\n")
+      posv <- 100*(loadf*ewmaf/volf + loads*ewmas/vols)
+      posv <- round(posv)
+      # posv[posv == 0] <- NA
+      posv[1] <- 0
+      posv <- zoo::na.locf(posv)
+      # Lag the positions to trade in next period
+      posv <- rutils::lagit(posv, lagg=1)
+      # cat("posv =", tail(posv), "\n")
+      # Calculate strategy pnls
+      pnls <- posv*retv
+      # Calculate indicator of flipped positions
+      flipi <- rutils::diffit(posv)
+      # Calculate the number of trades
+      ntrades <<- ntrades + sum(abs(flipi) > 0)
+      # Calculate transaction costs
+      costv <- 0.5*bidask*abs(flipi)
+      pnls <- (pnls - costv)
+      pnls <- cbind(retv, pnls)
+      pnls
+    }) # end lapply
+    pnls <- do.call(rbind, pnls)
 
+    # Add buy/sell indicators for annotations
+    # longi <- (flipi > 0)
+    # shorti <- (flipi < 0)
+    # 
+    values$ntrades <- ntrades
+    
+    
     # Scale the pnls so they have same SD as the returns
-    pnls <- pnls*sd(retv[retv<0])/sd(pnls[pnls<0])
+    # pnls <- pnls*sd(retv[retv<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(retv, pnls)
+    # pnls <- cbind(retv, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
@@ -141,9 +166,12 @@ servfun <- function(input, output) {
 
     # Bind strategy pnls with indicators
     pnls <- cumsum(pnls)
-    pnls <- cbind(pnls, retc[longi], retc[shorti])
-    colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
-
+    # pnls <- cbind(pnls, retc[longi], retc[shorti])
+    # colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
+    # colnames(pnls) <- c(paste(symboln, "Returns"), "Strategy")
+    colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy")
+    
+    # cat("pnls =", tail(pnls[, 2]), "\n")
     pnls
 
   })  # end Recalculate the strategy
@@ -178,7 +206,9 @@ servfun <- function(input, output) {
         dySeries(name=colnamev[3], axis="y", drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
         dySeries(name=colnamev[4], axis="y", drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
     } else if (add_annotations == "False") {
-      dygraphs::dygraph(pnls[, 1:2], main=captiont) %>%
+      endd <- rutils::calc_endpoints(pnls, interval="minutes")
+      dygraphs::dygraph(pnls[endd, 1:2], main=captiont) %>%
+      # dygraphs::dygraph(pnls[, 1:2], main=captiont) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
         dySeries(name=colnamev[1], axis="y", strokeWidth=1, col="blue") %>%

@@ -205,8 +205,8 @@ uifun <- shiny::fluidPage(
     # column(width=2, sliderInput("quant", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     # column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
-    # Input the bid-offer spread
-    column(width=2, numericInput("bid_offer", label="Bid-offer:", value=0.0000, step=0.0001)),
+    # Input the bid-ask spread
+    column(width=2, numericInput("bidask", label="Bid-ask:", value=0.0000, step=0.0001)),
     # If coeff=1 then trending, If coeff=(-1) then contrarian
     # column(width=2, numericInput("coeff", "Trend coefficient:", value=1)),
     column(width=2, selectInput("coeff", label="Trend coefficient",
@@ -239,7 +239,7 @@ servfun <- function(input, output) {
     # alpha <- isolate(input$alpha)
     # quant <- isolate(input$quant)
     # coeff <- as.numeric(isolate(input$coeff))
-    bid_offer <- isolate(input$bid_offer)
+    bidask <- isolate(input$bidask)
     coeff <- as.numeric(isolate(input$coeff))
     # Strategy is recalculated when the recalcb variable is updated
     input$recalcb
@@ -453,7 +453,7 @@ servfun <- function(input, output) {
     pnls <- (coeff*posv*retv)
 
     # Calculate transaction costs
-    costs <- bid_offer*turn_over
+    costs <- bidask*turn_over
     pnls <- (pnls - costs)
 
     pnls <- stdev*pnls/sd(pnls[pnls<0])

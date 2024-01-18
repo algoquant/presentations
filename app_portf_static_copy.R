@@ -63,7 +63,7 @@ servfun <- function(input, output) {
   output$dyplot <- dygraphs::renderDygraph({
     pnls <- pnls()
     # Variance ratio
-    # tre_nd <- HighFreq::calcvar_ag(pnls, lagg)/HighFreq::calcvar_ag(pnls)/lagg
+    # tre_nd <- HighFreq::calc_var_ag(pnls, lagg)/HighFreq::calc_var_ag(pnls)/lagg
     pnls <- xts::xts(cumsum(pnls), zoo::index(retv))
     dygraphs::dygraph(pnls, main="Static Portfolio of ETFs")
     # colnamev <- colnames(pnls())

@@ -28,26 +28,38 @@ Double-click your mouse to restore the plot.
 
 
 ```{r echo=FALSE}
-# Extract the closing prices into a list of xts time series
-prices <- lapply(rutils::etfenv$symbolv, function(symbol) {
-  quantmod::Cl(get(symbol, envir=rutils::etfenv))
-})  # end lapply
+# Extract the closing ETF prices into a list of xts time series
+# pricel <- lapply(rutils::etfenv$symbolv, function(symboln) {
+#   quantmod::Cl(get(symboln, envir=rutils::etfenv))
+# })  # end lapply
 
 # Flatten (cbind) list of prices into single xts series
-prices <- rutils::do_call(cbind, prices)
+# prices <- rutils::do_call(cbind, pricel)
 
 # Overwrite NA values
-prices <- zoo::na.locf(prices)
-prices <- zoo::na.locf(prices, from_last=TRUE)
+# prices <- zoo::na.locf(price)
+# prices <- zoo::na.locf(prices, from_last=TRUE)
 
-# make nice column names
-colnames(prices) <- rutils::do_call_rbind(strsplit(colnames(prices), split="[.]"))[, 1]
+# Make nice column names
+# colnames(prices) <- rutils::do_call_rbind(strsplit(colnames(prices), split="[.]"))[, 1]
 
-# create a list of dygraphs objects in loop
-dyplots <- lapply(prices, function(pric_e) {
-  dygraphs::dygraph(pric_e, main=paste("Plot of:", colnames(pric_e)), width=600, height=400)
+# Create a list of dygraphs objects in loop
+dyplots <- lapply(rutils::etfenv$symbolv, function(symboln) {
+  pricev <- quantmod::Cl(get(symboln, envir=rutils::etfenv))
+  dygraphs::dygraph(pricev, main=paste("Plot of:", rutils::get_name(colnames(pricev))), width=600, height=400)
 })  # end lapply
 
-# render the dygraphs objects
+# Load S&P500 stock prices
+# load("/Users/jerzy/Develop/lecture_slides/data/sp500_prices.RData")
+# Load old tickers
+# sp500old <- read.csv(file="/Users/jerzy/Develop/lecture_slides/data/sp500_old.csv")
+# symbolb <- sp500old$Ticker
+# prico <- pricestock[, symbolb]
+# Create a list of dygraphs objects in loop
+# dyplots <- lapply(prico, function(pricev) {
+#   dygraphs::dygraph(pricev, main=paste("Plot of:", colnames(pricev)), width=600, height=400)
+# })  # end lapply
+
+# Render the dygraphs objects
 htmltools::tagList(dyplots)
 ```

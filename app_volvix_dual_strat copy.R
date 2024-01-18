@@ -31,7 +31,7 @@ captiont <- paste("Regression Z-score of VXX and SVXY Prices Versus VTI Volatili
 # symbol <- "VTI"
 # ohlc <- log(get(symbol, rutils::etfenv)[datev])
 # lambda <- 0.85
-# bid_offer <- 0.0
+# bidask <- 0.0
 # look_back <- 41
 # threshv <- 0.03
 # coeff <- (-1)
@@ -57,18 +57,18 @@ uifun <- shiny::fluidPage(
     # column(width=2, selectInput("symbol_vix", label="Symbol VIX",
     #                             choices=c("VXX", "SVXY"), selected="VXX")),
     # Input decay parameter
-    column(width=2, sliderInput("lambda", label="lambda:", min=0.1, max=0.99, value=0.98, step=0.01)),
+    column(width=2, sliderInput("lambda", label="lambda:", min=0.1, max=0.99, value=0.25, step=0.01)),
     # Input look-back interval
     # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=41, step=1)),
     # Input threshold interval
-    column(width=3, sliderInput("threshv", label="Threshold", min=0.1, max=1.3, value=0.68, step=0.02)),
+    column(width=3, sliderInput("threshv", label="Threshold", min=0.1, max=1.3, value=0.1, step=0.02)),
     # Input add annotations Boolean
     column(width=1, selectInput("add_annotations", label="Buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     column(width=1, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     column(width=1, sliderInput("lagg", label="lagg", min=1, max=4, value=1, step=1)),
-    # Input the bid-offer spread
-    column(width=1, numericInput("bid_offer", label="Bid-offer:", value=0.0, step=0.0001))
+    # Input the bid-ask spread
+    column(width=1, numericInput("bidask", label="Bid-ask:", value=0.0, step=0.0001))
   ),  # end fluidRow
 
   # fluidRow(
@@ -222,7 +222,7 @@ servfun <- function(input, output) {
     pnls <- posv*retv
     
     # Calculate transaction costs
-    costs <- 0.5*input$bid_offer*abs(indic)
+    costs <- 0.5*input$bidask*abs(indic)
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as retv

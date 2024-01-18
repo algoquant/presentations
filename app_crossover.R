@@ -140,11 +140,10 @@ servfun <- shiny::shinyServer(function(input, output) {
     cat("Recalculating the EWMA prices", "\n")
     ## Calculate the fast and slow EWMA prices
     # pricem <- HighFreq::run_mean(pricev, lambda=input$lambda)
-    # pricesl <- HighFreq::run_mean(pricev, lambda=input$lambdas)
-    # pricef <- HighFreq::run_mean(pricev, lambda=input$lambdaf)
-    # sign(zoo::coredata(pricef - pricesl))
-
-    sign(zoo::coredata(HighFreq::run_mean(retp, lambda=input$lambdas)))
+    ewmas <- HighFreq::run_mean(pricev, lambda=input$lambdas)
+    ewmaf <- HighFreq::run_mean(pricev, lambda=input$lambdaf)
+    sign(zoo::coredata(ewmaf - ewmas))
+    # sign(zoo::coredata(HighFreq::run_mean(retp, lambda=input$lambdas)))
     
   })  # end reactive code
 
@@ -199,14 +198,14 @@ servfun <- shiny::shinyServer(function(input, output) {
     # posv <- rowMeans(posv)
     
     # Calculate the number of trades
-    tradez <- abs(rutils::diffit(posv))
-    values$ntrades <- sum(tradez > 0)
+    flipi <- rutils::diffit(posv)
+    values$ntrades <- sum(abs(flipi) > 0)
 
     # Calculate the PnLs
     # reti <- (retp$Stock - rutils::lagit(betas)*retp$ETF)
     pnls <- retp*posv
     # Calculate the transaction costs
-    costs <- 0.5*input$bidask*tradez
+    costs <- 0.5*input$bidask*flipi
     pnls <- (pnls - costs)
     
     # pnls <- pnls*sd(retp)/sd(pnls)

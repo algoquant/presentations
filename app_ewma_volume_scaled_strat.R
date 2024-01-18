@@ -38,8 +38,8 @@ uifun <- shiny::fluidPage(
     # If coeff=1 then trending, If coeff=(-1) then contrarian
     # column(width=2, selectInput("coeff", label="Trend coefficient",
     #                             choices=c(-1, 1), selected=(1))),
-    # Input the bid-offer spread
-    column(width=2, numericInput("bid_offer", label="Bid-offer:", value=0.0000, step=0.0001))
+    # Input the bid-ask spread
+    column(width=2, numericInput("bidask", label="Bid-ask:", value=0.0000, step=0.0001))
     
   ),  # end fluidRow
   
@@ -211,7 +211,7 @@ servfun <- function(input, output) {
     pnls <- posv*retv
     
     # Calculate transaction costs
-    costs <- 0.5*input$bid_offer*abs(indic)
+    costs <- 0.5*input$bidask*abs(indic)
     pnls <- (pnls - costs)
     
     # Scale the pnls so they have same SD as returns

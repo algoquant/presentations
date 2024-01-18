@@ -1,0 +1,100 @@
+---
+title: Calculating The Moving Average Price And Volatility
+author: Jerzy Pawlowski (jpawlowski@machinetrader.io)
+affiliation: MachineTrader.io
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
+email: jpawlowski@machinetrader.io
+output:
+  html_document: default
+---
+
+The Node-RED flow named *Tech indicators* contains implementations of the moving average price and volatility in MachineTrader.
+
+You can download this flow from the [MachineTrader repository on GitHub](https://github.com/predictivetechnologysystems/MachineTrader-Community).
+
+
+Let's take a look at the flow named *Tech indicators*:  
+<img src="figure/mt_moving_average_price_volatility.png" width="400" height="500" />
+
+
+The dashed lines are the connectors for passing the live streaming stock prices between function nodes. 
+
+
+The function node *Initialize the parameters* creates flow variables needed for the calculations.  
+
+* symboln = the ticker string of the stock. 
+* lambdap = the lambda decay parameter. 
+* volf = the volatility floor. 
+* pricec = the current stock price. 
+* pricep = the previous stock price, initially set to NaN. 
+* pricema =  the moving average price, initially set to NaN. 
+* dataq = the data queue for stock prices or returns. 
+* lookb = the look-back interval, i.e. the number of elements in the data queue. 
+* endq = the position of the end of the queue within the data queue. 
+
+
+The data queue is an array (vector) for storing the stock prices or returns.
+The data queue is a first in last out queue.  The data is stored in the order it's received.
+New data is written to the end of the queue, and the endq variable is shifted to the next to last element.
+Data is added one element at a time.
+This way the other data elements in the queue don't have to be copied, which speeds up the code.
+Below is an illustration of how an element is added to the data queue:
+
+<img src="figure/data_queue.png" width="500" height="200" />
+
+
+The function node *Get stock price* accepts the streaming prices for all the stocks from the flow *Alpaca Prices*, it extracts the prices only for the ticker *symboln*, and it passes them to the other nodes.
+
+<img src="figure/get_price.png" width="300" height="80" />
+
+The streaming prices flow into the small *link-in node* on the left and the prices flow out of the *link-out node* on the right.
+
+<br>
+
+The function node *Calculate moving average prices* calculates the moving average prices.
+
+<img src="figure/SMA_prices.png" width="300" height="80" />
+
+$${\normalsize \bar{p} = \frac{1}{n} \sum\limits_{i=1}^{n} r_{i}}$$
+
+
+
+<br>
+
+The function node *Calculate the EMA prices* calculates the exponential moving average prices.
+
+<img src="figure/EMA_prices.png" width="300" height="80" />
+
+
+<br>
+
+The function node *Calculate moving average volatility* calculates the moving average volatility.
+
+<img src="figure/SMA_volatility.png" width="300" height="80" />
+
+$${\normalsize\sigma^2 = \frac{1}{n-1} \sum\limits_{i=1}^{n} \left( r_{i} - \bar{r} \right)^2}$$
+
+
+<br>
+
+The function node *Calculate EMA volatility* calculates the exponential moving average volatility.
+
+<img src="figure/EMA_volatility.png" width="300" height="80" />
+
+
+
+accepts the streaming prices for all the stocks from the flow *Alpaca Prices*, it extracts the prices only for the ticker *symboln*, and it passes them to the other nodes.
+
+<br>
+<br>
+<br>
+<br>
+
+
+
+
+
+
+
+
+

@@ -73,18 +73,18 @@ symboln <- rutils::get_name(colnames(pricev))
 nrows <- NROW(pricev)
 
 # Calculate the returns
-retp <- rutils::diffit(pricev)
+retv <- rutils::diffit(pricev)
 
 
 # Calculate the end points for the start of every day
-datev <- .index(retp)
+datev <- .index(retv)
 datev <- rutils::diffit(datev)
 datev <- which(datev > 1000)
 # Set large overnight returns to zero
-# retp[abs(retp) > 10*sd(retp)] <- 0
-# retp[abs(retp) > 3*sd(retp)] <- 0
-retp[datev] <- 0
-pricev <- cumsum(retp)
+# retv[abs(retv) > 10*sd(retv)] <- 0
+# retv[abs(retv) > 3*sd(retv)] <- 0
+retv[datev] <- 0
+pricev <- cumsum(retv)
 
 captiont <- paste("Crossover Strategy For", symboln, dataf)
 
@@ -145,7 +145,7 @@ servfun <- shiny::shinyServer(function(input, output) {
   volv <- shiny::reactive({
     
     cat("Recalculating the trailing volatility", "\n")
-    volv <- sqrt(HighFreq::run_var(retp, lambda=input$lambdaf))
+    volv <- sqrt(HighFreq::run_var(retv, lambda=input$lambdaf))
     volv[1:11] <- 1.0
     volf <- input$volf
     volv <- ifelse(volv > volf, volv, volf)
@@ -155,14 +155,14 @@ servfun <- shiny::shinyServer(function(input, output) {
 
   
   # Recalculate the trailing fast price
-  pricef <- shiny::reactive({
+  ewmaf <- shiny::reactive({
     cat("Recalculating the trailing fast price", "\n")
     HighFreq::run_mean(pricev, lambda=input$lambdaf)
   })  # end reactive code
   
   
   # Recalculate the trailing slow price
-  pricesl <- shiny::reactive({
+  ewmas <- shiny::reactive({
     cat("Recalculating the trailing slow price", "\n")
     rutils::lagit(HighFreq::run_mean(pricev, lambda=input$lambdas))
   })  # end reactive code
@@ -172,7 +172,7 @@ servfun <- shiny::shinyServer(function(input, output) {
   retz <- shiny::reactive({
     
     cat("Recalculating the trailing price z-scores", "\n")
-    retz <- (pricef() - pricesl())
+    retz <- (ewmaf() - ewmas())
     volv <- volv()
     retz <- ifelse(volv > 0, retz/volv, 0)
     retz[1:5] <- 0
@@ -185,7 +185,7 @@ servfun <- shiny::shinyServer(function(input, output) {
   pricez <- shiny::reactive({
     
     cat("Recalculating the trailing price z-scores", "\n")
-    pricez <- (pricev - pricesl())
+    pricez <- (pricev - ewmas())
     volv <- volv()
     pricez <- ifelse(volv > 0, pricez/volv, 0)
     pricez[1:5] <- 0
@@ -251,20 +251,20 @@ servfun <- shiny::shinyServer(function(input, output) {
     # Lag the positions to trade in next period
     posv <- rutils::lagit(posv, lagg=1)
     
-    # Calculate number of trades
-    tradez <- abs(rutils::diffit(posv))
-    values$ntrades <- sum(tradez > 0)
+    # Calculate the number of trades
+    flipi <- rutils::diffit(posv)
+    values$ntrades <- sum(abs(flipi) > 0)
 
     # Calculate the PnLs
-    # reti <- (retp$Stock - rutils::lagit(betas)*retp$ETF)
-    pnls <- retp*posv
+    # reti <- (retv$Stock - rutils::lagit(betas)*retv$ETF)
+    pnls <- retv*posv
     
     # Calculate the transaction costs
-    costs <- 0.5*input$bidask*tradez
+    costs <- 0.5*input$bidask*flipi
     pnls <- (pnls - costs)
-    pnls <- pnls*sd(retp[retp<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[retv<0])/sd(pnls[pnls<0])
     
-    wealthv <- cbind(retp, pnls)
+    wealthv <- cbind(retv, pnls)
     colnames(wealthv) <- c(symboln, "Strategy")
     
     # Calculate Sharpe ratios

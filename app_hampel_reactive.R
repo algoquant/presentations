@@ -81,7 +81,7 @@ servfun <- function(input, output) {
   # alpha <- isolate(input$alpha)
   # quant <- isolate(input$quant)
   # coeff <- as.numeric(isolate(input$coeff))
-  # bid_offer <- isolate(input$bid_offer)
+  # bidask <- isolate(input$bidask)
   # Model is recalculated when the add_annotations variable is updated
   # input$add_annotations
   

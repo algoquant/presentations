@@ -239,8 +239,8 @@ cumu_pnl <- cumsum(posv*retv[, 1])
 # calculate frequency of trades
 50*sum(abs(sign(skew)-sign(lag_skew)))/nrow(skew)
 # calculate transaction costs
-bid_offer <- 0.001  # 10 bps for liquid ETFs
-bid_offer*sum(abs(sign(skew)-sign(lag_skew)))
+bidask <- 0.001  # 10 bps for liquid ETFs
+bidask*sum(abs(sign(skew)-sign(lag_skew)))
 chart_Series(
   cumu_pnl[endpoints(cumu_pnl, on="hours"), ],
   name=paste(symbol, "contrarian skew strategy pnl"))
@@ -293,8 +293,8 @@ cumu_pnl <- cumsum(sign(lag_vwap)*retv[, 1])
 # calculate frequency of trades
 50*sum(abs(sign(vwap_diff)-sign(lag_vwap)))/nrow(vwap_diff)
 # calculate transaction costs
-bid_offer <- 0.001  # 10 bps for liquid ETFs
-bid_offer*sum(abs(sign(vwap_diff)-sign(lag_vwap)))
+bidask <- 0.001  # 10 bps for liquid ETFs
+bidask*sum(abs(sign(vwap_diff)-sign(lag_vwap)))
 chart_Series(
   cumu_pnl[endpoints(cumu_pnl, on="hours"), ],
   name=paste(symbol, "VWAP momentum strategy pnl"))

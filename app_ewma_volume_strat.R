@@ -48,8 +48,8 @@ uifun <- shiny::fluidPage(
     column(width=2, sliderInput("exponent", label="exponent", min=0.05, max=2.0, value=1.0, step=0.05)),
     # Input the floor for volume
     column(width=2, sliderInput("floo_r", label="vol floor", min=0.01, max=0.25, value=0.1, step=0.01)),
-    # Input the bid-offer spread
-    column(width=2, numericInput("bid_offer", label="Bid-offer:", value=0.0000, step=0.0001))
+    # Input the bid-ask spread
+    column(width=2, numericInput("bidask", label="Bid-ask:", value=0.0000, step=0.0001))
     
   ),  # end fluidRow
 
@@ -162,7 +162,7 @@ servfun <- function(input, output) {
     pnls <- coeff*posv*returns
     
     # Calculate transaction costs
-    costs <- 0.5*input$bid_offer*abs(indic)
+    costs <- 0.5*input$bidask*abs(indic)
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns

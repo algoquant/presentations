@@ -30,7 +30,7 @@ captiont <- paste("Regression Z-score of VXX and SVXY Prices Versus VTI Volatili
 # symbol <- "VTI"
 # ohlc <- log(get(symbol, rutils::etfenv)[datev])
 # lambda <- 0.85
-# bid_offer <- 0.0
+# bidask <- 0.0
 # look_back <- 41
 # threshv <- 0.03
 # coeff <- (-1)
@@ -57,8 +57,8 @@ uifun <- shiny::fluidPage(
     #                             choices=c("VXX", "SVXY"), selected="VXX")),
     # Input add annotations Boolean
     column(width=1, selectInput("add_annotations", label="Buy/sell annotations?", choices=c("True", "False"), selected="False")),
-    # Input the bid-offer spread
-    column(width=1, numericInput("bid_offer", label="Bid-offer:", value=0.0, step=0.0001)),
+    # Input the bid-ask spread
+    column(width=1, numericInput("bidask", label="Bid-ask:", value=0.0, step=0.0001)),
     # Input look-back interval
     column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=41, step=1)),
     # Input threshold interval
@@ -215,7 +215,7 @@ servfun <- function(input, output) {
     pnls <- posv*retv
     
     # Calculate the transaction costs
-    costs <- 0.5*input$bid_offer*abs(indic)
+    costs <- 0.5*input$bidask*abs(indic)
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as retv

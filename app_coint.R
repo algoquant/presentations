@@ -81,8 +81,8 @@ servfun <- function(input, output) {
     ohlc <- get(symboletf, rutils::etfenv)
     closetf <- log(quantmod::Cl(ohlc))
     pricev <- na.omit(cbind(closep, closetf))
-    sort(colnames(prices)) <- c(symbolstock, symboletf)
-    prices
+    colnames(pricev) <- c(symbolstock, symboletf)
+    pricev
     
   })  # end Load the data
   
@@ -93,9 +93,9 @@ servfun <- function(input, output) {
     # Get model parameters from input argument
     betav <- input$betav
 
-    # Calculate prices
-    closep <- prices()[, 1]
-    closetf <- prices()[, 2]
+    # Calculate the prices
+    closep <- pricev()[, 1]
+    closetf <- pricev()[, 2]
     # Calculate regression coefficients of XLB ~ XLE
     # Calculate regression residuals
     alpha <- (mean(closep) - betav*mean(closetf))

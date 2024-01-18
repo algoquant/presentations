@@ -89,8 +89,8 @@ uifun <- shiny::fluidPage(
     # column(width=2, sliderInput("lambdaf", label="lambda fast:", min=0.1, max=0.99, value=0.9, step=0.01)),
     # Input lag parameter
     # column(width=1, sliderInput("lagg", label="lag", min=1, max=3, value=1, step=1)),
-    # Input the bid-offer spread
-    # column(width=2, numericInput("bid_offer", label="Bid-offer:", value=0.0005, step=0.0001)),
+    # Input the bid-ask spread
+    # column(width=2, numericInput("bidask", label="Bid-ask:", value=0.0005, step=0.0001)),
     # Input trending or reverting (contrarian) strategy
     # column(width=1, selectInput("coeff", label="Trend (1) Revert (-1)", choices=c(1, -1), selected=(-1)))
   ),  # end fluidRow

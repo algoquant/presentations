@@ -73,8 +73,8 @@ uifun <- shiny::fluidPage(
     # column(width=2, sliderInput("quant", label="percentile:", min=0.01, max=0.45, value=0.1, step=0.01)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     # column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
-    # Input the bid-offer spread
-    # column(width=2, numericInput("bid_offer", label="bid-offer:", value=0.001, step=0.001))
+    # Input the bid-ask spread
+    # column(width=2, numericInput("bidask", label="bid-ask:", value=0.001, step=0.001))
   ),  # end fluidRow
   
   # Create output plot panel
@@ -96,7 +96,7 @@ servfun <- function(input, output) {
   # alpha <- isolate(input$alpha)
   # quant <- isolate(input$quant)
   # coeff <- as.numeric(isolate(input$coeff))
-  # bid_offer <- isolate(input$bid_offer)
+  # bidask <- isolate(input$bidask)
   # Model is recalculated when the add_annotations variable is updated
   # input$add_annotations
   

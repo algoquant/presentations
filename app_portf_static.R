@@ -15,41 +15,58 @@ library(dygraphs)
 ## Model and data setup
 
 # Find ETFs with largest variance ratios
-pricev <- log(rutils::etfenv$prices)
-symbolv <- sort(colnames(prices))
-symbolv <- symbolv[!(symbolv %in% c("VXX", "SVXY", "MTUM", "IEF"))]
-pricev <- prices[, symbolv]
-lagg <- 5
-ratio_s <- sapply(pricev, function(x) {
-  cat("x=", names(x), "\n")
-  x <- na.omit(x)
-  if (NROW(x) > 100)
-    drop(HighFreq::calcvar_ag(x, lagg)/HighFreq::calcvar_ag(x)/lagg)
-  else NULL
-})  # end sapply
-ratio_s <- sort(unlist(ratio_s), decreasing=TRUE)
-symbolv <- names(ratio_s)
+# pricev <- log(rutils::etfenv$prices)
+retp <- rutils::etfenv$returns
+symbolv <- sort(colnames(retp))
+symbolv <- symbolv[!(symbolv %in% c("VXX", "SVXY", "MTUM", "AIEQ", "QUAL", "USMV", "VLUE"))]
+retp <- retp[, symbolv]
+lagg <- 10
+
+# Calculate the Hurst exponent from returns
+calc_hurst_rets <- function(retp, lagg) {
+  retp <- na.omit(retp)
+  endp <- rutils::calc_endpoints(retp, interval=lagg)
+  retc <- cumsum(retp)
+  ranger <- sapply(seq_along(endp)[-1], function(it) {
+    startp <- endp[it-1]
+    endp <- endp[it]
+    retp <- retp[startp:endp]
+    retc <- retc[startp:endp]
+    log((max(retc) - min(retc))/sd(retp))/log(endp-startp)
+  })  # end sapply
+  median(na.omit(ranger))
+}  # end calc_hurst_rets
+
+hurstv <- sapply(retp, calc_hurst_rets, lagg=lagg)
+hurstv <- sort(hurstv, decreasing=TRUE)
 
 # Select ETFs with largest variance ratios
 ncols <- 4
-namesv <- names(ratio_s)[1:ncols]
-retv <- rutils::etfenv$returns[, namesv]
-retv <- na.omit(retv)
+symbolv <- names(hurstv)
+namev <- symbolv[1:ncols]
+retp <- rutils::etfenv$returns[, namev]
+retp <- na.omit(retp)
+datev <- zoo::index(retp)
 
+objfun <- function(weightv, retp=retp) {
+  # weightv <- c(1, weightv)
+  weightv <- weightv/sqrt(sum(weightv^2))
+  retp <- retp %*% weightv
+  -sum(retp)/sd(retp)
+}  # end objfun
 
-# Calculate Hurst exponent from returns
-endp <- rutils::calc_endpoints(retv, interval=lagg)
-calc_hurst_rets <- function(rets, endp) {
-  cumsumv <- cumsum(rets)
-  range_ratios <- sapply(seq_along(endp)[-1], function(it) {
-    startpoint <- endp[it-1]
-    endpoint <- endp[it]
-    rets <- rets[startpoint:endpoint]
-    cumsumv <- cumsumv[startpoint:endpoint]
-    log((max(cumsumv) - min(cumsumv))/sd(rets))/log(endpoint-startpoint)
-  })  # end sapply
-  median(na.omit(range_ratios))
-}  # end calc_hurst_rets
+# Perform portfolio optimization using optim
+optiml <- optim(par=rep(1, ncols), 
+                fn=objfun, 
+                retp=retp,
+                method="L-BFGS-B",
+                upper=rep(100, ncols),
+                lower=rep(-100, ncols))
+
+# Portfolio weights
+weightv <- optiml$par
+weightv <- weightv/sqrt(sum(weightv^2))
+
 
 # End setup code
 
@@ -61,18 +78,18 @@ uifun <- shiny::fluidPage(
   # Create single row with two slider inputs
   fluidRow(
     # Input weights
-    column(width=2, sliderInput("weight1", label=paste0("Weight for ", namesv[1], ":"),
-                                min=-10, max=10, value=5, step=0.1)),
-    column(width=2, sliderInput("weight2", label=paste0("Weight for ", namesv[2], ":"),
-                                min=-10, max=10, value=0, step=0.1)),
-    column(width=2, sliderInput("weight3", label=paste0("Weight for ", namesv[3], ":"),
-                                min=-10, max=10, value=0, step=0.1)),
-    column(width=2, sliderInput("weight4", label=paste0("Weight for ", namesv[4], ":"),
-                                min=-10, max=10, value=0, step=0.1))
+    column(width=2, sliderInput("weight1", label=paste0("Weight for ", namev[1], ":"),
+                                min=-10, max=10, value=weightv[1], step=0.1)),
+    column(width=2, sliderInput("weight2", label=paste0("Weight for ", namev[2], ":"),
+                                min=-10, max=10, value=weightv[2], step=0.1)),
+    column(width=2, sliderInput("weight3", label=paste0("Weight for ", namev[3], ":"),
+                                min=-10, max=10, value=weightv[3], step=0.1)),
+    column(width=2, sliderInput("weight4", label=paste0("Weight for ", namev[4], ":"),
+                                min=-10, max=10, value=weightv[4], step=0.1))
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dyplot"), width=12)
+  dygraphs::dygraphOutput("dyplot", width="90%", height="600px")
 )  # end fluidPage interface
 
 
@@ -88,22 +105,22 @@ servfun <- function(input, output) {
     weight4 <- input$weight4
 
     weights <- c(weight1, weight2, weight3, weight4)
-    (retv %*% weights)
+    (retp %*% weights)
   })  # end reactive code
   
   # Return to output argument a dygraph plot with two y-axes
   output$dyplot <- dygraphs::renderDygraph({
     pnls <- datav()
     # Variance ratio
-    # tre_nd <- HighFreq::calcvar_ag(pnls, lagg)/HighFreq::calcvar_ag(pnls)/lagg
+    # hurstexp <- HighFreq::calc_var_ag(pnls, lagg)/HighFreq::calc_var_ag(pnls)/lagg
     # Hurst
-    tre_nd <- calc_hurst_rets(pnls, endp)
+    hurstexp <- calc_hurst_rets(pnls, lagg)
     # Autocorrelation
     # pnls <- (pnls - mean(pnls))
-    # tre_nd <- mean(pnls*rutils::lagit(pnls))/drop(var(pnls))
-    pnls <- xts::xts(cumsum(pnls), zoo::index(retv))
+    # hurstexp <- mean(pnls*rutils::lagit(pnls))/drop(var(pnls))
+    pnls <- xts::xts(cumsum(pnls), datev)
     dygraphs::dygraph(pnls, main=paste("Static Portfolio for", ncols, "ETFs", 
-                                        "Trend indicator =", round(tre_nd, 4)))
+                                        "Hurst =", round(hurstexp, 4)))
     # colnamev <- colnames(datav())
     # dygraphs::dygraph(datav(), main="ETF Portfolio Optimization") %>%
     #   dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%

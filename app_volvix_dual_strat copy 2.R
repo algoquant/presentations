@@ -70,8 +70,8 @@ uifun <- shiny::fluidPage(
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     column(width=1, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
     column(width=1, sliderInput("lagg", label="lagg", min=1, max=4, value=1, step=1)),
-    # Input the bid-offer spread
-    column(width=1, numericInput("bid_offer", label="Bid-offer:", value=0.0, step=0.0001))
+    # Input the bid-ask spread
+    column(width=1, numericInput("bidask", label="Bid-ask:", value=0.0, step=0.0001))
   ),  # end fluidRow
 
   # fluidRow(
@@ -185,7 +185,7 @@ servfun <- function(input, output) {
     pnls <- posv*retv
     
     # Calculate transaction costs
-    costs <- 0.5*input$bid_offer*abs(indic)
+    costs <- 0.5*input$bidask*abs(indic)
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as retv
