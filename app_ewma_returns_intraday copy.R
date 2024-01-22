@@ -17,7 +17,7 @@ library(dygraphs)
 ## Model and data setup
 
 # Compile this file in R by running this command:
-# Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/btest.cpp")
+# Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/back_test.cpp")
 
 # Load the intraday returns.
 # load("/Users/jerzy/Develop/data/SPY_second_20231113.RData")

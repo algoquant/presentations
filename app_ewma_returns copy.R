@@ -17,7 +17,7 @@ library(dygraphs)
 ## Model and data setup
 
 # Compile this file in R by running this command:
-# Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/btest.cpp")
+# Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/back_test.cpp")
 
 # load("/Users/jerzy/Develop/data/SPY_minute_202311.RData")
 pricev <- pricel[[17]]["T09:30:00/T10:30:00"]

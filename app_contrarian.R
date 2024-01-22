@@ -60,7 +60,7 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input the EMA decay factor and z-scores thresholds
-    column(width=2, sliderInput("lambdav", label="Lambda decay:", min=0.95, max=0.999, value=0.98, step=0.001)),
+    column(width=2, sliderInput("lambdaf", label="Lambda decay:", min=0.95, max=0.999, value=0.98, step=0.001)),
     column(width=2, sliderInput("threshv", label="Threshold value:", min=0.5, max=5.0, value=1.0, step=0.1)),
     column(width=2, sliderInput("threshd", label="Threshold double:", min=1.0, max=5.0, value=2.0, step=0.1)),
     column(width=2, sliderInput("threshbad", label="Threshold bad:", min=2.0, max=6.0, value=2.0, step=0.1)),
@@ -114,7 +114,7 @@ servfun <- function(input, output) {
     # closep <- closep()
     # threshv <- input$threshv
     # varin <- input$varin
-    # lambdav <- input$lambdav
+    # lambdaf <- input$lambdaf
     # lambdas <- input$lambdas
     # loadf <- input$loadf
     # loads <- input$loads
@@ -128,8 +128,8 @@ servfun <- function(input, output) {
     # nrows <- NROW(pricev)
 
     # Calculate EMA prices
-    # EMAf <- HighFreq::run_mean(retv, lambda=lambdav)
-    # volf <- sqrt(HighFreq::run_var(retv, lambda=lambdav))
+    # EMAf <- HighFreq::run_mean(retv, lambda=lambdaf)
+    # volf <- sqrt(HighFreq::run_var(retv, lambda=lambdaf))
     # volf[1:7, ] <- 1.0
     # EMAs <- HighFreq::run_mean(retv, lambda=lambdas)
     # vols <- sqrt(HighFreq::run_var(retv, lambda=lambdas))
@@ -148,7 +148,7 @@ servfun <- function(input, output) {
     # posv <- (loadf*EMAf + loads*EMAs)
     
     # Calculate the positions of the mean-reversion strategy
-    # stratm <- bollinger_strat(pricev, input$lambdav, input$threshv, input$varin)
+    # stratm <- bollinger_strat(pricev, input$lambdaf, input$threshv, input$varin)
     # posv <- stratm[, 2]
     
     ntrades <- 0
@@ -156,7 +156,7 @@ servfun <- function(input, output) {
       # Calculate EMA prices
       # retv[abs(retv) > 0.1] <- 0
       pricev <- pricev[, 1]["T09:30:00/T16:00:00"]
-      stratm <- contrastrat(pricev, input$lambdav, input$threshv, input$threshd, input$threshbad, input$varin)
+      stratm <- contrastrat(pricev, input$lambdaf, input$threshv, input$threshd, input$threshbad, input$varin)
       # Calculate strategy pnls
       # pnls <- posv*retv
       pnls <- stratm[, 1]
