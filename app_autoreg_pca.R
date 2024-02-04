@@ -26,7 +26,7 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("symbol", label="Symbol",
+    column(width=2, selectInput("symboln", label="Symbol",
                                 choices=rutils::etfenv$symbolv, selected="VTI")),
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
@@ -36,7 +36,7 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input the look-back interval
-    column(width=2, sliderInput("max_back", label="Max Look-back", min=3, max=50, value=10, step=1)),
+    column(width=2, sliderInput("maxback", label="Max Look-back", min=3, max=50, value=10, step=1)),
     # Input the response look-back interval
     column(width=2, sliderInput("numagg", label="Aggregation Interval", min=2, max=20, value=5, step=1)),
     # Input the look-back interval
@@ -60,34 +60,34 @@ servfun <- function(input, output) {
   # Load the data
   datav <- shiny::reactive({
     
-    symbol <- input$symbol
-    cat("Loading Data For ", symbol, "\n")
+    symboln <- input$symboln
+    cat("Loading Data For ", symboln, "\n")
     
-    ohlc <- get(symbol, rutils::etfenv)
+    ohlc <- get(symboln, rutils::etfenv)
     nrows <- NROW(ohlc)
     closep <- log(quantmod::Cl(ohlc))
-    retv <- rutils::diffit(closep)
-    retv <- returns/sd(retv)
+    retp <- rutils::diffit(closep)
+    retp <- retp/sd(retp)
 
     ## Divide the returns by the volume - use trading time (volume clock)
     # Need to scale the volume by the rolling average volume
     # volumes <- quantmod::Vo(ohlc)
     # volumes[volumes == 0] <- NA
     # volumes <- zoo::na.locf(volumes)
-    # look_back <- 11
-    # volume_rolling <- roll::rolregmodean(volumes, width=look_back, min_obs=1)
+    # lookb <- 11
+    # volume_rolling <- roll::roll_mean(volumes, width=lookb, min_obs=1)
     # volume_rolling <- zoo::na.locf(volume_rolling, fromLast=TRUE)
     # volumes <- volumes/volume_rolling
     
     # Divide  the returns by the volume - use trading time (volume clock)
-    # rets_scaled <- ifelse(volumes > 0, returns/volumes, 0)
-    # rets_scaled <- returns/volumes
-    # rets_scaled <- rets_scaled/sd(rets_scaled)
+    # rets <- ifelse(volumes > 0, retp/volumes, 0)
+    # rets <- retp/volumes
+    # rets <- rets/sd(rets)
 
     # Don't scale by the volume
-    rets_scaled <- returns
+    rets <- retp
     
-    cbind(retv, rets_scaled)
+    cbind(retp, rets)
     
   })  # end Load the data
   
@@ -95,26 +95,26 @@ servfun <- function(input, output) {
   # Recalculate the predictor
   predv <- shiny::reactive({
     
-    cat("Recalculating PCA Predictor For ", input$symbol, "\n")
+    cat("Recalculating PCA Predictor For ", input$symboln, "\n")
     
     # Get model parameters from input argument
-    max_back <- input$max_back
+    maxback <- input$maxback
     # lagg <- input$lagg
 
     # Calculate cumulative returns
-    retv <- datav()[, 1]
-    rets_scaled <- datav()[, 2]
-    dates <- zoo::index(retv)
-    nrows <- NROW(retv)
+    retp <- datav()[, 1]
+    rets <- datav()[, 2]
+    dates <- zoo::index(retp)
+    nrows <- NROW(retp)
     
-    # respv <- rutils::lagit(predv[, max_back], lagg=(-max_back))
+    # respv <- rutils::lagit(predv[, maxback], lagg=(-maxback))
     numagg <- input$numagg
-    respv <- sqrt(numagg)*roll::rolregmodean(retv, numagg, min_obs=1)
+    respv <- sqrt(numagg)*roll::roll_mean(retp, numagg, min_obs=1)
     # respv[1:(numagg-1)] <- 0
     
-    look_backs <- numagg*(1:max_back)
-    # predv <- lapply(look_backs, function(x) sqrt(x)*roll::rolregmodean(rets_scaled, x, min_obs=1))
-    predv <- lapply(look_backs, rutils::lagit, input=respv)
+    lookbs <- numagg*(1:maxback)
+    # predv <- lapply(lookbs, function(x) sqrt(x)*roll::roll_mean(rets, x, min_obs=1))
+    predv <- lapply(lookbs, rutils::lagit, input=respv)
     predv <- do.call(cbind, predv)
     # predv[1, ] <- 0
     # predv <- zoo::na.locf(predv)
@@ -142,30 +142,30 @@ servfun <- function(input, output) {
   # Recalculate the strategy
   pnls <- shiny::reactive({
     
-    cat("Recalculating Strategy For ", input$symbol, "\n")
+    cat("Recalculating Strategy For ", input$symboln, "\n")
     
     # Get model parameters from input argument
     dimax <- input$dimax
 
-    respv <- predictor()[, 1]
-    predv <- predictor()[, -1]
-    retv <- datav()[, 1]
+    respv <- predv()[, 1]
+    predv <- predv()[, -1]
+    retp <- datav()[, 1]
     # dimax <- min(dimax, NCOL(predv))
     dimax <- NCOL(predv)
     
-    nrows <- NROW(retv)
+    nrows <- NROW(retp)
     insample <- 1:(nrows %/% 2)
     outsample <- (nrows %/% 2 + 1):nrows
     
     # Calculate in-sample fitted coefficients
     inverse <- MASS::ginv(predv[insample, 1:dimax])
-    coeff_fit <- drop(inverse %*% respv[insample])
+    coeff <- drop(inverse %*% respv[insample])
     
     # Calculate out-sample forecasts of returns
-    # forecasts <- drop(predv[outsample, 1:3] %*% coeff_fit[1:3])
-    forecasts <- drop(predv[outsample, 1:dimax] %*% coeff_fit)
+    # fcasts <- drop(predv[outsample, 1:3] %*% coeff[1:3])
+    fcasts <- drop(predv[outsample, 1:dimax] %*% coeff)
     # Lag the positions to trade in next period
-    posv <- sign(rutils::lagit(forecasts))
+    posv <- sign(rutils::lagit(fcasts))
     
     # Calculate indicator of flipping the positions
     indic <- rutils::diffit(posv)
@@ -177,18 +177,18 @@ servfun <- function(input, output) {
     shorti <- (indic < 0)
     
     # Calculate strategy pnls
-    retv <- retv[outsample]
-    pnls <- posv*returns
+    retp <- retp[outsample]
+    pnls <- posv*retp
     
     # Calculate transaction costs
     costs <- 0.5*input$bidask*abs(indic)
     pnls <- (pnls - costs)
     
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retp[retp<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(retv, pnls)
+    pnls <- cbind(retp, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
@@ -197,9 +197,9 @@ servfun <- function(input, output) {
     # Bind with indicators
     pnls <- cumsum(pnls)
     if (values$ntrades > 1) {
-      retsum <- cumsum(retv)
+      retsum <- cumsum(retp)
       pnls <- cbind(pnls, retsum[longi], retsum[shorti])
-      colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
+      colnames(pnls) <- c(paste(input$symboln, "Returns"), "Strategy", "Buy", "Sell")
     }  # end if
     
     pnls
@@ -220,7 +220,7 @@ servfun <- function(input, output) {
     # Get number of trades
     ntrades <- values$ntrades
     
-    captiont <- paste("Strategy for", input$symbol, "Returns Scaled by the Trading Volumes / \n", 
+    captiont <- paste("Strategy for", input$symboln, "Returns Scaled by the Trading Volumes / \n", 
                       paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
                       "Number of trades=", ntrades)
     

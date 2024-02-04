@@ -44,8 +44,8 @@ uiface <- shiny::shinyUI(fluidPage(
   
   sidebarLayout(
     sidebarPanel(
-      # Define look_back interval
-      sliderInput("look_back", label="lookback interval (months):",
+      # Define lookb interval
+      sliderInput("lookb", label="lookback interval (months):",
                   min=2, max=30, value=6, step=1),
       sliderInput("dimax", label="dimax:",
                   min=2, max=nweights, value=3, step=1),
@@ -66,11 +66,11 @@ servfunc <- shiny::shinyServer(function(input, output) {
   # Re-calculate the data and rerun the model
   datav <- reactive({
     # get model parameters from input
-    look_back <- input$look_back
+    lookb <- input$lookb
     dimax <- input$dimax
     alpha <- input$alpha
     # define startpoints
-    startpoints <- c(rep_len(1, look_back-1), endpoints[1:(nrows-look_back+1)])
+    startpoints <- c(rep_len(1, lookb-1), endpoints[1:(nrows-lookb+1)])
     # rerun the model
     retp <- drop(HighFreq::back_test(excess=excess, 
                              returns=retv, 

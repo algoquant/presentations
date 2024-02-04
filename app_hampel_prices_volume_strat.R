@@ -19,7 +19,7 @@ library(dygraphs)
 
 # Model and data setup
 
-# symbolv <- names(data_env)
+# symbolv <- names(datenv)
 symbolv <- c("SPY", "VXX", "LODE", "GME")
 symbol <- "VXX"
 
@@ -169,7 +169,7 @@ servfun <- function(input, output) {
     # Calculate the rolling volume
     volumes <- Vo(ohlc())
     # Scale the volume by the rolling volume
-    volumes <- short_back*volumes/HighFreq::roll_sum(volumes, look_back=short_back)
+    volumes <- short_back*volumes/HighFreq::roll_sum(volumes, lookb=short_back)
     # retv <- rutils::diffit(closep())
     # Calculate the cumulative returns scaled by the rolling volume
     volumes <- rutils::lagit(volumes, pad_zeros=FALSE)
@@ -201,7 +201,7 @@ servfun <- function(input, output) {
     # mad_zscores[1:(long_back), ] <- 0
     # ifelse(mad_zscores != 0, (zscores - med_zscores)/mad_zscores, 0)
     # Standardize the zscores - HighFreq::roll_scale() is fastest
-    # zscores <- HighFreq::roll_scale(zscores, look_back=long_back, use_median=TRUE)
+    # zscores <- HighFreq::roll_scale(zscores, lookb=long_back, use_median=TRUE)
     # zscores[is.na(zscores) | is.infinite(zscores)] <- 0
     zscores
   })  # end reactive
@@ -228,7 +228,7 @@ servfun <- function(input, output) {
     # Calculate number of consecutive indicators in same direction.
     # This is designed to avoid trading on microstructure noise.
     # indic <- ifelse(indic == indic_lag, indic, indic)
-    indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
     indics[1:lagg] <- 0
     
     # Calculate posv and pnls from indics.

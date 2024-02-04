@@ -21,13 +21,13 @@ source("/Users/jerzy/Develop/R/backtest_functions.R")
 #   attach(etfenv)
 # if (!("etfenv" %in% ls()))
 #   load(file="/Users/jerzy/Develop/lecture_slides/data/etf_data.RData")
-# data_env <- "etfenv"
+# datenv <- "etfenv"
 # symbolv <- etfenv$symbolv
 # symbol <- "SVXY"
 # retv <- etfenv$returns
 
-data_env <- rutils::etfenv
-symbolv <- get("symbolv", data_env)
+datenv <- rutils::etfenv
+symbolv <- get("symbolv", datenv)
 symbol <- "XLK"
 # symbolv <- rutils::etfenv$symbolv
 
@@ -38,8 +38,8 @@ symbol <- "XLK"
 # if (!("sp500env" %in% ls())) {
 #   load(file="/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
 # }  # end if
-# data_env <- sp500env
-# symbolv <- names(data_env)
+# datenv <- sp500env
+# symbolv <- names(datenv)
 # # symbolv <- c("PG", "CDNS", "YUM", "YUMC", "KHC", "SNPS", "ODFL", "CHRW", "AWK", "SO", "EA", "FIS", "DG", "BAX", "HRL", "MSFT", "XOM", "BSX", "JNJ", "CLX", "CL", "MCD", "WMT", "SBUX", "LLY", "ADM", "BIO", "XLNX", "ATVI", "DISH", "K", "SHW", "SIG", "CSCO", "INTU", "VRTX", "FB", "ORCL", "DUK", "KSS", "ROP", "AKAM", "MXIM", "TXN", "NEM", "COST", "EL", "JWN", "ACN", "FISV", "KLAC", "PFE", "TYL", "BIIB", "MCHP", "BBBY", "DRE", "PEP", "LIN", "NKE", "TROW", "LEN", "HOLX", "NVR", "UDR", "WEC", "DHI", "NI")
 # symbol <- "YUM"
 
@@ -87,7 +87,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     coeff <- as.numeric(input$coeff)
 
     # Prepare data
-    ohlc <- get(symbol, data_env)
+    ohlc <- get(symbol, datenv)
     closep <- log(quantmod::Cl(ohlc))
     # startd <- as.numeric(closep[1, ])
     # rangev <- (log(quantmod::Hi(ohlc)) - log(quantmod::Lo(ohlc)))

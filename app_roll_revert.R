@@ -49,7 +49,7 @@ uifun <- shiny::fluidPage(
     column(width=2, selectInput("interval", label="End points Interval",
                                 choices=c("days", "weeks", "months", "years"), selected="days")),
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Lookback interval",
+    column(width=2, sliderInput("lookb", label="Lookback interval",
                                 min=2, max=125, value=6, step=1)),
     # Input look-back lag interval
     # column(width=2, sliderInput("look_lag", label="Lookback lag interval", min=1, max=10, value=2, step=1)),
@@ -84,7 +84,7 @@ servfun <- function(input, output) {
     # Get model parameters from input argument
     interval <- isolate(input$interval)
     dimax <- isolate(input$dimax)
-    look_back <- isolate(input$look_back)
+    lookb <- isolate(input$lookb)
     # look_lag <- isolate(input$look_lag
     lambda <- isolate(input$lambda)
     typev <- isolate(input$typev)
@@ -100,10 +100,10 @@ servfun <- function(input, output) {
     endp <- endp[endp > (ncols+1)]
     nrows <- NROW(endp)
     # Define startp
-    startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
+    startp <- c(rep_len(1, lookb-1), endp[1:(nrows-lookb+1)])
     
     # Calculate the weights - commented out because it produces leak
-    # weights <- exp(-lambda*1:look_back)
+    # weights <- exp(-lambda*1:lookb)
     # weights <- weights/sum(weights)
     # weights <- matrix(weights, nc=1)
     # excess <- HighFreq::roll_conv(retv, weightv=weights)

@@ -42,7 +42,7 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Look-back", min=3, max=51, value=25, step=1)),
+    column(width=2, sliderInput("lookb", label="Look-back", min=3, max=51, value=25, step=1)),
     # Input confidence level for price tops and bottoms
     column(width=2, sliderInput("confex", label="Confidence for extremes", min=0.5, max=0.99, value=0.91, step=0.01)),
     # Input confidence level for tops
@@ -51,7 +51,7 @@ uifun <- shiny::fluidPage(
     column(width=2, sliderInput("confibot", label="Confidence for bottoms", min=0.01, max=0.99, value=0.91, step=0.01)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(1))),
-    # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),
+    # column(width=2, sliderInput("lookb", label="lookb:", min=1, max=21, value=5, step=1)),
     # column(width=2, sliderInput("slow_back", label="slow_back:", min=11, max=251, value=151, step=1)),
     # Input the trade lag
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=1, step=1))
@@ -83,11 +83,11 @@ servfun <- function(input, output) {
     
     cat("Recalculating GLM for ", symbol, "\n")
     # Get model parameters from input argument
-    look_back <- input$look_back
-    half_back <- look_back %/% 2
+    lookb <- input$lookb
+    half_back <- lookb %/% 2
     
     # Calculate the centered volatility
-    stdev <- roll::roll_sd(retp, width=look_back, min_obs=1)
+    stdev <- roll::roll_sd(retp, width=lookb, min_obs=1)
     stdev <- rutils::lagit(stdev, lagg=(-half_back))
     
     # Calculate the z-scores of prices
@@ -107,30 +107,30 @@ servfun <- function(input, output) {
     bottoms <- coredata(pricez < threshv)
 
     # Calculate volatility z-scores
-    volat <- sqrt(HighFreq::roll_var_ohlc(ohlc, look_back=look_back))
-    meanv <- roll::rolregmodean(volat, width=look_back, min_obs=1)
-    stdev <- roll::roll_sd(rutils::diffit(volat), width=look_back, min_obs=1)
+    volat <- sqrt(HighFreq::roll_var_ohlc(ohlc, lookb=lookb))
+    meanv <- roll::roll_mean(volat, width=lookb, min_obs=1)
+    stdev <- roll::roll_sd(rutils::diffit(volat), width=lookb, min_obs=1)
     volatz <- ifelse(stdev > 0, (volat - meanv)/stdev, 0)
 
     # Calculate volume z-scores
     volumes <- quantmod::Vo(ohlc)
-    meanv <- roll::rolregmodean(volumes, width=look_back, min_obs=1)
-    stdev <- roll::roll_sd(rutils::diffit(volumes), width=look_back, min_obs=1)
+    meanv <- roll::roll_mean(volumes, width=lookb, min_obs=1)
+    stdev <- roll::roll_sd(rutils::diffit(volumes), width=lookb, min_obs=1)
     volumez <- ifelse(stdev > 0, (volumes - meanv)/stdev, 0)
 
     # Calculate trailing price regression z-scores
     dates <- matrix(zoo::index(closep))
-    regz <- drop(HighFreq::roll_zscores(respv=closep, predictor=dates, look_back=look_back))
-    regz[1:look_back] <- 0
+    regz <- drop(HighFreq::roll_zscores(respv=closep, predictor=dates, lookb=lookb))
+    regz[1:lookb] <- 0
     
     # Calculate SVXY z-scores
-    # meanv <- roll::rolregmodean(svxyc, width=look_back, min_obs=1)
-    # stdev <- sqrt(HighFreq::roll_var_ohlc(svxy, look_back=look_back, scale=FALSE))
+    # meanv <- roll::roll_mean(svxyc, width=lookb, min_obs=1)
+    # stdev <- sqrt(HighFreq::roll_var_ohlc(svxy, lookb=lookb, scale=FALSE))
     # svxyz <- ifelse(stdev > 0, (svxyc - meanv)/stdev, 0)
     
     # Calculate VXX z-scores
-    # meanv <- roll::rolregmodean(vxxc, width=look_back, min_obs=1)
-    # stdev <- sqrt(HighFreq::roll_var_ohlc(vxx, look_back=look_back, scale=FALSE))
+    # meanv <- roll::roll_mean(vxxc, width=lookb, min_obs=1)
+    # stdev <- sqrt(HighFreq::roll_var_ohlc(vxx, lookb=lookb, scale=FALSE))
     # vxxz <- ifelse(stdev > 0, (vxxc - meanv)/stdev, 0)
     
     # Define predictor matrix

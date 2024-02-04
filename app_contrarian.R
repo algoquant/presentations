@@ -118,7 +118,7 @@ servfun <- function(input, output) {
     # lambdas <- input$lambdas
     # loadf <- input$loadf
     # loads <- input$loads
-    # look_back <- input$look_back
+    # lookb <- input$lookb
     bidask <- input$bidask
     lagg <- input$lagg
 
@@ -139,7 +139,7 @@ servfun <- function(input, output) {
     # crossi <- sign(EMAf - EMAs)
     
     # Calculate cumulative sum of EMA crossing indicator
-    # crossc <- HighFreq::roll_sum(tseries=crossi, look_back=lagg)
+    # crossc <- HighFreq::roll_sum(tseries=crossi, lookb=lagg)
     # crossc[1:lagg] <- 0
     # Calculate the positions
     # Flip position only if the crossi and its recent past values are the same.

@@ -529,9 +529,9 @@ chart_Series(
       <<earl_vwap_plot,echo=(-(1:1)),eval=FALSE,fig.width=7,fig.height=6,fig.show='hide'>>=
 # vwap plot
 vwap_short <- 
-  vwapv(xtes=get(symbol), look_back=70)
+  vwapv(xtes=get(symbol), lookb=70)
 vwap_long <- 
-  vwapv(xtes=get(symbol), look_back=225)
+  vwapv(xtes=get(symbol), lookb=225)
 vwap_diff <- vwap_short - vwap_long
 colnames(vwap_diff) <- 
   paste(symbol, "vwap", sep=".")
@@ -571,8 +571,8 @@ add_TA(vwap_diff[dates] < 0, on=-1,
       <<eval=TRUE,echo=(-(1:6))>>=
 # vwap scatterplot
 returnv <- calc_rets(xts_data=get(symbol))
-vwap_short <- vwapv(xtes=get(symbol), look_back=70)
-vwap_long <- vwapv(xtes=get(symbol), look_back=225)
+vwap_short <- vwapv(xtes=get(symbol), lookb=70)
+vwap_long <- vwapv(xtes=get(symbol), lookb=225)
 vwap_diff <- vwap_short - vwap_long
 colnames(vwap_diff) <- paste(symbol, "vwap", sep=".")
 lag_vwap <- lag(vwap_diff)

@@ -29,12 +29,12 @@ stdev <- sd(indeks[indeks<0])
 indeks <- xts(indeks, index(rets))
 
 # Calculate vector of monthly end points and start points
-look_back <- 12
+lookb <- 12
 endp <- rutils::calc_endpoints(rets, interval="months")
 endp[endp<2*nstocks] <- 2*nstocks
 nrows <- NROW(endp)
 # sliding window
-startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
+startp <- c(rep_len(1, lookb-1), endp[1:(nrows-lookb+1)])
 # OR expanding window
 # startp <- rep_len(1, NROW(endp))
 # riskf is the daily risk-free rate
@@ -65,7 +65,7 @@ uifun <- shiny::fluidPage(
     column(width=2, selectInput("interval", label="End points Interval",
                                 choices=c("days", "weeks", "months", "years"), selected="weeks")),
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Lookback interval",
+    column(width=2, sliderInput("lookb", label="Lookback interval",
                                 min=2, max=70, value=5, step=1)),
     # Input look-back lag interval
     # column(width=2, sliderInput("look_lag", label="Lookback lag interval", min=1, max=10, value=2, step=1)),
@@ -102,7 +102,7 @@ servfun <- function(input, output) {
     # Get model parameters from input argument
     interval <- isolate(input$interval)
     # dimax <- isolate(input$dimax)
-    look_back <- isolate(input$look_back)
+    lookb <- isolate(input$lookb)
     # look_lag <- isolate(input$look_lag
     # lambda <- isolate(input$lambda)
     # typev <- isolate(input$typev)
@@ -119,13 +119,13 @@ servfun <- function(input, output) {
     endp <- endp[endp > (nstocks+1)]
     nrows <- NROW(endp)
     # Define startp
-    startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
+    startp <- c(rep_len(1, lookb-1), endp[1:(nrows-lookb+1)])
     
     # Define quantile
     quantilev <- round(percent*nstocks)
     
     # Calculate the weights - commented out because it produces leak
-    # weights <- exp(-lambda*1:look_back)
+    # weights <- exp(-lambda*1:lookb)
     # weights <- weights/sum(weights)
     # weights <- matrix(weights, nc=1)
     # excess <- HighFreq::roll_conv(rets, weightv=weights)

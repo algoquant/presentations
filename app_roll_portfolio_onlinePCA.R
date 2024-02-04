@@ -57,7 +57,7 @@ uifun <- shiny::fluidPage(
     column(width=2, sliderInput("dimax", label="Number of eigenvalues:",
                                 min=2, max=(nstocks %/% 2), value=3, step=1)),
     # Input look-back interval
-    # column(width=2, sliderInput("look_back", label="Lookback interval:",
+    # column(width=2, sliderInput("lookb", label="Lookback interval:",
     #                             min=1, max=30, value=12, step=1)),
     # Input forgetting rate for the mean
     column(width=2, sliderInput("lambda", label="Forgetting factor:",
@@ -94,9 +94,9 @@ servfun <- function(input, output) {
     endp <- endp[endp > 2*nstocks]
     npts <- NROW(endp)
     # Define startp
-    # startp <- c(rep_len(1, look_back-1), endp[1:(npts-look_back+1)])
+    # startp <- c(rep_len(1, lookb-1), endp[1:(npts-lookb+1)])
     # Rerun the model
-    # pnls <- roll_portf(excess=excess, returns=rets, look_back=look_back, endp=endp, alpha=alpha, dimax=dimax)
+    # pnls <- roll_portf(excess=excess, returns=rets, lookb=lookb, endp=endp, alpha=alpha, dimax=dimax)
     
     # Warmup
     warmup <- retd[1:endp[1], ]

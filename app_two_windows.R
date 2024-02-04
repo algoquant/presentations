@@ -43,9 +43,9 @@ uifun <- shiny::fluidPage(
     column(width=2, sliderInput("wei_ght", label="weight",
                                 min=(-1), max=5, value=1.0, step=0.1)),
     # Input look-back lag interval
-    column(width=2, sliderInput("look_back1", label="Lookback short", min=3, max=20, value=5, step=1)),
+    column(width=2, sliderInput("lookb1", label="Lookback short", min=3, max=20, value=5, step=1)),
     # Input look-back lag interval
-    column(width=2, sliderInput("look_back2", label="Lookback long", min=10, max=50, value=25, step=1))
+    column(width=2, sliderInput("lookb2", label="Lookback long", min=10, max=50, value=25, step=1))
     # Input the weight decay parameter
     # column(width=2, sliderInput("lambda", label="Weight decay:",
     #                             min=0.01, max=0.99, value=0.1, step=0.05)),
@@ -79,8 +79,8 @@ servfun <- function(input, output) {
     # Get model parameters from input argument
     wei_ght <- input$wei_ght
     # dimax <- isolate(input$dimax)
-    look_back1 <- input$look_back1
-    look_back2 <- input$look_back2
+    lookb1 <- input$lookb1
+    lookb2 <- input$lookb2
     # look_lag <- isolate(input$look_lag
     # lambda <- isolate(input$lambda)
     # typev <- isolate(input$typev)
@@ -92,9 +92,9 @@ servfun <- function(input, output) {
     # input$recalcb
 
     
-    week_ly <- rutils::diffit(log(pricev), lagg=look_back1)
+    week_ly <- rutils::diffit(log(pricev), lagg=lookb1)
     week_ly <- as.numeric(week_ly)
-    month_ly <- rutils::diffit(log(pricev), lagg=look_back2)
+    month_ly <- rutils::diffit(log(pricev), lagg=lookb2)
     month_ly <- as.numeric(month_ly)
     
     # Rerun the model

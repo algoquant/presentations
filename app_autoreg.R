@@ -118,7 +118,7 @@ uifun <- shiny::fluidPage(
   # Create single row with four slider inputs
   fluidRow(
     # Input look-back parameter
-    # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=10, value=2, step=1)),
+    # column(width=2, sliderInput("lookb", label="Look-back", min=2, max=10, value=2, step=1)),
     # Input AR order parameter
     # column(width=2, sliderInput("orderp", label="orderp", min=1, max=orderm, value=3, step=1)),
     # Input lambda decay parameter

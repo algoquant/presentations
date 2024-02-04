@@ -17,7 +17,7 @@ library(dygraphs)
 
 # Model and data setup
 
-# symbolv <- names(data_env)
+# symbolv <- names(datenv)
 # symbolv <- c("SPY", "LODE", "GME")
 symbolv <- rutils::etfenv$symbolv
 symbol <- "VTI"
@@ -124,7 +124,7 @@ servfun <- function(input, output) {
     retv <- returns()$returns
     volumes <- (retv()$volume)
     # Scale the volume by the rolling volume
-    volumes <- short_back*volumes/HighFreq::roll_sum(volumes, look_back=short_back)
+    volumes <- short_back*volumes/HighFreq::roll_sum(volumes, lookb=short_back)
     # retv <- rutils::diffit(closep())
     # Calculate the cumulative returns scaled by the rolling volume
     scaled <- ifelse(volumes > 0, returns/(volumes^input$exponent), 0)

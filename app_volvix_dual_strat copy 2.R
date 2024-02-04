@@ -62,7 +62,7 @@ uifun <- shiny::fluidPage(
     # Input decay parameter
     column(width=2, sliderInput("lambda", label="lambda:", min=0.1, max=0.99, value=0.98, step=0.01)),
     # Input look-back interval
-    # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=41, step=1)),
+    # column(width=2, sliderInput("lookb", label="Look-back", min=2, max=100, value=41, step=1)),
     # Input threshold interval
     column(width=2, sliderInput("threshv", label="Threshold", min=0.1, max=1.3, value=1.0, step=0.02)),
     # Input add annotations Boolean
@@ -76,12 +76,12 @@ uifun <- shiny::fluidPage(
 
   # fluidRow(
     # Input look-back interval
-    # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=41, step=1)),
+    # column(width=2, sliderInput("lookb", label="Look-back", min=2, max=100, value=41, step=1)),
     # Input threshold interval
     # column(width=2, sliderInput("threshold", label="Threshold", min=0.001, max=0.1, value=0.03, step=0.001)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     # column(width=1, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
-    # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),
+    # column(width=2, sliderInput("lookb", label="lookb:", min=1, max=21, value=5, step=1)),
     # column(width=2, sliderInput("slow_back", label="slow_back:", min=11, max=251, value=151, step=1)),
     # Input the trade lag
     # column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=1, step=1))
@@ -107,14 +107,14 @@ servfun <- function(input, output) {
     cat("Recalculating strategy\n")
     # Get model parameters from input argument
     lambda <- input$lambda
-    # look_back <- input$look_back
+    # lookb <- input$lookb
     coeff <- as.numeric(input$coeff)
     lagg <- input$lagg
 
     # Calculate the rolling variance
     volv <- HighFreq::run_var_ohlc(ohlc, lambda=lambda)
     volv <- sqrt(volv)
-    # volv <- HighFreq::roll_var_ohlc(ohlc=ohlc, look_back=look_back, scale=FALSE)
+    # volv <- HighFreq::roll_var_ohlc(ohlc=ohlc, lookb=lookb, scale=FALSE)
     # volv[volv == 0] <- 1
     
     ## Backtest strategy for flipping if two consecutive positive and negative returns
@@ -144,20 +144,20 @@ servfun <- function(input, output) {
     
     controlv <- HighFreq::param_reg(residscale="scale")
     zscores <- HighFreq::run_reg(respv=respv, predm=predm, lambda=lambda, controlv=controlv)
-    # rollreg <- HighFreq::roll_reg(respv=respv, predm=predm, look_back=look_back, controlv=controlv)
+    # rollreg <- HighFreq::roll_reg(respv=respv, predm=predm, lookb=lookb, controlv=controlv)
     zscores <- zscores[, NCOL(predm)+1, drop=TRUE]
     # zscores <- rollreg[, NCOL(rollreg), drop=TRUE]
-    # zscores[1:look_back] <- 0
+    # zscores[1:lookb] <- 0
     # zscores[is.infinite(zscores)] <- 0
     
     # zscores[is.na(zscores)] <- 0
-    # zscores <- zscores/sqrt(look_back)
+    # zscores <- zscores/sqrt(lookb)
     indic <- rep(NA_integer_, nrows)
     indic[1] <- 0
     indic[zscores > threshv] <- coeff
     indic[zscores < (-threshv)] <- (-coeff)
     indic <- zoo::na.locf(indic, na.rm=FALSE)
-    indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
     indics[1:lagg] <- 0
     posv <- rep(NA_integer_, nrows)
     posv[1] <- 0

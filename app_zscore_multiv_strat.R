@@ -49,7 +49,7 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Look-back", min=3, max=51, value=5, step=1)),
+    column(width=2, sliderInput("lookb", label="Look-back", min=3, max=51, value=5, step=1)),
     # Input threshold for tops
     column(width=2, sliderInput("thresh_top", label="Threshold for Tops", min=0, max=1, value=0.1, step=0.01)),
     # Input threshold for bottoms
@@ -66,7 +66,7 @@ uifun <- shiny::fluidPage(
     column(width=2, sliderInput("weight_volume", label="Weight for Volume", min=(-1), max=1, value=0, step=0.1)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(1))),
-    # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),
+    # column(width=2, sliderInput("lookb", label="lookb:", min=1, max=21, value=5, step=1)),
     # column(width=2, sliderInput("slow_back", label="slow_back:", min=11, max=251, value=151, step=1)),
     # Input the trade lag
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=1, step=1))
@@ -90,7 +90,7 @@ servfun <- function(input, output) {
     # Get model parameters from input argument
     symbol <- input$symbol
     cat("Recalculating strategy for ", symbol, "\n")
-    look_back <- input$look_back
+    lookb <- input$lookb
     coeff <- as.numeric(input$coeff)
     lagg <- input$lagg
     
@@ -101,60 +101,60 @@ servfun <- function(input, output) {
     
     # Calculate SVXY z-scores
     predm <- matrix(1:nrows, nc=1)
-    svxy_scores <- HighFreq::roll_reg(respv=svxy_close, predm=predm, look_back=look_back, controlv=controlv)
+    svxy_scores <- HighFreq::roll_reg(respv=svxy_close, predm=predm, lookb=lookb, controlv=controlv)
     svxy_scores <- svxy_scores[, NCOL(svxy_scores)]
-    svxy_scores[1:look_back] <- 0
+    svxy_scores[1:lookb] <- 0
     svxy_scores[is.infinite(svxy_scores)] <- 0
     svxy_scores[is.na(svxy_scores)] <- 0
-    svxy_scores <- svxy_scores/sqrt(look_back)
-    # roll_svxy <- roll::rolregmodean(svxy_close, width=look_back, min_obs=1)
-    # var_rolling <- sqrt(HighFreq::roll_var_ohlc(svxy, look_back=look_back, scale=FALSE))
+    svxy_scores <- svxy_scores/sqrt(lookb)
+    # roll_svxy <- roll::roll_mean(svxy_close, width=lookb, min_obs=1)
+    # var_rolling <- sqrt(HighFreq::roll_var_ohlc(svxy, lookb=lookb, scale=FALSE))
     # svxy_scores <- (svxy_close - roll_svxy)/var_rolling
     
     # Calculate VXX z-scores
-    vxx_scores <- HighFreq::roll_reg(respv=vxx_close, predm=predm, look_back=look_back, controlv=controlv)
+    vxx_scores <- HighFreq::roll_reg(respv=vxx_close, predm=predm, lookb=lookb, controlv=controlv)
     vxx_scores <- vxx_scores[, NCOL(vxx_scores)]
-    vxx_scores[1:look_back] <- 0
+    vxx_scores[1:lookb] <- 0
     vxx_scores[is.infinite(vxx_scores)] <- 0
     vxx_scores[is.na(vxx_scores)] <- 0
-    vxx_scores <- vxx_scores/sqrt(look_back)
-    # roll_vxx <- roll::rolregmodean(vxx_close, width=look_back, min_obs=1)
-    # var_rolling <- sqrt(HighFreq::roll_var_ohlc(vxx, look_back=look_back, scale=FALSE))
+    vxx_scores <- vxx_scores/sqrt(lookb)
+    # roll_vxx <- roll::roll_mean(vxx_close, width=lookb, min_obs=1)
+    # var_rolling <- sqrt(HighFreq::roll_var_ohlc(vxx, lookb=lookb, scale=FALSE))
     # vxx_scores <- (vxx_close - roll_vxx)/var_rolling
     
     # Calculate stock z-scores
-    stock_scores <- HighFreq::roll_reg(respv=closep, predm=predm, look_back=look_back, controlv=controlv)
+    stock_scores <- HighFreq::roll_reg(respv=closep, predm=predm, lookb=lookb, controlv=controlv)
     stock_scores <- stock_scores[, NCOL(stock_scores)]
-    stock_scores[1:look_back] <- 0
+    stock_scores[1:lookb] <- 0
     stock_scores[is.infinite(stock_scores)] <- 0
     stock_scores[is.na(stock_scores)] <- 0
-    stock_scores <- stock_scores/sqrt(look_back)
-    # roll_stock <- roll::rolregmodean(closep, width=look_back, min_obs=1)
-    # var_rolling <- sqrt(HighFreq::roll_var_ohlc(ohlc, look_back=look_back, scale=FALSE))
+    stock_scores <- stock_scores/sqrt(lookb)
+    # roll_stock <- roll::roll_mean(closep, width=lookb, min_obs=1)
+    # var_rolling <- sqrt(HighFreq::roll_var_ohlc(ohlc, lookb=lookb, scale=FALSE))
     # stock_scores <- (closep - roll_stock)/var_rolling
 
     # Calculate volatility z-scores
     volat <- log(quantmod::Hi(ohlc))-log(quantmod::Lo(ohlc))
-    volat_scores <- HighFreq::roll_reg(respv=volat, predm=predm, look_back=look_back, controlv=controlv)
+    volat_scores <- HighFreq::roll_reg(respv=volat, predm=predm, lookb=lookb, controlv=controlv)
     volat_scores <- volat_scores[, NCOL(volat_scores)]
-    volat_scores[1:look_back] <- 0
+    volat_scores[1:lookb] <- 0
     volat_scores[is.infinite(volat_scores)] <- 0
     volat_scores[is.na(volat_scores)] <- 0
-    volat_scores <- volat_scores/sqrt(look_back)
-    # roll_vol <- roll::rolregmodean(volat, width=look_back, min_obs=1)
-    # var_rolling <- sqrt(HighFreq::roll_var(rutils::diffit(volat), look_back=look_back))
+    volat_scores <- volat_scores/sqrt(lookb)
+    # roll_vol <- roll::roll_mean(volat, width=lookb, min_obs=1)
+    # var_rolling <- sqrt(HighFreq::roll_var(rutils::diffit(volat), lookb=lookb))
     # volat_scores <- (volat - roll_vol)/var_rolling
     
     # Calculate volume z-scores
     volumes <- quantmod::Vo(ohlc)
-    volume_scores <- HighFreq::roll_reg(respv=volumes, predm=predm, look_back=look_back, controlv=controlv)
+    volume_scores <- HighFreq::roll_reg(respv=volumes, predm=predm, lookb=lookb, controlv=controlv)
     volume_scores <- volume_scores[, NCOL(volume_scores)]
-    volume_scores[1:look_back] <- 0
+    volume_scores[1:lookb] <- 0
     volume_scores[is.infinite(volume_scores)] <- 0
     volume_scores[is.na(volume_scores)] <- 0
-    volume_scores <- volume_scores/sqrt(look_back)
-    # roll_volume <- roll::rolregmodean(volumes, width=look_back, min_obs=1)
-    # var_rolling <- sqrt(HighFreq::roll_var(rutils::diffit(volumes), look_back=look_back))
+    volume_scores <- volume_scores/sqrt(lookb)
+    # roll_volume <- roll::roll_mean(volumes, width=lookb, min_obs=1)
+    # var_rolling <- sqrt(HighFreq::roll_var(rutils::diffit(volumes), lookb=lookb))
     # volume_scores <- (volumes - roll_volume)/var_rolling
     
     # Define predictor matrix

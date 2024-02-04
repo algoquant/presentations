@@ -27,11 +27,11 @@ retv <- rutils::diffit(ohlc_data[, 4])
 ohlc_lag <- rutils::lagit(ohlc_data)
 colnamev <- c("Strategy PnL", "Inventory", "Realized PnL", "Unrealized PnL", "EWMA")
 # calculate EWMA variance using filter()
-# look_back <- 11
-# weights <- exp(-0.1*1:look_back)
+# lookb <- 11
+# weights <- exp(-0.1*1:lookb)
 # weights <- weights/sum(weights)
 # stdev <- stats::filter((ohlc_data[, 2]-ohlc_data[, 3])^2, filter=weights, sides=1)
-# stdev[1:(look_back-1)] <- stdev[look_back]
+# stdev[1:(lookb-1)] <- stdev[lookb]
 # stdev <- sqrt(stdev)
 
 
@@ -48,7 +48,7 @@ uifun <- shiny::fluidPage(
                                 min=0.0, max=10*tick_size, value=3*tick_size, step=tick_size)),
     # column(width=2, sliderInput("sell_spread", label="sell spread:",
     #                             min=0.0, max=10*tick_size, value=3*tick_size, step=tick_size)),
-    column(width=2, sliderInput("look_back", label="look_back:",
+    column(width=2, sliderInput("lookb", label="lookb:",
                                 min=3, max=211, value=111, step=1)),
     column(width=2, sliderInput("threshold", label="threshold:",
                                 min=0.0, max=4.0, value=1.0, step=0.01)),
@@ -104,7 +104,7 @@ servfun <- function(input, output) {
 
     pnls <- trade_median(retv=retv, ohlc=ohlc_data,
                           ohlc_lag=rutils::lagit(ohlc_data, lagg=input$lagg),
-                          look_back=input$look_back, 
+                          lookb=input$lookb, 
                           threshold=input$threshold, 
                           buy_spread=input$buy_spread,
                           sell_spread=input$buy_spread,

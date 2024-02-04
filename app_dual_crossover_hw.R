@@ -81,7 +81,7 @@ servfun <- function(input, output) {
     closep <- closep()
     lambdaf <- input$lambdaf
     lambdas <- input$lambdas
-    # look_back <- input$look_back
+    # lookb <- input$lookb
     lagg <- input$lagg
 
     # Calculate cumulative returns
@@ -97,7 +97,7 @@ servfun <- function(input, output) {
     crossi <- sign(ewmaf - ewmas)
     
     # Calculate cumulative sum of EWMA crossing indicator
-    crossc <- HighFreq::roll_sum(tseries=crossi, look_back=lagg)
+    crossc <- HighFreq::roll_sum(tseries=crossi, lookb=lagg)
     crossc[1:lagg] <- 0
     # Calculate the positions
     # Flip position only if the crossi and its recent past values are the same.

@@ -1,7 +1,7 @@
 ##############################
 # This is a shiny app for simulating a contrarian strategy based 
-# on the z-scores from running regressions of minutes retv, 
-# using function HighFreq::run_reg(). 
+# on the z-scores from running regressions of minutes returns or 
+# prices, using function HighFreq::run_reg(). 
 # The model flips the position only if the indicator persists over 
 # several consecutive periods equal to lagg.
 # This is the new version which uses run_reg()
@@ -31,10 +31,10 @@ svxyohlc <- log(svxyohlc)
 captiont <- paste("Running Z-score of SVXY Prices Versus VXX app_runreg_minutes_strat.R")
 
 # Variable setup for testing
-# symbol <- "VTI"
-# predictor_symbol <- "VXX"
-# response_symbol <- "SVXY"
-# symbolv <- c(respv_symbol, symbol, predictor_symbol)
+# symboln <- "VTI"
+# symbolpred <- "VXX"
+# symbolresp <- "SVXY"
+# symbolv <- c(respv_symbol, symboln, symbolpred)
 # lambda <- 0.8
 # threshold1 <- 1
 # threshold2 <- (-1)
@@ -54,11 +54,11 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input stock symbols
-    column(width=2, selectInput("symbol", label="Symbol to Trade",
+    column(width=2, selectInput("symboln", label="Symbol to Trade",
                                 choices=rutils::etfenv$symbolv, selected="VTI")),
-    column(width=2, selectInput("predictor_symbol", label="Symbol for Predictor",
+    column(width=2, selectInput("symbolpred", label="Symbol for Predictor",
                                 choices=rutils::etfenv$symbolv, selected="SVXY")),
-    column(width=2, selectInput("response_symbol", label="Symbol for Response",
+    column(width=2, selectInput("symbolresp", label="Symbol for Response",
                                 choices=rutils::etfenv$symbolv, selected="VXX")),
     # Input VIX symbol
     # column(width=2, selectInput("symbol_vix", label="Symbol VIX",
@@ -71,14 +71,14 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input look-back interval
-    # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=50, step=1)),
+    # column(width=2, sliderInput("lookb", label="Look-back", min=2, max=100, value=50, step=1)),
     column(width=3, sliderInput("lambda", label="lambda:", min=0.01, max=0.99, value=0.2, step=0.01)),
     # Input threshold interval
     column(width=3, sliderInput("threshold1", label="Threshold1", min=(0.1), max=1.3, value=0.8, step=0.02)),
     # column(width=3, sliderInput("threshold2", label="Threshold2", min=(-1), max=0, value=(-0.3), step=0.1)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
-    # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),
+    # column(width=2, sliderInput("lookb", label="lookb:", min=1, max=21, value=5, step=1)),
     # column(width=2, sliderInput("slow_back", label="slow_back:", min=11, max=251, value=151, step=1)),
     # Input the trade lag
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=1, step=1))
@@ -100,12 +100,12 @@ servfun <- function(input, output) {
   ## Calculate the returns
   retv <- shiny::reactive({
     
-    symbol <- input$symbol
-    response_symbol <- input$response_symbol
-    predictor_symbol <- input$predictor_symbol
-    cat("Loading the data for ", symbol, "\n")
+    symboln <- input$symboln
+    symbolresp <- input$symbolresp
+    symbolpred <- input$symbolpred
+    cat("Loading the data for ", symboln, "\n")
     
-    # symbolv <- c(respv_symbol, symbol, predictor_symbol)
+    # symbolv <- c(respv_symbol, symboln, symbolpred)
     # na.omit(rutils::etfenv$returns[, symbolv])
     rutils::diffit(na.omit(cbind(quantmod::Cl(svxyohlc), quantmod::Cl(spyohlc), quantmod::Cl(vxxohlc))))["2015/"]
 
@@ -122,14 +122,14 @@ servfun <- function(input, output) {
     respv <- retv[, 1, drop=FALSE]
     predv <- retv[, -1, drop=FALSE]
 
-    symbol <- input$symbol
-    # ohlc <- log(get(symbol, rutils::etfenv))
+    symboln <- input$symboln
+    # ohlc <- log(get(symboln, rutils::etfenv))
     vars <- HighFreq::run_var_ohlc(spyohlc[zoo::index(retv)], lambda=lambda)
     vars[vars == 0] <- 1
     vars <- rutils::diffit(vars)
     predv <- cbind(predv, vars)
 
-    predictor_symbol <- input$predictor_symbol
+    symbolpred <- input$symbolpred
     vars <- HighFreq::run_var_ohlc(svxyohlc[zoo::index(retv)], lambda=lambda)
     vars[vars == 0] <- 1
     vars <- rutils::diffit(vars)
@@ -138,7 +138,7 @@ servfun <- function(input, output) {
     # Calculate the trailing z-scores
     zscores <- HighFreq::run_reg(respv=respv, predv=predv, lambda=lambda, method="standardize")
     zscores <- zscores[, NCOL(zscores)]
-    # zscores[1:look_back] <- 0
+    # zscores[1:lookb] <- 0
     zscores[is.infinite(zscores)] <- 0
     zscores <- na.locf(zscores)
     zscores[is.na(zscores)] <- 0
@@ -155,10 +155,10 @@ servfun <- function(input, output) {
   # Recalculate the strategy
   pnls <- shiny::reactive({
     
-    symbol <- input$symbol
-    cat("Recalculating strategy for ", symbol, "\n")
+    symboln <- input$symboln
+    cat("Recalculating strategy for ", symboln, "\n")
     # Get model parameters from input argument
-    # look_back <- input$look_back
+    # lookb <- input$lookb
     coeff <- as.numeric(input$coeff)
     lagg <- input$lagg
     # lambda <- input$lambda
@@ -170,7 +170,7 @@ servfun <- function(input, output) {
     nrows <- NROW(retv)
 
     # Calculate rolling volatility
-    # vars <- HighFreq::roll_var_ohlc(ohlc=vtis, look_back=look_back, scale=FALSE)
+    # vars <- HighFreq::roll_var_ohlc(ohlc=vtis, lookb=lookb, scale=FALSE)
 
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
@@ -194,7 +194,7 @@ servfun <- function(input, output) {
     indic[zscores > threshold1] <- coeff
     indic[zscores < (threshold1)] <- (-coeff) # Is this a bug?  Should be (-threshold1)?
     indic <- zoo::na.locf(indic, na.rm=FALSE)
-    indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
     indics[1:lagg] <- 0
     posv <- rep(NA_integer_, nrows)
     posv[1] <- 0
@@ -235,7 +235,7 @@ servfun <- function(input, output) {
     # Bind with indicators
     pnls <- cumsum(pnls)
     pnls <- cbind(pnls, retsum[longi], retsum[shorti])
-    colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
+    colnames(pnls) <- c(paste(input$symboln, "Returns"), "Strategy", "Buy", "Sell")
 
     pnls
 
@@ -246,7 +246,7 @@ servfun <- function(input, output) {
   # Return to the output argument a dygraph plot with two y-axes
   output$dyplot <- dygraphs::renderDygraph({
     
-    cat("Plotting for ", input$symbol, "\n")
+    cat("Plotting for ", input$symboln, "\n")
 
     # Get the zscores
     # zscores <- zscores()
@@ -261,7 +261,7 @@ servfun <- function(input, output) {
     # Get number of trades
     ntrades <- globals$ntrades
     
-    captiont <- paste("Strategy for", input$symbol, "Regression Z-score / \n",
+    captiont <- paste("Strategy for", input$symboln, "Regression Z-score / \n",
                       paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
                       "Number of trades=", ntrades)
     

@@ -33,7 +33,7 @@ uifun <- fluidPage(
     ),  # end fluidRow
     
     fluidRow(
-        column(width=2, sliderInput("look_back", label="lookback value:",
+        column(width=2, sliderInput("lookb", label="lookback value:",
                                     min=5, max=111, value=11, step=1)),
         column(width=2, sliderInput("alpha", label="Shrinkage intensity:",
                     min=0, max=1, value=0, step=0.01)),
@@ -66,10 +66,10 @@ serv_er <- function(input, output) {
     indeks <- xts::xts(cumsum(retv %*% rep(1/sqrt(ncols), ncols)), index(retv))
     
     # Define the strategy function
-    run_strategy <- function(retv, look_back, alpha, dimax, lagg) {
+    run_strategy <- function(retv, lookb, alpha, dimax, lagg) {
         # browser()
-        # cat("look_back =", look_back, "\nalpha =", alpha, "\ndimax =", dimax, "\nlagg =", lagg, "\n")
-        startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
+        # cat("lookb =", lookb, "\nalpha =", alpha, "\ndimax =", dimax, "\nlagg =", lagg, "\n")
+        startp <- c(rep_len(1, lookb-1), endp[1:(nrows-lookb+1)])
         # Perform backtest in RcppArmadillo
         pnls <- HighFreq::back_test(excess=retv, 
                                      returns=retv,
@@ -83,7 +83,7 @@ serv_er <- function(input, output) {
     
     output$distPlot <- shiny::renderPlot({
         # Extract from input the strategy model parameters
-        look_back <- isolate(input$look_back)
+        lookb <- isolate(input$lookb)
         alpha <- isolate(input$alpha)
         dimax <- isolate(as.numeric(input$dimax))
         lagg <- isolate(as.numeric(input$lagg))
@@ -91,7 +91,7 @@ serv_er <- function(input, output) {
         input$recalcb
         
         # Run the trading strategy and plot it
-        pnls <- run_strategy(retv, look_back, alpha, dimax, lagg)
+        pnls <- run_strategy(retv, lookb, alpha, dimax, lagg)
         pnls <- cbind(pnls, indeks*max(pnls)/max(indeks))
         colnames(pnls) <- c("Strategy", "Index")
         pnls[c(1, endp), ]

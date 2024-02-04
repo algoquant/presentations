@@ -1,0 +1,72 @@
+---
+title: "Performance of Strategy with Two EWMAs"
+author_no_print: "Jerzy Pawlowski"
+affiliation: NYU Tandon School of Engineering
+date_no_print: '`r format(Sys.time(), "%m/%d/%Y")`'
+email: jp3900@nyu.edu
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE)
+source("/Users/jerzy/Develop/lecture_slides/scripts/ewma_model.R")
+```
+
+```{r ewma_model, echo=FALSE}
+inputPanel(
+  sliderInput("lambda1", label="lambda1:",
+              min=0.01, max=0.5, value=0.25, step=0.01),
+  sliderInput("lambda2", label="lambda2:",
+              min=0.01, max=0.5, value=0.05, step=0.01),
+  numericInput("widthp", label="widthp:", min=10, max=201, value=51)
+)  # end inputPanel
+
+renderPlot({
+  
+  lambda1 <- input$lambda1
+  lambda2 <- input$lambda2
+  widthp <- input$widthp
+
+  library(HighFreq)  # load package HighFreq
+  # select OHLC data
+  ohlc <- rutils::etfenv$VTI["/2011"]
+  # calculate close prices
+  closep <- Cl(ohlc)
+
+  # simulate EWMA strategy
+  ewma_strat <- simu_ewma2(ohlc=ohlc, lambda1=lambda1, lambda2=lambda2, widthp=widthp)
+  
+  # collect and combine output
+  ewma1 <- ewma_strat[, "ewma1"]
+  ewma2 <- ewma_strat[, "ewma2"]
+  positions <- xts(ewma_strat[, "positions"], order.by=index(ohlc))
+  pnlv <- cumsum(ewma_strat[, "returns"])
+  pnlv <- cbind(closep-as.numeric(closep[1, ]), pnlv, ewma1, ewma2)
+  colnames(pnlv) <- c("VTI", "EWMA PnL", "ewma1", "ewma2")
+  returns <- rutils::diffxts(closep)
+  sharper <- sqrt(260)*sum(returns)/sd(returns)/NROW(returns)
+  returns <- ewma_strat[, "returns"]
+  sharpewma <- sqrt(260)*sum(returns)/sd(returns)/NROW(returns)
+  
+  # plot EWMA strategy with custom line colors and position shading
+  plot_theme <- chart_theme()
+  plot_theme$col$line.col <- c("orange", "blue", "yellow", "magenta2")
+  
+  chobj <- chart_Series(pnlv, theme=plot_theme, 
+             name="Performance of Strategy with Two EWMAs")
+  add_TA(positions > 0, on=-1,
+         col="lightgreen", border="lightgreen")
+  add_TA(positions < 0, on=-1,
+         col="lightgrey", border="lightgrey")
+  plot(chobj)
+  legend("bottomleft", 
+         title=paste(c(paste0(colnames(pnlv)[1], " Sharpe ratio = ", format(sharper, digits=3)),
+                       paste0("strategy Sharpe ratio = ", format(sharpewma, digits=3))),
+                     collapse="\n"),
+         legend=colnames(pnlv), 
+         inset=0.05, bg="white", lty=rep(1, 4), lwd=rep(8, 4), 
+         col=plot_theme$col$line.col, bty="n")
+  
+})  # end renderPlot
+```

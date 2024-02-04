@@ -164,7 +164,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     #                             look_short=look_short, look_long=look_long, high_freq=FALSE)
     # signal_trend <- calc_ma(ohlc=ohlc_log, closep=close_num,
     #                         predictor=predv,
-    #                         look_back=look_long, high_freq=FALSE)
+    #                         lookb=look_long, high_freq=FALSE)
     
     # mean reverting signal
     # signal_revert <- ohlc_log[, 1]  # dummy signal
@@ -173,11 +173,11 @@ servfun <- shiny::shinyServer(function(input, output) {
                                 look_short=look_short)
     # signal_revert <- HighFreq::roll_zscores(respv=close_num, 
     #                         predictor=predv, 
-    #                         look_back=look_short)
+    #                         lookb=look_short)
     # score[1:look_short, ] <- 0
     # scale score using HighFreq::roll_scale()
     # score <- roll::roll_scale(data=score, width=look_short, min_obs=1)
-    # score <- HighFreq::roll_scale(matrixv=score, look_back=look_short, use_median=TRUE)
+    # score <- HighFreq::roll_scale(matrixv=score, lookb=look_short, use_median=TRUE)
     # score[1:look_short, ] <- 0
     # score[is.infinite(score), ] <- 0
     # score <- rutils::lagit(score, lagg=1)
@@ -197,7 +197,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     # trending signal
     # score <- HighFreq::roll_zscores(respv=closep, 
     #                         predictor=predv, 
-    #                         look_back=look_long)
+    #                         lookb=look_long)
     # score[1:look_long, ] <- 0
     # score <- rutils::lagit(score)
     # calculate positions, either: -1, 0, or 1

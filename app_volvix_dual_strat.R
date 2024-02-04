@@ -31,7 +31,7 @@ captiont <- paste("Regression Z-score of VXX and SVXY Prices Versus VTI Volatili
 # ohlc <- log(get(symbol, rutils::etfenv)[datev])
 # lambda <- 0.85
 # bidask <- 0.0
-# look_back <- 41
+# lookb <- 41
 # threshv <- 0.03
 # coeff <- (-1)
 # lagg <- 1
@@ -60,7 +60,7 @@ uifun <- shiny::fluidPage(
     # Input the bid-ask spread
     column(width=1, numericInput("bidask", label="Bid-ask:", value=0.0, step=0.0001)),
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=41, step=1)),
+    column(width=2, sliderInput("lookb", label="Look-back", min=2, max=100, value=41, step=1)),
     # Input threshold interval
     column(width=2, sliderInput("threshv", label="Threshold", min=0.001, max=0.1, value=0.03, step=0.001)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
@@ -70,12 +70,12 @@ uifun <- shiny::fluidPage(
 
   # fluidRow(
     # Input look-back interval
-    # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=41, step=1)),
+    # column(width=2, sliderInput("lookb", label="Look-back", min=2, max=100, value=41, step=1)),
     # Input threshold interval
     # column(width=2, sliderInput("threshold", label="Threshold", min=0.001, max=0.1, value=0.03, step=0.001)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     # column(width=1, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
-    # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),
+    # column(width=2, sliderInput("lookb", label="lookb:", min=1, max=21, value=5, step=1)),
     # column(width=2, sliderInput("slow_back", label="slow_back:", min=11, max=251, value=151, step=1)),
     # Input the trade lag
     # column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=1, step=1))
@@ -110,7 +110,7 @@ servfun <- function(input, output) {
     symboln <- input$symboln
     cat("Recalculating strategy for ", symboln, "\n")
     # Get model parameters from input argument
-    look_back <- input$look_back
+    lookb <- input$lookb
     coeff <- as.numeric(input$coeff)
     lagg <- input$lagg
 
@@ -123,7 +123,7 @@ servfun <- function(input, output) {
     nrows <- NROW(retv)
 
     # Calculate the rolling volatility of trading stock
-    volv <- HighFreq::roll_var_ohlc(ohlc=ohlc, look_back=look_back, scale=FALSE)
+    volv <- HighFreq::roll_var_ohlc(ohlc=ohlc, lookb=lookb, scale=FALSE)
     volv <- sqrt(volv)
     # volv[volv == 0] <- 1
     
@@ -153,19 +153,19 @@ servfun <- function(input, output) {
     respv <- svxy
     
     controlv <- HighFreq::param_reg(intercept=TRUE)
-    rollreg <- HighFreq::roll_reg(respv=respv, predm=predm, look_back=look_back, controlv=controlv)
+    rollreg <- HighFreq::roll_reg(respv=respv, predm=predm, lookb=lookb, controlv=controlv)
     zscores <- rollreg[, NCOL(rollreg), drop=TRUE]
-    # zscores[1:look_back] <- 0
+    # zscores[1:lookb] <- 0
     # zscores[is.infinite(zscores)] <- 0
     
     # zscores[is.na(zscores)] <- 0
-    zscores <- zscores/sqrt(look_back)
+    zscores <- zscores/sqrt(lookb)
     indic <- rep(NA_integer_, nrows)
     indic[1] <- 0
     indic[zscores > threshv] <- coeff
     indic[zscores < (-threshv)] <- (-coeff)
     indic <- zoo::na.locf(indic, na.rm=FALSE)
-    indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
     indics[1:lagg] <- 0
     posv <- rep(NA_integer_, nrows)
     posv[1] <- 0
@@ -178,17 +178,17 @@ servfun <- function(input, output) {
     # Calculate the trailing z-scores of VXX
     # predm <- cbind(sqrt(volv), svxy, vtip)
     # respv <- vxx
-    # rollreg <- HighFreq::roll_reg(respv=respv, predictor=predm, intercept=TRUE, look_back=look_back)
+    # rollreg <- HighFreq::roll_reg(respv=respv, predictor=predm, intercept=TRUE, lookb=lookb)
     # zscores <- rollreg[, NCOL(rollreg), drop=TRUE]
     # zscores[is.infinite(zscores)] <- 0
     # zscores[is.na(zscores)] <- 0
-    # zscores <- zscores/sqrt(look_back)
+    # zscores <- zscores/sqrt(lookb)
     # indic <- rep(NA_integer_, nrows)
     # indic[1] <- 0
     # indic[zscores > threshv] <- coeff
     # indic[zscores < (-threshv)] <- (-coeff)
     # indic <- zoo::na.locf(indic, na.rm=FALSE)
-    # indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    # indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
     # indics[1:lagg] <- 0
     # posv <- rep(NA_integer_, nrows)
     # posv[1] <- 0

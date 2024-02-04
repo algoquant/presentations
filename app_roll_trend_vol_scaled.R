@@ -7,19 +7,19 @@
 ##############################
 
 # Best parameters - these are stale and don't work
-# typev interval look_back dimax alpha
+# typev interval lookb dimax alpha
 # max_sharpe  days 15-35  6-7
 # min_var  days 15-35  6-7
 # max_sharpe  weeks 3-6  5-9
 # min_var  weeks 3-5  6-9
 # max_sharpe  weeks 16  6-9
 # min_var  weeks 16  6-9
-# Long weekly look_backs work very well because of IEF long position !
+# Long weekly lookbs work very well because of IEF long position !
 # max_sharpe  weeks 100  8-9
 # min_var  weeks 100  8-9
 # max_sharpe  months 7  6
 # min_var  months 2-3  9
-# Long monthly look_backs work very well because of IEF long position !
+# Long monthly lookbs work very well because of IEF long position !
 # max_sharpe  months 21-100  9
 # min_var  months 21-100  9
 
@@ -137,12 +137,12 @@ uifun <- shiny::fluidPage(
     column(width=2, selectInput("interval", label="End points Interval",
                 choices=c("days", "weeks", "months", "years"), selected="weeks")),
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Lookback interval",
+    column(width=2, sliderInput("lookb", label="Lookback interval",
                                 min=1, max=100, value=18, step=1)),
     column(width=2, sliderInput("lambda", label="Weight decay:",
                                 min=0.01, max=0.99, value=0.01, step=0.05)),
     # Input end points interval
-    column(width=2, selectInput("model_type", label="Weights type",
+    column(width=2, selectInput("modelt", label="Weights type",
                                 choices=c("max_sharpe", "max_sharpe_median", "min_var", "min_varpca", "rank", "rankrob", "quantilev"), selected="max_sharpe")),
     # Input number of eigenvalues for regularized matrix inverse
     column(width=2, numericInput("dimax", "Number of eigenvalues", value=6)),
@@ -171,9 +171,9 @@ servfun <- function(input, output) {
     # get model parameters from input argument
     interval <- isolate(input$interval)
     dimax <- isolate(input$dimax)
-    look_back <- isolate(input$look_back)
+    lookb <- isolate(input$lookb)
     lambda <- isolate(input$lambda)
-    model_type <- isolate(input$model_type)
+    modelt <- isolate(input$modelt)
     alpha <- isolate(input$alpha)
     probv <- isolate(input$probv)
     coeff <- as.numeric(isolate(input$coeff))
@@ -186,10 +186,10 @@ servfun <- function(input, output) {
     endp <- endp[endp > 2*nweights]
     nrows <- NROW(endp)
     # Define start points
-    startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
+    startp <- c(rep_len(1, lookb-1), endp[1:(nrows-lookb+1)])
     
     # Calculate the weights
-    # weights <- exp(-lambda*(1:look_back))
+    # weights <- exp(-lambda*(1:lookb))
     # weights <- weights/sum(weights)
     # weights <- matrix(weights, nc=1)
     # Calculate smoothed excess returns
@@ -208,7 +208,7 @@ servfun <- function(input, output) {
                                  probv=probv,
                                  dimax=dimax, 
                                  alpha=alpha, 
-                                 model_type=model_type,
+                                 modelt=modelt,
                                  coeff=coeff)
     pnls[which(is.na(pnls)), ] <- 0
     pnls <- cumsum(pnls)

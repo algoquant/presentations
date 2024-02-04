@@ -62,7 +62,7 @@ uifun <- shiny::fluidPage(
     # column(width=2, selectInput("interval", label="End points Interval",
     #                             choices=c("days", "weeks", "months", "years"), selected="days")),
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Lookback", min=100, max=500, value=200, step=1)),
+    column(width=2, sliderInput("lookb", label="Lookback", min=100, max=500, value=200, step=1)),
     # Input look-back lag interval
     # column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=2, step=1)),
     # Input threshold interval
@@ -98,7 +98,7 @@ servfun <- function(input, output) {
   # Recalculate the data and rerun the model
   datav <- shiny::reactive({
     # Get model parameters from input argument
-    look_back <- input$look_back
+    lookb <- input$lookb
     # lagg <- input$lagg
     # dimax <- isolate(input$dimax)
     # threshold <- input$threshold
@@ -113,12 +113,12 @@ servfun <- function(input, output) {
     # input$recalcb
 
     
-    # look_back <- 11
-    # half_window <- look_back %/% 2
+    # lookb <- 11
+    # half_window <- lookb %/% 2
     
     # Rerun the VTI model
-    # var_rolling <- roll::roll_var(retv, width=look_back)
-    # weights <- roll::roll_sum(retv, width=look_back)/look_back
+    # var_rolling <- roll::roll_var(retv, width=lookb)
+    # weights <- roll::roll_sum(retv, width=lookb)/lookb
     # weights <- weights/var_rolling
     # weights <- zoo::na.locf(weights, fromLast=TRUE)
     # weights <- drop(HighFreq::lag_vec(weights))
@@ -126,8 +126,8 @@ servfun <- function(input, output) {
     # wealth <- cumprod(1 + weights*retv)
 
     # Rerun the VTI and IEF model
-    var_rolling <- roll::roll_var(retv, width=look_back)
-    weights <- roll::roll_sum(retv, width=look_back)/look_back
+    var_rolling <- roll::roll_var(retv, width=lookb)
+    weights <- roll::roll_sum(retv, width=lookb)/lookb
     weights <- weights/var_rolling
     weights <- zoo::na.locf(weights, fromLast=TRUE)
     # Calculate compounded wealth from returns

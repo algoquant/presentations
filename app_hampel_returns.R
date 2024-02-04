@@ -37,8 +37,8 @@ closep <- log(Cl(ohlc))
 # symbol <- "UX1"
 # symbolv <- unique(rutils::get_name(colnames(com_bo)))
 # closep <- log(na.omit(com_bo[, "UX1.Close"]))
-# TU1: look_back=14, threshold=2.0, lagg=1
-# TU1: look_back=30, threshold=9.2, lagg=1
+# TU1: lookb=14, threshold=2.0, lagg=1
+# TU1: lookb=30, threshold=9.2, lagg=1
 
 
 ## Load VX futures daily bars
@@ -70,7 +70,7 @@ uifun <- shiny::fluidPage(
     # column(width=2, selectInput("interval", label="End points Interval",
     #                             choices=c("days", "weeks", "months", "years"), selected="days")),
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Lookback", min=3, max=30, value=9, step=1)),
+    column(width=2, sliderInput("lookb", label="Lookback", min=3, max=30, value=9, step=1)),
     # Input lag trade parameter
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=2, step=1)),
     # Input threshold interval
@@ -106,7 +106,7 @@ servfun <- function(input, output) {
   # Recalculate the data and rerun the model
   datav <- shiny::reactive({
     # Get model parameters from input argument
-    look_back <- isolate(input$look_back)
+    lookb <- isolate(input$lookb)
     lagg <- isolate(input$lagg)
     # dimax <- isolate(input$dimax)
     threshold <- isolate(input$threshold)
@@ -121,18 +121,18 @@ servfun <- function(input, output) {
     input$recalcb
 
     
-    # look_back <- 11
-    # half_window <- look_back %/% 2
+    # lookb <- 11
+    # half_window <- lookb %/% 2
     
     # Rerun the model
-    medianv <- TTR::runMedian(retv, n=look_back)
-    medianv[1:look_back, ] <- 1
-    madv <- TTR::runMAD(retv, n=look_back)
-    madv[1:look_back, ] <- 1
+    medianv <- TTR::runMedian(retv, n=lookb)
+    medianv[1:lookb, ] <- 1
+    madv <- TTR::runMAD(retv, n=lookb)
+    madv[1:lookb, ] <- 1
     zscores <- ifelse(madv != 0, (retv-medianv)/madv, 0)
-    zscores[1:look_back, ] <- 0
-    # mad_zscores <- TTR::runMAD(zscores, n=look_back)
-    # mad_zscores[1:look_back, ] <- 0
+    zscores[1:lookb, ] <- 0
+    # mad_zscores <- TTR::runMAD(zscores, n=lookb)
+    # mad_zscores[1:lookb, ] <- 0
     mad_zscores <- 1
     
     # Calculate posv and pnls from z-scores and rangev

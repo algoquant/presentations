@@ -21,13 +21,13 @@ source("/Users/jerzy/Develop/R/backtest_functions.R")
 #   attach(etfenv)
 # if (!("etfenv" %in% ls()))
 #   load(file="/Users/jerzy/Develop/lecture_slides/data/etf_data.RData")
-# data_env <- "etfenv"
+# datenv <- "etfenv"
 # symbolv <- etfenv$symbolv
 # symbol <- "SVXY"
 # retv <- etfenv$returns
 
-data_env <- rutils::etfenv
-symbolv <- get("symbolv", data_env)
+datenv <- rutils::etfenv
+symbolv <- get("symbolv", datenv)
 symbol <- "XLK"
 # symbolv <- rutils::etfenv$symbolv
 
@@ -38,8 +38,8 @@ symbol <- "XLK"
 # if (!("sp500env" %in% ls())) {
 #   load(file="/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
 # }  # end if
-# data_env <- sp500env
-# symbolv <- names(data_env)
+# datenv <- sp500env
+# symbolv <- names(datenv)
 # # symbolv <- c("PG", "CDNS", "YUM", "YUMC", "KHC", "SNPS", "ODFL", "CHRW", "AWK", "SO", "EA", "FIS", "DG", "BAX", "HRL", "MSFT", "XOM", "BSX", "JNJ", "CLX", "CL", "MCD", "WMT", "SBUX", "LLY", "ADM", "BIO", "XLNX", "ATVI", "DISH", "K", "SHW", "SIG", "CSCO", "INTU", "VRTX", "FB", "ORCL", "DUK", "KSS", "ROP", "AKAM", "MXIM", "TXN", "NEM", "COST", "EL", "JWN", "ACN", "FISV", "KLAC", "PFE", "TYL", "BIIB", "MCHP", "BBBY", "DRE", "PEP", "LIN", "NKE", "TROW", "LEN", "HOLX", "NVR", "UDR", "WEC", "DHI", "NI")
 # symbol <- "YUM"
 
@@ -56,7 +56,7 @@ uifun <- shiny::fluidPage(
     # Input stock symbol
     column(width=2, selectInput("symbol", label="Symbol", choices=symbolv, selected=symbol)),
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Lookback interval", min=1, max=150, value=9, step=1)),
+    column(width=2, sliderInput("lookb", label="Lookback interval", min=1, max=150, value=9, step=1)),
     # Input lag trade parameter
     column(width=2, sliderInput("lagg", label="Confirmation signals", min=1, max=5, value=1, step=1)),
     # Input lag trade parameter
@@ -81,18 +81,18 @@ servfun <- shiny::shinyServer(function(input, output) {
   datav <- shiny::reactive({
     # Get model parameters from input argument
     symbol <- input$symbol
-    look_back <- input$look_back
+    lookb <- input$lookb
     lagg <- input$lagg
     threshold <- input$threshold
     coeff <- as.numeric(input$coeff)
 
     # Prepare data
-    ohlc <- get(symbol, data_env)
+    ohlc <- get(symbol, datenv)
     closep <- log(quantmod::Cl(ohlc))
     # startd <- as.numeric(closep[1, ])
     # rangev <- (log(quantmod::Hi(ohlc)) - log(quantmod::Lo(ohlc)))
     # Run model from /Users/jerzy/Develop/R/backtest_functions.R
-    pnls <- backtest_zscores(ohlc, look_back=look_back, lagg=lagg, threshold=threshold, coeff=coeff)
+    pnls <- backtest_zscores(ohlc, lookb=lookb, lagg=lagg, threshold=threshold, coeff=coeff)
     posv <- pnls[ ,"positions"]
     
     # Calculate number of trades

@@ -46,7 +46,7 @@ uifun <- shiny::fluidPage(
     column(width=3, selectInput("interval", label="End points Interval",
                 choices=c("weeks", "months", "years"), selected="months")),
     # Input look-back interval
-    column(width=3, sliderInput("look_back", label="Lookback interval:",
+    column(width=3, sliderInput("lookb", label="Lookback interval:",
                                 min=1, max=30, value=12, step=1)),
     # Input the shrinkage intensity
     column(width=3, sliderInput("alpha", label="Shrinkage intensity:",
@@ -66,7 +66,7 @@ servfun <- function(input, output) {
     # get model parameters from input argument
     interval <- input$interval
     dimax <- input$dimax
-    look_back <- input$look_back
+    lookb <- input$lookb
     alpha <- input$alpha
     
     # Define end points
@@ -75,10 +75,10 @@ servfun <- function(input, output) {
     endp <- endp[endp > (nstocks+1)]
     # npts <- NROW(endp)
     # Define startp
-    # startp <- c(rep_len(1, look_back-1), endp[1:(npts-look_back+1)])
+    # startp <- c(rep_len(1, lookb-1), endp[1:(npts-lookb+1)])
     # Rerun the model
     # pnls <- roll_portf(excess, rets, startp, endp, alpha, dimax)
-    pnls <- roll_portf(excess=excess, returns=rets, look_back=look_back, endp=endp, alpha=alpha, dimax=dimax)
+    pnls <- roll_portf(excess=excess, returns=rets, lookb=lookb, endp=endp, alpha=alpha, dimax=dimax)
     # pnls <- sd(rutils::diffit(indeks))*pnls/sd(rutils::diffit(pnls))
     pnls <- rbind(indeks[paste0("/", start(pnls)-1)], pnls*sd(indeks)/sd(pnls))
     pnls <- cbind(indeks, pnls)

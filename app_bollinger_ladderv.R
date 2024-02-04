@@ -105,7 +105,7 @@ uifun <- shiny::fluidPage(
     # Input volatility threshold level
     # column(width=2, sliderInput("threshv", label="volatility threshold", min=0.0, max=0.5, value=0.0, step=0.01)),
     # Input look-back parameter
-    # column(width=2, sliderInput("look_back", label="Look-back", min=3, max=11, value=11, step=1)),
+    # column(width=2, sliderInput("lookb", label="Look-back", min=3, max=11, value=11, step=1)),
     # Input lag trade parameter
     column(width=1, sliderInput("lagg", label="lag", min=1, max=3, value=1, step=1)),
     # Input the bid-ask spread
@@ -131,7 +131,7 @@ servfun <- shiny::shinyServer(function(input, output) {
   #   
   #   cat("Recalculating the trailing volatility", "\n")
   #   # sqrt(HighFreq::run_var(retp, lambda=input$lambda))
-  #   volv <- sqrt(HighFreq::roll_var(retp, look_back=input$look_back))
+  #   volv <- sqrt(HighFreq::roll_var(retp, lookb=input$lookb))
   #   (volv >= input$threshv)
   #   
   # })  # end reactive code

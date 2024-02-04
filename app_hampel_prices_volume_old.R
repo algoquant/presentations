@@ -41,8 +41,8 @@ volumes <- Vo(ohlc)
 # symbol <- "UX1"
 # symbolv <- unique(rutils::get_name(colnames(com_bo)))
 # closep <- log(na.omit(com_bo[, "UX1.Close"]))
-# TU1: look_back=14, threshold=2.0, lagg=1
-# TU1: look_back=30, threshold=9.2, lagg=1
+# TU1: lookb=14, threshold=2.0, lagg=1
+# TU1: lookb=30, threshold=9.2, lagg=1
 
 
 ## Load VX futures daily bars
@@ -74,7 +74,7 @@ uifun <- shiny::fluidPage(
     # column(width=2, selectInput("interval", label="End points Interval",
     #                             choices=c("days", "weeks", "months", "years"), selected="days")),
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Lookback", min=3, max=30, value=9, step=1)),
+    column(width=2, sliderInput("lookb", label="Lookback", min=3, max=30, value=9, step=1)),
     # Input lag trade parameter
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=2, step=1)),
     # Input threshold interval
@@ -110,7 +110,7 @@ servfun <- function(input, output) {
   # Recalculate the data and rerun the model
   datav <- shiny::reactive({
     # Get model parameters from input argument
-    look_back <- isolate(input$look_back)
+    lookb <- isolate(input$lookb)
     lagg <- isolate(input$lagg)
     # dimax <- isolate(input$dimax)
     threshold <- isolate(input$threshold)
@@ -124,30 +124,30 @@ servfun <- function(input, output) {
     # Model is recalculated when the recalcb variable is updated
     input$recalcb
 
-    # look_back <- 11
-    # half_window <- look_back %/% 2
+    # lookb <- 11
+    # half_window <- lookb %/% 2
     
     ## Rerun the model
     # Calculate zscores for prices
-    medianv <- TTR::runMedian(closep, n=look_back)
-    medianv[1:look_back, ] <- 1
-    madv <- TTR::runMAD(retv, n=look_back)
-    madv[1:look_back, ] <- 1
+    medianv <- TTR::runMedian(closep, n=lookb)
+    medianv[1:lookb, ] <- 1
+    madv <- TTR::runMAD(retv, n=lookb)
+    madv[1:lookb, ] <- 1
     zscores <- ifelse(madv != 0, (closep-medianv)/madv, 0)
-    zscores[1:look_back, ] <- 0
-    mad_zscores <- TTR::runMAD(zscores, n=look_back)
-    mad_zscores[1:look_back, ] <- 0
+    zscores[1:lookb, ] <- 0
+    mad_zscores <- TTR::runMAD(zscores, n=lookb)
+    mad_zscores[1:lookb, ] <- 0
     zscores <- ifelse(mad_zscores != 0, zscores/mad_zscores, 0)
 
     # Calculate zscores for volumes
-    medianv <- TTR::runMedian(volumes, n=look_back)
-    medianv[1:look_back, ] <- 1
-    madv <- TTR::runMAD(rutils::diffit(volumes), n=look_back)
-    madv[1:look_back, ] <- 1
+    medianv <- TTR::runMedian(volumes, n=lookb)
+    medianv[1:lookb, ] <- 1
+    madv <- TTR::runMAD(rutils::diffit(volumes), n=lookb)
+    madv[1:lookb, ] <- 1
     v_scores <- ifelse(madv != 0, (volumes-medianv)/madv, 0)
-    v_scores[1:look_back, ] <- 0
-    mad_zscores <- TTR::runMAD(v_scores, n=look_back)
-    mad_zscores[1:look_back, ] <- 0
+    v_scores[1:lookb, ] <- 0
+    mad_zscores <- TTR::runMAD(v_scores, n=lookb)
+    mad_zscores[1:lookb, ] <- 0
     v_scores <- ifelse(mad_zscores != 0, v_scores/mad_zscores, 0)
     
     # Plot histogram of zscores
@@ -155,7 +155,7 @@ servfun <- function(input, output) {
     # zscores <- zscores[zscores > quantile(zscores, 0.05)]
     # zscores <- zscores[zscores < quantile(zscores, 0.95)]
     # x11(width=6, height=5)
-    # hist(zscores, xlim=c(quantile(zscores, 0.05), quantile(zscores, 0.95)), breaks=50, main=paste("Z-scores for", "look_back =", look_back))
+    # hist(zscores, xlim=c(quantile(zscores, 0.05), quantile(zscores, 0.95)), breaks=50, main=paste("Z-scores for", "lookb =", lookb))
     
     # Determine dates when the zscores have exceeded the threshold
     indic <- rep(0, nrows)
@@ -165,7 +165,7 @@ servfun <- function(input, output) {
     # Calculate number of consecutive indicators in same direction.
     # This is designed to avoid trading on microstructure noise.
     # indic <- ifelse(indic == indic_lag, indic, indic)
-    # indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    # indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
     # indics[1:lagg] <- 0
     
     # Calculate posv and pnls from indics.

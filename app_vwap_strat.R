@@ -17,13 +17,13 @@ library(dygraphs)
 #   attach(etfenv)
 # if (!("etfenv" %in% ls()))
 #   load(file="/Users/jerzy/Develop/lecture_slides/data/etf_data.RData")
-# data_env <- "etfenv"
+# datenv <- "etfenv"
 # symbolv <- etfenv$symbolv
 # symbol <- "SVXY"
 # retv <- etfenv$returns
 
-data_env <- rutils::etfenv
-symbolv <- sort(get("symbolv", data_env))
+datenv <- rutils::etfenv
+symbolv <- sort(get("symbolv", datenv))
 symbol <- "SVXY"
 # symbolv <- rutils::etfenv$symbolv
 
@@ -34,8 +34,8 @@ symbol <- "SVXY"
 # if (!("sp500env" %in% ls())) {
 #   load(file="/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
 # }  # end if
-# data_env <- sp500env
-# symbolv <- names(data_env)
+# datenv <- sp500env
+# symbolv <- names(datenv)
 # symbolv <- c("PG", "CDNS", "YUM", "YUMC", "KHC", "SNPS", "ODFL", "CHRW", "AWK", "SO", "EA", "FIS", "DG", "BAX", "HRL", "MSFT", "XOM", "BSX", "JNJ", "CLX", "CL", "MCD", "WMT", "SBUX", "LLY", "ADM", "BIO", "XLNX", "ATVI", "DISH", "K", "SHW", "SIG", "CSCO", "INTU", "VRTX", "FB", "ORCL", "DUK", "KSS", "ROP", "AKAM", "MXIM", "TXN", "NEM", "COST", "EL", "JWN", "ACN", "FISV", "KLAC", "PFE", "TYL", "BIIB", "MCHP", "BBBY", "DRE", "PEP", "LIN", "NKE", "TROW", "LEN", "HOLX", "NVR", "UDR", "WEC", "DHI", "NI")
 # symbol <- "YUM"
 
@@ -53,7 +53,7 @@ interface <- shiny::fluidPage(
     column(width=2, selectInput("symbol", label="Symbol",
                                 choices=symbolv, selected=symbol)),
     # Input look-back interval
-    # column(width=2, sliderInput("look_back", label="Lookback interval", min=1, max=150, value=4, step=1)),
+    # column(width=2, sliderInput("lookb", label="Lookback interval", min=1, max=150, value=4, step=1)),
     # Input lambda parameter
     column(width=3, sliderInput("lambda", label="lambda:", min=0.01, max=0.99, value=0.37, step=0.01)),
     # Input lag trade parameter
@@ -79,7 +79,7 @@ server <- shiny::shinyServer(function(input, output) {
   datav <- shiny::reactive({
     # Get model parameters from input argument
     symbol <- input$symbol
-    # look_back <- input$look_back
+    # lookb <- input$lookb
     lambda <- input$lambda
     lagg <- input$lagg
     coeff <- as.numeric(input$coeff)
@@ -87,8 +87,8 @@ server <- shiny::shinyServer(function(input, output) {
     # Prepare data
     # symbol <- "SVXY"
     # symbol2 <- "VXX"
-    ohlc <- get(symbol, data_env)
-    # ohlc2 <- get(symbol2, data_env)
+    ohlc <- get(symbol, datenv)
+    # ohlc2 <- get(symbol2, datenv)
     pricev <- log(quantmod::Cl(ohlc))
     startd <- as.numeric(prices[1])
     # retv <- na.omit(get(symbol, retv))
@@ -117,7 +117,7 @@ server <- shiny::shinyServer(function(input, output) {
     # Otherwise keep previous position.
     # This is designed to prevent whipsaws and over-trading.
     # posv <- ifelse(indic == indic_lag, indic, posv)
-    indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
     indics[1:lagg] <- 0
     posv <- rep(NA_integer_, NROW(pricev))
     posv[1] <- 0

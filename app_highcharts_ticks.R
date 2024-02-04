@@ -38,7 +38,7 @@ uifun <- shiny::fluidPage(
   #   # Input time span
   #   column(width=2, selectInput("tspan", label="Time span:", choices=c("day", "minute"), selected="day")),
   #   # Input the look-back interval
-  #   column(width=2, numericInput("look_back", label="Look-back days:", value=1000, step=1))
+  #   column(width=2, numericInput("lookb", label="Look-back days:", value=1000, step=1))
   # ),  # end fluidRow
 
   # Output plot panel
@@ -54,13 +54,13 @@ servfun <- function(input, output) {
     
     # Copy shiny parameters
     # tspan <- input$tspan
-    # look_back <- input$look_back
+    # lookb <- input$lookb
     
-    # Set look_back to 30 days if time span = minute
+    # Set lookb to 30 days if time span = minute
     # if (tspan == "minute")
-    #   look_back <- 30
+    #   lookb <- 30
     # 
-    # startd <- Sys.Date() - look_back
+    # startd <- Sys.Date() - lookb
     
     # Load ETF prices
     # ohlc <- get(input$symbol, rutils::etfenv)

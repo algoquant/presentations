@@ -16,7 +16,7 @@ library(dygraphs)
 
 # Model and data setup
 
-# symbolv <- names(data_env)
+# symbolv <- names(datenv)
 symbolv <- rutils::etfenv$symbolv
 # symbolv <- symbolv[!(symbolv %in% c("TLT", "IEF", "MTUM", "QUAL", "VLUE", "USMV"))]
 # retv <- rutils::etfenv$returns[, symbolv]
@@ -46,7 +46,7 @@ uifun <- shiny::fluidPage(
     # Input stock symbol
     column(width=2, selectInput("symbol", label="Symbol", choices=symbolv, selected="VTI")),
     # Input data type Boolean
-    column(width=2, selectInput("data_type", label="Select data type", choices=c("Returns", "OHLC"), selected="Returns")),
+    column(width=2, selectInput("datat", label="Select data type", choices=c("Returns", "OHLC"), selected="Returns")),
     # Input predictor type Boolean
     column(width=2, selectInput("predictor_type", label="Select predictor type", choices=c("Returns", "Sharpe", "Volatility", "Skew"), selected="Sharpe"))
   ),  # end fluidRow
@@ -56,7 +56,7 @@ uifun <- shiny::fluidPage(
     # Input lambda decay parameter
     column(width=2, sliderInput("lambda", label="lambda:", min=0.1, max=0.99, value=0.36, step=0.01)),
     # Input Look back interval
-    # column(width=2, sliderInput("look_back", label="Look back", min=3, max=250, value=100, step=1)),
+    # column(width=2, sliderInput("lookb", label="Look back", min=3, max=250, value=100, step=1)),
     # Input leverage parameter
     column(width=2, sliderInput("levp", label="leverage parameter", min=0.1, max=10, value=1, step=0.1)),
     # If trend=1 then trending, If trend=(-1) then contrarian
@@ -88,8 +88,8 @@ servfun <- function(input, output) {
   # input$add_annotations
   
   
-  # look_back <- 11
-  # half_window <- look_back %/% 2
+  # lookb <- 11
+  # half_window <- lookb %/% 2
 
   # Create an empty list of reactive values.
   values <- reactiveValues()
@@ -97,12 +97,12 @@ servfun <- function(input, output) {
   # Calculate returns and variance
   datav <- shiny::reactive({
     # Get model parameters from input argument
-    data_type <- input$data_type
+    datat <- input$datat
     symbol <- input$symbol
     lambda <- input$lambda
     
     # Load data if needed
-    switch(data_type,
+    switch(datat,
            "Returns" = {
              cat("Loading Returns data \n")
              retv <- na.omit(rutils::etfenv$returns[, symbol])
@@ -154,7 +154,7 @@ servfun <- function(input, output) {
   # predv <- predv[predictor > quantile(predv, 0.05)]
   # predv <- predv[predictor < quantile(predv, 0.95)]
   # x11(width=6, height=5)
-  # hist(predv, xlim=c(quantile(predv, 0.05), quantile(predv, 0.95)), breaks=50, main=paste("Z-scores for", "look_back =", look_back))
+  # hist(predv, xlim=c(quantile(predv, 0.05), quantile(predv, 0.95)), breaks=50, main=paste("Z-scores for", "lookb =", lookb))
   
   # Calculate pnls
   pnls <- shiny::reactive({
@@ -184,10 +184,10 @@ servfun <- function(input, output) {
 
     # captiont <- paste("Contrarian Strategy for", input$symbol, "Using the Hampel Filter Over Prices")
     if (input$trend == "1") {
-      captiont <- paste("Trending Strategy for", input$symbol, "Over ", input$data_type, "/ \n", 
+      captiont <- paste("Trending Strategy for", input$symbol, "Over ", input$datat, "/ \n", 
                         paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "))
     } else if (input$trend == "-1") {
-      captiont <- paste("Mean Reverting Strategy for", input$symbol, "Over ", input$data_type, "/ \n", 
+      captiont <- paste("Mean Reverting Strategy for", input$symbol, "Over ", input$datat, "/ \n", 
                         paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "))
     }  # end if
     

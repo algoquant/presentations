@@ -35,7 +35,7 @@ sp500table <- read.csv(file="/Users/jerzy/Develop/lecture_slides/data/sp500_cons
 symbolv <- sp500table$Ticker
 symbol <- "AAPL"
 
-look_back <- 1e2
+lookb <- 1e2
 
 # Setup end
 
@@ -69,10 +69,10 @@ server <- function(input, output) {
     
     symbol <- input$symbol
     tspan <- input$tspan
-    # Set look_back to 30 days if time span = minute
+    # Set lookb to 30 days if time span = minute
     if (tspan == "minute")
-      look_back <- 30
-    startd <- Sys.Date() - look_back
+      lookb <- 30
+    startd <- Sys.Date() - lookb
     
     cat("Loading data for ", symbol, "\n")
     
@@ -92,7 +92,7 @@ server <- function(input, output) {
     
     # Copy shiny parameters
     lambda <- input$lambda
-    # look_back <- input$look_back
+    # lookb <- input$lookb
     
     # Calculate the running mean prices
     closep <- quantmod::Cl(ohlc)

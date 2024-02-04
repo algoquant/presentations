@@ -13,8 +13,8 @@ library(dygraphs)
 
 ## Set up ETF data
 
-data_env <- rutils::etfenv
-symbolv <- get("symbolv", data_env)
+datenv <- rutils::etfenv
+symbolv <- get("symbolv", datenv)
 symbol <- "VTI"
 
 ## End setup code
@@ -30,7 +30,7 @@ uifun <- shiny::fluidPage(
     column(width=2, selectInput("symbol", label="Symbol",
                                 choices=symbolv, selected=symbol)),
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Lookback interval",
+    column(width=2, sliderInput("lookb", label="Lookback interval",
                                 min=1, max=150, value=11, step=1))
   ),  # end fluidRow
   
@@ -47,7 +47,7 @@ servfun <- shiny::shinyServer(function(input, output) {
   closep <- shiny::reactive({
     cat("Getting the close and volume data\n")
     # Get the data
-    ohlc <- get(input$symbol, data_env)
+    ohlc <- get(input$symbol, datenv)
     closep <- log(quantmod::Cl(ohlc))
     volumes <- quantmod::Vo(ohlc)
     # Return the data
@@ -58,12 +58,12 @@ servfun <- shiny::shinyServer(function(input, output) {
   vwapv <- shiny::reactive({
     cat("Calculating the VWAP indicator\n")
     # Get model parameters from input argument
-    look_back <- input$look_back
+    lookb <- input$lookb
     # Calculate the VWAP indicator
     closep <- closep()[, 1]
     volumes <- closep()[, 2]
-    vwapv <- rutils::roll_sum(xtes=closep*volumes, look_back=look_back)
-    volume_rolling <- rutils::roll_sum(xtes=volumes, look_back=look_back)
+    vwapv <- rutils::roll_sum(xtes=closep*volumes, lookb=lookb)
+    volume_rolling <- rutils::roll_sum(xtes=volumes, lookb=lookb)
     vwapv <- ifelse(volume_rolling>0, vwapv/volume_rolling, 0)
     vwapv[is.na(vwapv)] <- 0
     # Return the plot data

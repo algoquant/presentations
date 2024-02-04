@@ -22,10 +22,10 @@ library(dygraphs)
 captiont <- paste("Regression Z-score of SVXY Versus VXX")
 
 # Variables for testing
-predictor_symbol <- "SVXY"
-response_symbol <- "VXX"
+symbolpred <- "SVXY"
+symbolresp <- "VXX"
 symbol <- "VTI"
-symbolv <- c(symbol, predictor_symbol, response_symbol)
+symbolv <- c(symbol, symbolpred, symbolresp)
 lambda <- 0.8
 threshold1 <- 1
 threshold2 <- (-1)
@@ -44,9 +44,9 @@ uifun <- shiny::fluidPage(
     # Input stock symbols
     column(width=2, selectInput("symbol", label="Symbol to Trade",
                                 choices=rutils::etfenv$symbolv, selected="VTI")),
-    column(width=2, selectInput("predictor_symbol", label="Symbol for Predictor",
+    column(width=2, selectInput("symbolpred", label="Symbol for Predictor",
                                 choices=rutils::etfenv$symbolv, selected="SVXY")),
-    column(width=2, selectInput("response_symbol", label="Symbol for Response",
+    column(width=2, selectInput("symbolresp", label="Symbol for Response",
                                 choices=rutils::etfenv$symbolv, selected="VXX")),
     # Input VIX symbol
     # column(width=2, selectInput("symbol_vix", label="Symbol VIX",
@@ -59,14 +59,14 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input look-back interval
-    # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=50, step=1)),
+    # column(width=2, sliderInput("lookb", label="Look-back", min=2, max=100, value=50, step=1)),
     column(width=3, sliderInput("lambda", label="lambda:", min=0.01, max=0.9, value=0.7, step=0.01)),
     # Input threshold interval
     column(width=3, sliderInput("threshold1", label="Threshold1", min=0, max=1, value=0.0, step=0.1)),
     # column(width=3, sliderInput("threshold2", label="Threshold2", min=(-1), max=0, value=(-0.3), step=0.1)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
-    # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),
+    # column(width=2, sliderInput("lookb", label="lookb:", min=1, max=21, value=5, step=1)),
     # column(width=2, sliderInput("slow_back", label="slow_back:", min=11, max=251, value=151, step=1)),
     # Input the trade lag
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=1, step=1))
@@ -89,12 +89,12 @@ servfun <- function(input, output) {
   retv <- shiny::reactive({
     
     symbol <- input$symbol
-    predictor_symbol <- input$predictor_symbol
-    response_symbol <- input$response_symbol
+    symbolpred <- input$symbolpred
+    symbolresp <- input$symbolresp
     cat("Loading the data for ", symbol, "\n")
     
     # Load the data
-    symbolv <- c(symbol, predictor_symbol, response_symbol)
+    symbolv <- c(symbol, symbolpred, symbolresp)
 
     na.omit(rutils::etfenv$returns[, symbolv])
     # na.omit(mget(symbolv, rutils::etfenv$returns))
@@ -117,10 +117,10 @@ servfun <- function(input, output) {
     predv <- retv[, -(1:2)]
 
     # Calculate the trailing z-scores
-    # zscores <- drop(HighFreq::roll_zscores(respv=respv, predictor=predv, look_back=look_back))
+    # zscores <- drop(HighFreq::roll_zscores(respv=respv, predictor=predv, lookb=lookb))
     zscores <- HighFreq::run_reg(respv=respv, predictor=predv, lambda=lambda, method="scale")
     zscores <- zscores[, 1, drop=FALSE]
-    # zscores[1:look_back] <- 0
+    # zscores[1:lookb] <- 0
     zscores[is.infinite(zscores)] <- 0
     zscores[is.na(zscores)] <- 0
     # Scale the zscores by the volatility of the zscores
@@ -139,7 +139,7 @@ servfun <- function(input, output) {
     symbol <- input$symbol
     cat("Recalculating strategy for ", symbol, "\n")
     # Get model parameters from input argument
-    # look_back <- input$look_back
+    # lookb <- input$lookb
     coeff <- as.numeric(input$coeff)
     lagg <- input$lagg
     lambda <- input$lambda
@@ -151,7 +151,7 @@ servfun <- function(input, output) {
     nrows <- NROW(retv)
 
     # Calculate rolling volatility
-    # variance <- HighFreq::roll_var_ohlc(ohlc=vtis, look_back=look_back, scale=FALSE)
+    # variance <- HighFreq::roll_var_ohlc(ohlc=vtis, lookb=lookb, scale=FALSE)
 
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
@@ -175,7 +175,7 @@ servfun <- function(input, output) {
     # indic[zscores > threshold1] <- coeff
     # indic[zscores < (threshold1)] <- (-coeff)
     # indic <- zoo::na.locf(indic, na.rm=FALSE)
-    # indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    # indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
     # indics[1:lagg] <- 0
     # posv <- rep(NA_integer_, nrows)
     # posv[1] <- 0
@@ -190,17 +190,17 @@ servfun <- function(input, output) {
     # Calculate trailing z-scores of VXX
     # predv <- cbind(sqrt(variance), svxy, vti_close)
     # respv <- vxx
-    # zscores <- drop(HighFreq::roll_zscores(respv=respv, predictor=predv, look_back=look_back))
-    # zscores[1:look_back] <- 0
+    # zscores <- drop(HighFreq::roll_zscores(respv=respv, predictor=predv, lookb=lookb))
+    # zscores[1:lookb] <- 0
     # zscores[is.infinite(zscores)] <- 0
     # zscores[is.na(zscores)] <- 0
-    # zscores <- zscores/sqrt(look_back)
+    # zscores <- zscores/sqrt(lookb)
     # indic <- rep(NA_integer_, nrows)
     # indic[1] <- 0
     # indic[zscores > threshold1] <- coeff
     # indic[zscores < (-threshold1)] <- (-coeff)
     # indic <- zoo::na.locf(indic, na.rm=FALSE)
-    # indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    # indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
     # indics[1:lagg] <- 0
     # posv <- rep(NA_integer_, nrows)
     # posv[1] <- 0

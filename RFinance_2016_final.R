@@ -246,9 +246,9 @@ chart_Series(
   name=paste(symbol, "contrarian skew strategy pnl"))
 # vwap plot
 vwap_short <-
-  vwapv(xtes=SPY, look_back=70)
+  vwapv(xtes=SPY, lookb=70)
 vwap_long <-
-  vwapv(xtes=SPY, look_back=225)
+  vwapv(xtes=SPY, lookb=225)
 vwap_diff <- vwap_short - vwap_long
 colnames(vwap_diff) <- paste0(symbol, ".vwap")
 interval <- "2010-05-05/2010-05-07"
@@ -268,8 +268,8 @@ add_TA(vwap_diff[interval] < 0, on=-1,
  col="lightgrey", border="lightgrey")
 # vwap scatterplot
 # retv <- calc_rets(xts_data=SPY)
-vwap_short <- vwapv(xtes=SPY, look_back=70)
-vwap_long <- vwapv(xtes=SPY, look_back=225)
+vwap_short <- vwapv(xtes=SPY, lookb=70)
+vwap_long <- vwapv(xtes=SPY, lookb=225)
 vwap_diff <- vwap_short - vwap_long
 colnames(vwap_diff) <- paste0(symbol, ".vwap")
 lag_vwap <- lag(vwap_diff)

@@ -49,13 +49,13 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input look-back interval
-    # column(width=2, sliderInput("look_back", label="Look-back", min=2, max=100, value=50, step=1)),
+    # column(width=2, sliderInput("lookb", label="Look-back", min=2, max=100, value=50, step=1)),
     column(width=3, sliderInput("lambda", label="lambda:", min=0.01, max=0.9, value=0.73, step=0.01)),
     # Input threshold interval
     column(width=3, sliderInput("threshold", label="Threshold", min=0.5, max=2.0, value=0.8, step=0.1)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
-    # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),
+    # column(width=2, sliderInput("lookb", label="lookb:", min=1, max=21, value=5, step=1)),
     # column(width=2, sliderInput("slow_back", label="slow_back:", min=11, max=251, value=151, step=1)),
     # Input the trade lag
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=1, step=1))
@@ -106,10 +106,10 @@ servfun <- function(input, output) {
     predv <- retv[, -1]
 
     # Calculate the trailing z-scores
-    # zscores <- drop(HighFreq::roll_zscores(respv=respv, predictor=predv, look_back=look_back))
+    # zscores <- drop(HighFreq::roll_zscores(respv=respv, predictor=predv, lookb=lookb))
     zscores <- HighFreq::run_zscores(respv=respv, predictor=predv, lambda=lambda)
     # zscores <- zscores[, 1, drop=FALSE]
-    # zscores[1:look_back] <- 0
+    # zscores[1:lookb] <- 0
     # zscores[is.infinite(zscores)] <- 0
     # zscores[is.na(zscores)] <- 0
     zscores
@@ -123,7 +123,7 @@ servfun <- function(input, output) {
     symbol <- input$symbol
     cat("Recalculating strategy for ", symbol, "\n")
     # Get model parameters from input argument
-    # look_back <- input$look_back
+    # lookb <- input$lookb
     coeff <- as.numeric(input$coeff)
     lagg <- input$lagg
     lambda <- input$lambda
@@ -135,7 +135,7 @@ servfun <- function(input, output) {
     nrows <- NROW(retv)
 
     # Calculate rolling volatility
-    # variance <- HighFreq::roll_var_ohlc(ohlc=vtis, look_back=look_back, scale=FALSE)
+    # variance <- HighFreq::roll_var_ohlc(ohlc=vtis, lookb=lookb, scale=FALSE)
 
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.
@@ -151,13 +151,13 @@ servfun <- function(input, output) {
     variance <- HighFreq::lagit(tseries=variance)
     threshold <- variance*threshold
     
-    # zscores <- zscores/sqrt(look_back)
+    # zscores <- zscores/sqrt(lookb)
     indic <- rep(NA_integer_, nrows)
     indic[1] <- 0
     indic[zscores[, 1] > threshold] <- coeff
     indic[zscores[, 1] < (-threshold)] <- (-coeff)
     indic <- zoo::na.locf(indic, na.rm=FALSE)
-    # indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    # indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
     # indics[1:lagg] <- 0
     # Define z-score weights
     ncols <- (NCOL(zscores)-1)/2
@@ -175,17 +175,17 @@ servfun <- function(input, output) {
     # Calculate trailing z-scores of VXX
     # predv <- cbind(sqrt(variance), svxy, vti_close)
     # respv <- vxx
-    # zscores <- drop(HighFreq::roll_zscores(respv=respv, predictor=predv, look_back=look_back))
-    # zscores[1:look_back] <- 0
+    # zscores <- drop(HighFreq::roll_zscores(respv=respv, predictor=predv, lookb=lookb))
+    # zscores[1:lookb] <- 0
     # zscores[is.infinite(zscores)] <- 0
     # zscores[is.na(zscores)] <- 0
-    # zscores <- zscores/sqrt(look_back)
+    # zscores <- zscores/sqrt(lookb)
     # indic <- rep(NA_integer_, nrows)
     # indic[1] <- 0
     # indic[zscores > threshold] <- coeff
     # indic[zscores < (-threshold)] <- (-coeff)
     # indic <- zoo::na.locf(indic, na.rm=FALSE)
-    # indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    # indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
     # indics[1:lagg] <- 0
     # posv <- rep(NA_integer_, nrows)
     # posv[1] <- 0

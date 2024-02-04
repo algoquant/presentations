@@ -49,7 +49,7 @@ uifun <- shiny::fluidPage(
     column(width=4, selectInput("interval", label="End points Interval",
                 choices=c("weeks", "months", "years"), selected="months")),
     # Input look-back interval
-    column(width=4, sliderInput("look_back", label="Look-back interval:",
+    column(width=4, sliderInput("lookb", label="Look-back interval:",
                                 min=1, max=30, value=12, step=1)),
     # Input end_stub interval
     # column(width=4, sliderInput("end_stub", label="End_stub interval:",
@@ -73,7 +73,7 @@ servfun <- function(input, output) {
     interval <- isolate(input$interval)
     dimax <- isolate(input$dimax)
     alpha <- isolate(input$alpha)
-    look_back <- isolate(input$look_back)
+    lookb <- isolate(input$lookb)
     # end_stub <- input$end_stub
     # Model is recalculated when the recalcb variable is updated
     input$recalcb
@@ -84,7 +84,7 @@ servfun <- function(input, output) {
     endp <- endp[endp > (nweights+1)]
     nrows <- NROW(endp)
     # Define startp
-    startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
+    startp <- c(rep_len(1, lookb-1), endp[1:(nrows-lookb+1)])
     # Rerun the model
     pnls <- back_test(excess=retv, 
                         returns=retv,

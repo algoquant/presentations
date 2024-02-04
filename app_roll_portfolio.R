@@ -21,7 +21,7 @@ riskf <- 0.03/260
 
 # Variables setup for testing
 # interval <- "weeks"
-# look_back <- 5
+# lookb <- 5
 # lambda <- 0.01
 # method <- "max_sharpe"
 # confl <- 0.25
@@ -49,7 +49,7 @@ uifun <- shiny::fluidPage(
   fluidRow(
     # Input choice of data
     column(width=2, selectInput("datas", label="Data",
-                                choices=c("etf", "sp500"), selected="sp500")),
+                                choices=c("etf", "sp500"), selected="etf")),
     # Input choice of model
     column(width=2, selectInput("method", label="Model type",
                                 choices=c("sharpem", "kellym", "maxsharpe", "maxsharpemed", "minvarlin", "minvarquad", "ranksimple", "rank_hold", "robustm", "quantilev"), selected="maxsharpe")),
@@ -57,7 +57,7 @@ uifun <- shiny::fluidPage(
     column(width=2, selectInput("interval", label="End points Interval",
                                 choices=c("days", "weeks", "months", "years"), selected="months")),
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Lookback interval",
+    column(width=2, sliderInput("lookb", label="Lookback interval",
                                 min=2, max=40, value=11, step=1)),
     # Input decay factor for averaging the portfolio weights
     column(width=2, sliderInput("lambda", label="Decay factor:",
@@ -75,7 +75,7 @@ uifun <- shiny::fluidPage(
     column(width=2, sliderInput("confl", label="Confidence level",
                                 min=0.01, max=0.49, value=0.25, step=0.01)),
     # Input choice of excess returns
-    column(width=2, selectInput("returns_scaling", label="Excess returns scaling",
+    column(width=2, selectInput("scalingm", label="Excess returns scaling",
                                 choices=c("none", "sum", "rescaled", "volatility", "sharpe", "skew"), selected="none")),
     # If trend=1 then trending, If trend=(-1) then contrarian
     column(width=2, selectInput("trend", label="Trend coefficient",
@@ -109,22 +109,23 @@ servfun <- function(input, output) {
              # captiont <- paste("Contrarian Strategy for", symbol, "Using the Hampel Filter Over Prices")
              # Load PCA data
              # load("/Users/jerzy/Develop/data/pcarets.RData")
-             # rets <- pcarets[, 1:9]
+             # retp <- pcarets[, 1:9]
              # Load ETF data
              # symbolv <- c("VXX", "VEU", "GLD", "EEM", "IEF", "DBC", "TLT", "SVXY", "VYM", "USO", "MTUM", "IWB", "IWD", "VTI")
              # symbolv <- c("VEU", "GLD", "EEM", "DBC", "VYM", "USO", "IWB", "IWD", "VTI")
              # Select all the ETF symbols except "VXX", "SVXY" and "MTUM"
              symbolv <- rutils::etfenv$symbolv
-             symbolv <- symbolv[!(symbolv %in% c("VXX", "SVXY", "TLT", "IEF", "MTUM", "QUAL", "VLUE", "USMV"))]
+             symbolv <- symbolv[!(symbolv %in% c("VXX", "SVXY", "MTUM", "QUAL", "VLUE", "USMV", "VTV", "AIEQ", "GLD"))]
+             # symbolv <- symbolv[!(symbolv %in% c("VXX", "SVXY", "TLT", "IEF", "MTUM", "QUAL", "VLUE", "USMV", "VTV", "AIEQ", "GLD"))]
              # symbolv <- symbolv[!(symbolv %in% c("TLT", "IEF", "VXX", "SVXY", "MTUM"))]
              # symbolv <- symbolv[!(symbolv %in% c("VXX", "SVXY", "MTUM"))]
-             rets <- rutils::etfenv$returns[, symbolv]
+             retp <- rutils::etfenv$returns[, symbolv]
              # method <- "max_sharpe"
-             # look_back <- 8
-             # look_back_max <- 71
+             # lookb <- 8
+             # lookb_max <- 71
              # dimax <- 5
              # alpha <- 0.01
-             # rets <- rets["2001-06-02/"]
+             # retp <- retp["2001-06-02/"]
            },
            "sp500" = {
              cat("Loading S&P500 data \n")
@@ -134,140 +135,139 @@ servfun <- function(input, output) {
              # load("/Users/jerzy/Develop/lecture_slides/data/returns100.RData")
              load("/Users/jerzy/Develop/data/sp500_returns.RData")
              # Select data after 2000
-             rets <- returns100["2000/"]
+             retp <- returns100["2000/"]
              # Copy over NA values
-             # rets[1, is.na(rets[1, ])] <- 0
-             # rets <- zoo::na.locf(rets, na.rm=FALSE)
-             # nrows <- NROW(rets)
-             # ncols <- NCOL(rets)
+             # retp[1, is.na(retp[1, ])] <- 0
+             # retp <- zoo::na.locf(retp, na.rm=FALSE)
+             # nrows <- NROW(retp)
+             # ncols <- NCOL(retp)
              # Select the columns with non-zero returns
-             # rets <- rets[, !(rets[ncols %/% 10, ] == 0)]
+             # retp <- retp[, !(retp[ncols %/% 10, ] == 0)]
              # Select 100 columns to reduce computations
              # set.seed(1121)  # Reset random number generator
-             # samplev <- sample(1:NCOL(rets), 100)
-             # rets <- rets[, samplev]
-             # rets <- cbind(rets, rutils::etfenv$rets$SVXY, rutils::etfenv$rets$VXX)
+             # samplev <- sample(1:NCOL(retp), 100)
+             # retp <- retp[, samplev]
+             # retp <- cbind(retp, rutils::etfenv$returns$SVXY, rutils::etfenv$returns$VXX)
              # method <- "rank"
-             # look_back <- 5
-             # look_back_max <- 50
+             # lookb <- 5
+             # lookb_max <- 50
              # dimax <- 35
              # alpha <- 0.01
            }
     )  # end switch
     
     # Copy over NA values
-    rets[1, is.na(rets[1, ])] <- 0
-    rets <- zoo::na.locf(rets, na.rm=FALSE)
-    nrows <- NROW(rets)
-    ncols <- NCOL(rets)
+    retp[1, is.na(retp[1, ])] <- 0
+    retp <- zoo::na.locf(retp, na.rm=FALSE)
+    nrows <- NROW(retp)
+    ncols <- NCOL(retp)
     globals$nrows <- nrows
     globals$ncols <- ncols
     
     # Random data
-    # coredata(rets) <- matrix(rnorm(prod(dim(rets)))/100, nc=ncols)
+    # coredata(retp) <- matrix(rnorm(prod(dim(retp)))/100, nc=ncols)
     
     # Calculate returns on equal weight portfolio
-    # indeks <- xts(cumprod(1 + rowMeans(rets)), index(rets))
-    indeks <- rowMeans(rets)
+    # indeks <- xts(cumprod(1 + rowMeans(retp)), index(retp))
+    indeks <- rowMeans(retp)
     # sharper <- sqrt(252)*mean(indeks)/stdev
-    indeks <- xts(indeks, index(rets))
+    indeks <- xts(indeks, index(retp))
     # stdev <- sd(indeks[indeks<0])
     globals$stdev <- sd(indeks[indeks<0])
 
-    list(rets=rets, indeks=indeks)
+    list(retp=retp, indeks=indeks)
     
   })  # end Load the data
   
   
-  ## Calculate the excess
-  excess <- shiny::reactive({
-    cat("Calculating the excess", "\n")
+  ## Calculate the excess returns
+  retx <- shiny::reactive({
+    cat("Calculating the excess returns", "\n")
     
-    returns_scaling <- input$returns_scaling
+    scalingm <- input$scalingm
     exponent <- input$exponent
     interval <- input$interval
     
-    rets <- datav()$rets
+    retp <- datav()$retp
     nperiods <- globals$nperiods
     
-    # retv_scaling not found
     # Scale the returns and call them excess
-    switch(retv_scaling,
+    switch(scalingm,
            "none" = {
              cat("No returns scaling \n")
-             excess <- (rets - riskf)
-             # excess <- returns100
+             retx <- (retp - riskf)
+             # retx <- returns100
            },
            "sum" = {
              # Calculate trailing sum
-             excess <- HighFreq::roll_sum(rets, look_back=nperiods)
+             retx <- HighFreq::roll_sum(retp, lookb=nperiods)
            },
            "rescaled" = {
-             # Scale the rets by the trailing volatility
-             excess <- rets/(HighFreq::roll_var(rets, look_back=nperiods))^exponent
-             excess[!is.finite(excess)] <- 0.1
+             # Scale the returns by the trailing volatility
+             retx <- retp/(HighFreq::roll_var(retp, lookb=nperiods))^exponent
+             retx[!is.finite(retx)] <- 0.1
            },
            "volatility" = {
              # Calculate trailing volatilities
-             excess <- HighFreq::roll_var(rets, look_back=nperiods)^exponent
-             excess[!is.finite(excess)] <- 0.1
+             retx <- HighFreq::roll_var(retp, lookb=nperiods)^exponent
+             retx[!is.finite(retx)] <- 0.1
            },
            "sharpe" = {
              # Calculate trailing Sharpe ratios
-             # excess <- HighFreq::roll_sum(rets, look_back=nperiods)/nperiods/(HighFreq::roll_var(rets, look_back=nperiods))^exponent
-             # excess[!is.finite(excess)] <- 0.1
-             volat <- HighFreq::roll_var(rets, look_back=nperiods)^exponent
+             # retx <- HighFreq::roll_sum(retp, lookb=nperiods)/nperiods/(HighFreq::roll_var(retp, lookb=nperiods))^exponent
+             # retx[!is.finite(retx)] <- 0.1
+             volat <- HighFreq::roll_var(retp, lookb=nperiods)^exponent
              volat[volat == 0] <- 1
-             excess <- HighFreq::roll_sum(rets, look_back=nperiods)/nperiods
-             excess <- excess/volat
+             retx <- HighFreq::roll_sum(retp, lookb=nperiods)/nperiods
+             retx <- retx/volat
            },
            "skew" = {
              ## Calculate the skew-like stats
-             maxv <- RcppRoll::rolregmodax(rets, n=nperiods, align="right")
-             # minv <- -RcppRoll::rolregmodax(-rets, n=nperiods, align="right")
-             # meanv <- RcppRoll::rolregmodean(rets, n=nperiods, align="right")
-             medianv <- RcppRoll::roll_median(rets, n=nperiods, align="right")
+             maxv <- RcppRoll::rolregmodax(retp, n=nperiods, align="right")
+             # minv <- -RcppRoll::rolregmodax(-retp, n=nperiods, align="right")
+             # meanv <- RcppRoll::roll_mean(retp, n=nperiods, align="right")
+             medianv <- RcppRoll::roll_median(retp, n=nperiods, align="right")
              # Calculate difference between upside minus downside volatility
-             # core_data <- coredata(rets)
+             # core_data <- coredata(retp)
              # upsd <- RcppRoll::roll_sd(ifelse(core_data>0, core_data, 0), n=nperiods, align="right")
              # downsd <- RcppRoll::roll_sd(ifelse(core_data<0, core_data, 0), n=nperiods, align="right")
              # Calculate rolling skew using Rcpp
              # First compile this file in R by running this command:
              # Rcpp::sourceCpp(file="/Users/jerzy/Develop/R/Rcpp/roll_skew.cpp")
-             # rolling_skew <- roll_kurtosis(rets, look_back=nperiods)
-             # rolling_skew <- roll_skew(rets, look_back=nperiods)
-             # rolling_skew <- roll_skew(rets, typev="quantile", alpha=confl, look_back=nperiods)
+             # rolling_skew <- roll_kurtosis(retp, lookb=nperiods)
+             # rolling_skew <- roll_skew(retp, lookb=nperiods)
+             # rolling_skew <- roll_skew(retp, typev="quantile", alpha=confl, lookb=nperiods)
              # rolling_skew[!is.finite(rolling_skew)] <- 0
              # rolling_skew <- na.locf(rolling_skew)
 
              # Best performing stats so far
-             excess <- maxv / medianv
-             # excess <- rolling_skew
-             # excess <- (upsd - downsd)
-             # excess <- (maxv - medianv)
-             # excess <- maxv/meanv^exponent
-             # excess <- maxv - minv
-             # excess <- (maxv + minv - 2*medianv) / (maxv - minv)
-             # excess <- (maxv - medianv) / (medianv - minv)
-             # excess <- (meanv - medianv)
-             excess[is.infinite(excess)] <- 0
-             excess[is.na(excess)] <- 0
+             retx <- maxv / medianv
+             # retx <- rolling_skew
+             # retx <- (upsd - downsd)
+             # retx <- (maxv - medianv)
+             # retx <- maxv/meanv^exponent
+             # retx <- maxv - minv
+             # retx <- (maxv + minv - 2*medianv) / (maxv - minv)
+             # retx <- (maxv - medianv) / (medianv - minv)
+             # retx <- (meanv - medianv)
+             retx[is.infinite(retx)] <- 0
+             retx[is.na(retx)] <- 0
              # Pad zeros up-front
-             excess <- rbind(matrix(1:((nperiods-1)*globals$ncols), ncol=globals$ncols), excess)
+             retx <- rbind(matrix(1:((nperiods-1)*globals$ncols), ncol=globals$ncols), retx)
            }
     )  # end switch
     
     # Filter the excess returns using an exponential weighted filter - doesn't provide significant improvement
     # Calculate the weights
-    # weights <- exp(-lambda*(1:look_back))
+    # weights <- exp(-lambda*(1:lookb))
     # weights <- weights/sum(weights)
     # weights <- matrix(weights, nc=1)
     # Calculate smoothed excess returns
-    # excess <- HighFreq::roll_conv(excess, weightv=weights)
+    # retx <- HighFreq::roll_conv(retx, weightv=weights)
     
-    excess
+    retx
 
-  })  # end Calculate the excess
+  })  # end Calculate the excess returns
   
   
   ## Calculate the end points
@@ -275,29 +275,29 @@ servfun <- function(input, output) {
     cat("Calculating the end points", "\n")
     
     interval <- input$interval
-    look_back <- input$look_back
-    rets <- datav()$rets
+    lookb <- input$lookb
+    retp <- datav()$retp
     
     # Define end points
-    endp <- rutils::calc_endpoints(rets, interval=interval)
-    # endp <- ifelse(endp< ncols+1), ncols+1, endp)
-    endp <- endp[endp > (globals$ncols+1)]
-    nrows <- NROW(endp)
+    endd <- rutils::calc_endpoints(retp, interval=interval)
+    # endd <- ifelse(endd< ncols+1), ncols+1, endd)
+    endd <- endd[endd > (globals$ncols+1)]
+    nrows <- NROW(endd)
     # Define startp
     # Rolling window
-    startp <- c(rep_len(1, look_back-1), endp[1:(nrows-look_back+1)])
+    startp <- c(rep_len(1, lookb-1), endd[1:(nrows-lookb+1)])
     # Expanding window
     # startp <- rep_len(1, nrows)
     
-    ## Calculate the number of days in the look_back interval
-    # nperiods <- rutils::diffit(endp)
+    ## Calculate the number of days in the lookb interval
+    # nperiods <- rutils::diffit(endd)
     # which_periods <- which.max(table(nperiods))
     # nperiods <- nperiods[which_periods]
-    nperiods <- (endp[nrows] - endp[nrows-1])
-    nperiods <- nperiods*look_back
+    nperiods <- (endd[nrows] - endd[nrows-1])
+    nperiods <- nperiods*lookb
     globals$nperiods <- nperiods
     
-    list(startp=startp, endp=endp)
+    list(startp=startp, endd=endd)
     
   })  # end Calculate the end points
   
@@ -305,7 +305,7 @@ servfun <- function(input, output) {
   # Recalculate the strategy
   pnls <- shiny::reactive({
     
-    look_back <- input$look_back
+    lookb <- input$lookb
     dimax <- input$dimax
     lambda <- input$lambda
     method <- input$method
@@ -319,10 +319,10 @@ servfun <- function(input, output) {
     # Model is recalculated when the recalcb variable is updated
     # input$recalcb
     
-    rets <- datav()$rets
-    excess <- excess()
+    retp <- datav()$retp
+    retx <- retx()
     startp <- roll_points()$startp
-    endp <- roll_points()$endp
+    endd <- roll_points()$endd
     
     if (method == "ranksimple") {
       cat("Rank simple model \n")
@@ -330,13 +330,13 @@ servfun <- function(input, output) {
       # posv <- matrix(rep(NA_integer_, nrows*ncols), ncol=ncols)
       # posv[1, ] <- 0
       # Reset the positions according to the sort data in excess
-      posv <- matrixStats::rowRanks(excess)
-      # Reset the positions only at the endp and hold the position between the endp
-      # posv[endp, ] <- excess[endp, ]
+      posv <- matrixStats::rowRanks(retx)
+      # Reset the positions only at the endd and hold the position between the endd
+      # posv[endd, ] <- retx[endd, ]
       # posv <- zoo::na.locf(posv, na.rm=FALSE)
       posv <- (posv - rowMeans(posv))
       posv <- HighFreq::lagit(posv, lagg=1)
-      pnls <- trend*posv*rets
+      pnls <- trend*posv*retp
       pnls <- rowMeans(pnls)
     } else if (method == "rank_hold") {
       cat("Rank hold model \n")
@@ -344,39 +344,39 @@ servfun <- function(input, output) {
       # posv <- matrix(rep(NA_integer_, nrows*ncols), ncol=ncols)
       # posv[1, ] <- 0
       # Reset the positions according to the sort data in excess
-      posv <- matrixStats::rowRanks(excess)
-      # Reset the positions only at the endp and hold the position between the endp
-      # posv[endp, ] <- excess[endp, ]
+      posv <- matrixStats::rowRanks(retx)
+      # Reset the positions only at the endd and hold the position between the endd
+      # posv[endd, ] <- retx[endd, ]
       # posv <- zoo::na.locf(posv, na.rm=FALSE)
       posv <- (posv - rowMeans(posv))
       # Average the past posv to reflect holding the position for some time
-      posv <- HighFreq::roll_sum(posv, look_back=look_back)
+      posv <- HighFreq::roll_sum(posv, lookb=lookb)
       posv <- HighFreq::lagit(posv, lagg=1)
-      pnls <- trend*posv*rets
+      pnls <- trend*posv*retp
       pnls <- rowMeans(pnls)
     } else if (input$interval == "days") {
       cat("Daily HighFreq::back_test() \n")
       # Rerun the strategy with fixed start date
-      pnls <- HighFreq::back_test(excess=excess,
-                                  returns=rets,
+      pnls <- HighFreq::back_test(retx=retx,
+                                  retp=retp,
                                   startp=startp-1,
-                                  endp=endp-1,
+                                  endd=endd-1,
                                   lambda=lambda,
                                   controlv=controlv,
                                   coeff=trend)
       pnls[which(is.na(pnls)), ] <- 0
     } else {
       # Rerun the strategy with multiple start dates
-      # endpoint <- endp[nrows]
-      # nperiods <- (endpoint - endp[nrows-1] - 1)
+      # endpoint <- endd[nrows]
+      # nperiods <- (endpoint - endd[nrows-1] - 1)
       # 
       # pnls <- lapply(1:nperiods, function(shiftv) {
-      #   ep_new <- c(endp-shiftv, endpoint)
-      #   sp_new <- c(rep_len(1, look_back-1), ep_new[1:(nrows-look_back+2)])
-      #   pnls <- HighFreq::back_test(excess=excess, 
-      #                                returns=rets,
+      #   ep_new <- c(endd-shiftv, endpoint)
+      #   sp_new <- c(rep_len(1, lookb-1), ep_new[1:(nrows-lookb+2)])
+      #   pnls <- HighFreq::back_test(retx=retx, 
+      #                                retp=retp,
       #                                startp=sp_new-1,
-      #                                endp=ep_new-1,
+      #                                endd=ep_new-1,
       #                                confl=confl,
       #                                dimax=dimax, 
       #                                alpha=alpha, 
@@ -392,10 +392,10 @@ servfun <- function(input, output) {
       
       cat("HighFreq::back_test() \n")
       # Rerun the strategy with fixed start date
-      pnls <- HighFreq::back_test(excess=excess,
-                                  returns=rets,
+      pnls <- HighFreq::back_test(retx=retx,
+                                  retp=retp,
                                   startp=startp-1,
-                                  endp=endp-1,
+                                  endd=endd-1,
                                   lambda=lambda,
                                   controlv=controlv,
                                   coeff=trend)
@@ -412,7 +412,7 @@ servfun <- function(input, output) {
     colnames(pnls) <- c("Strategy", "Index")
     captiont <- paste0(c("Strategy SR = ", "Index SR = "), sharper)
     captiont <- paste("Rolling Portfolio Strategy: ", paste(captiont, collapse=" and "))
-    list(captiont=captiont, pnls=pnls[c(1, endp), ])
+    list(captiont=captiont, pnls=pnls[c(1, endd), ])
     
   })  # end reactive code
   

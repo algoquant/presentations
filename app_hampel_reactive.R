@@ -19,7 +19,7 @@ library(dygraphs)
 
 # Model and data setup
 
-# symbolv <- names(data_env)
+# symbolv <- names(datenv)
 symbolv <- c("SPY", "LODE", "GME")
 symbol <- "LODE"
 
@@ -45,7 +45,7 @@ uifun <- shiny::fluidPage(
     column(width=2, selectInput("symbol", label="Symbol",
                                 choices=symbolv, selected=symbol)),
     # Input data type Boolean
-    column(width=2, selectInput("data_type", label="Select data for Hampel", choices=c("Returns", "Prices"), selected="Returns")),
+    column(width=2, selectInput("datat", label="Select data for Hampel", choices=c("Returns", "Prices"), selected="Returns")),
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False"))
   ),  # end fluidRow
@@ -53,7 +53,7 @@ uifun <- shiny::fluidPage(
   # Create single row with inputs
   fluidRow(
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Look-back", min=3, max=50, value=10, step=1)),
+    column(width=2, sliderInput("lookb", label="Look-back", min=3, max=50, value=10, step=1)),
     # Input long look-back interval
     # column(width=2, sliderInput("long_back", label="Long lookback", min=10, max=100, value=20, step=1)),
     # Input threshold interval
@@ -86,8 +86,8 @@ servfun <- function(input, output) {
   # input$add_annotations
   
   
-  # look_back <- 11
-  # half_window <- look_back %/% 2
+  # lookb <- 11
+  # half_window <- lookb %/% 2
 
   # Create an empty list of reactive values.
   values <- reactiveValues()
@@ -125,43 +125,43 @@ servfun <- function(input, output) {
 
   })  # end reactive
   
-  # Calculate zscores if new there's look_back value
+  # Calculate zscores if new there's lookb value
   zscores <- shiny::reactive({
     cat("Calculating zscores\n")
-    look_back <- input$look_back
-    data_type <- input$data_type
+    lookb <- input$lookb
+    datat <- input$datat
     
     # long_back <- input$long_back
     # closep <- closep()
     # Select the data
-    if (data_type == "Returns") {
+    if (datat == "Returns") {
       # cat("Calculating returns\n")
       datav <- rutils::diffit(closep())
-    } else if (data_type == "Prices") {
+    } else if (datat == "Prices") {
       # cat("Calculating prices\n")
       datav <- closep()
     }  # end if
     # Calculate the zscores
     # datav <- rutils::diffit(closep())
-    medianv <- roll::roll_median(datav, width=look_back)
-    medianv[1:look_back, ] <- 1
+    medianv <- roll::roll_median(datav, width=lookb)
+    medianv[1:lookb, ] <- 1
     # Don't divide zscores by the madv because it's redundant since zscores is divided by the mad_zscores.
     # Old code:
-    # madv <- TTR::runMAD(datav, n=look_back)
-    # madv[1:look_back, ] <- 1
+    # madv <- TTR::runMAD(datav, n=lookb)
+    # madv[1:lookb, ] <- 1
     # zscores <- ifelse(madv != 0, (datav-medianv)/madv, 0)
     # Calculate cumulative return
     zscores <- (datav - medianv)
     # Standardize the zscores
     # Old code:
-    # zscores[1:look_back, ] <- 0
+    # zscores[1:lookb, ] <- 0
     # med_zscores <- TTR::runMedian(zscores, n=long_back)
     # med_zscores[1:(long_back), ] <- 0
     # mad_zscores <- TTR::runMAD(zscores, n=long_back)
     # mad_zscores[1:(long_back), ] <- 0
     # ifelse(mad_zscores != 0, (zscores - med_zscores)/mad_zscores, 0)
     # Standardize the zscores - HighFreq::roll_scale() is fastest
-    zscores <- HighFreq::roll_scale(zscores, look_back=look_back, use_median=TRUE)
+    zscores <- HighFreq::roll_scale(zscores, lookb=lookb, use_median=TRUE)
     zscores[is.na(zscores)] <- 0
     zscores[is.infinite(zscores)] <- 0
     zscores
@@ -172,7 +172,7 @@ servfun <- function(input, output) {
   # zscores <- zscores[zscores > quantile(zscores, 0.05)]
   # zscores <- zscores[zscores < quantile(zscores, 0.95)]
   # x11(width=6, height=5)
-  # hist(zscores, xlim=c(quantile(zscores, 0.05), quantile(zscores, 0.95)), breaks=50, main=paste("Z-scores for", "look_back =", look_back))
+  # hist(zscores, xlim=c(quantile(zscores, 0.05), quantile(zscores, 0.95)), breaks=50, main=paste("Z-scores for", "lookb =", lookb))
   
   # Calculate posv and pnls if there's new threshold value
   pnls <- shiny::reactive({
@@ -189,7 +189,7 @@ servfun <- function(input, output) {
     # Calculate number of consecutive indicators in same direction.
     # This is designed to avoid trading on microstructure noise.
     # indic <- ifelse(indic == indic_lag, indic, indic)
-    indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
     indics[1:lagg] <- 0
     
     # Calculate posv and pnls from indics.
@@ -247,7 +247,7 @@ servfun <- function(input, output) {
     sharper <- round(sharper, 3)
 
     # captiont <- paste("Contrarian Strategy for", input$symbol, "Using the Hampel Filter Over Prices")
-    captiont <- paste("Strategy for", input$symbol, "Over ", input$data_type, "/ \n", 
+    captiont <- paste("Strategy for", input$symbol, "Over ", input$datat, "/ \n", 
                       paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
                       "Number of trades=", values$ntrades)
     

@@ -16,7 +16,7 @@ library(dygraphs)
 
 # Model and data setup
 
-# symbolv <- names(data_env)
+# symbolv <- names(datenv)
 symbolv <- c("SPY", rutils::etfenv$symbolv)
 symbol <- "VTI"
 
@@ -42,7 +42,7 @@ uifun <- shiny::fluidPage(
     # Input stock symbol
     column(width=2, selectInput("symbol", label="Symbol", choices=symbolv, selected=symbol)),
     # Input short look-back interval
-    column(width=2, sliderInput("look_back", label="Lookback", min=3, max=40, value=3, step=1)),
+    column(width=2, sliderInput("lookb", label="Lookback", min=3, max=40, value=3, step=1)),
     # Input threshold level
     column(width=2, sliderInput("threshold", label="threshold", min=0.5, max=3.0, value=1.0, step=0.1)),
     # Input add annotations Boolean
@@ -79,16 +79,16 @@ servfun <- function(input, output) {
     rutils::diffit(log(Cl(ohlc())))
   })  # end reactive
   
-  # Calculate zscores if the look_back is updated
+  # Calculate zscores if the lookb is updated
   zscores <- shiny::reactive({
     cat("Calculating zscores\n")
-    look_back <- input$look_back
+    lookb <- input$lookb
     # long_back <- input$long_back
     pricev <- quantmod::Cl(ohlc())
-    medianv <- roll::roll_median(pricev, width=look_back)
-    madv <- HighFreq::roll_var(pricev, look_back=look_back, method="nonparametric")
+    medianv <- roll::roll_median(pricev, width=lookb)
+    madv <- HighFreq::roll_var(pricev, lookb=lookb, method="nonparametric")
     zscores <- ifelse(madv > 0, (pricev - medianv)/madv, 0)
-    zscores[1:look_back, ] <- 0
+    zscores[1:lookb, ] <- 0
     zscores
   })  # end reactive
   

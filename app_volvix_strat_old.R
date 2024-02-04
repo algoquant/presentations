@@ -39,12 +39,12 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Look-back", min=2, max=50, value=5, step=1)),
+    column(width=2, sliderInput("lookb", label="Look-back", min=2, max=50, value=5, step=1)),
     # Input threshold interval
     column(width=2, sliderInput("threshold", label="Threshold", min=0.2, max=2.0, value=0.8, step=0.1)),
     # Input the strategy coefficient: coeff=1 for momentum, and coeff=-1 for contrarian
     column(width=2, selectInput("coeff", "Coefficient:", choices=c(-1, 1), selected=(-1))),
-    # column(width=2, sliderInput("look_back", label="look_back:", min=1, max=21, value=5, step=1)),
+    # column(width=2, sliderInput("lookb", label="lookb:", min=1, max=21, value=5, step=1)),
     # column(width=2, sliderInput("slow_back", label="slow_back:", min=11, max=251, value=151, step=1)),
     # Input the trade lag
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=2, step=1))
@@ -93,7 +93,7 @@ servfun <- function(input, output) {
     
     cat("Recalculating strategy for ", input$symbol, "\n")
     # Get model parameters from input argument
-    look_back <- input$look_back
+    lookb <- input$lookb
     coeff <- as.numeric(input$coeff)
     lagg <- input$lagg
 
@@ -109,14 +109,14 @@ servfun <- function(input, output) {
     retsum <- cumsum(retv)
     nrows <- NROW(retv)
 
-    variance <- HighFreq::roll_var_ohlc(ohlc=ohlc, look_back=look_back, scale=FALSE)
+    variance <- HighFreq::roll_var_ohlc(ohlc=ohlc, lookb=lookb, scale=FALSE)
     
     # Calculate trailing z-scores
     # predv <- matrix(1:nrows, nc=1)
     predv <- cbind(sqrt(variance), svxy, closep)
-    zscores <- drop(HighFreq::roll_zscores(respv=vxx, predictor=predv, look_back=look_back))
+    zscores <- drop(HighFreq::roll_zscores(respv=vxx, predictor=predv, lookb=lookb))
     # colnames(zscores) <- "zscore"
-    zscores[1:look_back] <- 0
+    zscores[1:lookb] <- 0
     zscores[is.infinite(zscores)] <- 0
     zscores[is.na(zscores)] <- 0
 
@@ -135,7 +135,7 @@ servfun <- function(input, output) {
     indic <- zoo::na.locf(indic, na.rm=FALSE)
 
     
-    indics <- HighFreq::roll_sum(tseries=matrix(indic), look_back=lagg)
+    indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
     indics[1:lagg] <- 0
     posv <- rep(NA_integer_, nrows)
     posv[1] <- 0

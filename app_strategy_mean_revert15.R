@@ -49,7 +49,7 @@ uifun <- shiny::fluidPage(
     # column(width=4, sliderInput("beta_clhi", label="closep-highp beta:",
     #                             min=-5.0, max=5.0, value=-5.0, step=0.1)),
     # input the look-back interval
-    column(width=4, sliderInput("look_back", label="look-back:",
+    column(width=4, sliderInput("lookb", label="look-back:",
                                 min=2, max=50, value=10, step=1))
   ),  # end fluidRow
   
@@ -71,7 +71,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     # betamoment <- input$betamoment
     # beta_ophi <- input$beta_ophi
     # beta_clhi <- input$beta_clhi
-    look_back <- input$look_back
+    lookb <- input$lookb
     weights <- c(beta_ret, beta_zscore, beta_vol, betaskew)
     # weights <- c(beta_ret, beta_vol, betaskew, betamoment, beta_ophi, beta_clhi)
     
@@ -79,7 +79,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     # calculate signal
     score <- indicator_s %*% weights
     # scale score using roll_scale()
-    score <- roll::roll_scale(data=score, width=look_back, min_obs=1)
+    score <- roll::roll_scale(data=score, width=lookb, min_obs=1)
     score[1,] <- 0
     score <- rutils::lagit(score)
     # calculate positions, either: -1, 0, or 1

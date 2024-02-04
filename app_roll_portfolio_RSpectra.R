@@ -52,7 +52,7 @@ uifun <- shiny::fluidPage(
     column(width=2, selectInput("interval", label="End points Interval",
                                 choices=c("weeks", "months", "years"), selected="months")),
     # Input look-back interval
-    column(width=2, sliderInput("look_back", label="Lookback interval:",
+    column(width=2, sliderInput("lookb", label="Lookback interval:",
                                 min=1, max=15, value=9, step=1)),
     # Input number of eigenvalues for regularized matrix inverse
     column(width=2, sliderInput("dimax", label="Number of eigenvalues:",
@@ -81,7 +81,7 @@ servfun <- function(input, output) {
     cat("Calculating the pnls", "\n")
     # get model parameters from input argument
     interval <- input$interval
-    look_back <- input$look_back
+    lookb <- input$lookb
     dimax <- input$dimax
     # lambda <- input$lambda
     # gammav <- input$gammav
@@ -94,14 +94,14 @@ servfun <- function(input, output) {
     endp <- c(0, endp)
     npts <- NROW(endp)
     # Define startp
-    # startp <- c(rep_len(1, look_back-1), endp[1:(npts-look_back+1)])
+    # startp <- c(rep_len(1, lookb-1), endp[1:(npts-lookb+1)])
     # Rerun the model
-    # pnls <- roll_portf(excess=excess, returns=rets, look_back=look_back, endp=endp, alpha=alpha, dimax=dimax)
+    # pnls <- roll_portf(excess=excess, returns=rets, lookb=lookb, endp=endp, alpha=alpha, dimax=dimax)
 
     pnls <- lapply(3:npts, function(ep) {
       # cat("weightv =", head(weightv), "\n")
       # Select the look-back returns
-      startp <- endp[max(1, ep-look_back)]
+      startp <- endp[max(1, ep-lookb)]
       insample <- rets[startp:endp[ep-1], ]
       # insample <- rets[(endp[ep-2]):endp[ep-1], ]
       outsample <- rets[(endp[ep-1]+1):endp[ep], ]
