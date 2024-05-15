@@ -179,8 +179,8 @@ servfun <- function(input, output) {
     volat <- rutils::lagit(volat, pad_zeros=FALSE)
     # Calculate the rolling prices
     # ohlc <- HighFreq::roll_sum(ohlc(), lookb=short_back)/short_back
-    close_w <- HighFreq::roll_conv(closep, matrix(weights))
-    close_w <- rutils::lagit(close_w, pad_zeros=FALSE)
+    closew <- HighFreq::roll_conv(closep, matrix(weights))
+    closew <- rutils::lagit(closew, pad_zeros=FALSE)
 
     # Calculate EWMA prices by filtering with the weights
     # cum_scaled <- cumsum(rets_scaled)
@@ -211,10 +211,10 @@ servfun <- function(input, output) {
     # zscores <- ifelse(madv != 0, (closep-minv)/madv, 0)
     # Calculate the zscores as the rolling cumulative returns
     # zscores <- ifelse(maxv > minv, (2*closep - minv - maxv)/(maxv - minv), 0)
-    zscores <- ifelse(volat > 0, (closep - close_w)/volat, 0)
-    zscores_w <- HighFreq::roll_conv(matrix(zscores), matrix(weights))
-    zscores_w <- rutils::lagit(zscores_w, pad_zeros=FALSE)
-    zscores <- ifelse(zscores_w > 0, zscores/zscores_w, zscores)
+    zscores <- ifelse(volat > 0, (closep - closew)/volat, 0)
+    zscoresw <- HighFreq::roll_conv(matrix(zscores), matrix(weights))
+    zscoresw <- rutils::lagit(zscoresw, pad_zeros=FALSE)
+    zscores <- ifelse(zscoresw > 0, zscores/zscoresw, zscores)
     # zscores[is.na(zscores) | is.infinite(zscores)] <- 0
     # Standardize the zscores
     # Old code:

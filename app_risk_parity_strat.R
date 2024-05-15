@@ -39,9 +39,9 @@ uifun <- shiny::fluidPage(
   # Create single row with two slider inputs
   fluidRow(
     # Input lambda decay factor
-    column(width=2, sliderInput("lambda", label="Lambda decay factor:", min=0.01, max=0.9, value=0.2, step=0.01)),
+    column(width=2, sliderInput("lambda", label="Lambda decay factor:", min=0.8, max=0.99, value=0.9, step=0.01)),
     # Input VTI weight
-    column(width=2, sliderInput("weightv", label="VTI weight", min=0.4, max=0.6, value=0.5, step=0.01))
+    column(width=2, sliderInput("weightv", label="VTI weight", min=0.4, max=0.9, value=0.6, step=0.01))
   ),  # end fluidRow
   
   # Create output plot panel
@@ -57,16 +57,16 @@ servfun <- function(input, output) {
   values <- reactiveValues()
   
   # Calculate rolling percentage volatility
-  volat <- reactive({
+  vold <- reactive({
     cat("Calculating the volatilities\n")
     
     # Get model parameters from input argument
     lambda <- input$lambda
 
     # Calculate rolling percentage volatility
-    volat <- HighFreq::run_var(retd, lambda=lambda)
+    vold <- HighFreq::run_var(retd, lambda=lambda)
 
-    sqrt(volat)
+    sqrt(vold)
 
   })  # end reactive code
   
@@ -84,19 +84,21 @@ servfun <- function(input, output) {
     wealthpd <- cumprod(1 + retw)
 
     # Calculate standardized prices and portfolio weights
-    volat <- volat()
-    volat <- rutils::lagit(volat)
-    volat[1:2, ] <- 1
+    vold <- vold()
+    vold <- rutils::lagit(vold)
+    vold[1:2, ] <- 1
     
     # Calculate the standardized prices with unit dollar volatility
-    pricerp <- pricev/volat
-    # Scale the sum of stock prices to $2
-    pricerp <- 2*pricerp/rowSums(pricerp)
-    # Calculate the risk parity returns
-    retsd <- retp*pricerp
+    pricerp <- pricev/vold
+    # Scale the sum of stock prices to $1
+    pricerp <- pricerp/rowSums(pricerp)
+    pricerp <- rutils::lagit(pricerp)
+    pricerp[1, ] <- 1
+    # Calculate the percentage returns of risk parity
+    retrp <- retp*pricerp
     # Calculate the wealth of risk parity
-    wealthrp <- 1 + cumsum(retsd %*% weightv)
-    
+    wealthrp <- cumprod(1 + retrp %*% weightv)
+
     # Calculate log wealths
     wealthv <- log(cbind(wealthpd, wealthrp))
     wealthv <- xts::xts(wealthv, zoo::index(pricev))

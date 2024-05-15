@@ -1,8 +1,9 @@
 ##############################
 # This is a shiny app for simulating an autoregressive strategy 
 # using the trailing fast and slow Sharpe ratios.
-# The trailing Sharpe ratio is equal to the EWMA of returns 
-# divided by the trailing volatility of intraday returns.
+# The trailing Sharpe ratio is equal to the exponential moving 
+# average (EMA) of returns divided by the trailing volatility 
+# of intraday returns.
 #
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -43,7 +44,7 @@ uifun <- shiny::fluidPage(
   ),  # end fluidRow
 
   fluidRow(
-    # Input the EWMA decays
+    # Input the EMA decays
     column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.01, max=0.99, value=0.75, step=0.01)),
     column(width=2, sliderInput("varf", label="Variance factor:", min=1.0, max=100.0, value=10.0, step=0.1)),
     column(width=2, sliderInput("varin", label="Initial variance:", min=0.01, max=1.0, value=0.25, step=0.01)),
@@ -104,10 +105,10 @@ servfun <- function(input, output) {
     # nrows <- NROW(retv)
     
 
-    # Determine dates when the EWMAs have crossed
-    # crossi <- sign(ewmaf - ewmas)
+    # Determine dates when the EMAs have crossed
+    # crossi <- sign(emaf - emas)
     
-    # Calculate cumulative sum of EWMA crossing indicator
+    # Calculate cumulative sum of EMA crossing indicator
     # crossc <- HighFreq::roll_sum(tseries=crossi, lookb=lagg)
     # crossc[1:lagg] <- 0
     # Calculate the positions
@@ -117,7 +118,7 @@ servfun <- function(input, output) {
     
     ntrades <- 0
     pnls <- lapply(seq_along(pricel), function(it) {
-      # Calculate EWMA prices
+      # Calculate EMA prices
       # retv[abs(retv) > 0.1] <- 0
       pricev <- pricel[[it]]["T09:30:00/T10:30:00"]
       retv <- retl[[it]]["T09:30:00/T10:30:00"]

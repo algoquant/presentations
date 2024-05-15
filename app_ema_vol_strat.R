@@ -1,5 +1,5 @@
 ##############################
-# This is a shiny app for simulating an EWMA moving average 
+# This is a shiny app for simulating an EMA moving average 
 # crossover strategy for volatility.
 #
 # Just press the "Run App" button on upper right of this panel.
@@ -14,7 +14,7 @@ library(dygraphs)
 
 ## Model and data setup
 
-captiont <- paste("EWMA Moving Average Crossover Strategy for Volatility")
+captiont <- paste("EMA Moving Average Crossover Strategy for Volatility")
 
 ## End setup code
 
@@ -91,7 +91,7 @@ servfun <- function(input, output) {
       slow_var <- HighFreq::roll_sum(tseries=high_low, lookb=slow_back)/slow_back
     }  # end if
 
-    # Determine dates when the EWMAs have crossed
+    # Determine dates when the EMAs have crossed
     indic <- -sign(fast_var - slow_var)
     
     ## Backtest strategy for flipping if two consecutive positive and negative returns

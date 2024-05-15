@@ -1,13 +1,14 @@
 ##############################
-# This is a shiny app for backtesting an EWMA crossover strategy.
+# This is a shiny app for backtesting an exponential moving average 
+# EMA crossover strategy.
 # The stock position is equal to minus the sign of the excess price.
 # If the excess price is positive then the position is -$1 of stock, 
 # and vice versa.
-# Version for dual EWMA:
-#   The excess price is equal to the fast EWMA price minus the slow EWMA.
+# Version for dual EMA:
+#   The excess price is equal to the fast EMA price minus the slow EMA.
 #   The model depends on two lambda decay parameters used to calculate the 
 #   trailing average prices - fast lambda (small) and slow lambda (large).
-# Version for single EWMA:
+# Version for single EMA:
 #   The excess price is equal to the current price minus the trailing mean price.
 #   The model depends on a single lambda decay parameter used to calculate 
 #   the trailing average prices.
@@ -94,7 +95,7 @@ datev <- which(datev > 1000)
 retp[datev] <- 0
 pricev <- cumsum(retp)
 
-captiont <- paste("EWMA Crossover Strategy For", symboln, dataf)
+captiont <- paste("EMA Crossover Strategy For", symboln, dataf)
 
 
 ## End setup code
@@ -134,15 +135,15 @@ servfun <- shiny::shinyServer(function(input, output) {
   # Create an empty list of reactive values.
   values <- reactiveValues()
   
-  # Recalculate the difference of EWMA prices
+  # Recalculate the difference of EMA prices
   priced <- shiny::reactive({
 
-    cat("Recalculating the EWMA prices", "\n")
-    ## Calculate the fast and slow EWMA prices
+    cat("Recalculating the EMA prices", "\n")
+    ## Calculate the fast and slow EMA prices
     # pricem <- HighFreq::run_mean(pricev, lambda=input$lambda)
-    ewmas <- HighFreq::run_mean(pricev, lambda=input$lambdas)
-    ewmaf <- HighFreq::run_mean(pricev, lambda=input$lambdaf)
-    sign(zoo::coredata(ewmaf - ewmas))
+    emas <- HighFreq::run_mean(pricev, lambda=input$lambdas)
+    emaf <- HighFreq::run_mean(pricev, lambda=input$lambdaf)
+    sign(zoo::coredata(emaf - emas))
     # sign(zoo::coredata(HighFreq::run_mean(retp, lambda=input$lambdas)))
     
   })  # end reactive code

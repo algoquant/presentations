@@ -1,5 +1,5 @@
 ##############################
-# This is a shiny app for simulating an EWMA moving average 
+# This is a shiny app for simulating an EMA moving average 
 # crossover strategy.
 # It uses the returns scaled by the trading volume (volume clock).
 #
@@ -15,8 +15,8 @@ library(dygraphs)
 
 ## Model and data setup
 
-# captiont <- paste("EWMA Strategy for", symbol)
-captiont <- paste("EWMA Strategy With Scaling of Returns by the Trading Volume")
+# captiont <- paste("EMA Strategy for", symbol)
+captiont <- paste("EMA Strategy With Scaling of Returns by the Trading Volume")
 
 ## End setup code
 
@@ -45,7 +45,7 @@ uifun <- shiny::fluidPage(
   
   fluidRow(
     
-    # Input EWMA decays
+    # Input EMA decays
     column(width=2, sliderInput("lambdaf", label="lambdaf:", min=0.1, max=0.3, value=0.2, step=0.001)),
     column(width=2, sliderInput("lambdas", label="lambdas:", min=0.0, max=0.2, value=0.1, step=0.001)),
     # Input end points interval
@@ -160,21 +160,21 @@ servfun <- function(input, output) {
     cum_scaled <- cumsum(rets_scaled)
     nrows <- NROW(retv)
     
-    # Calculate EWMA weights
+    # Calculate EMA weights
     weightf <- exp(-lambdaf*1:lookb)
     weightf <- weightf/sum(weightf)
     weightss <- exp(-lambdas*1:lookb)
     weightss <- weightss/sum(weightss)
     
-    # Calculate EWMA prices by filtering with the weights
+    # Calculate EMA prices by filtering with the weights
     # cum_scaled <- cumsum(rets_scaled)
-    ewmaf <- .Call(stats:::C_cfilter, cum_scaled, filter=weightf, sides=1, circular=FALSE)
-    ewmaf[1:(lookb-1)] <- ewmaf[lookb]
-    ewmas <- .Call(stats:::C_cfilter, cum_scaled, filter=weightss, sides=1, circular=FALSE)
-    ewmas[1:(lookb-1)] <- ewmas[lookb]
+    emaf <- .Call(stats:::C_cfilter, cum_scaled, filter=weightf, sides=1, circular=FALSE)
+    emaf[1:(lookb-1)] <- emaf[lookb]
+    emas <- .Call(stats:::C_cfilter, cum_scaled, filter=weightss, sides=1, circular=FALSE)
+    emas[1:(lookb-1)] <- emas[lookb]
     
-    # Determine dates when the EWMAs have crossed
-    indic <- sign(ewmaf - ewmas)
+    # Determine dates when the EMAs have crossed
+    indic <- sign(emaf - emas)
     
     ## Backtest strategy for flipping if two consecutive positive and negative returns
     # Flip position only if the indic and its recent past values are the same.

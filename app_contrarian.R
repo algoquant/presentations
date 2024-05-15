@@ -22,13 +22,17 @@ library(dygraphs)
 # Compile this file in R by running this command:
 # Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/back_test.cpp")
 
+# pricev <- log(na.omit(rutils::etfenv$prices$VTI))
+
 # Load the price data - pricel is a list of daily prices.
-load("/Users/jerzy/Develop/data/SPY_second_202311.RData")
-# load("/Users/jerzy/Develop/data/XLK_second_202311.RData")
-# load("/Users/jerzy/Develop/data/AAPL_second_202311.RData")
-# load("/Users/jerzy/Develop/data/SPY_second_202310.RData")
-# load("/Users/jerzy/Develop/data/SPY_minute_202311.RData")
-# pricev <- pricel[[17]]["T09:30:00/T10:30:00"][, 1]
+# load("/Users/jerzy/Develop/data/SPY_second_202402.RData")
+# load("/Users/jerzy/Develop/data/XLK_second_202401.RData")
+# load("/Users/jerzy/Develop/data/USO_second_202401.RData")
+# load("/Users/jerzy/Develop/data/TLT_second_202401.RData")
+# load("/Users/jerzy/Develop/data/QQQ_second_202402.RData")
+load("/Users/jerzy/Develop/data/AAPL_second_202402.RData")
+# load("/Users/jerzy/Develop/data/SPY_minute_202402.RData")
+# pricev <- pricel[[16]]["T09:30:00/T16:00:00"][, 1]
 # retv <- rutils::diffit(pricev)
 
 # pricel <- lapply(pricel, function(pricev) {
@@ -38,8 +42,9 @@ load("/Users/jerzy/Develop/data/SPY_second_202311.RData")
 #   cumsum(retv)
 # }) # end lapply
 
+# symboln <- colnames(pricev)
 symboln <- colnames(pricel[[1]][, 1])
-captiont <- paste("Mean Reverting Strategy For", symboln, "Using Z-Scores")
+captiont <- paste("Bollinger Double Down Strategy For", symboln)
 
 ## End setup code
 
@@ -52,19 +57,22 @@ uifun <- shiny::fluidPage(
     # Input stock symbol
     # column(width=2, selectInput("symbol", label="Symbol", choices=rutils::etfenv$symbolv, selected="VTI")),
     # Input add annotations Boolean
-    column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
+    column(width=1, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the bid-ask spread
-    column(width=2, numericInput("bidask", label="Bid-ask:", value=0.02, step=0.01)),
-    column(width=2, sliderInput("lagg", label="lagg", min=1, max=4, value=2, step=1))
+    # column(width=1, numericInput("bidask", label="Bid-ask:", value=0.0, step=0.01)),
+    # column(width=2, sliderInput("lagg", label="lagg", min=1, max=4, value=2, step=1)),
+    # Input the EMA decay factor and z-scores thresholds
+    column(width=2, sliderInput("lambdaf", label="Lambda decay:", min=0.8, max=0.99, value=0.96, step=0.01)),
+    column(width=2, sliderInput("volf", label="Volatility floor:", min=0.1, max=0.3, value=0.2, step=0.01)),
+    column(width=2, sliderInput("threshv", label="Threshold:", min=0.5, max=3.0, value=1.0, step=0.1)),
+    column(width=2, sliderInput("threshd", label="Double down:", min=0.5, max=5.0, value=3.0, step=0.1)),
+    column(width=2, sliderInput("maxd", label="Max double down:", min=1, max=4, value=2, step=1))
+    # column(width=2, sliderInput("threshbad", label="Threshold bad:", min=0.05, max=0.3, value=0.1, step=0.01))
   ),  # end fluidRow
 
   fluidRow(
-    # Input the EMA decay factor and z-scores thresholds
-    column(width=2, sliderInput("lambdaf", label="Lambda decay:", min=0.95, max=0.999, value=0.98, step=0.001)),
-    column(width=2, sliderInput("threshv", label="Threshold value:", min=0.5, max=5.0, value=1.0, step=0.1)),
-    column(width=2, sliderInput("threshd", label="Threshold double:", min=1.0, max=5.0, value=2.0, step=0.1)),
-    column(width=2, sliderInput("threshbad", label="Threshold bad:", min=2.0, max=6.0, value=2.0, step=0.1)),
-    column(width=2, sliderInput("varin", label="Initial variance:", min=1.0, max=10.0, value=1.0, step=0.1))
+    # column(width=2, sliderInput("threshv", label="Threshold value:", min=0.5, max=5.0, value=1.0, step=0.1)),
+    # column(width=2, sliderInput("threshd", label="Threshold double:", min=1.0, max=5.0, value=2.0, step=0.1)),
     # column(width=2, sliderInput("lambdas", label="Slow lambda:", min=0.8, max=0.999, value=0.99, step=0.001)),
     # Input the EMA loadings
     # column(width=2, sliderInput("loadf", label="Fast load:", min=(-1.0), max=1.0, value=(-1.0), step=0.1)),
@@ -113,14 +121,14 @@ servfun <- function(input, output) {
     # Get model parameters from input argument
     # closep <- closep()
     # threshv <- input$threshv
-    # varin <- input$varin
+    # volf <- input$volf
     # lambdaf <- input$lambdaf
     # lambdas <- input$lambdas
     # loadf <- input$loadf
     # loads <- input$loads
     # lookb <- input$lookb
-    bidask <- input$bidask
-    lagg <- input$lagg
+    # bidask <- input$bidask
+    # lagg <- input$lagg
 
     # Calculate cumulative returns
     # retv <- retv()
@@ -148,15 +156,17 @@ servfun <- function(input, output) {
     # posv <- (loadf*EMAf + loads*EMAs)
     
     # Calculate the positions of the mean-reversion strategy
-    # stratm <- bollinger_strat(pricev, input$lambdaf, input$threshv, input$varin)
+    # stratm <- trend_flip(pricev, input$lambdaf, input$threshv, input$volf)
     # posv <- stratm[, 2]
     
+    # Calculate the intraday PnLs in a loop
     ntrades <- 0
     pnls <- lapply(pricel, function(pricev) {
       # Calculate EMA prices
       # retv[abs(retv) > 0.1] <- 0
       pricev <- pricev[, 1]["T09:30:00/T16:00:00"]
-      stratm <- contrastrat(pricev, input$lambdaf, input$threshv, input$threshd, input$threshbad, input$varin)
+      # stratm <- trend_flip(pricev, lambdaf=input$lambdaf, poslimit=1, volf=input$volf, threshbad=input$threshbad)
+      stratm <- bollinger_double(pricev, input$lambdaf, input$threshv, input$threshd, input$maxd, input$volf)
       # Calculate strategy pnls
       # pnls <- posv*retv
       pnls <- stratm[, 1]
@@ -168,9 +178,10 @@ servfun <- function(input, output) {
       flipi <- rutils::diffit(posv)
       # Calculate the number of trades
       ntrades <<- ntrades + sum(abs(flipi) > 0)
+      # ntrades <- ntrades + sum(abs(flipi) > 0)
       # Calculate transaction costs
-      costv <- 0.5*bidask*abs(flipi)
-      pnls <- (pnls - costv)
+      # costv <- 0.5*bidask*abs(flipi)
+      # pnls <- (pnls - costv)
       pnls <- cbind(retv, pnls)
       # pnls <- xts::xts(pnls, zoo::index(pricev))
       pnls

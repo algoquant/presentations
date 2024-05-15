@@ -1,8 +1,9 @@
 ##############################
 # This is a shiny app for simulating an autoregressive strategy 
 # using the trailing fast and slow Sharpe ratios.
-# The trailing Sharpe ratio is equal to the EWMA of returns 
-# divided by the trailing volatility of intraday returns.
+# The trailing Sharpe ratio is equal to the exponential moving 
+# average (EMA) of returns divided by the trailing volatility 
+# of intraday returns.
 #
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -17,9 +18,11 @@ library(dygraphs)
 ## Model and data setup
 
 # Load the intraday returns.
-load("/Users/jerzy/Develop/data/SPY_second_20231113.RData")
+# load("/Users/jerzy/Develop/data/SPY_second_20231113.RData")
+# load("/Users/jerzy/Develop/data/SPY_minute_20231123.RData")
+load("/Users/jerzy/Develop/data/AAPL_second_202402.RData")
 
-# symbol <- "AAPL"
+# symboln <- "AAPL"
 captiont <- paste("Autoregressive Strategy Using Trailing Fast And Slow Sharpe Ratios")
 
 ## End setup code
@@ -31,7 +34,7 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("symbol", label="Symbol", choices=c("SPY", "AAPL"), selected="SPY")),
+    column(width=2, selectInput("symboln", label="Symbol", choices=c("SPY", "AAPL"), selected="SPY")),
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the bid-ask spread
@@ -39,10 +42,10 @@ uifun <- shiny::fluidPage(
   ),  # end fluidRow
 
   fluidRow(
-    # Input the EWMA decays
+    # Input the EMA decays
     column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.01, max=0.99, value=0.9, step=0.01)),
     column(width=2, sliderInput("lambdas", label="Slow lambda:", min=0.99, max=0.9999, value=0.9993, step=0.0001)),
-    # Input the EWMA loadings
+    # Input the EMA loadings
     column(width=2, sliderInput("loadf", label="Fast load:", min=(-1.0), max=1.0, value=(-1.0), step=0.1)),
     column(width=2, sliderInput("loads", label="Slow load:", min=(-1.0), max=1.0, value=(0.0), step=0.1)),
     # Input the trade lag
@@ -63,10 +66,10 @@ servfun <- function(input, output) {
   # Load the closing prices
   # closep <- shiny::reactive({
   #   
-  #   symbol <- input$symbol
-  #   cat("Loading data for ", symbol, "\n")
+  #   symboln <- input$symboln
+  #   cat("Loading data for ", symboln, "\n")
   #   
-  #   # ohlc <- get(symbol, rutils::etfenv)
+  #   # ohlc <- get(symboln, rutils::etfenv)
   #   # quantmod::Cl(ohlc["2010/2019"])
   #   pricel[[51]][, 1]
   # 
@@ -75,7 +78,7 @@ servfun <- function(input, output) {
   # Load the log returns
   # retv <- shiny::reactive({
   #   
-  #   cat("Recalculating returns for ", input$symbol, "\n")
+  #   cat("Recalculating returns for ", input$symboln, "\n")
   #   
   #   rutils::diffit(closep())
   # 
@@ -85,7 +88,7 @@ servfun <- function(input, output) {
   # Recalculate the strategy
   pnls <- shiny::reactive({
     
-    cat("Recalculating strategy for", input$symbol, "\n")
+    cat("Recalculating strategy for", input$symboln, "\n")
     # Get model parameters from input argument
     # closep <- closep()
     lambdaf <- input$lambdaf
@@ -102,10 +105,10 @@ servfun <- function(input, output) {
     # nrows <- NROW(retv)
     
 
-    # Determine dates when the EWMAs have crossed
-    # crossi <- sign(ewmaf - ewmas)
+    # Determine dates when the EMAs have crossed
+    # crossi <- sign(emaf - emas)
     
-    # Calculate cumulative sum of EWMA crossing indicator
+    # Calculate cumulative sum of EMA crossing indicator
     # crossc <- HighFreq::roll_sum(tseries=crossi, lookb=lagg)
     # crossc[1:lagg] <- 0
     # Calculate the positions
@@ -114,18 +117,19 @@ servfun <- function(input, output) {
     # This is designed to prevent whipsaws and over-trading.
     
     ntrades <- 0
-    pnls <- lapply(retl, function(retv) {
-      # Calculate EWMA prices
-      ewmaf <- HighFreq::run_mean(retv, lambda=lambdaf)
-      volf <- sqrt(HighFreq::run_var(retv, lambda=lambdaf))
+    pnls <- lapply(pricel, function(pricev) {
+      # Calculate EMA prices
+      pricev <- pricev[, 1]
+      emaf <- HighFreq::run_mean(pricev, lambda=lambdaf)
+      volf <- sqrt(HighFreq::run_var(pricev, lambda=lambdaf))
       volf[1:7, ] <- 1.0
-      ewmas <- HighFreq::run_mean(retv, lambda=lambdas)
-      vols <- sqrt(HighFreq::run_var(retv, lambda=lambdas))
-      # vols <- sqrt(HighFreq::run_mean(retv^2, lambda=lambdas))
+      emas <- HighFreq::run_mean(pricev, lambda=lambdas)
+      vols <- sqrt(HighFreq::run_var(pricev, lambda=lambdas))
+      # vols <- sqrt(HighFreq::run_mean(pricev^2, lambda=lambdas))
       vols[1:7, ] <- 1.0
       # cat("head(vols) =", head(vols, 11), "\n")
       # cat("tail(vols) =", tail(vols), "\n")
-      posv <- 100*(loadf*ewmaf/volf + loads*ewmas/vols)
+      posv <- 100*(loadf*emaf/volf + loads*emas/vols)
       posv <- round(posv)
       # posv[posv == 0] <- NA
       posv[1] <- 0
@@ -134,6 +138,7 @@ servfun <- function(input, output) {
       posv <- rutils::lagit(posv, lagg=1)
       # cat("posv =", tail(posv), "\n")
       # Calculate strategy pnls
+      retv <- rutils::diffit(pricev)
       pnls <- posv*retv
       # Calculate indicator of flipped positions
       flipi <- rutils::diffit(posv)
@@ -167,9 +172,9 @@ servfun <- function(input, output) {
     # Bind strategy pnls with indicators
     pnls <- cumsum(pnls)
     # pnls <- cbind(pnls, retc[longi], retc[shorti])
-    # colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
+    # colnames(pnls) <- c(paste(input$symboln, "Returns"), "Strategy", "Buy", "Sell")
     # colnames(pnls) <- c(paste(symboln, "Returns"), "Strategy")
-    colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy")
+    colnames(pnls) <- c(paste(input$symboln, "Returns"), "Strategy")
     
     # cat("pnls =", tail(pnls[, 2]), "\n")
     pnls
@@ -189,7 +194,7 @@ servfun <- function(input, output) {
     # Get number of trades
     ntrades <- values$ntrades
     
-    captiont <- paste("Strategy for", input$symbol, "/ \n", 
+    captiont <- paste("Strategy for", input$symboln, "/ \n", 
                       paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
                       "Number of trades=", ntrades)
     

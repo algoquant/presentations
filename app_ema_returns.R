@@ -1,8 +1,9 @@
 ##############################
 # This is a shiny app for simulating an autoregressive strategy 
 # using the trailing fast and slow Sharpe ratios.
-# The trailing Sharpe ratio is equal to the EWMA of returns 
-# divided by the trailing volatility of returns.
+# The trailing Sharpe ratio is equal to the exponential moving 
+# average (EMA) of returns divided by the trailing volatility 
+# of returns.
 #
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -35,10 +36,10 @@ uifun <- shiny::fluidPage(
   ),  # end fluidRow
 
   fluidRow(
-    # Input the EWMA decays
+    # Input the EMA decays
     column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.4, max=0.9, value=0.6, step=0.01)),
     column(width=2, sliderInput("lambdas", label="Slow lambda:", min=0.8, max=0.999, value=0.99, step=0.001)),
-    # Input the EWMA loadings
+    # Input the EMA loadings
     column(width=2, sliderInput("loadf", label="Fast load:", min=(-1.0), max=1.0, value=(-1.0), step=0.1)),
     column(width=2, sliderInput("loads", label="Slow load:", min=(-1.0), max=1.0, value=(0.0), step=0.1)),
     # Input the trade lag
@@ -97,26 +98,26 @@ servfun <- function(input, output) {
     retc <- cumsum(retv)
     nrows <- NROW(retv)
     
-    # Calculate EWMA prices
-    ewmaf <- HighFreq::run_mean(retv, lambda=lambdaf)
+    # Calculate EMA prices
+    emaf <- HighFreq::run_mean(retv, lambda=lambdaf)
     volf <- sqrt(HighFreq::run_var(retv, lambda=lambdaf))
     volf[1:7, ] <- 1.0
-    ewmas <- HighFreq::run_mean(retv, lambda=lambdas)
+    emas <- HighFreq::run_mean(retv, lambda=lambdas)
     vols <- sqrt(HighFreq::run_var(retv, lambda=lambdas))
     vols[1:7, ] <- 1.0
     
-    # Determine dates when the EWMAs have crossed
-    # crossi <- sign(ewmaf - ewmas)
+    # Determine dates when the EMAs have crossed
+    # crossi <- sign(emaf - emas)
     
-    # Calculate cumulative sum of EWMA crossing indicator
+    # Calculate cumulative sum of EMA crossing indicator
     # crossc <- HighFreq::roll_sum(tseries=crossi, lookb=lagg)
     # crossc[1:lagg] <- 0
     # Calculate the positions
     # Flip position only if the crossi and its recent past values are the same.
     # Otherwise keep previous position.
     # This is designed to prevent whipsaws and over-trading.
-    # posv <- (loadf*ewmaf + loads*ewmas)
-    posv <- 100*(loadf*ewmaf/volf + loads*ewmas/vols)
+    # posv <- (loadf*emaf + loads*emas)
+    posv <- 100*(loadf*emaf/volf + loads*emas/vols)
     posv <- round(posv)
     
     # Calculate indicator of flipped positions

@@ -61,7 +61,7 @@ servfun <- function(input, output) {
   # which calculate the model, and returns the model output.
   
   ## Calculate the loss distribution with new parameters
-  losses <- shiny::reactive({
+  lossv <- shiny::reactive({
     cat("Calculating the loss distribution\n")
     
     # Extract model parameters from the argument "input"
@@ -78,10 +78,10 @@ servfun <- function(input, output) {
     
     # Calculate the portfolio losses
     assetm <- t(rhos*sysv + t(rhosm*isync))
-    lossm <- lgd*colSums(assetm < defthresh)/nbonds
+    lossv <- lgd*colSums(assetm < defthresh)/nbonds
     
     # Return the losses
-    lossm
+    lossv
 
   })  # end reactive code
   
@@ -93,11 +93,11 @@ servfun <- function(input, output) {
     # Extract model parameters from the argument "input"
     confl <- input$confl
     
-    lossm <- losses()
+    lossv <- lossv()
     # Calculate VaR from confidence level
-    varisk <- quantile(lossm, confl)
+    varisk <- quantile(lossv, confl)
     # Calculate the CVaR as the mean losses in excess of VaR
-    cvar <- mean(lossm[lossm > varisk])
+    cvar <- mean(lossv[lossv > varisk])
     
     # Return the VaR and CVaR
     c(varisk, cvar)
@@ -117,8 +117,8 @@ servfun <- function(input, output) {
     # defthresh <- qnorm(defprob)
     
     # Extract the loss distribution
-    lossm <- losses()
-    densv <- density(lossm, from=0)
+    lossv <- lossv()
+    densv <- density(lossv, from=0)
     xmax <- max(densv$x)
     ymax <- max(densv$y)
     
