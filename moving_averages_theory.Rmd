@@ -9,7 +9,7 @@ email: jpawlowski@machinetrader.io
 affiliation: MachineTrader.io
 ---
 
-### The Moving Average Price  
+### The Moving Average Prices  
 
 The moving average prices can be calculated for a streaming time series of prices $p_i$.  
 
@@ -74,9 +74,10 @@ If $\lambda$ is closer to $1$ (one) then the moving average prices are smoother,
 If the look-back window $lb$ is large, then more prices are used in the calculation of the average and it's therefore smoother.
 If the look-back window $lb$ is small, then fewer prices are used and the average follows the streaming prices more closely.
 
-The effect of the decay factor $\lambda$ on the moving average prices is illustrated in the animated plot below of VTI stock prices.  When $\lambda = 0.99$ the average prices are very smooth, but as it decreases, they become more variable and they follow the streaming prices more closely.
+The effect of the decay factor $\lambda$ on the moving average prices is illustrated in the animated plot below of VTI stock prices.  When $\lambda = 0.99$ the average prices are very smooth, and they lag behind the streaming prices.
+But as $\lambda$ decreases, the average prices become more variable and they follow the streaming prices more closely.  
 
-<img src="figure/EMA.mov" width="600" height="500" />
+![EMA Prices](figure/EMA.mov "EMA Prices"){width="600" height="500"}
 
 <br>
 
@@ -84,9 +85,8 @@ The effect of the decay factor $\lambda$ on the moving average prices is illustr
 Notice for example that the average prices (red line above) reach their minimum much later than the streaming prices (blue line).  
 And the smoother the average prices are, the more biased they are.  
 A lower variance is desirable, but it comes at the cost of a larger bias (time lag).  
-This is called the *bias-variance tradeoff*.  
-The *bias-variance tradeoff* is one of the central themes in *machine learning*.  
-
+This is an example of the *bias-variance tradeoff*.  
+Achieving the best *bias-variance tradeoff* is one of the major objectives of *machine learning*.  
 
 **The decay factor $\lambda$ and the look-back window $lb$ are usually chosen to achieve the best *bias-variance tradeoff*.**  
 

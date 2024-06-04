@@ -9,244 +9,141 @@ email: jpawlowski@machinetrader.io
 affiliation: MachineTrader.io
 ---
 
-### The Bollinger Strategy  
+### Configuration of the Bollinger Strategy in MachineTrader  
 
-The strategy buys $1$ share if the stock is cheap (the z-score is less than minus the threshold), and it sells $1$ share if the stock is expensive (the z-score is greater than the threshold).  
+The *Bollinger strategy* trades a single stock during market trading hours, using intraday stock prices.  Each day it starts trading at the market open with a clean slate (reset to its base state), and it stops trading at the market close.  It liquidates all its positions just before the market close.  Its state is reset overnight to its base state.  
 
-The strategy can sell shares short (establish a short share position), if it doesn't own any shares to sell.  
+You can read more about the theory of the Bollinger strategy in 
+[**this document**](https://drive.google.com/uc?export=download&id=1TJbRuMPEH0lWYzyeTOBk54uQpOAa216o).  
 
-The strategy keeps buying or selling shares, and can accumulate an inventory of long or short shares, until it reaches the position limit.  
+The *Bollinger* strategy requires installing four tabs into your MachineTrader instance.  
+The tabs named [**Bollinger Strategy**](https://drive.google.com/uc?export=download&id=1df_JXndPT0V3vZvavP8JSuiKjEJH4f_5), [**Tech Indicators**](https://drive.google.com/uc?export=download&id=1gOpD8O4JOah5xTCVcmQi4qNdmSVliTgr), [**Alpaca Prices**](https://drive.google.com/uc?export=download&id=1H92YpZfPy8La5pZzQ0kgjxjyiVAaFhb2), and [**Globals/Utilities**](https://drive.google.com/uc?export=download&id=1oFoWkaqhfetSZcvu8kGsFGNwpmrx2bBZ).
+Just click on the highlighted names to download them from the [**MachineTrader Community**](https://drive.google.com/drive/u/3/folders/1Hc_tiaC_W8ZutVBDZewkvE9cZbd6y2BI) share drive.  
 
-The strategy determines if the stock is cheap or expensive depending on the value of the z-score.  
+After you import all the above four tabs into your MachineTrader instance, you must connect their *link-in nodes* with the appropriate *link-out nodes* in the other tabs.  
 
-The z-score $z_t$ is equal to the difference between the current price $p_t$ minus the moving average price $\bar{p}_t$, divided by the moving average volatility of the prices $\sigma_t$:
-
-$${\normalsize z_t = \frac{p_t - \bar{p}_t}{\sigma_t}}$$
-
-If the current price $p_t$ is greater than the moving average price $\bar{p}_t$, then the z-score is positive, and vice versa.  
+<br>
 
 
-You can read more about the theory of the Bollinger strategy by
-[**downloading this**](https://drive.google.com/uc?export=download&id=1TJbRuMPEH0lWYzyeTOBk54uQpOAa216o
-).  
+You can click this [**link**](https://drive.google.com/uc?export=download&id=1df_JXndPT0V3vZvavP8JSuiKjEJH4f_5) to the MachineTrader Community share drive, to download the file named *Bollinger_Strategy.json*, containing the *JavaScript* code for the tab named *Bollinger Strategy*.  You can then upload this *JavaScript* file to your MachineTrader instance, to run the *Bollinger* strategy.  
+
+The *Bollinger* strategy also requires installing three other tabs into your MachineTrader instance.  
+
+You also need to install in your instance the tab named [**Tech Indicators**](https://drive.google.com/uc?export=download&id=1gOpD8O4JOah5xTCVcmQi4qNdmSVliTgr) for calculating the moving average prices and volatilities.  
+
+You also need to install in your instance the tab named [**Alpaca Prices**](https://drive.google.com/uc?export=download&id=1H92YpZfPy8La5pZzQ0kgjxjyiVAaFhb2) for downloading the streaming (live) stock prices from Alpaca.  
+
+You also need to install in your instance the tab named [**Globals/Utilities**](https://drive.google.com/uc?export=download&id=1oFoWkaqhfetSZcvu8kGsFGNwpmrx2bBZ) for creating global variables.
+
+After you import all the above four tabs into your MachineTrader instance, you must connect their *link-in nodes* with the appropriate *link-out nodes* in the other tabs. 
+
+<br>
 
 
 ### Implementation of the Bollinger Strategy  
 
-**The Node-RED tab named *Single Stock Strategy* contains implementations of various technical indicators in MachineTrader, including the moving average price and volatility.**  
+**The tab named *Bollinger Strategy* executes the Bollinger strategy in real time.**  
 
-The tab named *Single Stock Strategy* calculates the moving average prices and volatilities from live streaming stock prices for a single selected stock.
+Let's look at the different flows in the tab named *Bollinger Strategy*.  
 
-You can download the tab named [**Single Stock Strategy**](https://github.com/predictivetechnologysystems/MachineTrader-Community/blob/main/Tech_Indicators.json) from the MachineTrader-Community repository on GitHub.  
-
-You should also download the tabs named [**Alpaca Prices**](https://github.com/predictivetechnologysystems/MachineTrader-Community/blob/main/Alpaca_Prices.json), and [**Globals**](https://github.com/predictivetechnologysystems/MachineTrader-Community/blob/main/Globals_jp.json).  
-
-
-After you download the tab named *Single Stock Strategy*, you must connect the *link-in node* to the left of the function node named *Get stock price* to the *link-out node* called *Prices out* in the tab *Alpaca Prices*.  
-
-You can also watch an instructional video about [**Calculating Moving Average Prices And Volatilities**](https://youtu.be/iAZMTEZeZDM) on the MachineTrader YouTube channel.  
-
-<br>
-
-**Let's take a look at the tab named *Single Stock Strategy*.**  
-
-The function node named *Initialize the parameters* creates flow variables needed for the calculations.
-It should be run once before the other nodes are run, by pressing the *inject* node on the left.  
-
-The multiple stock prices stream in from the tab *Alpaca Prices* into the node named *Get stock price*, through the small *link-in node* to its left.
-The function node *Get stock price* selects the prices only for the ticker in the tab variable *symboln*.
-The single stock prices then stream out through the small *link-out node* to its right, to the nodes which calculate the moving averages.  
-
-The dashed lines are the connectors for passing the live streaming stock prices to the function nodes.  
-<img src="figure/mt_moving_average_price_volatility.png" width="600" height="900" />
+At the top of the tab, there are flows for downloading the documentation.  You can click on the gray inject nodes to download the documentation.  The second flow downloads the current file you're reading.  
+![alt text](figure/bollinger_docs.png "Title"){width="500" height="250"}  
 
 
 <br>
 
-**The function node named *Initialize the parameters* creates the flow variables needed for the calculations:**  
-<img src="figure/initialize_parameters.png" width="400" height="80" />
+**The flows below create the flow variables in the tab [**Bollinger Strategy**](https://drive.google.com/uc?export=download&id=1df_JXndPT0V3vZvavP8JSuiKjEJH4f_5).**  
+Flow variables are variables that are shared between the different nodes in the same tab.  Once the variables are created, they can be used in other function nodes in the same tab.  
+You need to run (click) these flows once before the other flows are run.  
 
-It should be run once before the other nodes are run, by pressing the *inject* node on the left.
-The *inject* node is on a timer, to run on weekdays at 9:30 AM, so that all the flow variables are initialized before the start of stock trading.
+The function called *Create flow variables* creates the flow variables, such as the stock symbol to trade, the threshold level for the z-score, the position limit (the maximum number of shares the strategy can own at any time), etc.  
 
-The function node named *Initialize the parameters* creates the following flow variables:  
+The functions called *Create table *tableSubmits** and *Create table *tableFills** create empty PostgreSQL tables (if they don't already exist), for storing the submitted orders and for the executed (filled) orders.  
+The table called *tableSubmits* is filled with the orders submitted to the broker API, and the table called *tableFills* is filled with the orders that were confirmed by the broker.  
+These two tables are erased overnight, so they start empty at the beginning of each trading day.  
+![alt text](figure/create_flow_variables.png "Title"){width="600" height="300"}  
 
-* symboln = the ticker string of the selected stock. 
-* lambdaf = the lambda decay factor which multiplies past estimates. 
-* volf = the volatility floor. 
-* pricec = the current stock price. 
-* pricep = the previous stock price, initially set to NaN. 
-* pricema =  the moving average price, initially set to NaN. 
-* lb = the look-back window, i.e. the number of elements in the data queue. 
-* priceq = the data queue (buffer) for storing the recent stock prices. 
-* endpq = the position of the end of the price queue. 
-* retq = the data queue (buffer) for storing the recent stock returns. 
-* endrq = the position of the end of the returns queue. 
+<br>
+
+**The flows below initialize the prices and technical indicators.**  These flows run automatically -  you don't need to click on them.  
+
+The first flow initializes the flow variables such as the open position queue, etc., each day just before the market open.  
+The function node called *Initialize flow variables* resets the flow variables to their initial values.  
+The second flow initializes the flow variables with the prices from the tab [**Tech Indicators**](https://drive.google.com/uc?export=download&id=1gOpD8O4JOah5xTCVcmQi4qNdmSVliTgr), each day at the market open.  
+The *link-in node* must be connected with the appropriate *link-out node* in the tab [**Tech Indicators**](https://drive.google.com/uc?export=download&id=1gOpD8O4JOah5xTCVcmQi4qNdmSVliTgr).  
+![alt text](figure/initialize_technical_indicators.png "Title"){width="600" height="200"}  
+
+<br>
+
+
+**The flow below updates the technical indicators with live data.**  The flow runs automatically -  you don't need to click on it.  
+
+The function called *Update tech indicators* obtains the moving average prices and volatilities from the tab [**Tech Indicators**](https://drive.google.com/uc?export=download&id=1gOpD8O4JOah5xTCVcmQi4qNdmSVliTgr), and it calculates the z-scores.  
+The *link-in node* must be connected with the appropriate *link-out node* in the tab [**Tech Indicators**](https://drive.google.com/uc?export=download&id=1gOpD8O4JOah5xTCVcmQi4qNdmSVliTgr).  
+The function called *Unrealized PnL* calculates the unrealized profits and losses (PnLs) for the open positions, and also the PnL drawdown from its maximum.  
+![alt text](figure/update_technical_indicators.png "Title"){width="700" height="200"}  
+
+<br>
+
+
+**The flow below runs the *Bollinger strategy*.**  The flow runs automatically -  you don't need to click on it.  
+
+The first function in this flow called *Bollinger strategy* obtains the z-score from the function called *Update tech indicators* in the flow above it.  
+The function *Bollinger strategy* compares the z-score with the threshold level $\theta$, it then calculates the number of shares to buy or sell, and passes it into the function called *Submit trade orders*.  
+The function called *Submit trade orders* creates a string with the trade order, and passes it into the yellow Alpaca API node. It also writes the submitted trade order into the PostgreSQL table called *tableSubmits*.  
+![alt text](figure/run_strategy.png "Title"){width="1300" height="200"}  
 
 
 <br>
 
-**The data queue is used for calculating the simple moving averages of prices and volatilities.**
 
-The data queue is an array (vector) for storing the recent stock prices or returns.
-The data queue only stores the most recent number of elements equal to *lb*.  
-The data queue is a first in last out queue.
-Data is added one element at a time and it's stored in the order it's received.
-New data is written to the end of the queue, and the *endq* variable is shifted to the next to last element.  
-The element *P14* at the end of the queue is replaced with new data and becomes the element *P1* at the front of the queue.  
-The element *P13* becomes the end of the queue *P14*.
-The data elements in the queue are just relabeled - not copied.
-This avoids copying the other data elements in the queue, which speeds up the code.
+**The flow below liquidates all of the strategy's stock positions at the end of the day.**  The flow runs automatically -  you don't need to click on it.  
 
-Below is an illustration of how an element is added to the data queue:
+The *Bollinger strategy* maintains a queue of the strategy's open positions throughout the day.  
+The function called *Liquidate positions* calculates the total open positions in the queue, and it submits a trade order to liquidate them, one minute before the market close.  The function can also liquidate the total open positions reported by Alpaca.  
 
-<img src="figure/data_queue.png" width="500" height="200" />. 
+The function called *Liquidate positions* creates a string with the trade order, and passes it into the yellow Alpaca API node. It also writes the submitted trade order into the PostgreSQL table called *tableSubmits*.  
+Pressing the gray inject node called *Liquidate now* liquidates all of the strategy's stock positions at any time during the market trading hours.
+![alt text](figure/liquidate_positions.png "Title"){width="1300" height="200"}  
+
+<br>
+
+**The flow below obtains trade confirmations from Alpaca and inserts them into the fill trades table.**  The flow runs automatically -  you don't need to click on it.  
+
+The function called *Confirm trades* parses the trade confirmations from Alpaca and inserts them into the table *tableFills*.  
+It writes the time stamp, the stock symbol, the trade type (buy or sell), the number of shares filled, the fill price, etc.  
+This allows the user to track the executed trades and troubleshoot any issues.  
+![alt text](figure/confirm_trades.png "Title"){width="1300" height="170"}  
 
 
 <br>
 
-**The function node named *Get stock price* obtains the streaming prices for the ticker *symboln* from the tab named *Alpaca Prices*.**
+**The flows below execute trades manually.**  
 
-<img src="figure/get_price.png" width="400" height="80" />
-
-The prices for all the stocks stream from the tab *Alpaca Prices* into the small *link-in node* on the left.  
-The function node *Get stock price* then extracts the prices only for the ticker *symboln*, and it passes them to the small *link-out node* on the right.  The streaming stock prices from the *link-out node* can then be passed to the other nodes and strategy tabs.  
-
-For the live prices to stream, it's necessary to download and install the tabs named *Alpaca Prices* and *Globals*.  Then you must connect the *link-in node* to the left of the function node named *Get stock price* to the *link-out node* called *Prices out* in the tab *Alpaca Prices*.  
+The function called *Buy 1 share* creates a string with the trade order to buy one share of the stock, and passes it into the yellow Alpaca API node. It also writes the submitted trade order into the PostgreSQL table called *tableSubmits*.  
+Similarly the function called *Sell 1 share*.  
+These functions are activated by pressing the grey inject nodes to their left.  
+![alt text](figure/trade_manually.png "Title"){width="700" height="200"}  
 
 
 <br>
 
-**The function node named *Calculate the SMA prices* calculates the simple moving average prices.**
 
-<img src="figure/SMA_prices.png" width="400" height="80" />
+**The flows below create web links for downloading the trade tables to CSV files.**  
 
-The stock prices flow from the node *Get stock price* into the small *link-in node* on the left.  The function node *Calculate the SMA prices* then calculates the simple moving average prices, and it passes them to the small *link-out node* on the right.  The streaming SMA prices from the *link-out node* can then be passed to the other nodes and strategy tabs.  
-
-
-<br>
-
-**The function node named *Calculate the EMA prices* calculates the exponential moving average prices.**
-
-<img src="figure/EMA_prices.png" width="400" height="80" />
-
-The stock prices flow from the node *Get stock price* into the small *link-in node* on the left.  The function node *Calculate the EMA prices* then calculates the exponential moving average prices, and it passes them to the small *link-out node* on the right.  The streaming EMA prices from the *link-out node* can then be passed to the other nodes and strategy tabs.  
+The two flows below create web links for downloading the trade tables to CSV files.  You don't need to click on them.  
+To download the CSV files to their computer, the user needs to run 
+[**this shell script**](https://drive.google.com/uc?export=download&id=1ydjUOZU6T7Ma5KiftYHwKAAvsWAVUBeG).  
+![alt text](figure/download_trade_tables.png "Title"){width="1300" height="220"}  
 
 
-<br>
+**The flow below sends Telegram alerts.**  The flow runs automatically -  you don't need to click on it.  
 
-**The function node named *Calculate the SMA return volatility* calculates the simple moving average volatility of the stock returns.**
-
-<img src="figure/SMA_return_volatility.png" width="400" height="80" />
-
-The stock prices flow from the node *Get stock price* into the small *link-in node* on the left.  The function node *Calculate the SMA return volatility* then calculates the SMA return volatility, and it passes it to the small *link-out node* on the right.  The streaming SMA return volatility from the *link-out node* can then be passed to the other nodes and strategy tabs.  
+The function called *Telegram* parses the positions and PnLs from Alpaca and sends an alert to the user's Telegram account.  
+This allows the user to receive alerts if there are any issues, like breached limits, rejected trades, etc.  
+It requires initializing the Telegram bot.  
+![alt text](figure/telegram_alert.png "Title"){width="1300" height="150"}  
 
 
 <br>
-
-**The function node named *Calculate the EMA return volatility* calculates the exponential moving average volatility of the stock returns.**
-
-<img src="figure/EMA_return_volatility.png" width="400" height="80" />
-
-The stock prices flow from the node *Get stock price* into the small *link-in node* on the left.  The function node *Calculate the EMA return volatility* then calculates the EMA return volatility, and it passes it to the small *link-out node* on the right.  The streaming EMA return volatility from the *link-out node* can then be passed to the other nodes and strategy tabs.  
-
-<br>
-
-**The function node named *Calculate the SMA price volatility* calculates the simple moving average volatility of the stock prices.**
-
-<img src="figure/SMA_price_volatility.png" width="400" height="80" />
-
-The stock prices flow from the node *Get stock price* into the small *link-in node* on the left.  The function node *Calculate the SMA price volatility* then calculates the SMA price volatility, and it passes it to the small *link-out node* on the right.  The streaming SMA price volatility from the *link-out node* can then be passed to the other nodes and strategy tabs.  
-
-<br>
-
-**The function node named *Calculate the EMA price volatility* calculates the exponential moving average volatility of the stock prices.**
-
-<img src="figure/EMA_price_volatility.png" width="400" height="80" />
-
-The stock prices flow from the node *Get stock price* into the small *link-in node* on the left.  The function node *Calculate the EMA price volatility* then calculates the EMA price volatility, and it passes it to the small *link-out node* on the right.  The streaming EMA price volatility from the *link-out node* can then be passed to the other nodes and strategy tabs.  
-
-<br>
-
-<br>
-
-### The Moving Average Prices  
-
-The moving average prices can be calculated for a streaming time series of prices $p_t$.  
-
-The Exponential Moving Average (EMA) price $\bar{p}_t$ is calculated using a decay factor $\lambda$ and the recursive formula: 
-
-$${\normalsize \bar{p}_t = \lambda \bar{p}_{t-1} + (1-\lambda) p_t}$$
-
-The moving average price at time $t$: $p_t$ is equal to the decay factor $\lambda$ times the moving average price at time $t-1$: $p_{t-1}$, plus $(1-\lambda)$ times the price at time $t-1$: $\bar{p}_{t-1}$.
-
-The decay factor $\lambda$ determines the persistence of data memory, i.e. how quickly the contribution of the past data to the average value fades over time.  
-
-If the decay factor $\lambda$ is closer to $1$ then the effect of past data fades slowly over time.
-If $\lambda$ is closer to $0$ then the effect of past data fades quickly over time.  
-
-The above recursive formula can be expressed as a series:
-
-$${\normalsize \bar{p}_t = (1-\lambda) \sum\limits_{j=0}^{\infty} {\lambda}^j p_{t-j} = (1-\lambda) (p_t + \lambda p_{t-1} + \lambda^2 p_{t-2} + \ldots)} $$
-
-The formula is called *exponential* because the decay factor $\lambda$ is raised to the power of $j$, so the weights $\lambda^j$ decrease exponentially as $j$ increases.  
-
-The advantage of the EMA price is that it applies a greater weight to more recent prices than to past ones.  
-
-The EMA calculation is also faster because there's less computation, and it doesn't require maintaining a buffer (queue) of past prices.  
-
-<br>
-
-### The Moving Average Variance of Prices  
-
-The moving average variance of prices $\sigma^2_t$ measures the dispersion of the streaming prices around the moving average price.
-It can be calculated for a streaming time series of prices $p_t$.  
-
-The Exponential Moving Average (EMA) variance of prices $\sigma^2_t$ is calculated using the two recursive formulas: 
-
-$${\normalsize \sigma^2_t = \lambda \sigma^2_{t-1} + (1-\lambda) (p_t - \bar{p}_{t-1})^2}$$
-$${\normalsize \bar{p}_t = \lambda \bar{p}_{t-1} + (1-\lambda) p_t}$$
-
-The moving average variance at time $t$: $\sigma^2_t$ is equal to the decay factor $\lambda$ times the moving average variance at time $t-1$: $\sigma^2_{t-1}$, plus $(1-\lambda)$ times the squared difference between the current price $p_t$ minus the moving average price at time $t-1$: $\bar{p}_{t-1}$.
-
-
-<br>
-
-### Choosing The Decay Factor $\lambda$
-
-The moving average prices are a smoothed version of the streaming prices.  
-
-**The decay factor $\lambda$ determines the strength of the data smoothing.**  
-
-If $\lambda$ is closer to $1$ then the moving average prices are smoother, but if it's closer to $0$ then the average prices are more variable and they follow the streaming prices more closely.
-
-The effect of the decay factor $\lambda$ on the moving average prices is illustrated in the animated plot below of VTI stock prices.  When $\lambda = 0.99$ the average prices are very smooth, but as it decreases, they become more variable and they follow the streaming prices more closely.
-
-<img src="figure/EMA.mov" width="600" height="500" />
-
-<br>
-
-**The moving average prices are less volatile (smoother), but they also lag behind the streaming prices - they are *biased*.**  
-Notice for example that the average prices (red line above) reach their minimum much later than the streaming prices (blue line).  
-And the smoother the average prices are, the more biased they are.  
-A lower variance is desirable, but it comes at the cost of a larger bias (time lag).  
-This is called the *bias-variance tradeoff*.  
-The *bias-variance tradeoff* is one of the central themes in *machine learning*.  
-
-
-**The decay factor $\lambda$ and the look-back window $lb$ are usually chosen to achieve the best *bias-variance tradeoff*.**  
-
-The best tradeoff depends on the application.  For example, if the streaming prices are very volatile, then a larger decay factor $\lambda$ is desirable (or a larger look-back window $lb$), to reduce the volatility.
-
-**The optimal value of the decay factor $\lambda$ can be determined using a simulation called *backtesting* (cross-validation).**  
-
-Backtesting is performed on historical data.  
-The data is split into in-sample and out-of-sample sets.  
-Forecasting models often require the smoothing of the data.  
-The smoothing is applied to the in-sample data, and the forecasts are tested on the out-of-sample data.  
-The value of $\lambda$ which minimizes the out-of-sample forecast errors is chosen as the optimal value.  
-
-**The backtesting procedure risks *overfitting* to the historical data.**  
-The optimal value of $\lambda$ may not be the best choice in live data.
-So users should be cautious when selecting parameters using the backtesting procedure.  
 

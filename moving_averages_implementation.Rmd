@@ -1,5 +1,5 @@
 ---
-title: "Calculating The Moving Average Prices And Volatilities"
+title: "Implementation of the Moving Average Prices And Volatilities"
 author: "Jerzy Pawlowski (jpawlowski@machinetrader.io)"
 date: '`r format(Sys.time(), "%m/%d/%Y")`'
 output:
@@ -9,18 +9,22 @@ email: jpawlowski@machinetrader.io
 affiliation: MachineTrader.io
 ---
 
-### Implementation of the Moving Average Price and Volatility  
+### Implementation of the Moving Average Prices and Volatilities  
 
-**The Node-RED tab named *Tech Indicators* contains the implementations of various technical indicators in MachineTrader, including the moving average price and volatility.**  
+The Node-RED tab named *Tech Indicators* contains the implementations of various technical indicators in MachineTrader, including the moving average prices and volatilities.  
 
 The tab named *Tech Indicators* calculates the moving average prices and volatilities from live streaming stock prices for a single selected stock.
 
-You can download the tab named [**Tech Indicators**](https://github.com/predictivetechnologysystems/MachineTrader-Community/blob/main/Tech_Indicators.json) from the MachineTrader-Community repository on GitHub.  
+You can download the tab named *Tech Indicators* from the MachineTrader-Community repository on GitHub by clicking on this [**link**](https://github.com/predictivetechnologysystems/MachineTrader-Community/blob/main/Tech_Indicators.json).  
+After you download the *JavaScript* file named *Tech_Indicators.json* to your computer, you can then upload it to your MachineTrader instance.  
 
-You should also download the tabs named [**Alpaca Prices**](https://github.com/predictivetechnologysystems/MachineTrader-Community/blob/main/Alpaca_Prices.json), and [**Globals**](https://github.com/predictivetechnologysystems/MachineTrader-Community/blob/main/Globals_jp.json).  
+The *Tech Indicators* tab requires importing two other tabs into your MachineTrader instance.  
 
+You also need to install the tab named [**Alpaca Prices**](https://github.com/predictivetechnologysystems/MachineTrader-Community/blob/main/Alpaca_Prices.json) for downloading the streaming (live) stock prices from Alpaca.  
 
-After you download the tab named *Tech Indicators*, you must connect the *link-in node* to the left of the function node named *Get stock price* to the *link-out node* called *Prices out* in the tab *Alpaca Prices*.  
+You also need to install the tab named [**Globals/Utilities**](https://github.com/predictivetechnologysystems/MachineTrader-Community/blob/main/Globals_Utilities.json) for creating global variables.
+
+After you install the tabs, you must connect the *link-in node* to the left of the function node named *Get stock price* in the *Tech Indicators* tab, to the *link-out node* called *Prices out* in the tab *Alpaca Prices*.  
 
 You can also watch an instructional video about [**Calculating Moving Average Prices And Volatilities**](https://youtu.be/iAZMTEZeZDM) on the MachineTrader YouTube channel.  
 
@@ -36,13 +40,14 @@ The function node *Get stock price* selects the prices only for the ticker in th
 The single stock prices then stream out through the small *link-out node* to its right, to the nodes which calculate the moving averages.  
 
 The dashed lines are the connectors for passing the live streaming stock prices to the function nodes.  
-<img src="figure/mt_moving_average_price_volatility.png" width="600" height="900" />
+![alt text](figure/mt_moving_average_price_volatility.png "Moving Average Price Volatility
+"){width="500" height="800"}
 
 
 <br>
 
 **The function node named *Initialize the parameters* creates the flow variables needed for the calculations:**  
-<img src="figure/initialize_parameters.png" width="400" height="80" />
+![alt text](figure/initialize_parameters.png "Title"){width="400" height="80"}
 
 It should be run once before the other nodes are run, by pressing the *inject* node on the left.
 The *inject* node is on a timer, to run on weekdays at 9:30 AM, so that all the flow variables are initialized before the start of stock trading.
@@ -78,14 +83,14 @@ This avoids copying the other data elements in the queue, which speeds up the co
 
 Below is an illustration of how an element is added to the data queue:
 
-<img src="figure/data_queue.png" width="500" height="200" />. 
+![alt text](figure/data_queue.png "Title"){width="500" height="200"}
 
 
 <br>
 
 **The function node named *Get stock price* obtains the streaming prices for the ticker *symboln* from the tab named *Alpaca Prices*.**
 
-<img src="figure/get_price.png" width="400" height="80" />
+![alt text](figure/get_price.png "Title"){width="400" height="80"}
 
 The prices for all the stocks stream from the tab *Alpaca Prices* into the small *link-in node* on the left.  
 The function node *Get stock price* then extracts the prices only for the ticker *symboln*, and it passes them to the small *link-out node* on the right.  The streaming stock prices from the *link-out node* can then be passed to the other nodes and strategy tabs.  
@@ -97,7 +102,7 @@ For the live prices to stream, it's necessary to download and install the tabs n
 
 **The function node named *Calculate the SMA prices* calculates the simple moving average prices.**
 
-<img src="figure/SMA_prices.png" width="400" height="80" />
+![alt text](figure/SMA_prices.png "Title"){width="400" height="80"}
 
 The stock prices flow from the node *Get stock price* into the small *link-in node* on the left.  The function node *Calculate the SMA prices* then calculates the simple moving average prices, and it passes them to the small *link-out node* on the right.  The streaming SMA prices from the *link-out node* can then be passed to the other nodes and strategy tabs.  
 
@@ -106,7 +111,7 @@ The stock prices flow from the node *Get stock price* into the small *link-in no
 
 **The function node named *Calculate the EMA prices* calculates the exponential moving average prices.**
 
-<img src="figure/EMA_prices.png" width="400" height="80" />
+![alt text](figure/EMA_prices.png "Title"){width="400" height="80"}
 
 The stock prices flow from the node *Get stock price* into the small *link-in node* on the left.  The function node *Calculate the EMA prices* then calculates the exponential moving average prices, and it passes them to the small *link-out node* on the right.  The streaming EMA prices from the *link-out node* can then be passed to the other nodes and strategy tabs.  
 
@@ -115,7 +120,7 @@ The stock prices flow from the node *Get stock price* into the small *link-in no
 
 **The function node named *Calculate the SMA return volatility* calculates the simple moving average volatility of the stock returns.**
 
-<img src="figure/SMA_return_volatility.png" width="400" height="80" />
+![alt text](figure/SMA_return_volatility.png "Title"){width="400" height="80"}
 
 The stock prices flow from the node *Get stock price* into the small *link-in node* on the left.  The function node *Calculate the SMA return volatility* then calculates the SMA return volatility, and it passes it to the small *link-out node* on the right.  The streaming SMA return volatility from the *link-out node* can then be passed to the other nodes and strategy tabs.  
 
@@ -124,7 +129,7 @@ The stock prices flow from the node *Get stock price* into the small *link-in no
 
 **The function node named *Calculate the EMA return volatility* calculates the exponential moving average volatility of the stock returns.**
 
-<img src="figure/EMA_return_volatility.png" width="400" height="80" />
+![alt text](figure/EMA_return_volatility.png "Title"){width="400" height="80"}
 
 The stock prices flow from the node *Get stock price* into the small *link-in node* on the left.  The function node *Calculate the EMA return volatility* then calculates the EMA return volatility, and it passes it to the small *link-out node* on the right.  The streaming EMA return volatility from the *link-out node* can then be passed to the other nodes and strategy tabs.  
 
@@ -132,7 +137,7 @@ The stock prices flow from the node *Get stock price* into the small *link-in no
 
 **The function node named *Calculate the SMA price volatility* calculates the simple moving average volatility of the stock prices.**
 
-<img src="figure/SMA_price_volatility.png" width="400" height="80" />
+![alt text](figure/SMA_price_volatility.png "Title"){width="400" height="80"}
 
 The stock prices flow from the node *Get stock price* into the small *link-in node* on the left.  The function node *Calculate the SMA price volatility* then calculates the SMA price volatility, and it passes it to the small *link-out node* on the right.  The streaming SMA price volatility from the *link-out node* can then be passed to the other nodes and strategy tabs.  
 
@@ -140,7 +145,7 @@ The stock prices flow from the node *Get stock price* into the small *link-in no
 
 **The function node named *Calculate the EMA price volatility* calculates the exponential moving average volatility of the stock prices.**
 
-<img src="figure/EMA_price_volatility.png" width="400" height="80" />
+![alt text](figure/EMA_price_volatility.png "Title"){width="400" height="80"}
 
 The stock prices flow from the node *Get stock price* into the small *link-in node* on the left.  The function node *Calculate the EMA price volatility* then calculates the EMA price volatility, and it passes it to the small *link-out node* on the right.  The streaming EMA price volatility from the *link-out node* can then be passed to the other nodes and strategy tabs.  
 
