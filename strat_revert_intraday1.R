@@ -1,9 +1,8 @@
 ##############################
-# This is a shiny app for simulating an autoregressive strategy 
-# using the trailing fast and slow Sharpe ratios.
-# The trailing Sharpe ratio is equal to the exponential moving 
-# average (EMA) of returns divided by the trailing volatility 
-# of returns.
+# This is a shiny app for simulating a reversion to open strategy 
+# for intraday stock prices for a single day.
+# Runs the C++ function revert_to_open() from /Users/jerzy/Develop/Rcpp/back_test.cpp
+#
 #
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -21,10 +20,16 @@ library(dygraphs)
 # Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/back_test.cpp")
 
 # load("/Users/jerzy/Develop/data/SPY_minute_202311.RData")
-pricev <- pricel[[17]]["T09:30:00/T10:30:00"]
+pricev <- pricel[[1]][, 1]
 retv <- rutils::diffit(pricev)
+# Calculate cumulative returns
+datev <- index(pricev)
+retc <- cumsum(retv)
+nrows <- NROW(pricev)
+symboln <- rutils::get_name(colnames(pricev))
 
-captiont <- paste("Autoregressive Strategy Using Trailing Fast And Slow Sharpe Ratios")
+
+captiont <- paste("Reversion to Open Strategy")
 
 ## End setup code
 
@@ -35,7 +40,7 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("symbol", label="Symbol", choices=rutils::etfenv$symbolv, selected="VTI")),
+    # column(width=2, selectInput("symboln", label="Symbol", choices=rutils::etfenv$symbolv, selected="VTI")),
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the bid-ask spread
@@ -44,9 +49,9 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input the EMA decays
-    column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.4, max=0.9, value=0.6, step=0.01)),
-    column(width=2, sliderInput("varf", label="Variance factor:", min=1.0, max=100.0, value=10.0, step=0.1)),
-    column(width=2, sliderInput("varin", label="Initial variance:", min=0.01, max=1.0, value=0.25, step=0.01)),
+    column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.01, max=0.9, value=0.6, step=0.01)),
+    # column(width=2, sliderInput("varf", label="Variance factor:", min=1.0, max=100.0, value=10.0, step=0.1)),
+    # column(width=2, sliderInput("varin", label="Initial variance:", min=0.01, max=1.0, value=0.25, step=0.01)),
     # column(width=2, sliderInput("lambdas", label="Slow lambda:", min=0.8, max=0.999, value=0.99, step=0.001)),
     # Input the EMA loadings
     # column(width=2, sliderInput("loadf", label="Fast load:", min=(-1.0), max=1.0, value=(-1.0), step=0.1)),
@@ -70,10 +75,10 @@ servfun <- function(input, output) {
   # Load the closing prices
   # closep <- shiny::reactive({
   #   
-  #   symbol <- input$symbol
-  #   cat("Loading data for ", symbol, "\n")
+  #   symboln <- input$symboln
+  #   cat("Loading data for ", symboln, "\n")
   #   
-  #   ohlc <- get(symbol, rutils::etfenv)
+  #   ohlc <- get(symboln, rutils::etfenv)
   #   # quantmod::Cl(ohlc["2010/2019"])
   #   quantmod::Cl(ohlc)
   #   
@@ -82,7 +87,7 @@ servfun <- function(input, output) {
   # Load the log returns
   # retv <- shiny::reactive({
   #   
-  #   cat("Recalculating returns for ", input$symbol, "\n")
+  #   cat("Recalculating returns for ", input$symboln, "\n")
   #   
   #   rutils::diffit(log(closep()))
   # 
@@ -92,7 +97,7 @@ servfun <- function(input, output) {
   # Recalculate the strategy
   pnls <- shiny::reactive({
     
-    cat("Recalculating strategy for ", input$symbol, "\n")
+    cat("Recalculating strategy for ", input$symboln, "\n")
     # Get model parameters from input argument
     # closep <- closep()
     # varf <- input$varf
@@ -103,11 +108,6 @@ servfun <- function(input, output) {
     # loads <- input$loads
     # lookb <- input$lookb
     lagg <- input$lagg
-
-    # Calculate cumulative returns
-    # retv <- retv()
-    # retc <- cumsum(retv)
-    nrows <- NROW(pricev)
 
     # Calculate EMA prices
     # emaf <- HighFreq::run_mean(retv, lambda=lambdaf)
@@ -130,9 +130,11 @@ servfun <- function(input, output) {
     # posv <- (loadf*emaf + loads*emas)
     
     # Calculate the positions of the mean-reversion strategy
-    posv <- revert_to_open(pricev, input$lambdaf, input$varf, input$varin)
+    pospnls <- revert_to_open(pricev, input$lambdaf)
+    # Lag the positions to trade in next period
+    # posv <- rutils::lagit(pospnls[, 2], lagg=1)
     # Calculate indicator of flipped positions
-    flipi <- rutils::diffit(posv)
+    flipi <- rutils::diffit(pospnls[, 2])
     # Calculate the number of trades
     values$ntrades <- sum(abs(flipi) > 0)
     
@@ -140,11 +142,10 @@ servfun <- function(input, output) {
     longi <- (flipi > 0)
     shorti <- (flipi < 0)
     
-    # Lag the positions to trade in next period
-    # posv <- rutils::lagit(posv, lagg=1)
     
     # Calculate strategy pnls
-    pnls <- posv*retv
+    # pnls <- posv*retv
+    pnls <- pospnls[, 1]
     
     # Calculate transaction costs
     costs <- 0.5*input$bidask*abs(flipi)
@@ -163,7 +164,7 @@ servfun <- function(input, output) {
     # Bind strategy pnls with indicators
     pnls <- cumsum(pnls)
     pnls <- cbind(pnls, retc[longi], retc[shorti])
-    colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
+    colnames(pnls) <- c(paste(input$symboln, "Returns"), "Strategy", "Buy", "Sell")
 
     pnls
 
@@ -182,7 +183,7 @@ servfun <- function(input, output) {
     # Get number of trades
     ntrades <- values$ntrades
     
-    captiont <- paste("Strategy for", input$symbol, "/ \n", 
+    captiont <- paste("Strategy for", input$symboln, "/ \n", 
                       paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
                       "Number of trades=", ntrades)
     

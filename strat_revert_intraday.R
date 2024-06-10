@@ -1,9 +1,7 @@
 ##############################
-# This is a shiny app for simulating an autoregressive strategy 
-# using the trailing fast and slow Sharpe ratios.
-# The trailing Sharpe ratio is equal to the exponential moving 
-# average (EMA) of returns divided by the trailing volatility 
-# of intraday returns.
+# This is a shiny app for simulating a reversion to open strategy 
+# for intraday stock prices.
+# Runs the C++ function revert_to_open() from /Users/jerzy/Develop/Rcpp/back_test.cpp
 #
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -22,10 +20,42 @@ library(dygraphs)
 
 # Load the intraday returns.
 # load("/Users/jerzy/Develop/data/SPY_second_20231113.RData")
-load("/Users/jerzy/Develop/data/SPY_minute_20231123.RData")
+# load("/Users/jerzy/Develop/data/SPY_minute_20231123.RData")
 
-# symbol <- "AAPL"
-captiont <- paste("Autoregressive Strategy Using Trailing Fast And Slow Sharpe Ratios")
+
+###############
+# Load the minute prices of two stocks.
+# Below is an example of how to load the minute prices of two stocks.
+
+# Load the VTI OHLC prices, and calculate the high-low range
+# ohlc <- rutils::etfenv$VTI["2023"]
+# hilovti <- (ohlc[, 2] - ohlc[, 3])
+
+# Load the AAPL OHLC prices, and calculate the high-low range
+# load("/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
+# ohlc <- sp500env$AAPL["2023"]
+# hiloaapl <- (ohlc[, 2] - ohlc[, 3])
+# all.equal(index(hilovti), index(hiloaapl))
+
+# Calculate the beta of AAPL with respect to VTI
+# betac <- cov(hilovti[, 1], hiloaapl[, 1])/var(hilovti[, 1])
+# betac <- drop(betac)
+
+# Load the VTI and AAPL minute prices
+# load("/Users/jerzy/Develop/data/SPY_minute_202405.RData")
+# pricespy <- pricel
+# load("/Users/jerzy/Develop/data/AAPL_minute_202405.RData")
+# pricaapl <- pricel
+
+# Calculate list of AAPL minute prices hedged with VTI
+# pricel <- lapply(seq_along(pricespy), function(it) {
+#   (pricaapl[[it]] - betac*pricespy[[it]])
+# }) # end lapply
+
+
+
+symboln <- rutils::get_name(colnames(pricel[[1]][, 1]))
+captiont <- paste("Reversion to Open Strategy")
 
 ## End setup code
 
@@ -36,7 +66,7 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("symbol", label="Symbol", choices=c("SPY", "AAPL"), selected="SPY")),
+    # column(width=2, selectInput("symboln", label="Symbol", choices=c("SPY", "AAPL"), selected="SPY")),
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the bid-ask spread
@@ -45,11 +75,11 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input the EMA decays
-    column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.01, max=0.99, value=0.75, step=0.01)),
-    column(width=2, sliderInput("varf", label="Variance factor:", min=1.0, max=100.0, value=10.0, step=0.1)),
-    column(width=2, sliderInput("varin", label="Initial variance:", min=0.01, max=1.0, value=0.25, step=0.01)),
+    column(width=2, sliderInput("posmax", label="Posmax:", min=0.01, max=10, value=2, step=0.5)),
+    column(width=2, sliderInput("betac", label="Beta:", min=-1.0, max=2.0, value=1.0, step=0.1))
+    # column(width=2, sliderInput("varin", label="Initial variance:", min=0.01, max=1.0, value=0.25, step=0.01)),
     # Input the trade lag
-    column(width=2, sliderInput("lagg", label="lagg", min=1, max=4, value=2, step=1))
+    # column(width=2, sliderInput("lagg", label="lagg", min=1, max=4, value=2, step=1))
   ),  # end fluidRow
   
   # Create output plot panel
@@ -66,10 +96,10 @@ servfun <- function(input, output) {
   # Load the closing prices
   # closep <- shiny::reactive({
   #   
-  #   symbol <- input$symbol
-  #   cat("Loading data for ", symbol, "\n")
+  #   symboln <- symboln
+  #   cat("Loading data for ", symboln, "\n")
   #   
-  #   # ohlc <- get(symbol, rutils::etfenv)
+  #   # ohlc <- get(symboln, rutils::etfenv)
   #   # quantmod::Cl(ohlc["2010/2019"])
   #   pricel[[51]][, 1]
   # 
@@ -78,22 +108,20 @@ servfun <- function(input, output) {
   # Load the log returns
   # retv <- shiny::reactive({
   #   
-  #   cat("Recalculating returns for ", input$symbol, "\n")
+  #   cat("Recalculating returns for ", symboln, "\n")
   #   
   #   rutils::diffit(closep())
   # 
   # })  # end Load the log returns
   
-
   # Recalculate the strategy
   pnls <- shiny::reactive({
     
-    cat("Recalculating strategy for", input$symbol, "\n")
+    cat("Recalculating strategy for", symboln, "\n")
     # Get model parameters from input argument
     # closep <- closep()
-    # lambdaf <- input$lambdaf
+    # posmax <- input$posmax
     # lambdas <- input$lambdas
-    # loadf <- input$loadf
     # loads <- input$loads
     bidask <- input$bidask
     # lookb <- input$lookb
@@ -104,7 +132,13 @@ servfun <- function(input, output) {
     # retc <- cumsum(retv)
     # nrows <- NROW(retv)
     
-
+    # Calculate list of AAPL minute prices hedged with VTI
+    # betac <- input$betac
+    pricel <- lapply(seq_along(pricespy), function(it) {
+      (pricexlk[[it]] - input$betac*priceqqq[[it]])
+    }) # end lapply
+    
+    
     # Determine dates when the EMAs have crossed
     # crossi <- sign(emaf - emas)
     
@@ -117,18 +151,16 @@ servfun <- function(input, output) {
     # This is designed to prevent whipsaws and over-trading.
     
     ntrades <- 0
-    pnls <- lapply(seq_along(pricel), function(it) {
-      # Calculate EMA prices
-      # retv[abs(retv) > 0.1] <- 0
-      pricev <- pricel[[it]]["T09:30:00/T10:30:00"]
-      retv <- retl[[it]]["T09:30:00/T10:30:00"]
-      # posv <- revert_to_open(pricev, input$lambdaf, input$varf, input$varin)
-      posv <- bollinger_brackets(retv, input$lambdaf, input$varf, input$varin)
+    pnls <- lapply(pricel, function(pricev) {
+      pricev <- pricev[, 1]
+      retv <- rutils::diffit(pricev)
+      pospnls <- revert_to_open(pricev, input$posmax)
+      # posv <- bollinger_brackets(retv, input$posmax, input$betac, input$varin)
       # cat("posv =", tail(posv), "\n")
       # Calculate strategy pnls
-      pnls <- posv*retv
+      pnls <- pospnls[, 1]
       # Calculate indicator of flipped positions
-      flipi <- rutils::diffit(posv)
+      flipi <- rutils::diffit(pospnls[, 2])
       # Calculate the number of trades
       ntrades <<- ntrades + sum(abs(flipi) > 0)
       # Calculate transaction costs
@@ -161,7 +193,7 @@ servfun <- function(input, output) {
     # pnls <- cbind(pnls, retc[longi], retc[shorti])
     # colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
     # colnames(pnls) <- c(paste(symboln, "Returns"), "Strategy")
-    colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy")
+    colnames(pnls) <- c(paste(symboln, "Returns"), "Strategy")
     
     # cat("pnls =", tail(pnls[, 2]), "\n")
     pnls
@@ -181,7 +213,7 @@ servfun <- function(input, output) {
     # Get number of trades
     ntrades <- values$ntrades
     
-    captiont <- paste("Strategy for", input$symbol, "/ \n", 
+    captiont <- paste("Strategy for", symboln, "/ \n", 
                       paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
                       "Number of trades=", ntrades)
     

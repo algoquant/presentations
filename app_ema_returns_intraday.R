@@ -20,10 +20,10 @@ library(dygraphs)
 # Load the intraday returns.
 # load("/Users/jerzy/Develop/data/SPY_second_20231113.RData")
 # load("/Users/jerzy/Develop/data/SPY_minute_20231123.RData")
-load("/Users/jerzy/Develop/data/AAPL_second_202402.RData")
+# load("/Users/jerzy/Develop/data/AAPL_second_202402.RData")
 
-# symboln <- "AAPL"
-captiont <- paste("Autoregressive Strategy Using Trailing Fast And Slow Sharpe Ratios")
+symboln <- rutils::get_name(colnames(pricel[[1]][, 1]))
+captiont <- paste("Autoregressive Strategy Using Trailing Sharpe Ratio")
 
 ## End setup code
 
@@ -34,20 +34,20 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("symboln", label="Symbol", choices=c("SPY", "AAPL"), selected="SPY")),
+    # column(width=2, selectInput("symboln", label="Symbol", choices=c("SPY", "AAPL"), selected="SPY")),
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the bid-ask spread
-    column(width=2, numericInput("bidask", label="Bid-ask:", value=0.002, step=0.001))
+    column(width=2, numericInput("bidask", label="Bid-ask:", value=0.001, step=0.001))
   ),  # end fluidRow
 
   fluidRow(
     # Input the EMA decays
-    column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.01, max=0.99, value=0.9, step=0.01)),
-    column(width=2, sliderInput("lambdas", label="Slow lambda:", min=0.99, max=0.9999, value=0.9993, step=0.0001)),
+    column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.1, max=0.99, value=0.9, step=0.01)),
+    # column(width=2, sliderInput("lambdas", label="Slow lambda:", min=0.99, max=0.9999, value=0.9993, step=0.0001)),
     # Input the EMA loadings
-    column(width=2, sliderInput("loadf", label="Fast load:", min=(-1.0), max=1.0, value=(-1.0), step=0.1)),
-    column(width=2, sliderInput("loads", label="Slow load:", min=(-1.0), max=1.0, value=(0.0), step=0.1)),
+    # column(width=2, sliderInput("loadf", label="Fast load:", min=(-1.0), max=1.0, value=(-1.0), step=0.1)),
+    # column(width=2, sliderInput("loads", label="Slow load:", min=(-1.0), max=1.0, value=(0.0), step=0.1)),
     # Input the trade lag
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=4, value=2, step=1))
   ),  # end fluidRow
@@ -88,13 +88,13 @@ servfun <- function(input, output) {
   # Recalculate the strategy
   pnls <- shiny::reactive({
     
-    cat("Recalculating strategy for", input$symboln, "\n")
+    cat("Recalculating strategy for", symboln, "\n")
     # Get model parameters from input argument
     # closep <- closep()
     lambdaf <- input$lambdaf
-    lambdas <- input$lambdas
-    loadf <- input$loadf
-    loads <- input$loads
+    # lambdas <- input$lambdas
+    # loadf <- input$loadf
+    # loads <- input$loads
     bidask <- input$bidask
     # lookb <- input$lookb
     lagg <- input$lagg
@@ -120,25 +120,29 @@ servfun <- function(input, output) {
     pnls <- lapply(pricel, function(pricev) {
       # Calculate EMA prices
       pricev <- pricev[, 1]
-      emaf <- HighFreq::run_mean(pricev, lambda=lambdaf)
-      volf <- sqrt(HighFreq::run_var(pricev, lambda=lambdaf))
-      volf[1:7, ] <- 1.0
-      emas <- HighFreq::run_mean(pricev, lambda=lambdas)
-      vols <- sqrt(HighFreq::run_var(pricev, lambda=lambdas))
+      retv <- rutils::diffit(pricev)
+      retv[abs(retv) > 0.07] <- 0
+      emaf <- HighFreq::run_mean(retv, lambda=lambdaf)
+      volf <- sqrt(HighFreq::run_var(retv, lambda=lambdaf))
+      volf[volf == 0, ] <- 0.01
+      # emas <- HighFreq::run_mean(retv, lambda=lambdas)
+      # vols <- sqrt(HighFreq::run_var(retv, lambda=lambdas))
       # vols <- sqrt(HighFreq::run_mean(pricev^2, lambda=lambdas))
-      vols[1:7, ] <- 1.0
+      # vols[1:7, ] <- 1.0
       # cat("head(vols) =", head(vols, 11), "\n")
       # cat("tail(vols) =", tail(vols), "\n")
-      posv <- 100*(loadf*emaf/volf + loads*emas/vols)
-      posv <- round(posv)
+      # posv <- (loadf*emaf/volf + loads*emas/vols)
+      posv <- -100*emaf/volf
+      # posv[posv > 2] <- 2
+      # posv[posv < -2] <- -2
+      # posv <- round(posv)
       # posv[posv == 0] <- NA
-      posv[1] <- 0
-      posv <- zoo::na.locf(posv)
+      # posv[1] <- 0
+      # posv <- zoo::na.locf(posv)
       # Lag the positions to trade in next period
       posv <- rutils::lagit(posv, lagg=1)
       # cat("posv =", tail(posv), "\n")
       # Calculate strategy pnls
-      retv <- rutils::diffit(pricev)
       pnls <- posv*retv
       # Calculate indicator of flipped positions
       flipi <- rutils::diffit(posv)
@@ -174,7 +178,7 @@ servfun <- function(input, output) {
     # pnls <- cbind(pnls, retc[longi], retc[shorti])
     # colnames(pnls) <- c(paste(input$symboln, "Returns"), "Strategy", "Buy", "Sell")
     # colnames(pnls) <- c(paste(symboln, "Returns"), "Strategy")
-    colnames(pnls) <- c(paste(input$symboln, "Returns"), "Strategy")
+    colnames(pnls) <- c(paste(symboln, "Returns"), "Strategy")
     
     # cat("pnls =", tail(pnls[, 2]), "\n")
     pnls
@@ -194,7 +198,7 @@ servfun <- function(input, output) {
     # Get number of trades
     ntrades <- values$ntrades
     
-    captiont <- paste("Strategy for", input$symboln, "/ \n", 
+    captiont <- paste("Strategy for", symboln, "/ \n", 
                       paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
                       "Number of trades=", ntrades)
     

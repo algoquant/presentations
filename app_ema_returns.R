@@ -4,6 +4,9 @@
 # The trailing Sharpe ratio is equal to the exponential moving 
 # average (EMA) of returns divided by the trailing volatility 
 # of returns.
+# Works best as a contrarian strategy with a small fast lambda,
+# and zero weight for the slow lambda.
+# Works well for growth stocks and for bonds VTI, XLK, QQQ, IVW, IEF, TLT.
 #
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -37,7 +40,7 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input the EMA decays
-    column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.4, max=0.9, value=0.6, step=0.01)),
+    column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.2, max=0.8, value=0.6, step=0.01)),
     column(width=2, sliderInput("lambdas", label="Slow lambda:", min=0.8, max=0.999, value=0.99, step=0.001)),
     # Input the EMA loadings
     column(width=2, sliderInput("loadf", label="Fast load:", min=(-1.0), max=1.0, value=(-1.0), step=0.1)),
@@ -85,7 +88,7 @@ servfun <- function(input, output) {
     
     cat("Recalculating strategy for ", input$symbol, "\n")
     # Get model parameters from input argument
-    closep <- closep()
+    # closep <- closep()
     lambdaf <- input$lambdaf
     lambdas <- input$lambdas
     loadf <- input$loadf
@@ -98,7 +101,7 @@ servfun <- function(input, output) {
     retc <- cumsum(retv)
     nrows <- NROW(retv)
     
-    # Calculate EMA prices
+    # Calculate EMA returns
     emaf <- HighFreq::run_mean(retv, lambda=lambdaf)
     volf <- sqrt(HighFreq::run_var(retv, lambda=lambdaf))
     volf[1:7, ] <- 1.0
