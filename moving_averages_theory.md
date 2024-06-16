@@ -1,7 +1,7 @@
 ---
 title: "The Moving Average Prices And Volatilities"
 author: "Jerzy Pawlowski (jpawlowski@machinetrader.io)"
-date: '`r format(Sys.time(), "%m/%d/%Y")`'
+date: "06/17/2024"
 output:
   html_document: default
   pdf_document: default
@@ -13,13 +13,13 @@ affiliation: MachineTrader.io
 
 The moving average prices can be calculated for a streaming time series of prices $p_i$.  
 
-The Simple Moving Average (SMA) price $p^{SMA}_i$ is the average of the past prices $p_{i-j}$ over a look-back window $lb$:
+The Simple Moving Average (SMA) price $p^{SMA}_i$ is the average of the past prices $p_{i-j}$ over a look-back window of length $L$:
 
-$${\normalsize p^{SMA}_i = \frac{1}{lb} \sum\limits_{j=0}^{lb-1} p_{i-j}}$$
-The parameter $lb$ is equal to the size of the look-back window.  
+$${\normalsize p^{SMA}_i = \frac{1}{L} \sum\limits_{j=0}^{L-1} p_{i-j}}$$
+The parameter $L$ is equal to the length of the look-back window.  
 
 **The drawback of the SMA is that it applies the same weight to the recent and past prices.**
-Its calculation also requires maintaining a buffer (queue) of past prices, with the size equal to the parameter $lb$.
+Its calculation also requires maintaining a buffer (queue) of past prices, with the length equal to the parameter $L$.
 
 <br>
 
@@ -50,34 +50,34 @@ If $\lambda$ is closer to $0$ (zero) then the effect of past data fades quickly 
 
 **The length of the look-back window also determines the persistence of data memory.**  
 
-In the Simple Moving Average (SMA), the data which is more than $lb$ time periods in the past is abruptly forgotten.
+In the Simple Moving Average (SMA), the data which is more than $L$ time periods in the past is abruptly forgotten.
 If the window is small, then only very recent data is used in the calculation of the average.
 If the window is large, then older data is used in the calculation of the average.  
 
 
-**The decay factor $\lambda$ and the look-back window $lb$ are related to each other.**  
+**The decay factor $\lambda$ and the look-back window length $L$ are related to each other.**  
 
-If the decay factor $\lambda$ is closer to $1$ (one) then the EMA adjusts slowly to new prices, corresponding to a largeer look-back window $lb$.
-If $\lambda$ is closer to $0$ (zero) then the EMA adjusts quickly to new prices, corresponding to a smaller look-back window $lb$.  
+If the decay factor $\lambda$ is closer to $1$ (one) then the EMA adjusts slowly to new prices, corresponding to a larger look-back window length $L$.
+If $\lambda$ is closer to $0$ (zero) then the EMA adjusts quickly to new prices, corresponding to a smaller look-back window length $L$.  
 
 
 <br>
 
-### Choosing The Decay Factor $\lambda$ And The Look-back window $lb$ 
+### Choosing The Decay Factor $\lambda$ And The Look-back window length $L$ 
 
 The moving average prices are smoothed versions of the streaming prices.  
 
-**The decay factor $\lambda$ and the look-back window $lb$ determine the strength of the data smoothing.**  
+**The decay factor $\lambda$ and the look-back window length $L$ determine the strength of the data smoothing.**  
 
 If $\lambda$ is closer to $1$ (one) then the moving average prices are smoother, but if it's closer to $0$ (zero) then the average prices are more variable and they follow the streaming prices more closely.
 
-If the look-back window $lb$ is large, then more prices are used in the calculation of the average and it's therefore smoother.
-If the look-back window $lb$ is small, then fewer prices are used and the average follows the streaming prices more closely.
+If the look-back window length $L$ is large, then more prices are used in the calculation of the average and it's therefore smoother.
+If the look-back window length $L$ is small, then fewer prices are used and the average follows the streaming prices more closely.
 
 The effect of the decay factor $\lambda$ on the moving average prices is illustrated in the animated plot below of VTI stock prices.  When $\lambda = 0.99$ the average prices are very smooth, and they lag behind the streaming prices.
 But as $\lambda$ decreases, the average prices become more variable and they follow the streaming prices more closely.  
 
-![EMA Prices](figure/EMA.mov "EMA Prices"){width="600" height="500"}
+<p><video src="figure/EMA.mp4" width="600" height="500" controls playsinline autoplay muted loop/></p>
 
 <br>
 
@@ -88,9 +88,9 @@ A lower variance is desirable, but it comes at the cost of a larger bias (time l
 This is an example of the *bias-variance tradeoff*.  
 Achieving the best *bias-variance tradeoff* is one of the major objectives of *machine learning*.  
 
-**The decay factor $\lambda$ and the look-back window $lb$ are usually chosen to achieve the best *bias-variance tradeoff*.**  
+**The decay factor $\lambda$ and the look-back window length $L$ are usually chosen to achieve the best *bias-variance tradeoff*.**  
 
-The best tradeoff depends on the application.  For example, if the streaming prices are very volatile, then a larger decay factor $\lambda$ is desirable (or a larger look-back window $lb$), to reduce the volatility.
+The best tradeoff depends on the application.  For example, if the streaming prices are very volatile, then a larger decay factor $\lambda$ is desirable (or a larger look-back window length $L$), to reduce the volatility.
 
 **The optimal value of the decay factor $\lambda$ can be determined using a simulation called *backtesting* (cross-validation).**  
 
@@ -117,12 +117,12 @@ $${\normalsize r_i = p_i - p_{i-1}}$$
 
 The Simple Moving Average (SMA) return $r^{SMA}_i$ is equal to the average of the past returns:
 
-$${\normalsize r^{SMA}_i = \frac{1}{lb} \sum\limits_{j=0}^{lb-1} r_{i-j}}$$
+$${\normalsize r^{SMA}_i = \frac{1}{L} \sum\limits_{j=0}^{L-1} r_{i-j}}$$
 
 
 The Simple Moving Average (SMA) variance $\sigma^{2 SMA}_i$ is then given by the sum:
 
-$${\normalsize \sigma^{2 SMA}_i = \frac{1}{lb-1} \sum\limits_{j=0}^{lb-1} (r_{i-j} - r^{SMA}_{i-1})^2}$$  
+$${\normalsize \sigma^{2 SMA}_i = \frac{1}{L-1} \sum\limits_{j=0}^{L-1} (r_{i-j} - r^{SMA}_{i-1})^2}$$  
 
 
 Note that the average return $r^{SMA}_{i-1}$ is from the previous time step, to better capture the unexpected return in the current time step.
@@ -138,8 +138,8 @@ $${\normalsize r^{EMA}_i = \lambda r^{EMA}_{i-1} + (1-\lambda) r_i}$$
 
 **The SMA and EMA variances are not the same, but they are related to each other, and they move in sympathy with each other.**  
 
-If the decay factor $\lambda$ is closer to $1$ (one) then the EMA variance adjusts slowly to new prices, corresponding to a largeer look-back window $lb$.
-If $\lambda$ is closer to $0$ (zero) then the EMA variance adjusts quickly to new prices, corresponding to a smaller look-back window $lb$.  
+If the decay factor $\lambda$ is closer to $1$ (one) then the EMA variance adjusts slowly to new prices, corresponding to a larger look-back window length $L$.
+If $\lambda$ is closer to $0$ (zero) then the EMA variance adjusts quickly to new prices, corresponding to a smaller look-back window length $L$.  
 
 
 <br>
@@ -152,12 +152,12 @@ It can be calculated for a streaming time series of prices $p_i$.
 
 The Simple Moving Average (SMA) price $p^{SMA}_i$ is equal to the average of the past prices:
 
-$${\normalsize p^{SMA}_i = \frac{1}{lb} \sum\limits_{j=0}^{lb-1} p_{i-j}}$$
+$${\normalsize p^{SMA}_i = \frac{1}{L} \sum\limits_{j=0}^{L-1} p_{i-j}}$$
 
 
 The Simple Moving Average (SMA) variance $\sigma^{2 SMA}_i$ is then given by the sum:
 
-$${\normalsize \sigma^{2 SMA}_i = \frac{1}{lb-1} \sum\limits_{j=0}^{lb-1} (p_{i-j} - p^{SMA}_{i-1})^2}$$  
+$${\normalsize \sigma^{2 SMA}_i = \frac{1}{L-1} \sum\limits_{j=0}^{L-1} (p_{i-j} - p^{SMA}_{i-1})^2}$$  
 
 
 Note that the average price $p^{SMA}_{i-1}$ is from the previous time step, to better capture the unexpected price in the current time step.
@@ -178,7 +178,3 @@ So if the prices exhibit a significant trend, then the variance of prices is lar
 
 Another example is Brownian motion.  The returns are normally distributed, with a constant volatility.  But the variance of prices is not constant, and it increases with the factor $\lambda$, since then prices have more time to drift away from their past average value.
 
-
-<br>
-<br>
-<br>

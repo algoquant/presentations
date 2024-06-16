@@ -1,7 +1,7 @@
 ---
 title: "The Bollinger Strategy"
 author: "Jerzy Pawlowski (jpawlowski@machinetrader.io)"
-date: '`r format(Sys.time(), "%m/%d/%Y")`'
+date: "06/17/2024"
 output:
   html_document: default
   pdf_document: default
@@ -11,11 +11,16 @@ affiliation: MachineTrader.io
 
 ### The Bollinger Strategy  
 
-The Bollinger Strategy tries to capture the reversion of prices to their mean value, and buys stocks when they're cheap (below the z-score), and sells them when they're expensive (above the z-score).  
+The Bollinger Strategy tries to capture the reversion of prices to their equilibrium value, and buys stocks when they're cheap (below the z-score), and sells them when they're expensive (above the z-score).  
 
-The z-score $z_t$ is equal to the difference between the current price $p_t$ minus the moving average price $\bar{p}_t$, divided by the moving average volatility of the prices $\sigma_t$:
+The z-score $z_t$ is equal to the difference between the current price $p_t$ minus the equilibrium price $p_e$, divided by the moving average volatility of the prices $\sigma_t$:
+$${\normalsize z_t = \frac{p_t - p_e}{\sigma_t}}$$  
 
-$${\normalsize z_t = \frac{p_t - \bar{p}_t}{\sigma_t}}$$  
+The equilibrium price $p_e$ is often chosen to be the moving average price $p_e = \bar{p}_t$.  
+You can read more about the moving average prices and volatilities below, and also in 
+[**this document**](https://algoquant.github.io/2024/06/13/Moving-Averages-Theory/).  
+
+As an alternative, the equilibrium price can be chosen to be the last trade price $p_f$ - the price at which the last trade was filled (executed).  The advantage of this is that it prevents a subsequent trade at a loss.  For example, a subsequent buy at a higher price than the previous sell, etc.  
 
 The strategy determines if the stock is cheap or expensive depending on the value of the z-score compared to the threshold level $\theta$.  
 
@@ -29,7 +34,7 @@ The horizontal dashed lines are for $\theta = 1$ and $\theta = -1$.
 "){width="500" height="350"}  
 
 You can read more about the implementation of the Bollinger strategy in 
-[**this document**](https://drive.google.com/uc?export=download&id=179Vaftmc2qRU8CiTS2NUBUchs7DaLftT).  
+[**this document**](https://algoquant.github.io/2024/06/13/Bollinger-Strategy-Implementation/).  
 
 
 <br>
@@ -69,6 +74,9 @@ A smaller training set has a smaller bias (it adjusts quickly to the new prices)
 A larger training set has a smaller variance, but it also has a larger bias (it adjusts more slowly to the new prices).  
 To achieve good out-of-sample performance, the optimal parameters should have both a small bias and a small variance.  
 Achieving the best *bias-variance tradeoff* is one of the major objectives of *machine learning*.  
+
+
+Choosing the right model parameters is difficult.  It is the responsibility of the investor to make that choice.  
 
 
 <br>
@@ -125,7 +133,7 @@ If $\lambda$ is closer to $1$ then the moving average prices are smoother, but i
 
 The effect of the decay parameter $\lambda$ on the moving average prices is illustrated in the animated plot below of VTI stock prices.  When $\lambda = 0.99$ the average prices are very smooth, but as it decreases, they become more variable and they follow the streaming prices more closely.
 
-![EMA Prices](figure/EMA.mov "EMA Prices"){width="600" height="500"}
+<p><video src="figure/EMA.mp4" width="600" height="500" controls playsinline autoplay muted loop/></p>
 
 <br>
 
@@ -137,9 +145,9 @@ This is an example of the *bias-variance tradeoff*.
 Achieving the best *bias-variance tradeoff* is one of the major objectives of *machine learning*.  
 
 
-**The decay parameter $\lambda$ and the look-back window $lb$ are usually chosen to achieve the best *bias-variance tradeoff*.**  
+**The decay parameter $\lambda$ is usually chosen to achieve the best *bias-variance tradeoff*.**  
 
-The best tradeoff depends on the application.  For example, if the streaming prices are very volatile, then a larger decay parameter $\lambda$ is desirable (or a larger look-back window $lb$), to reduce the volatility.
+The best tradeoff depends on the application.  For example, if the streaming prices are very volatile, then a larger decay parameter $\lambda$ is desirable, to reduce the volatility.
 
 **The optimal value of the decay parameter $\lambda$ can be determined using a simulation called *backtesting* (cross-validation).**  
 
