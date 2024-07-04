@@ -134,7 +134,7 @@ servfun <- function(input, output) {
     
     # Calculate list of AAPL minute prices hedged with VTI
     # betac <- input$betac
-    pricel <- lapply(seq_along(pricespy), function(it) {
+    pricel <- lapply(seq_along(priceqqq), function(it) {
       (pricexlk[[it]] - input$betac*priceqqq[[it]])
     }) # end lapply
     

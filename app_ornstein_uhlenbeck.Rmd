@@ -10,48 +10,52 @@ runtime: shiny
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE)
+set.seed(1121)  # Reset random numbers
+nrows <- 1000
+innov <- rnorm(nrows)
 # source("/Users/jerzy/Develop/R/scripts/ewma_model.R")
 ```
 
-```{r ou_model, echo=FALSE}
-inputPanel(
-  sliderInput("volat", label="volat:",
-              min=0.001, max=0.05, value=0.01, step=0.001),
-  sliderInput("eq_price", label="eq_price:",
-              min=1.0, max=10.0, value=5.0, step=0.1),
-  sliderInput("thetav", label="thetav:",
-              min=0.0001, max=0.05, value=0.005, step=0.0001)
-)  # end inputPanel
+```{r OUmodel, echo=FALSE}
+
+  inputPanel(
+    sliderInput("volatp", label="Volatility:",
+                min=0.001, max=0.05, value=0.01, step=0.001),
+    sliderInput("priceq", label="Equlibrium price:",
+                min=1.0, max=10.0, value=5.0, step=0.1),
+    sliderInput("thetav", label="Theta parameter:",
+                min=0.0001, max=0.05, value=0.005, step=0.0001)
+  )  # end inputPanel
 
 renderPlot({
   
-  volat <- input$volat
-  eq_price <- input$eq_price
+  cat("Simulating Ornstein-Uhlenbeck process", "\n")
+  # cat("nrows = ", nrows, "\n")
+
+  volatp <- input$volatp
+  priceq <- input$priceq
   thetav <- input$thetav
   
-  # simulate Ornstein-Uhlenbeck process
-  nrows <- 1000
-  returns <- numeric(nrows)
-  prices <- numeric(nrows)
-  prices[1] <- eq_price
-  set.seed(1121)  # reset random numbers
+  # Perform the loop
+  retv <- numeric(nrows)
+  pricev <- numeric(nrows)
+  pricev[1] <- priceq
   for (i in 2:nrows) {
-    returns[i] <- thetav*(eq_price - prices[i-1]) + 
-      volat*rnorm(1)
-    prices[i] <- prices[i-1] * exp(returns[i])
+    retv[i] <- thetav*(priceq - pricev[i-1]) + volatp*innov[i]
+    pricev[i] <- pricev[i-1] * exp(retv[i])
   }  # end for
-  
-  # plot
-  plot(prices, type="l", 
-       xlab="periods", ylab="prices", 
+
+  # Plot
+  plot(pricev, type="l", cex.lab=1.7, cex.axis=1.7, lwd=2, col="blue",
+       xlab="time", ylab="price", 
        main="Ornstein-Uhlenbeck process")
   legend("topright", 
-         title=paste(c(paste0("volat = ", volat), 
-                       paste0("eq_price = ", eq_price),
-                       paste0("thetav = ", thetav)),
+         title=paste(c(paste0("Volatility = ", volatp), 
+                       paste0("Equlibrium price = ", priceq),
+                       paste0("Theta parameter = ", thetav)),
                      collapse="\n"),
-         legend="", cex=1.0, 
-         inset=0.1, bg="white", bty="n")
+         legend="", cex=1.7, 
+         inset=0.01, bg="white", bty="n")
   
-})  # end renderPlot
+}, height=600, width=1000)  # end renderPlot
 ```

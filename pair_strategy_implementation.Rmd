@@ -1,0 +1,154 @@
+---
+title: "Pair Strategy Implementation"
+author: "Jerzy Pawlowski (jpawlowski@machinetrader.io)"
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
+output:
+  html_document: default
+  pdf_document: default
+email: jpawlowski@machinetrader.io
+affiliation: MachineTrader.io
+---
+
+### Configuration of the Pair Strategy in MachineTrader  
+
+The *Pair strategy* trades a portfolio of two stocks during the market trading hours, using intraday stock prices.  Each day it starts trading at the market open with no position and a clean slate (reset to its base state), and it stops trading at the market close.  It liquidates all its positions just before the market close.  Its state is reset overnight to its base state.  
+
+You can read more about the theory of the Pair strategy in 
+[**this document**](https://algoquant.github.io/2024/06/30/Pair-Strategy-Theory/).  
+
+To implement the *Pair strategy* in MachineTrader, you need to install the tab named *Pair Strategy* in your MachineTrader instance.  
+You can download the file named *Pair_Strategy.json* from the MachineTrader Community share drive by clicking on this [**link**](https://drive.google.com/uc?export=download&id=1aIkH0QFLziaewK78w9-eeQBXZzKGOmx4).  
+This file contains the *JavaScript* code for the tab named *Pair Strategy*.  You can then import this *JavaScript* file into your MachineTrader instance, and it will create the tab named *Pair Strategy*.  
+
+<br>
+
+
+### Implementation of the Pair Strategy  
+
+**The tab named *Pair Strategy* executes the Pair strategy in real time.**  
+
+Let's look at the different flows in the tab named *Pair Strategy*.  
+
+At the top of the tab, there are flows for downloading the documentation.  You can click on the gray inject nodes to download the documentation.  The second flow downloads the current file that you're reading now.  
+![](figure/pair_docs.png "Title"){width="400" height="200"}  
+
+
+<br>
+
+**The flow below creates the flow variables in the tab *Pair Strategy*.**  
+Flow variables are variables that are shared between the different nodes in the same tab.  Once the variables are created, they can be used in other function nodes in the same tab.  
+You need to run (click) this flow once before the other flows are run.  You don't need to run this flow every day.  
+
+The function called *Create flow variables* creates the flow variables, such as the stock symbol to trade, the threshold level for the z-score, the position limit (the maximum number of shares the strategy can own at any time), etc.  
+![](figure/create_flow_variables.png "Title"){width="350" height="140"}  
+
+
+<br>
+**The flow below creates the PostgreSQL tables.**  
+
+The *Pair strategy* maintains four PostgreSQL tables for the trade orders.  Two tables for the submitted trade orders (one for each stock), and two for the executed (filled) orders.  
+ 
+The functions called *Create submits tables* and *Create fills tables* create empty PostgreSQL tables (if they don't already exist), for storing the submitted orders and for the executed (filled) orders. You need to run (click) these flows once before the other flows are run.  You don't need to run these flows every day.  
+ 
+The two tables called *submitsPair\** are filled with the orders submitted to the broker API, and the two tables called *fillsPair\** are filled with the orders that were confirmed by the broker.  
+These four tables are erased overnight, so they start empty at the beginning of each trading day.  
+
+![](figure/create_trade_tables_pairs.png "Title"){width="900" height="250"}  
+
+<br>
+
+**The flow below initializes the flow variables just before the market open.**  The flow runs automatically -  you don't need to click on it.  
+
+The flow initializes the flow variables such as the open position queue, etc., each day just before the market open.  
+The function node called *Initialize flow variables* resets the flow variables to their initial values.  
+![](figure/initialize_flow_variables.png "Title"){width="500" height="140"}  
+
+<br>
+
+**The flow below initializes the prices just after the market open.**  This flow runs automatically -  you don't need to click on it.  
+
+The flow initializes the flow variables such as the previous valid price, the EMA price, the price variance, etc.
+![](figure/initialize_prices.png "Title"){width="500" height="150"}  
+
+<br>
+
+
+**The flow below updates the technical indicators with live (recent) prices.**  The flow runs automatically -  you don't need to click on it.  
+
+The first node in this flow is an inject node that runs every $10$ seconds.  That's the frequency at which the strategy is run (updated).  It can be changed by the user as needed.  
+The inject node activates the whole flow, which updates the technical indicators with the live (current) prices.  
+
+The first function in this flow is called *Get stock price*.  
+It extracts the live (current) prices of the stock pair from the global array variable containing the last prices of many stocks.  This array is updated every second in the tab called *Alpaca Prices*.  
+
+The function called *Calculate EMA price and volatility* obtains the stock price from the function *Get stock price* through a connector, and it calculates (updates) the EMA moving average price and volatility.  
+It also scrubs the prices from bad data using the dollar stock return (equal to the new price minus previous price).  If the stock return is above the threshold, then the new price is ignored, and the previous valid price is used.
+
+The function called *Update tech indicators* calculates the z-scores, using the average prices and volatilities from the function *Calculate EMA price and volatility* through a connector.  
+![](figure/update_technical_indicators.png "Title"){width="1300" height="150"}  
+
+
+<br>
+
+**The flow below runs the *Pair strategy*.**  The flow runs automatically -  you don't need to click on it.  
+
+The first function in this flow called *Calculate PnL* calculates the unrealized profits and losses (PnLs) of the open positions, and also the PnL drawdown from its maximum.  
+The *Pair strategy* maintains a queue of the strategy's open positions throughout the day.  
+The function *Calculate PnL* matches the open positions in the queue with the current stock prices, and calculates the unrealized PnL.  
+
+The function called *Pair strategy* executes the *Pair strategy*, using the z-scores from the function called *Update tech indicators* in the flow above it.  
+The function *Pair strategy* compares the z-scores with the threshold level $\theta$, and calculates the number of pairs to buy or sell, and passes it into the function called *Submit orders*.  
+The function called *Submit orders* creates strings with the trade orders, and passes them into the yellow Alpaca API node. It also writes the submitted trade orders into the PostgreSQL tables called *submitsPair\**.  
+![](figure/run_pair_strategy.png "Title"){width="1300" height="180"}  
+
+
+<br>
+
+
+**The flow below liquidates all of the strategy's stock positions at the end of the day.**  The flow runs automatically -  you don't need to click on it.  
+
+The *Pair strategy* maintains a queue of the strategy's open positions throughout the day.  
+The function called *Liquidate positions* calculates the total open positions in the queue, and it submits a trade order to liquidate them, one minute before the market close.  The function can also liquidate the total open positions reported by Alpaca.  
+
+The function called *Liquidate positions* creates a string with the trade order, and passes it into the yellow Alpaca API node. It also writes the submitted trade order into the PostgreSQL table called *submitsPair\**.  
+Pressing the gray inject node called *Liquidate now* liquidates all of the strategy's stock positions at any time during the market trading hours.
+![](figure/liquidate_positions.png "Title"){width="1300" height="200"}  
+
+<br>
+
+**The flow below obtains trade confirmations from Alpaca and inserts them into the fill trades table.**  The flow runs automatically -  you don't need to click on it.  
+
+The function called *Confirm trades* parses the trade confirmations from Alpaca and inserts them into the table *fillsPair\**.  
+It writes the time stamp, the stock symbol, the trade type (buy or sell), the number of shares filled, the fill price, etc.  
+This allows the user to track the executed trades and troubleshoot any issues.  
+![](figure/confirm_trades.png "Title"){width="1300" height="170"}  
+
+
+<br>
+
+**The flows below execute trades manually.**  
+
+The function called *Buy pair* creates a string with the trade order to buy one share of the stock, and passes it into the yellow Alpaca API node. It also writes the submitted trade order into the PostgreSQL table called *submitsPair\**.  
+Similarly the function called *Sell pair*.  
+These functions are activated by pressing the grey inject nodes to their left.  
+![](figure/trade_manually.png "Title"){width="700" height="200"}  
+
+
+**The flow below erases the trade tables overnight.**  The flow runs automatically -  you don't need to click on it.  
+
+The *Pair strategy* maintains two PostgreSQL tables, one for the submitted trade orders and one for the executed (filled) orders.  
+The function called *Get trade tables* returns a vector with the table names, which is then split by the split node.  
+The function called *Erase or Delete trade tables* erases (deletes) the table contents, so they start empty at the beginning of the next trading day.  
+![](figure/erase_trade_tables.png "Title"){width="800" height="140"}  
+
+
+<br>
+
+
+**The flows below create web links for downloading the trade tables to CSV files.**  
+
+The two flows below create web links for downloading the trade tables to CSV files.  You don't need to click on them.  
+To download the CSV files to their computer, the user needs to run 
+[**this shell script**](https://drive.google.com/uc?export=download&id=1ydjUOZU6T7Ma5KiftYHwKAAvsWAVUBeG).  
+![](figure/download_trade_tables.png "Title"){width="1300" height="220"}  
+

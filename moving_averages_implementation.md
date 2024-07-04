@@ -25,7 +25,7 @@ The tab *Tech Indicators* also relies on the global variables produced by the ta
 After you install the tab *Tech Indicators*, you must connect the *link-in node* to the left of the function node named *Get stock price*, to the *link-out node* called *Prices out* in the tab *Alpaca Prices*.  
 
 You can read more about the moving average prices and volatilities in
-[**this document**](https://algoquant.github.io/2024/06/13/Moving-Averages-Theory/).  
+[**this document**](https://algoquant.github.io/2024/06/17/Moving-Averages-Theory/).  
 
 You can also watch an instructional video about [**Calculating Moving Average Prices And Volatilities**](https://youtu.be/iAZMTEZeZDM) on the MachineTrader YouTube channel.  
 

@@ -1,7 +1,7 @@
 ---
 title: "The Bollinger Strategy"
 author: "Jerzy Pawlowski (jpawlowski@machinetrader.io)"
-date: "06/17/2024"
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
 output:
   html_document: default
   pdf_document: default
@@ -11,30 +11,34 @@ affiliation: MachineTrader.io
 
 ### The Bollinger Strategy  
 
-The Bollinger Strategy tries to capture the reversion of prices to their equilibrium value, and buys stocks when they're cheap (below the z-score), and sells them when they're expensive (above the z-score).  
+The Bollinger Strategy is designed to capture the reversion of prices to their equilibrium value, and it buys stocks when they're cheap, and sells them when they're expensive (rich).  
 
+The richness or cheapness of the prices is often determined by their z-scores.  
 The z-score $z_t$ is equal to the difference between the current price $p_t$ minus the equilibrium price $p_e$, divided by the moving average volatility of the prices $\sigma_t$:
 $${\normalsize z_t = \frac{p_t - p_e}{\sigma_t}}$$  
 
 The equilibrium price $p_e$ is often chosen to be the moving average price $p_e = \bar{p}_t$.  
 You can read more about the moving average prices and volatilities below, and also in 
-[**this document**](https://algoquant.github.io/2024/06/13/Moving-Averages-Theory/).  
+[**this document**](https://algoquant.github.io/2024/06/17/Moving-Averages-Theory/).  
 
 As an alternative, the equilibrium price can be chosen to be the last trade price $p_f$ - the price at which the last trade was filled (executed).  The advantage of this is that it prevents a subsequent trade at a loss.  For example, a subsequent buy at a higher price than the previous sell, etc.  
 
 The strategy determines if the stock is cheap or expensive depending on the value of the z-score compared to the threshold level $\theta$.  
 
-The strategy buys $1$ share if the stock is cheap (the z-score is less than minus the threshold level $z_t < -\theta$), and it sells $1$ share if the stock is expensive (the z-score is greater than the threshold level $z_t > \theta$).  
-The strategy continues to buy or sell shares as long as the absolute z-score is greater than $\theta$.  So it can accumulate an inventory of stock positions, either long or short, up to the position limit.  
-
 Below is a plot of the z-scores for intraday 1-minute SPY stock prices for May 31st, 2024.  
-The z-scores oscillate around zero, and they can be positive or negative.  
-The horizontal dashed lines are for $\theta = 1$ and $\theta = -1$.  
-![alt text](figure/bolllinger_zscores.png "Moving Average Price Volatility
-"){width="500" height="350"}  
+The z-score equilibrium price $p_e$ was chosen to be the moving average price $p_e = \bar{p}_t$, with $\lambda = 0.9$.  See below for more details on the moving average prices.  
+In this case, the z-scores oscillate around zero, and they can be positive or negative.  
+The horizontal dashed lines are for the threshold levels $\theta = 1$ and $\theta = -1$.  
+![](figure/bolllinger_zscores.png "SPY Z-scores"){width="500" height="350"}  
+
+The strategy buys $1$ share if the stock is cheap (the z-score is less than minus the threshold level $z_t < -\theta$), and it sells $1$ share if the stock is expensive (the z-score is greater than the threshold level $z_t > \theta$).  
+
+The strategy has several options for establishing positions depending on the value of the z-score.  
+It can maintain either a single long or a short position, and switch only when the z-score value crosses the threshold $\theta$.  
+Or it can add positions as the z-score value continues increasing above the threshold $\theta$ (double down).  It then accumulates an inventory of positions, either long or short, up to the position limit.  
 
 You can read more about the implementation of the Bollinger strategy in 
-[**this document**](https://algoquant.github.io/2024/06/13/Bollinger-Strategy-Implementation/).  
+[**this document**](https://algoquant.github.io/2024/06/30/Pair-Strategy-Implementation/).  
 
 
 <br>

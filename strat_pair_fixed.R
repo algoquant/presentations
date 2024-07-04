@@ -15,7 +15,7 @@ library(dygraphs)
 ## Load daily S&P500 stock prices and returns
 load(file="/Users/jerzy/Develop/lecture_slides/data/sp500_prices.RData")
 # load(file="/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
-symbolstocks <- sort(colnames(prices))
+symbolstocks <- sort(colnames(pricestock))
 symbolstock <- "AAPL"
 
 symbolsetf <- colnames(rutils::etfenv$prices)
@@ -67,7 +67,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     cat("Recalculating the prices", "\n")
     
     # Recalculate the prices
-    pricev <- get(input$symbolstock, prices)
+    pricev <- get(input$symbolstock, pricestock)
     pricetf <- get(input$symboletf, rutils::etfenv$prices)
     pricev <- log(na.omit(cbind(pricev, pricetf)))
     colnames(pricev) <- c("Stock", "ETF")
