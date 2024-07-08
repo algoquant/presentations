@@ -6,6 +6,9 @@
 
 ## Below is the setup code that runs once when the shiny app is started
 
+# Compile this file in R by running this command:
+# Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/back_test.cpp")
+
 # Load R packages
 library(HighFreq)
 library(shiny)
@@ -36,7 +39,7 @@ uifun <- shiny::fluidPage(
   # Create single row with two slider inputs
   fluidRow(
     # Input stock beta
-    column(width=2, sliderInput("betav", label="Beta", min=0.0, max=15.0, value=0.6, step=0.1)),
+    column(width=2, sliderInput("betac", label="Beta", min=0.0, max=15.0, value=0.6, step=0.1)),
     # Input the EMA decay factor and z-scores thresholds
     column(width=2, sliderInput("lambdaf", label="Lambda decay:", min=0.8, max=0.99, value=0.96, step=0.01)),
     column(width=2, sliderInput("volf", label="Volatility floor:", min=0.1, max=0.3, value=0.2, step=0.01)),
@@ -123,7 +126,7 @@ servfun <- function(input, output) {
       # cat("it =", it, "\n")
       price1 <- price1[[it]][, 1]
       price2 <- price2[[it]][, 1]
-      pricev <- (price1 - input$betav*price2)
+      pricev <- (price1 - input$betac*price2)
       # stratm <- revert_to_open(pricev)
       stratm <- bollinger_double(pricev, input$lambdaf, input$threshv, input$threshd, input$maxd, input$volf)
       cbind(rutils::diffit(pricev[, 1]), stratm[, 1])

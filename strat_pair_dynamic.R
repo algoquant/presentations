@@ -83,7 +83,7 @@ servfun <- shiny::shinyServer(function(input, output) {
   
   
   # Recalculate the betas
-  betav <- shiny::reactive({
+  betac <- shiny::reactive({
     
     cat("Recalculating the betas", "\n")
     # Calculate the regression coefficients of Stock ~ ETF
@@ -103,7 +103,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     cat("Recalculating the residuals", "\n")
     # Recalculate the cointegrated portfolio prices
     pricev <- pricev()
-    (pricev$Stock - betav()*pricev$ETF)
+    (pricev$Stock - betac()*pricev$ETF)
 
   })  # end reactive code
   
@@ -143,7 +143,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     # Recalculate the cointegrated portfolio prices in excess of its mean
     pricec <- pricec() - meanv()
     retv <- retv()
-    # betav <- betav()
+    # betac <- betac()
     nrows <- NROW(pricev)
 
     threshd <- input$threshd*rutils::lagit(vars())
@@ -166,7 +166,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     # Calculate number of trades
     values$ntrades <- sum(abs(rutils::diffit(posv)) > 0)
     
-    pnls <- posv*(retv$Stock - betav()*retv$ETF)
+    pnls <- posv*(retv$Stock - betac()*retv$ETF)
     wealthv <- cbind(retv$Stock, pnls)
     colnames(wealthv) <- c(symbolstock, "Strategy")
     

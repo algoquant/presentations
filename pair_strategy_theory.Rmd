@@ -58,6 +58,9 @@ The strategy has several options for establishing positions depending on the val
 It can maintain either a single long or a short position, and switch only when the z-score value crosses the threshold $\theta$.  
 Or it can add positions as the z-score value continues increasing above the threshold $\theta$ (double down).  It then accumulates an inventory of positions, either long or short, up to the position limit.  
 
+You can read more about the implementation of the Pair strategy in MachineTrader in 
+[**this document**](https://algoquant.github.io/2024/06/30/Pair-Strategy-Implementation/).  
+
 
 
 ### The Pair Strategy Performance  

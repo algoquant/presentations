@@ -38,7 +38,7 @@ uifun <- shiny::fluidPage(
     # Input ETF symbol
     column(width=1, selectInput("symboletf", label="ETF", choices=symbolsetf, selected=symboletf)),
     # Input beta parameter
-    column(width=3, sliderInput("betav", label="beta:", min=0.1, max=3.0, value=1.0, step=0.1)),
+    column(width=3, sliderInput("betac", label="beta:", min=0.1, max=3.0, value=1.0, step=0.1)),
     # Input lambda decay parameter
     column(width=3, sliderInput("lambda", label="lambda:", min=0.01, max=0.99, value=0.5, step=0.01)),
     # Input threshold level
@@ -92,7 +92,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     pricev <- pricev()
     
     # Get model parameters from input argument
-    (pricev$Stock - input$betav*pricev$ETF)
+    (pricev$Stock - input$betac*pricev$ETF)
 
   })  # end reactive code
   
@@ -149,7 +149,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     # Calculate number of trades
     values$ntrades <- sum(abs(rutils::diffit(posv)) > 0)
     
-    pnls <-  posv*(retv$Stock - input$betav*retv$ETF)
+    pnls <-  posv*(retv$Stock - input$betac*retv$ETF)
     wealthv <- cbind(retv$Stock, pnls)
     colnames(wealthv) <- c(symbolstock, "Strategy")
     

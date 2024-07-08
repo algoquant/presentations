@@ -42,7 +42,7 @@ uifun <- shiny::fluidPage(
     # Input ETF symbol
     column(width=2, selectInput("symboletf", label="ETF Symbol:", choices=rutils::etfenv$symbolv, selected=symboletf)),
     # Input look-back interval
-    column(width=2, sliderInput("betav", label="Beta", min=0.5, max=3.0, value=1.5, step=0.1))
+    column(width=2, sliderInput("betac", label="Beta", min=0.5, max=3.0, value=1.5, step=0.1))
     # Input exponent for variance
     # column(width=2, sliderInput("exponent", label="Std Dev exponent:",
     #                             min=0.25, max=2.5, value=1.0, step=0.05)),
@@ -91,15 +91,15 @@ servfun <- function(input, output) {
     cat("Calculating the portfolio residuals\n")
     
     # Get model parameters from input argument
-    betav <- input$betav
+    betac <- input$betac
 
     # Calculate the prices
     closep <- pricev()[, 1]
     closetf <- pricev()[, 2]
     # Calculate regression coefficients of XLB ~ XLE
     # Calculate regression residuals
-    alpha <- (mean(closep) - betav*mean(closetf))
-    residuals <- (closep - alpha - betav*closetf)
+    alpha <- (mean(closep) - betac*mean(closetf))
+    residuals <- (closep - alpha - betac*closetf)
     colnames(residuals) <- paste0(symbolstock, " vs ", symboletf)
     residuals
 

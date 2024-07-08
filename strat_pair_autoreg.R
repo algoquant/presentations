@@ -42,7 +42,7 @@ uifun <- shiny::fluidPage(
     # Input ETF symbol
     column(width=1, selectInput("symbol2", label="Stock2", choices=symbolv, selected=symbol2)),
     # Input beta parameter
-    column(width=3, sliderInput("betav", label="beta:", min=0.1, max=2.0, value=1.0, step=0.01))
+    column(width=3, sliderInput("betac", label="beta:", min=0.1, max=2.0, value=1.0, step=0.01))
     # Input lambda decay parameter
     # column(width=3, sliderInput("lambda", label="lambda:", min=0.01, max=0.99, value=0.5, step=0.01)),
     # Input threshold level
@@ -79,8 +79,8 @@ servfun <- shiny::shinyServer(function(input, output) {
     retv <- na.omit(rutils::etfenv$returns[, c(symbol1, symbol2)])
     # retv <- na.omit(mget(c("XLK", "VTI"), as.environment(rutils::etfenv$returns)))
     # nrows <- nrow(retv)
-    # retp <- retv$symbol1 - input$betav*retv$symbol2
-    retp <- retv[, 1] - input$betav*retv[, 2]
+    # retp <- retv$symbol1 - input$betac*retv$symbol2
+    retp <- retv[, 1] - input$betac*retv[, 2]
     posv <- rutils::lagit(sign(retp), lagg=1)
     
     # Calculate number of trades
