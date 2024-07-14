@@ -1,8 +1,9 @@
 ##############################
-# This is a shiny app for simulating a mean-reversion 
-# ratchet strategy for a pair of stocks.
-# It runs the function sim_ratchet(), which simulates 
-# the strategy in Rcpp.
+# This is a shiny app for simulating the ratchet strategy 
+# for a pair of stocks.
+# It can simulate the greedy ratchet using the function 
+# ratchet_greedy(), or the patient ratchet using the 
+# function ratchet_patient().
 # 
 # It bets on prices reverting to the moving average price.
 # The strategy calculates the z-score equal to the difference 
@@ -19,7 +20,7 @@
 # z-score has changed its sign, but not before that.
 
 
-# Runs the C++ function sim_ratchet() from /Users/jerzy/Develop/Rcpp/back_test.cpp
+# Runs the C++ function ratchet_greedy() from /Users/jerzy/Develop/Rcpp/back_test.cpp
 #
 #
 # Just press the "Run App" button on upper right of this panel.
@@ -43,21 +44,22 @@ library(dygraphs)
 #   do.call(rbind, pricel)
 # }) # end lapply
 # pricev <- do.call(rbind, pricev)
-# pricespy <- pricev
+# priceref <- pricev
 # 
 # pricev <- lapply(4:6, function(x) {
 #   load(paste0("/Users/jerzy/Develop/data/XLK_minute_20240", x, ".RData"))
 #   do.call(rbind, pricel)
 # }) # end lapply
 # pricev <- do.call(rbind, pricev)
-# pricexlk <- pricev
+# pricetarg <- pricev
 
 
 # Calculate cumulative returns
-nrows <- NROW(pricespy)
-symboln <- rutils::get_name(colnames(pricespy))
+nrows <- NROW(priceref)
+symboltarg <- rutils::get_name(colnames(pricetarg))
+symbolref <- rutils::get_name(colnames(priceref))
 
-captiont <- paste("Ratchet Strategy For XLK/SPY")
+captiont <- paste0("Ratchet Strategy For ", symboltarg, "/", symbolref)
 
 ## End setup code
 
@@ -68,15 +70,19 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input stock symbol
-    # column(width=2, selectInput("symboln", label="Symbol", choices=rutils::etfenv$symbolv, selected="VTI")),
+    # column(width=2, selectInput("symbolref", label="Symbol", choices=rutils::etfenv$symbolv, selected="VTI")),
     # Input beta parameter
     column(width=3, sliderInput("betac", label="beta:", min=0.1, max=2.0, value=0.68, step=0.01)),
     # Input the EMA decays
-    column(width=2, sliderInput("lambdaf", label="Lambda:", min=0.01, max=0.9, value=0.44, step=0.01)),
-    # Input add annotations Boolean
-    column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
+    column(width=2, sliderInput("lambdaf", label="Lambda:", min=0.5, max=0.99, value=0.9, step=0.01)),
+    # Input volatility threshold floor
+    column(width=2, sliderInput("volf", label="volatility floor", min=0.0, max=0.5, value=0.0, step=0.05)),
+    # Input Z-score factor
+    column(width=2, sliderInput("zfact", label="Z-factor", min=1.0, max=10., value=2.0, step=1.0)),
     # Input the bid-ask spread
-    column(width=2, numericInput("bidask", label="Bid-ask:", value=0.0000, step=0.0001))
+    column(width=2, numericInput("bidask", label="Bid-ask:", value=0.03, step=0.01)),
+    # Input add annotations Boolean
+    # column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False"))
   ),  # end fluidRow
 
   # fluidRow(
@@ -105,10 +111,10 @@ servfun <- function(input, output) {
   # Load the closing prices
   # closep <- shiny::reactive({
   #   
-  #   symboln <- input$symboln
-  #   cat("Loading data for ", symboln, "\n")
+  #   symbolref <- input$symbolref
+  #   cat("Loading data for ", symbolref, "\n")
   #   
-  #   ohlc <- get(symboln, rutils::etfenv)
+  #   ohlc <- get(symbolref, rutils::etfenv)
   #   # quantmod::Cl(ohlc["2010/2019"])
   #   quantmod::Cl(ohlc)
   #   
@@ -117,7 +123,7 @@ servfun <- function(input, output) {
   # Load the log returns
   # retv <- shiny::reactive({
   #   
-  #   cat("Recalculating returns for ", input$symboln, "\n")
+  #   cat("Recalculating returns for ", input$symbolref, "\n")
   #   
   #   rutils::diffit(log(closep()))
   # 
@@ -127,7 +133,7 @@ servfun <- function(input, output) {
   # Recalculate the strategy
   pnls <- shiny::reactive({
     
-    cat("Recalculating strategy for ", input$symboln, "\n")
+    cat("Recalculating strategy for ", input$symbolref, "\n")
     # Get model parameters from input argument
     # closep <- closep()
     # varf <- input$varf
@@ -160,10 +166,11 @@ servfun <- function(input, output) {
     # posv <- (loadf*emaf + loads*emas)
     
     # Calculate the pair prices
-    pricev <- pricexlk - input$betac*pricespy
+    pricev <- pricetarg - input$betac*priceref
     retv <- rutils::diffit(pricev)
     # Calculate the positions of the mean-reversion strategy
-    pospnls <- sim_ratchet(pricev, input$lambdaf)
+    # pospnls <- ratchet_greedy(pricev, input$lambdaf)
+    pospnls <- ratchet_patient(pricev, input$lambdaf, input$volf, input$zfact)
     # Lag the positions to trade in next period
     # posv <- rutils::lagit(pospnls[, 2], lagg=1)
     # Calculate indicator of flipped positions
@@ -197,8 +204,8 @@ servfun <- function(input, output) {
     # Bind strategy pnls with indicators
     pnls <- cumsum(pnls)
     # pnls <- cbind(pnls, retc[longi], retc[shorti])
-    # colnames(pnls) <- c(paste(input$symboln, "Returns"), "Strategy", "Buy", "Sell")
-    colnames(pnls) <- c(paste(input$symboln, "Returns"), "Strategy")
+    # colnames(pnls) <- c(paste(input$symbolref, "Returns"), "Strategy", "Buy", "Sell")
+    colnames(pnls) <- c(paste(input$symbolref, "Returns"), "Strategy")
 
     pnls
 
@@ -217,15 +224,16 @@ servfun <- function(input, output) {
     # Get number of trades
     ntrades <- values$ntrades
     
-    captiont <- paste("Strategy for", input$symboln, "/ \n", 
+    captiont <- paste("Strategy for", input$symbolref, "/ \n", 
                       paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
                       "Number of trades=", ntrades)
     
     # Plot with annotations
-    add_annotations <- input$add_annotations
+    # add_annotations <- input$add_annotations
+    add_annotations <- FALSE
     
     # Return to the output argument a dygraph plot with two y-axes
-    if (add_annotations == "True") {
+    if (isTRUE(add_annotations)) {
       dygraphs::dygraph(pnls, main=captiont) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
@@ -233,7 +241,7 @@ servfun <- function(input, output) {
         dySeries(name=colnamev[2], axis="y2", strokeWidth=1, col="red") %>%
         dySeries(name=colnamev[3], axis="y", drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
         dySeries(name=colnamev[4], axis="y", drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
-    } else if (add_annotations == "False") {
+    } else {
       dygraphs::dygraph(pnls[, 1:2], main=captiont) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
