@@ -1,11 +1,12 @@
 ##############################
 # This is a shiny app for simulating the ratchet strategy 
-# for a pair of stocks.
+# for a triplet of stocks.
 # It can simulate the greedy ratchet using the function 
 # ratchet_greedy(), or the patient ratchet using the 
 # function ratchet_patient().
 # 
-# It bets on the pair price reverting to the moving average price.
+# It bets on the portfolio price reverting to the moving 
+# average price.
 # The strategy calculates the z-score equal to the difference 
 # between the current price minus the moving average price, 
 # divided by the price volatility.
@@ -44,7 +45,14 @@ library(dygraphs)
 #   do.call(rbind, pricel)
 # }) # end lapply
 # pricev <- do.call(rbind, pricev)
-# priceref <- pricev
+# priceref1 <- pricev
+# 
+# pricev <- lapply(4:7, function(x) {
+#   load(paste0("/Users/jerzy/Develop/data/TLT_minute_20240", x, ".RData"))
+#   do.call(rbind, pricel)
+# }) # end lapply
+# pricev <- do.call(rbind, pricev)
+# priceref2 <- pricev
 # 
 # pricev <- lapply(4:7, function(x) {
 #   load(paste0("/Users/jerzy/Develop/data/XLK_minute_20240", x, ".RData"))
@@ -55,14 +63,15 @@ library(dygraphs)
 
 
 # Calculate the symbol names
-nrows <- NROW(priceref)
+nrows <- NROW(priceref1)
 symboltarg <- rutils::get_name(colnames(pricetarg))
-symbolref <- rutils::get_name(colnames(priceref))
-symbolpair <- paste0(symboltarg, "/", symbolref)
+symbolref1 <- rutils::get_name(colnames(priceref1))
+symbolref2 <- rutils::get_name(colnames(priceref2))
+symbolpair <- paste0(symboltarg, "/", symbolref1, "/", symbolref2)
 captiont <- paste0("Ratchet Strategy For ", symbolpair)
 
 ## Calculate the overnight dates - the first time stamp of the day
-daton <- xts::.index(priceref)
+daton <- xts::.index(priceref1)
 daton <- rutils::diffit(daton)
 daton <- which(daton > 1000)
 
@@ -76,13 +85,14 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input stock symbol
-    # column(width=2, selectInput("symbolref", label="Symbol", choices=rutils::etfenv$symbolv, selected="VTI")),
+    # column(width=2, selectInput("symbolref1", label="Symbol", choices=rutils::etfenv$symbolv, selected="VTI")),
     # Input the beta parameter
-    column(width=3, sliderInput("betac", label="beta:", min=-1.0, max=2.0, value=0.68, step=0.01)),
+    column(width=2, sliderInput("betac1", label="beta1:", min=0.0, max=2.0, value=0.68, step=0.01)),
+    column(width=2, sliderInput("betac2", label="beta2:", min=0.0, max=2.0, value=0.68, step=0.01)),
     # Input the lambda decay factor
-    column(width=2, sliderInput("lambdaf", label="Lambda:", min=0.5, max=0.999, value=0.9, step=0.001)),
+    column(width=2, sliderInput("lambdaf", label="Lambda:", min=0.8, max=0.999, value=0.9, step=0.001)),
     # Input the Z-score factor
-    column(width=3, sliderInput("zfact", label="Z-factor", min=0.1, max=5.0, value=1.0, step=0.1)),
+    column(width=2, sliderInput("zfact", label="Z-factor", min=0.1, max=5.0, value=1.0, step=0.1)),
     # Input the volatility threshold floor
     # column(width=2, sliderInput("volf", label="volatility floor", min=0.0, max=0.5, value=0.0, step=0.05)),
     # Input the bid-ask spread
@@ -119,10 +129,10 @@ servfun <- function(input, output) {
   # Load the closing prices
   # closep <- shiny::reactive({
   #   
-  #   symbolref <- input$symbolref
-  #   cat("Loading data for ", symbolref, "\n")
+  #   symbolref1 <- input$symbolref1
+  #   cat("Loading data for ", symbolref1, "\n")
   #   
-  #   ohlc <- get(symbolref, rutils::etfenv)
+  #   ohlc <- get(symbolref1, rutils::etfenv)
   #   # quantmod::Cl(ohlc["2010/2019"])
   #   quantmod::Cl(ohlc)
   #   
@@ -131,7 +141,7 @@ servfun <- function(input, output) {
   # Load the log returns
   # retv <- shiny::reactive({
   #   
-  #   cat("Recalculating returns for ", input$symbolref, "\n")
+  #   cat("Recalculating returns for ", input$symbolref1, "\n")
   #   
   #   rutils::diffit(log(closep()))
   # 
@@ -174,7 +184,7 @@ servfun <- function(input, output) {
     # posv <- (loadf*emaf + loads*emas)
     
     # Calculate the pair prices
-    pricev <- pricetarg - input$betac*priceref
+    pricev <- pricetarg - input$betac1*priceref1 - input$betac2*priceref2
     retv <- rutils::diffit(pricev)
 
     # Calculate the positions of the mean-reversion strategy
@@ -220,7 +230,7 @@ servfun <- function(input, output) {
     # Bind strategy PnLs with indicators
     pnls <- cumsum(pnls)
     # pnls <- cbind(pnls, retc[longi], retc[shorti])
-    # colnames(pnls) <- c(paste(input$symbolref, "Returns"), "Strategy", "Buy", "Sell")
+    # colnames(pnls) <- c(paste(input$symbolref1, "Returns"), "Strategy", "Buy", "Sell")
     colnames(pnls) <- c("Pair", "Strategy")
     
     pnls
@@ -256,8 +266,7 @@ servfun <- function(input, output) {
         dySeries(name=colnamev[3], axis="y", drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
         dySeries(name=colnamev[4], axis="y", drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
     } else {
-      endd <- rutils::calc_endpoints(pnls, interval="minutes")
-      dygraphs::dygraph(pnls[endd, ], main=captiont) %>%
+      dygraphs::dygraph(pnls[, 1:2], main=captiont) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
         dySeries(name=colnamev[1], axis="y", strokeWidth=1, col="blue") %>%

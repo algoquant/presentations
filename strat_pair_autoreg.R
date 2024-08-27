@@ -33,7 +33,7 @@ symbol2 <- "VTI"
 
 ## Create elements of the user interface
 uifun <- shiny::fluidPage(
-  titlePanel("Stock vs ETF Pairs Strategy Using a Fixed Beta"),
+  titlePanel("Autoregressive Pair Strategy With Fixed Beta"),
   
   # create single row with four slider inputs
   fluidRow(
@@ -42,7 +42,11 @@ uifun <- shiny::fluidPage(
     # Input ETF symbol
     column(width=1, selectInput("symbol2", label="Stock2", choices=symbolv, selected=symbol2)),
     # Input beta parameter
-    column(width=3, sliderInput("betac", label="beta:", min=0.1, max=2.0, value=1.0, step=0.01))
+    column(width=2, sliderInput("betac", label="beta:", min=0.1, max=2.0, value=1.0, step=0.01)),
+    # Input ar1 parameter
+    column(width=2, sliderInput("ar1", label="ar1:", min=-1.0, max=0.0, value=-1.0, step=0.01)),
+    # Input ar2 parameter
+    column(width=2, sliderInput("ar2", label="ar2:", min=-1.0, max=1.0, value=-1.0, step=0.01)),
     # Input lambda decay parameter
     # column(width=3, sliderInput("lambda", label="lambda:", min=0.01, max=0.99, value=0.5, step=0.01)),
     # Input threshold level
@@ -81,12 +85,14 @@ servfun <- shiny::shinyServer(function(input, output) {
     # nrows <- nrow(retv)
     # retp <- retv$symbol1 - input$betac*retv$symbol2
     retp <- retv[, 1] - input$betac*retv[, 2]
-    posv <- rutils::lagit(sign(retp), lagg=1)
+    retl <- rutils::lagit(retp, lagg=1)
+    retll <- rutils::lagit(retl, lagg=1)
+    posv <- input$ar1*retl + input$ar2*retll
     
     # Calculate number of trades
     values$ntrades <- sum(abs(rutils::diffit(posv)) > 0)
     
-    pnls <- -posv*retp
+    pnls <- posv*retp
     wealthv <- cbind(retp, pnls)
     colnames(wealthv) <- c("stock", "Strategy")
     
@@ -111,7 +117,7 @@ servfun <- shiny::shinyServer(function(input, output) {
                       "Number of trades=", values$ntrades)
 
     endd <- rutils::calc_endpoints(wealthv, interval="weeks")
-    dygraphs::dygraph(cumsum(wealthv)[endd], main=captiont) %>%
+    dygraphs::dygraph(cumsum(wealthv), main=captiont) %>%
       dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
       dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
       dySeries(name=colnamev[1], axis="y", strokeWidth=2, col="blue") %>%

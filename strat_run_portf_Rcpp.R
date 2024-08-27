@@ -22,26 +22,39 @@ Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/back_test_run.cpp")
 # Load S&P500 returns.
 # load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
 # modelcap <- "S&P500 Sub-portfolio"
-# retv <- returns100["2007/"]
+# retp <- returns100["2007/"]
 # set.seed(1121)
-# retv <- retv[, sample(NCOL(retv100), 30)]
-# retv[1, is.na(retv[1, ])] <- 0
-# retv <- zoo::na.locf(retv, na.rm=FALSE)
+# retp <- retp[, sample(NCOL(retp100), 30)]
+# retp[1, is.na(retp[1, ])] <- 0
+# retp <- zoo::na.locf(retp, na.rm=FALSE)
 
 # Load ETF returns.
 # Select all the ETF symbols except "VXX", "SVXY" "MTUM", "QUAL", "VLUE", and "USMV"
 modelcap <- "ETF Portfolio"
-symbolv <- colnames(rutils::etfenv$returns)
-symbolv <- symbolv[!(symbolv %in% c("VXX", "SVXY", "MTUM", "QUAL", "VLUE", "USMV"))]
-retv <- na.omit(rutils::etfenv$returns[, symbolv])
+# symbolv <- colnames(rutils::etfenv$returns)
+# symbolv <- symbolv[!(symbolv %in% c("VXX", "SVXY", "MTUM", "QUAL", "VLUE", "IVE", "VTV", "AIEQ", "USMV"))]
+# symbolv <- c("VXX", "SVXY", "USO", "VTI", "XLK", "TLT")
+symbolv <- c("USO", "VTI", "XLK", "TLT")
+retp <- na.omit(rutils::etfenv$returns[, symbolv])
+# retp <- na.omit(rutils::etfenv$returns["2018-06/", symbolv])
+datev <- index(retp)
 
-nweights <- NCOL(retv)
+nweights <- NCOL(retp)
 riskf <- 0.03/260
-# excess <- (retv - riskf)
+# excess <- (retp - riskf)
 # calculate returns on equal weight portfolio
-indeks <- xts(retv %*% rep(1/sqrt(nweights), nweights), index(retv))
+indeks <- xts(retp %*% rep(1/sqrt(nweights), nweights), datev)
 
-captiont <- paste("Running Portfolio Strategy for", modelcap)
+betav <- sapply(retp, function(x) {
+  cov(retp$VTI, x)/var(retp$VTI)
+}) # end sapply
+# betav <- matrix(betav)
+
+pcad <- prcomp(retp, center=TRUE, scale=TRUE)
+retpca <- pcad$x
+
+
+captiont <- paste("Running Portfolio Strategy for", paste(symbolv, collapse=", "))
 
 # End setup code
 
@@ -50,18 +63,18 @@ captiont <- paste("Running Portfolio Strategy for", modelcap)
 uifun <- shiny::fluidPage(
   titlePanel(captiont),
   
-  fluidRow(
-    # The Shiny App is recalculated when the actionButton is clicked and the recalcb variable is updated
-    column(width=12, 
-           h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
-           actionButton("recalcb", "Recalculate the Model"))
-  ),  # end fluidRow
+  # fluidRow(
+  #   # The Shiny App is recalculated when the actionButton is clicked and the recalcb variable is updated
+  #   column(width=12, 
+  #          h4("Click the button 'Recalculate the Model' to Recalculate the Shiny App."),
+  #          actionButton("recalcb", "Recalculate the Model"))
+  # ),  # end fluidRow
   
   # Create single row with two slider inputs
   fluidRow(
     # Input number of eigenvalues for regularized matrix inverse
     column(width=3, sliderInput("dimax", label="Number of eigenvalues::", min=2, max=20, value=4, step=1)),
-    column(width=3, sliderInput("lambda", label="lambda:", min=0.98, max=0.999, value=0.99, step=0.001))
+    column(width=3, sliderInput("lambdaf", label="lambda:", min=0.9, max=0.999, value=0.9, step=0.001))
     # Input end points interval
     # column(width=4, selectInput("interval", label="End points Interval",
     #             choices=c("weeks", "months", "years"), selected="months")),
@@ -77,7 +90,7 @@ uifun <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Create output plot panel
-  dygraphs::dygraphOutput("dyplot", width="90%", height="550px")
+  dygraphs::dygraphOutput("dyplot", width="90%", height="650px")
 )  # end fluidPage interface
 
 
@@ -91,10 +104,10 @@ servfun <- function(input, output) {
     # dimax <- isolate(input$dimax)
     # alpha <- isolate(input$alpha)
     dimax <- input$dimax
-    lambda <- input$lambda
+    lambdaf <- input$lambdaf
     # end_stub <- input$end_stub
     # Model is recalculated when the recalcb variable is updated
-    input$recalcb
+    # input$recalcb
     
     # Define end points
     # endp <- ifelse(endp<(nweights+1), nweights+1, endp)
@@ -103,9 +116,10 @@ servfun <- function(input, output) {
     # Define startp
     # startp <- c(rep_len(1, lookb-1), endp[1:(nrows-lookb+1)])
     # Rerun the model
-    pnls <- back_test(retv=retv, dimax=dimax, lambda=lambda)
-    pnls[which(is.na(pnls)), ] <- 0
-    # pnls <- back_test_r(excess, retv, startp, endp, alpha, dimax, end_stub)
+    pnls <- back_testp(retp=retpca, dimax=dimax, lambda=lambdaf)
+    pnls <- pnls[, 1]
+    # pnls[which(is.na(pnls)), ] <- 0
+    # pnls <- back_test_r(excess, retp, startp, endp, alpha, dimax, end_stub)
     pnls <- sd(indeks)*pnls/sd(pnls)
     pnls <- cbind(indeks, pnls)
     colnames(pnls) <- c("Index", "Strategy")

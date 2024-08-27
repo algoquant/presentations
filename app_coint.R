@@ -1,5 +1,6 @@
 ##############################
-# This is a shiny app for cointegration.
+# This is a shiny app for demonstrating the cointegration
+# of a stock vs an ETF.
 # 
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -42,7 +43,7 @@ uifun <- shiny::fluidPage(
     # Input ETF symbol
     column(width=2, selectInput("symboletf", label="ETF Symbol:", choices=rutils::etfenv$symbolv, selected=symboletf)),
     # Input look-back interval
-    column(width=2, sliderInput("betac", label="Beta", min=0.5, max=3.0, value=1.5, step=0.1))
+    column(width=2, sliderInput("betac", label="Beta", min=0.0, max=5.0, value=1.5, step=0.1))
     # Input exponent for variance
     # column(width=2, sliderInput("exponent", label="Std Dev exponent:",
     #                             min=0.25, max=2.5, value=1.0, step=0.05)),

@@ -1,0 +1,97 @@
+---
+title: "Plot of Strategy PnLs"
+author: "Jerzy Pawlowski"
+affiliation: MachineTrader.io
+email: jpawlowski@machinetrader.io
+date: '`r format(Sys.time(), "%m-%d-%Y %H:%M")`'
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+# This is an R setup chunk, containing default options applied to all other chunks
+knitr::opts_chunk$set(echo=FALSE)
+library(rutils)
+library(data.table)
+library(dygraphs)
+library(shiny)
+
+# Download the PnLs array
+# system("/Users/jerzy/Develop/shell/download_trade_tables3.sh")
+
+# Get the strategy names
+dirin <- "/Users/jerzy/Develop/data/raw/"
+filev <- Sys.glob(paste0(dirin, "Strat*pnl_*.csv"))
+filev <- sapply(filev, function(x) {
+  strsplit(x, "/") %>% unlist %>% tail(1) %>% strsplit("_") %>% unlist %>% head(1)
+}) # end sapply
+stratv <- unique(unname(filev))
+
+# Set the column names
+colv <- c("price", "EMA", "volatility", "zscore", "position", "realPnL", "unrealPnL", "totalPnL")
+
+```
+
+This *Rmarkdown* document plots a *dygraph* plot of the PnLs array.
+
+
+```{r shiny, echo=FALSE}
+shiny::fluidPage(
+shiny::fluidRow(
+  # Input stock symbol
+  column(width=2, selectInput("stratn", label="Strategy name", choices=stratv, selected=stratv[1])),
+  # Input the column 1 name
+  column(width=2, shiny::selectInput("col1", label="Column 1:", choices=colv, selected=colv[1])),
+  # Input the column 2 name
+  column(width=2, shiny::selectInput("col2", label="Column 2:", choices=colv, selected=colv[2])),
+),  # end fluidRow
+
+  # Create output plot panel
+  dygraphs::dygraphOutput("dyplot", width="90%", height="500px")
+
+)  # end fluidPage interface
+
+  # Calculate the data
+  datav <- shiny::reactive({
+    cat("Calculating the data\n")
+    # Load the PnL arrays
+    filev <- Sys.glob(paste0(dirin, input$stratn, "*.csv"))
+    datam <- lapply(filev, function(x) {
+      dframe <- read.csv(x)
+      dframe <- dframe[drop(dframe[, 1] > 0), ]
+    }) # end lapply
+    # Bind the PnL arrays
+    datam <- do.call(rbind, datam)
+    
+    # Coerce the PnL array to time series
+    datev <- as.POSIXct(datam[, 1]/1e3, origin="1970-01-01", tz="America/New_York")
+    datam <- xts::xts(datam[, -1], order.by=datev)
+    ncols <- NCOL(datam)
+    datam <- cbind(datam, datam[, ncols-1] + datam[, ncols])
+    colnames(datam) <- colv
+
+    # Get the two columns
+    series1 <- get(input$col1, datam)
+    series2 <- get(input$col2, datam)
+    datav <- cbind(series1, series2)
+    colnamev <- c(input$col1, input$col2)
+    colnames(datav) <- colnamev
+    datav
+    
+  })  # end reactive code
+  
+
+output$dyplot <- dygraphs::renderDygraph({
+  datav <- datav()
+  colnamev <- colnames(datav)
+  # Plot the dygraph
+  dygraphs::dygraph(datav, main="captiont") %>%
+    dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
+    dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
+    dySeries(name=colnamev[1], axis="y", strokeWidth=1, col="blue") %>%
+    dySeries(name=colnamev[2], axis="y2", strokeWidth=1, col="red")
+  
+  # dygraphs::dygraph(get(input$col1, pnls), width="80%", height="600px")
+})  # end renderDygraph
+```
+
