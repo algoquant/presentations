@@ -3,7 +3,7 @@
 # for a triplet of stocks.
 # It can simulate the greedy ratchet using the function 
 # ratchet_greedy(), or the patient ratchet using the 
-# function ratchet_patient().
+# function ratchet().
 # 
 # It bets on the portfolio price reverting to the moving 
 # average price.
@@ -189,8 +189,8 @@ servfun <- function(input, output) {
 
     # Calculate the positions of the mean-reversion strategy
     # pospnls <- ratchet_greedy(pricev, input$lambdaf)
-    # pospnls <- ratchet_patient(pricev, pricop=pricop, lambdaf=input$lambdaf, volf=input$volf, zfact=input$zfact)
-    pospnls <- ratchet_patient(pricev, lambdaf=input$lambdaf, zfact=input$zfact)
+    # pospnls <- ratchet(pricev, pricop=pricop, lambdaf=input$lambdaf, volf=input$volf, zfact=input$zfact)
+    pospnls <- ratchet(pricev, lambdaf=input$lambdaf, zfact=input$zfact)
     # Lag the positions to trade in next period
     # posv <- rutils::lagit(pospnls[, 2], lagg=1)
     # Calculate indicator of flipped positions

@@ -78,10 +78,10 @@ library(dygraphs)
 
 
 
-symboltarg <- colnames(pricetarg[[1]])
+# symboltarg <- colnames(pricetarg[[1]])
 symbolref <- colnames(priceref[[1]])
-symbolpair <- paste0(symboltarg, "/", symbolref)
-captiont <- paste("Daily Ratchet Strategy For Pair", symbolpair)
+# symbolref <- paste0(symboltarg, "/", symbolref)
+captiont <- paste("Daily Ratchet Strategy For", symbolref)
 
 ## End setup code
 
@@ -94,9 +94,9 @@ uifun <- shiny::fluidPage(
     # Input stock symbol
     # column(width=2, selectInput("symboltarg", label="Symbol", choices=c("SPY", "XLK"), selected="SPY")),
     # Input the beta parameter
-    column(width=3, sliderInput("betac", label="beta:", min=-1.0, max=2.0, value=0.68, step=0.01)),
+    # column(width=3, sliderInput("betac", label="beta:", min=-1.0, max=2.0, value=0.68, step=0.01)),
     # Input the lambda decay factor
-    column(width=2, sliderInput("lambdaf", label="Lambda:", min=0.9, max=0.999, value=0.99, step=0.001)),
+    # column(width=2, sliderInput("lambdaf", label="Lambda:", min=0.9, max=0.999, value=0.99, step=0.001)),
     # Input the Z-score factor
     column(width=3, sliderInput("zfact", label="Z-factor", min=0.1, max=5.0, value=1.0, step=0.1)),
     # Input the Z-score factor
@@ -151,7 +151,7 @@ servfun <- function(input, output) {
   # Recalculate the strategy
   pnls <- shiny::reactive({
     
-    cat("Recalculating strategy for", symbolpair, "\n")
+    cat("Recalculating strategy for", symbolref, "\n")
     # Get model parameters from input argument
     # closep <- closep()
     # posmax <- input$posmax
@@ -167,10 +167,10 @@ servfun <- function(input, output) {
     # nrows <- NROW(retv)
     
     # Calculate list of XLK minute prices hedged with VTI
-    betac <- input$betac
-    pricel <- lapply(seq_along(priceref), function(it) {
-      (pricetarg[[it]] - input$betac*priceref[[it]])
-    }) # end lapply
+    # betac <- input$betac
+    # pricel <- lapply(seq_along(priceref), function(it) {
+    #   (pricetarg[[it]] - input$betac*priceref[[it]])
+    # }) # end lapply
     
     
     # Determine dates when the EMAs have crossed
@@ -185,10 +185,11 @@ servfun <- function(input, output) {
     # This is designed to prevent whipsaws and over-trading.
     
     ntrades <- 0
-    pnls <- lapply(pricel, function(pricev) {
+    pnls <- lapply(priceref, function(pricev) {
       # pricev <- pricev[, 1]
       retv <- rutils::diffit(pricev)
-      pospnls <- ratchet(pricev, lambdaf=input$lambdaf, zfact=input$zfact)
+      pospnls <- ratchetx(pricev, zfact=input$zfact)
+      # pospnls <- ratchet(pricev, lambdaf=input$lambdaf, zfact=input$zfact)
       # pospnls <- ratchet(pricev, zfact=input$zfact, poslimit=input$poslimit)
       # posv <- bollinger_brackets(retv, input$posmax, input$betac, input$varin)
       # cat("posv =", tail(posv), "\n")
@@ -249,7 +250,7 @@ servfun <- function(input, output) {
     # Get number of trades
     ntrades <- values$ntrades
     
-    captiont <- paste("Strategy for Pair", symboltarg, "vs", symbolref, "/ \n", 
+    captiont <- paste("Strategy for", symbolref, "/ \n", 
                       paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
                       "Number of trades=", ntrades)
     

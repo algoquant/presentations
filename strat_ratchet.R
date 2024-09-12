@@ -3,7 +3,7 @@
 # for a pair of stocks.
 # It can simulate the greedy ratchet using the function 
 # ratchet_greedy(), or the patient ratchet using the 
-# function ratchet_patient().
+# function ratchet().
 # 
 # It bets on the pair price reverting to the moving average price.
 # The strategy calculates the z-score equal to the difference 
@@ -20,7 +20,7 @@
 # z-score has changed its sign, but not before that.
 
 
-# Runs the C++ function ratchet_greedy() from /Users/jerzy/Develop/Rcpp/back_test.cpp
+# Runs the C++ function ratchet() from /Users/jerzy/Develop/Rcpp/back_test.cpp
 #
 #
 # Just press the "Run App" button on upper right of this panel.
@@ -78,7 +78,7 @@ uifun <- shiny::fluidPage(
     # Input stock symbol
     # column(width=2, selectInput("symbolref", label="Symbol", choices=rutils::etfenv$symbolv, selected="VTI")),
     # Input the beta parameter
-    column(width=3, sliderInput("betac", label="beta:", min=-1.0, max=2.0, value=0.68, step=0.01)),
+    column(width=3, sliderInput("betac", label="beta:", min=-3.0, max=3.0, value=0.68, step=0.01)),
     # Input the lambda decay factor
     column(width=2, sliderInput("lambdaf", label="Lambda:", min=0.5, max=0.999, value=0.9, step=0.001)),
     # Input the Z-score factor
@@ -179,8 +179,10 @@ servfun <- function(input, output) {
 
     # Calculate the positions of the mean-reversion strategy
     # pospnls <- ratchet_greedy(pricev, input$lambdaf)
-    # pospnls <- ratchet_patient(pricev, pricop=pricop, lambdaf=input$lambdaf, volf=input$volf, zfact=input$zfact)
-    pospnls <- ratchet_patient(pricev, lambdaf=input$lambdaf, zfact=input$zfact)
+    # pospnls <- ratchet(pricev, pricop=pricop, lambdaf=input$lambdaf, volf=input$volf, zfact=input$zfact)
+    # pospnls <- ratchet(pricev, lambdaf=input$lambdaf, zfact=input$zfact)
+    pospnls <- ratchetxxx(pricev, lambdaf=input$lambdaf)
+    # pospnls <- ratchetxx(pricev, refv=refv, zfact=input$zfact)
     # Lag the positions to trade in next period
     # posv <- rutils::lagit(pospnls[, 2], lagg=1)
     # Calculate indicator of flipped positions
