@@ -22,8 +22,10 @@ library(dygraphs)
 # pricev <- pricevv
 # dygraph(pricev$SPY)
 
-# retv <- rutils::diffit(pricev)
-# pricev <- cumsum(retv)
+pricev <- log(rutils::etfenv$SPY$SPY.Close)
+retv <- rutils::diffit(pricev)
+nrows <- NROW(pricev)
+pricev <- cumsum(retv)
 
 # look_back <- 5
 # half_back <- look_back %/% 2

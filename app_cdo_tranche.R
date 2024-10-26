@@ -143,6 +143,7 @@ servfun <- function(input, output) {
            "Tranche detachment = ", format(100*detachp, digits=3), "%", "\n",
            "Tranche loss = ", 100*datav(), "%"), 
          adj=c(1, 1), cex=1.5, lwd=2)
+    
   })  # end output plot
 
 }  # end server function
