@@ -1,9 +1,8 @@
 ##############################
-# This is a shiny app for simulating the ratchet strategy 
-# for a pair of stocks.
+# This is a shiny app for simulating the intraday EMA 
+# crossover strategy for a pair of stocks.
 # It can simulate the simple ratchet using the function 
-# ratchets(), or the patient ratchet using the function 
-# ratchet().
+# crossdual().
 # 
 # You must compile the C++ file by running this command in R:
 # Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/back_test.cpp")
@@ -45,14 +44,14 @@ library(dygraphs)
 
 # Load one month of intraday minute prices
 # load(paste0("/Users/jerzy/Develop/data/XLK_minute_202405.RData"))
-# pricetarg <- pricel
+# pricetarg1 <- pricel
 # load(paste0("/Users/jerzy/Develop/data/SPY_minute_202405.RData"))
-# priceref <- pricel
+# priceref1 <- pricel
 # rebalf <- "1-minute"
 # load(paste0("/Users/jerzy/Develop/data/NVDA_10seconds_202425.RData"))
-# pricetarg <- pricel
+# pricetarg1 <- pricel
 # load(paste0("/Users/jerzy/Develop/data/XLK_10seconds_202425.RData"))
-# priceref <- pricel
+# priceref1 <- pricel
 # rebalf <- "10_seconds"
 
 
@@ -62,29 +61,33 @@ library(dygraphs)
 #   do.call(rbind, pricel)
 # }) # end lapply
 # pricev <- do.call(rbind, pricev)
-# priceref <- pricev
+# priceref1 <- pricev
 # 
 # pricev <- lapply(4:7, function(x) {
 #   load(paste0("/Users/jerzy/Develop/data/XLK_minute_20240", x, ".RData"))
 #   do.call(rbind, pricel)
 # }) # end lapply
 # pricev <- do.call(rbind, pricev)
-# pricetarg <- pricev
+# pricetarg1 <- pricev
 # rebalf <- "1-minute"
 
 
-priceref <- do.call(rbind, priceref)
-pricetarg <- do.call(rbind, pricetarg)
+# priceref1 <- do.call(rbind, priceref)
+# pricetarg1 <- do.call(rbind, pricetarg)
+# priceref1 <- xts::to.minutes(priceref1, k=1)
+# priceref1 <- Cl(priceref1)
+# pricetarg1 <- xts::to.minutes(pricetarg1, k=1)
+# pricetarg1 <- Cl(pricetarg1)
 
 # Calculate the symbol names
-nrows <- NROW(priceref)
-symboltarg <- rutils::get_name(colnames(pricetarg))
-symbolref <- rutils::get_name(colnames(priceref))
+nrows <- NROW(priceref1)
+symboltarg <- rutils::get_name(colnames(pricetarg1))
+symbolref <- rutils::get_name(colnames(priceref1))
 symbolpair <- paste0(symboltarg, "/", symbolref)
 captiont <- paste0("Ratchet Strategy For ", symbolpair)
 
 ## Calculate the overnight dates - the first time stamp of the day
-daton <- xts::.index(priceref)
+daton <- xts::.index(priceref1)
 daton <- rutils::diffit(daton)
 daton <- which(daton > 1000)
 
@@ -102,13 +105,14 @@ uifun <- shiny::fluidPage(
     # Input the beta parameter
     column(width=2, sliderInput("betac", label="beta:", min=-3.0, max=3.0, value=2.0, step=0.1)),
     # Input the lambda decay factor
-    column(width=2, sliderInput("lambdaf", label="Lambda:", min=0.5, max=0.999, value=0.9, step=0.001)),
+    column(width=2, sliderInput("lambdaf", label="Lambdaf:", min=0.5, max=0.999, value=0.94, step=0.001)),
+    column(width=2, sliderInput("lambdasl", label="Lambdas:", min=0.5, max=0.999, value=0.9, step=0.001)),
     # Input the Z-score factor
     column(width=2, sliderInput("zfact", label="Z-factor", min=-1.0, max=3.0, value=1.0, step=0.1)),
     # Input the volatility threshold floor
     # column(width=2, sliderInput("volf", label="volatility floor", min=0.0, max=0.5, value=0.0, step=0.05)),
     # Input the bid-ask spread
-    column(width=1, numericInput("bidask", label="Bid-ask:", value=0.05, step=0.01)),
+    column(width=1, numericInput("bidask", label="Bid-ask:", value=0.0, step=0.01)),
     # Input trending or reverting (contrarian) strategy
     # column(width=1, selectInput("coeff", label="Trend (1) Revert (-1)", choices=c(1, -1), selected=(-1)))
     # Input add annotations Boolean
@@ -196,47 +200,37 @@ servfun <- function(input, output) {
     # posv <- (loadf*emaf + loads*emas)
     
     # Calculate the pair prices
-    pricev <- pricetarg - input$betac*priceref
-    retv <- rutils::diffit(pricev)
+    # pricev <- pricetarg1 - input$betac*priceref1
 
     # Calculate the positions of the mean-reversion strategy
-    pospnls <- ratchets(pricev, lambdaf=input$lambdaf, zfact=input$zfact)
-    # pospnls <- ratchet(pricev, pricop=pricop, lambdaf=input$lambdaf, volf=input$volf, zfact=input$zfact)
-    # pospnls <- ratchet(pricev, lambdaf=input$lambdaf, zfact=input$zfact)
-    # pospnls <- ratchetxxx(pricev, lambdaf=input$lambdaf)
-    # pospnls <- ratchetxx(pricev, refv=refv, zfact=input$zfact)
-    # Lag the positions to trade in next period
-    # posv <- rutils::lagit(pospnls[, 2], lagg=1)
-    # Calculate indicator of flipped positions
-    flipi <- rutils::diffit(pospnls[, 2])
-    # Calculate the number of trades
-    values$ntrades <- sum(abs(flipi) > 0)
-    
-    # Add buy/sell indicators for annotations
-    longi <- (flipi > 0)
-    shorti <- (flipi < 0)
-    
-    
-    # Calculate strategy PnLs
-    # posv <- pospnls[, 2]
-    # pnls <- as.numeric(input$coeff)*posv*retv
-    pnls <- pospnls[, 1]
-    # Calculate the overnight PnLs
-    pnlon <- pnls[daton]
-    values$pnlon <- round(sum(pnlon), 1)
-    
-    
-    # Calculate transaction costs
-    costs <- 0.5*input$bidask*abs(flipi)
-    pnls <- (pnls - costs)
+    ntrades <- 0
+    pnls <- lapply(pricel, function(pricev) {
+      # pricev <- pricev[, 1]
+      retv <- rutils::diffit(pricev)
+      pospnls <- crossdual(pricev, lambdaf=input$lambdaf, lambdasl=input$lambdasl)
+      # pospnls <- ratchet(pricev, zfact=input$zfact, poslimit=input$poslimit)
+      # posv <- bollinger_brackets(retv, input$posmax, input$betac, input$varin)
+      # cat("posv =", tail(posv), "\n")
+      # Calculate strategy pnls
+      pnls <- pospnls[, 1]
+      # Calculate indicator of flipped positions
+      flipi <- rutils::diffit(pospnls[, 2])
+      # Calculate the number of trades
+      ntrades <<- ntrades + sum(abs(flipi) > 0)
+      # Calculate transaction costs
+      costv <- 0.5*input$bidask*abs(flipi)
+      pnls <- (pnls - costv)
+      pnls <- cbind(retv, pnls)
+      pnls
+    }) # end lapply
+    pnls <- do.call(rbind, pnls)
 
+    # Calculate the number of trades
+    values$ntrades <- ntrades
+    
     # Scale the PnLs so they have same SD as the returns
     # pnls <- pnls*sd(retv[retv<0])/sd(pnls[pnls<0])
     
-    # Bind together strategy PnLs
-    pnls <- cbind(retv, pnls)
-    # pnls <- pnls[daton]
-
     # Calculate the Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
     values$sharper <- round(sharper, 3)
@@ -264,7 +258,7 @@ servfun <- function(input, output) {
 
     captiont <- paste0(captiont, " / ", 
                       paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), " / ",
-                      "Trades=", values$ntrades, " / Overnight=", values$pnlon)
+                      "Trades=", values$ntrades)
     
     # Plot with annotations
     # add_annotations <- input$add_annotations

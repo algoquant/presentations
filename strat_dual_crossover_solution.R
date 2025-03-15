@@ -90,11 +90,11 @@ servfun <- function(input, output) {
     nrows <- NROW(retv)
     
     # Calculate EWMA prices
-    ewmaf <- HighFreq::run_mean(closep, lambda=lambdaf)
-    ewmas <- HighFreq::run_mean(closep, lambda=lambdas)
+    emaf <- HighFreq::run_mean(closep, lambda=lambdaf)
+    emas <- HighFreq::run_mean(closep, lambda=lambdas)
 
-    # Determine dates when the EWMAs have crossed
-    crossi <- sign(ewmaf - ewmas)
+    # Determine dates when the emas have crossed
+    crossi <- sign(emaf - emas)
     
     # Calculate cumulative sum of EWMA crossing indicator
     crossc <- HighFreq::roll_sum(tseries=crossi, lookb=lagg)

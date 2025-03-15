@@ -1,0 +1,75 @@
+
+
+/** define logo layout **/
+
+/* define logo dimensions */
+.gdbar img {
+  width: 600px !important;
+  height: 100px !important;
+}
+
+/* define logo position */
+.gdbar {
+  width: 650px !important;
+  height: 120px !important;
+}
+
+/* define title slide background color */
+.title-slide {
+  background: rgb(255, 100, 10); 
+}
+
+
+
+
+/* define code chunk format */
+pre {
+  width: 100%; /* 106%; */
+  left: 0; /* -60px; */
+  padding: 10px 15px 10px 15px; /* 10px 0 10px 60px; */
+}
+
+/** define footer format **/
+slides > slide:not(.nobackground):before {
+  width: 300px;
+  height: 50px;
+  background-size: 300px 50px;
+}
+
+/** define two-column layouts **/
+
+.column_left_50 {
+  float: left;
+  width: 45%;
+  text-align: left;
+}
+
+.column_right_50 {
+  float: right;
+  width: 48%;
+  text-align: left;
+}
+
+.column_left_40 {
+  float: left;
+  width: 40%;
+  text-align: left;
+}
+
+.column_right_60 {
+  float: right;
+  width: 59%;
+  text-align: left;
+}
+
+.column_left_60 {
+  float: left;
+  width: 60%;
+  text-align: left;
+}
+
+.column_right_40 {
+  float: right;
+  width: 40%;
+  text-align: left;
+}

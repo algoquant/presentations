@@ -1,5 +1,5 @@
 ##############################
-# This is a shiny app for simulating a dual EWMA moving average 
+# This is a shiny app for simulating a MACD
 # crossover strategy for ETFs.
 #
 # Just press the "Run App" button on upper right of this panel.
@@ -54,7 +54,7 @@ pricev <- cumsum(retv)
 
 ## Model and data setup
 
-captiont <- paste("Dual EWMA Moving Average Crossover Strategy")
+captiont <- paste("MACD Crossover Strategy")
 
 ## End setup code
 
@@ -71,10 +71,11 @@ uifun <- shiny::fluidPage(
     # Input the bid-offer spread
     # column(width=2, numericInput("bid_offer", label="Bid-offer:", value=0.0000, step=0.0001))
     # Input the EWMA decays
-    column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.1, max=0.99, value=0.5, step=0.01)),
-    column(width=2, sliderInput("lambdas", label="Slow lambda:", min=0.1, max=0.99, value=0.8, step=0.01)),
+    column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.5, max=0.99, value=0.8, step=0.01)),
+    column(width=2, sliderInput("lambdas", label="Slow lambda:", min=0.5, max=0.99, value=0.9, step=0.01)),
+    column(width=2, sliderInput("lambdasig", label="Signal lambda:", min=0.5, max=0.99, value=0.6, step=0.01)),
     # Input trending or reverting (contrarian) strategy
-    column(width=1, selectInput("coeff", label="Trend (1) Revert (-1)", choices=c(1, -1), selected=(-1)))
+    # column(width=1, selectInput("coeff", label="Trend (1) Revert (-1)", choices=c(1, -1), selected=(-1)))
     # Input the trade lag
     # column(width=2, sliderInput("lagg", label="lagg", min=1, max=4, value=2, step=1))
   ),  # end fluidRow
@@ -98,18 +99,20 @@ servfun <- function(input, output) {
     
     cat("Recalculating strategy", "\n")
     # Get model parameters from input argument
-    lambdaf <- input$lambdaf
-    lambdas <- input$lambdas
+    # lambdaf <- input$lambdaf
+    # lambdas <- input$lambdas
     # look_back <- input$look_back
     # lagg <- input$lagg
     lagg <- 1
     
     # Calculate EWMA prices
-    emaf <- HighFreq::run_mean(pricev, lambda=lambdaf)
-    emas <- HighFreq::run_mean(pricev, lambda=lambdas)
-
+    emaf <- HighFreq::run_mean(pricev, lambda=input$lambdaf)
+    emas <- HighFreq::run_mean(pricev, lambda=input$lambdas)
+    macds <- emaf - emas
+    macdsig <- HighFreq::run_mean(macds, lambda=input$lambdasig)
+    
     # Determine dates when the emas have crossed
-    crossi <- sign(emaf - emas)
+    crossi <- sign(macds - macdsig)
     
     # Calculate cumulative sum of EWMA crossing indicator
     # crossc <- HighFreq::roll_sum(tseries=crossi, look_back=2)
@@ -118,7 +121,8 @@ servfun <- function(input, output) {
     # Flip position only if the crossi and its recent past values are the same.
     # Otherwise keep previous position.
     # This is designed to prevent whipsaws and over-trading.
-    coeff <- as.numeric(input$coeff)
+    # coeff <- as.numeric(input$coeff)
+    coeff <- 1
     posv <- rep(NA_integer_, nrows)
     posv[1] <- 0
     # posv <- ifelse(crossc == 2, coeff, posv)
@@ -159,7 +163,7 @@ servfun <- function(input, output) {
     values$sharper <- round(sharper, 3)
     pnls <- cumsum(pnls)
     
-    pnls <- cbind(pnls, emas, emaf)
+    pnls <- cbind(pnls, macdsig, macds - macdsig)
     colnames(pnls) <- c("SPY", "Strategy", "MAS", "MAF")
     
     
@@ -206,11 +210,11 @@ servfun <- function(input, output) {
       # cat("PLotting2", "\n")
       dygraphs::dygraph(pnls, main=captiont) %>%
         dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
-        dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
+        dyAxis("y2", label=colnamev[4], independentTicks=TRUE) %>%
         dySeries(name=colnamev[1], axis="y", strokeWidth=1, col="blue") %>%
-        dySeries(name=colnamev[2], axis="y2", strokeWidth=1, col="red") %>%
-        dySeries(name=colnamev[3], axis="y", strokeWidth=1, col="green") %>%
-        dySeries(name=colnamev[4], axis="y", strokeWidth=1, col="orange") %>%
+        dySeries(name=colnamev[2], axis="y", strokeWidth=1, col="red") %>%
+        dySeries(name=colnamev[3], axis="y2", strokeWidth=1, col="green") %>%
+        dySeries(name=colnamev[4], axis="y2", strokeWidth=1, col="orange") %>%
         dyLegend(show="always", width=500)
     }  # end if
     

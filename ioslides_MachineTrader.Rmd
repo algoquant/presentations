@@ -1,0 +1,492 @@
+---
+title: Using Technical Indicators - SMA, EMA, MACD, Z-Score, and RSI
+# author: Jerzy Pawlowski
+# affiliation: MachineTrader.io
+# date: '`r format(Sys.time(), "%m/%d/%Y")`'
+email: jpawlowski@machinetrader.io
+# titlegraphic: image/MTLogo.png
+css: MTslides.css
+output: 
+  ioslides_presentation: 
+    widescreen: true
+    smaller: true
+    transition: 0.1
+    self_contained: true
+    logo: image/MTLogo.png
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+# This is an R setup chunk, containing default options applied to all other chunks
+library(knitr)
+# This sets the chunk default options
+opts_chunk$set(cache=TRUE, collapse=TRUE, error=FALSE, prompt=TRUE, size="scriptsize")
+# This sets the chunk display theme
+# knit_theme$set(knit_theme$get("acid"))
+# This sets some display options
+options(digits=3)
+options(width=80)
+
+# Load the required R packages
+library(HighFreq)
+# Load the data
+ohlc <- rutils::etfenv$SPY
+datev <- zoo::index(ohlc)
+closep <- log(quantmod::Cl(ohlc))
+colnames(closep) <- "SPY"
+nrows <- NROW(closep)
+retp <- rutils::diffit(closep)
+
+```
+
+
+
+## Using Technical Indicators  
+
+<div class="column_left_50">
+
+Quantitative trading strategies often use various technical indicators, to identify patterns that are emerging in the prices.  
+
+Technical indicators can be used to either indicate an emerging trend of prices moving higher or lower, or to indicate that prices have reached an extreme high or low value, and that they may be about to revert.  
+
+The SMA, EMA, MACD, Z-Score, and RSI are examples of popular technical indicators.  
+
+The technical indicators are usually calculated from the recent stock prices and returns.  
+
+</div>
+
+<div class="column_right_50">
+</div>
+
+
+## The Simple Moving Average (SMA)  
+
+<div class="column_left_50">
+
+The Simple Moving Average (SMA) price $p^{SMA}_i$ is the average of the past prices $p_{i-j}$ over a look-back window of length $T$:
+
+$${p^{SMA}_i = \frac{1}{T} (p_i + p_{i-1} + p_{i-2} + \ldots + p_{i-T+1})}$$
+The parameter $T$ is equal to the length of the look-back window.  
+
+The drawback of the SMA is that it applies the same weights to the recent and the past prices.  
+
+Its calculation also requires maintaining a buffer (queue) of past prices, with the length equal to the look-back parameter $T$.
+
+
+</div>
+
+<div class="column_right_50">
+```{r SMA, eval=TRUE, echo=FALSE, cache=FALSE, fig.width=5, fig.height=4}
+
+uifun <- shiny::fluidPage(
+  
+  shiny::fluidRow(
+    shiny::sliderInput("lookb", label="look-back:", min=5, max=51, value=21, step=1)
+  ), # end fluidRow
+  
+  # Create output plot panel
+  dygraphs::dygraphOutput("dyplot", width="100%", height="300px")
+
+)  # end fluidPage interface
+
+## Define the server code
+servfun <- function(input, output) {
+
+  output$dyplot <- dygraphs::renderDygraph({
+    
+    pricema <- HighFreq::roll_mean(closep, lookb=input$lookb)
+    pricev <- cbind(closep, pricema)
+    colnames(pricev)[2] <- "SMA"
+    dygraphs::dygraph(pricev["2020"], main="SPY Prices and SMA Prices") %>%
+      dyOptions(colors=c("blue", "red"), strokeWidth=2) %>%
+      dyLegend(show="always", width=300)
+    
+  }) # end renderDygraph
+
+}  # end server code
+
+## Return a Shiny app object
+shiny::shinyApp(ui=uifun, server=servfun)
+
+```
+</div>
+
+## The Exponential Moving Average (EMA)
+
+<div class="column_left_50">
+
+The Exponential Moving Average (EMA) price $p^{EMA}_i$ is the average of the past prices $p_{i-j}$ weighted by the decay factor $\lambda$: 
+
+$${p^{EMA}_i = (1-\lambda) (p_i + \lambda p_{i-1} + \lambda^2 p_{i-2} + \ldots)}$$
+
+The advantage of the EMA is that it applies greater weights to more recent prices than to the past prices.  
+
+If the decay factor $\lambda$ is closer to $1$ then the effect of past data fades slowly over time.  
+If $\lambda$ is closer to $0$ then the effect of past data fades quickly over time.  
+
+The EMA can also be calculated using the following recursive formula:
+
+$${p^{EMA}_i = \lambda p^{EMA}_{i-1} + (1-\lambda) p_i}$$
+
+</div>
+
+<div class="column_right_50">
+```{r EMA, eval=TRUE, echo=FALSE, cache=FALSE, fig.width=5, fig.height=4}
+
+uifun <- shiny::fluidPage(
+  
+  shiny::fluidRow(
+    shiny::sliderInput("lambdaf", label="lambda:", min=0.8, max=0.99, value=0.9, step=0.01)
+  ), # end fluidRow
+  
+  # Create output plot panel
+  dygraphs::dygraphOutput("dyplot", width="100%", height="300px")
+
+)  # end fluidPage interface
+
+## Define the server code
+servfun <- function(input, output) {
+
+  output$dyplot <- dygraphs::renderDygraph({
+    pricema <- HighFreq::run_mean(closep, lambda=input$lambdaf)
+    pricev <- cbind(closep, pricema)
+    colnames(pricev)[2] <- "EMA"
+    dygraphs::dygraph(pricev["2020"], main="SPY Prices and EMA Prices") %>%
+      dyOptions(colors=c("blue", "red"), strokeWidth=2) %>%
+      dyLegend(show="always", width=300)
+  }) # end renderDygraph
+
+}  # end server code
+
+## Return a Shiny app object
+shiny::shinyApp(ui=uifun, server=servfun)
+
+```
+</div>
+
+
+## The MACD Series  
+
+<div class="column_left_50">
+
+The Moving Average Convergence/Divergence (*MACD*) indicator is often used to determine the direction of price movements.
+
+The *MACD series* is equal to the difference between the fast EMA of the prices minus the slow EMA:
+
+$$MACD = p_{fast} - p_{slow}$$
+
+The *MACD series* represents the slope of the prices.  A positive *MACD* indicates increasing prices, while a negative *MACD* indicates decreasing prices.  
+
+The decay factor $\lambda$ is often expressed in terms of the number of periods (days) $n$:  
+
+$$\lambda = 1 - \frac{2}{n + 1} = \frac{n - 1}{n + 1}$$
+
+</div>
+
+<div class="column_right_50">
+```{r MACDS, eval=TRUE, echo=FALSE, cache=FALSE, fig.width=5, fig.height=4}
+
+uifun <- shiny::fluidPage(
+  
+  shiny::fluidRow(
+    shiny::sliderInput("lambdaf", label="lambda fast:", min=0.8, max=0.99, value=0.9, step=0.01),
+    shiny::sliderInput("lambdas", label="lambda slow:", min=0.8, max=0.99, value=0.97, step=0.01)
+  ), # end fluidRow
+  
+  # Create output plot panel
+  dygraphs::dygraphOutput("dyplot", width="100%", height="300px")
+
+)  # end fluidPage interface
+
+## Define the server code
+servfun <- function(input, output) {
+
+  output$dyplot <- dygraphs::renderDygraph({
+    # Calculate fast and slow EMA prices
+    emaf <- HighFreq::run_mean(closep, lambda=input$lambdaf)
+    emas <- HighFreq::run_mean(closep, lambda=input$lambdas)
+    # Plot dygraph of the fast and slow EMA prices
+    pricev <- cbind(log(ohlc[, 1:4]), emaf, emas)["2020"]
+    colnames(pricev)[5:6] <- c("EMA fast", "EMA slow")
+    colv <- colnames(pricev)
+    dygraphs::dygraph(pricev, main="MACD EMA Prices") %>%
+      dygraphs::dyCandlestick() %>%
+      dySeries(name=colv[5], strokeWidth=2, col="red") %>%
+      dySeries(name=colv[6], strokeWidth=2, col="purple") %>%
+      dyLegend(show="always", width=300)
+  }) # end renderDygraph
+
+}  # end server code
+
+## Return a Shiny app object
+shiny::shinyApp(ui=uifun, server=servfun)
+
+```
+</div>
+
+
+## The Signal and Divergence of the MACD Indicator  
+
+<div class="column_left_50">
+
+The *MACD signal series* is equal to the EMA of the *MACD series*:  
+
+$$MACD_{sig} = \operatorname{EMA}(MACD)$$
+
+The *signal series* is a smoother version of the slope of the prices.  
+
+The *MACD divergence series* is equal to the difference between the *MACD series* minus the *signal series*:  
+
+$$MACD_{div} = MACD - MACD_{sig}$$
+
+The sign of the *divergence series* indicates the direction of the price movement.  
+
+</div>
+
+<div class="column_right_50">
+```{r MACD, eval=TRUE, echo=FALSE, cache=FALSE, fig.width=5, fig.height=4}
+
+uifun <- shiny::fluidPage(
+  
+  shiny::fluidRow(
+    shiny::sliderInput("lambdasig", label="lambda signal:", min=0.7, max=0.9, value=0.8, step=0.01),
+  ), # end fluidRow
+  
+  # Create output plot panel
+  dygraphs::dygraphOutput("dyplot", width="100%", height="300px")
+
+)  # end fluidPage interface
+
+## Define the server code
+servfun <- function(input, output) {
+
+  output$dyplot <- dygraphs::renderDygraph({
+    # Calculate fast and slow EMA prices
+    emaf <- HighFreq::run_mean(closep, lambda=0.9)
+    emas <- HighFreq::run_mean(closep, lambda=0.97)
+    # Calculate the MACD series
+    macds <- emaf - emas
+    # Calculate the signal series
+    macdsig <- HighFreq::run_mean(macds, lambda=input$lambdasig)
+    # Calculate the divergence series
+    macddiv <- macds - macdsig
+    # Plot dygraph of the signal and divergence series
+    pricev <- cbind(macds, macdsig, macddiv)
+    pricev <- xts::xts(pricev, datev)
+    colnames(pricev) <- c("MACD", "Sig", "Div")
+    colv <- colnames(pricev)
+    dygraphs::dygraph(pricev["2020"], main="MACD Signal and Divergence") %>%
+      dyAxis("y", label=colv[1], independentTicks=TRUE) %>%
+      dyAxis("y2", label=colv[2], independentTicks=TRUE) %>%
+      dySeries(name=colv[1], axis="y", strokeWidth=2, col="red") %>%
+      dySeries(name=colv[2], axis="y", strokeWidth=2, col="purple") %>%
+      dyBarSeries(name=colv[3], axis="y2", col="blue") %>% 
+      dyLegend(show="always", width=300)
+  }) # end renderDygraph
+
+}  # end server code
+
+## Return a Shiny app object
+shiny::shinyApp(ui=uifun, server=servfun)
+
+```
+</div>
+
+
+## The Price Z-Score  
+
+<div class="column_left_50">
+
+The *price z-score* $z_t$ is equal to the difference between the current price $p_t$ minus the EMA price $p^{EMA}_t$, divided by the volatility of returns $\sigma_t$: 
+
+$$z_t = \frac{p_t - p^{EMA}_t}{\sigma_t}$$
+
+With the volatility of returns $r_t$ given by the recursive formula:  
+
+$$\sigma^2_t = \lambda \sigma^2_{t-1} + (1-\lambda) r^2_t$$
+
+The z-score can be used as a rich or cheap indicator.  
+A large positive z-score may indicate that the current price is rich (overpriced), while a large negative z-score may indicate that the current price is cheap (underpriced).  
+
+</div>
+
+<div class="column_right_50">
+```{r ZSCORE, eval=TRUE, echo=FALSE, cache=FALSE, fig.width=5, fig.height=4}
+
+uifun <- shiny::fluidPage(
+  
+  shiny::fluidRow(
+    shiny::sliderInput("lambdaf", label="lambda:", min=0.8, max=0.99, value=0.9, step=0.01)
+  ), # end fluidRow
+  
+  # Create output plot panel
+  dygraphs::dygraphOutput("dyplot", width="100%", height="300px")
+
+)  # end fluidPage interface
+
+## Define the server code
+servfun <- function(input, output) {
+
+  output$dyplot <- dygraphs::renderDygraph({
+    # Calculate the trailing z-scores of SPY prices
+    pricema <- HighFreq::run_mean(closep, lambda=input$lambdaf)
+    volv <- sqrt(HighFreq::run_var(retp, lambda=input$lambdaf)[, 2])
+    pricez <- (closep - pricema)/volv
+    pricev <- cbind(closep, pricez)
+    colnames(pricev) <- c("SPY", "Z-Score")
+    colv <- colnames(pricev)
+    dygraphs::dygraph(pricev["2020"], main="SPY Price Z-Scores") %>%
+      dyAxis("y", label=colv[1], independentTicks=TRUE) %>%
+      dyAxis("y2", label=colv[2], independentTicks=TRUE) %>%
+      dySeries(axis="y", label=colv[1], strokeWidth=2, col="blue") %>%
+      dySeries(axis="y2", label=colv[2], strokeWidth=2, col="red") %>%
+      dyLegend(show="always", width=300)
+  }) # end renderDygraph
+
+}  # end server code
+
+## Return a Shiny app object
+shiny::shinyApp(ui=uifun, server=servfun)
+
+```
+</div>
+
+
+
+## The RSI Technical Indicator  
+
+<div class="column_left_50">
+
+The Relative Strength Indicator (*RSI*) is the ratio of the average EMA gains divided by the sum of the EMA gains plus the EMA losses:  
+  $${RSI}_t = \frac{100 * {gain}_t}{{gain}_t + {loss}_t}$$
+
+The EMA gains and losses are calculated recursively using the decay factor $\lambda$ as follows:
+  $${gain}_t = \lambda {gain}_{t-1} + (1-\lambda) r^{+}_t$$
+  $${loss}_t = \lambda {loss}_{t-1} + (1-\lambda) r^{-}_t$$
+Where $r^{+}_t$ is the gain at time $t$ and $r^{-}_t$ is the loss.  
+
+The gains and losses are non-negative:  
+  $r^{+}_t = \max(r_t, 0)$ and $r^{-}_t = \max(-r_t, 0)$.
+
+
+</div>
+
+<div class="column_right_50">
+```{r RSI, eval=TRUE, echo=FALSE, cache=FALSE, fig.width=5, fig.height=4}
+
+uifun <- shiny::fluidPage(
+  
+  shiny::fluidRow(
+    shiny::sliderInput("lambdaf", label="lambda:", min=0.5, max=0.9, value=0.7, step=0.01)
+  ), # end fluidRow
+  
+  # Create output plot panel
+  dygraphs::dygraphOutput("dyplot", width="100%", height="300px")
+
+)  # end fluidPage interface
+
+## Define the server code
+servfun <- function(input, output) {
+
+  output$dyplot <- dygraphs::renderDygraph({
+    # Calculate the trailing EMA gains and losses
+    gainm <- HighFreq::run_mean(ifelse(retp > 0, retp, 0), input$lambdaf)
+    lossm <- HighFreq::run_mean(ifelse(retp < 0, -retp, 0), input$lambdaf)
+    # Calculate the RSI indicator
+    rsii <- 100 * gainm/(gainm + lossm)
+    # Plot dygraph of the RSI indicator
+    datav <- cbind(closep, rsii)
+    colnames(datav)[2] <- "RSI"
+    colv <- colnames(datav)
+    dygraphs::dygraph(datav["2020"], main="RSI Indicator for SPY") %>%
+      dyAxis("y", label=colv[1], independentTicks=TRUE) %>%
+      dyAxis("y2", label=colv[2], independentTicks=TRUE) %>%
+      dySeries(name=colv[1], axis="y", strokeWidth=2, col="blue") %>%
+      dySeries(name=colv[2], axis="y2", strokeWidth=2, col="red") %>%
+      dyLegend(show="always", width=300)
+  }) # end renderDygraph
+
+}  # end server code
+
+## Return a Shiny app object
+shiny::shinyApp(ui=uifun, server=servfun)
+
+```
+</div>
+
+
+
+## The RSI Strategy  
+
+<div class="column_left_50">
+
+The *RSI* can be used as a rich or cheap price indicator, depending on its value relative to some threshold levels.  
+
+If $RSI < \theta$ then the strategy buys one share of stock, and holds the position, and if $RSI > (1-\theta)$ then it sells short one share of stock.  
+
+The best choice of the decay factor $\lambda$ and the threshold level $\theta$ can be determined by performing a simulation on historical data.  
+
+But such simulations risk overfitting the parameters to the data, so future out-of-sample performance is usually not as good as the in-sample performance.  
+
+
+</div>
+
+<div class="column_right_50">
+```{r RSIstrat, eval=TRUE, echo=FALSE, cache=FALSE, fig.width=5, fig.height=4}
+
+uifun <- shiny::fluidPage(
+  
+  shiny::fluidRow(
+    shiny::sliderInput("lambdaf", label="lambda:", min=0.5, max=0.9, value=0.54, step=0.01),
+    shiny::sliderInput("threshz", label="threshold", min=1, max=49, value=26, step=1)
+  ), # end fluidRow
+  
+  # Create output plot panel
+  dygraphs::dygraphOutput("dyplot", width="100%", height="300px")
+
+)  # end fluidPage interface
+
+## Define the server code
+servfun <- function(input, output) {
+
+  output$dyplot <- dygraphs::renderDygraph({
+    
+    # Calculate the trailing EMA gains and losses
+    gainm <- HighFreq::run_mean(ifelse(retp > 0, retp, 0), input$lambdaf)
+    lossm <- HighFreq::run_mean(ifelse(retp < 0, -retp, 0), input$lambdaf)
+    # Calculate the RSI strategy
+    rsii <- 100 * gainm/(gainm + lossm)
+    rsii[1] <- 0
+    posv <- rep(NA_integer_, nrows)
+    posv[1] <- 0
+    posv <- ifelse(rsii < input$threshz, 1, posv)
+    posv <- ifelse(rsii > (100-input$threshz), -1, posv)
+    posv <- zoo::na.locf(posv, na.rm=FALSE)
+    posv <- rutils::lagit(posv, lagg=1)
+    pnls <- retp*posv
+    pnls <- cbind(retp, pnls)
+    colnames(pnls)[2] <- "RSI"
+    # Calculate Sharpe ratios
+    sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
+    sharper <- round(sharper, 3)
+    pnls <- cumsum(pnls)
+    captiont <- paste0(c("SPY SR=", "Strategy SR="), sharper, collapse=" / ")
+    colv <- colnames(pnls)
+    dygraphs::dygraph(pnls, main=captiont) %>%
+      dyAxis("y", label=colv[1], independentTicks=TRUE) %>%
+      dyAxis("y2", label=colv[2], independentTicks=TRUE) %>%
+      dySeries(name=colv[1], axis="y", strokeWidth=1, col="blue") %>%
+      dySeries(name=colv[2], axis="y2", strokeWidth=1, col="red") %>%
+      dyLegend(show="always", width=300)
+
+  }) # end renderDygraph
+
+}  # end server code
+
+## Return a Shiny app object
+shiny::shinyApp(ui=uifun, server=servfun)
+
+```
+</div>
+
+

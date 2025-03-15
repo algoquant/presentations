@@ -1,3 +1,23 @@
+/* define logo dimensions */
+.gdbar img {
+  width: 500px !important;
+  height: 100px !important;
+  margin: 8px 8px;
+}
+
+/* define logo position */
+.gdbar {
+  width: 550px !important;
+  height: 120px !important;
+}
+
+my_logo img {
+    width: 50%;
+    height: 100%;
+    max-height: none;
+    max-width: none;
+}
+
 slides > slide.backdrop {
   background: white;
   border-bottom: 0px;

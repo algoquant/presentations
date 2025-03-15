@@ -1,7 +1,13 @@
 ##############################
-# This is a shiny app for simulating a reversion to open strategy 
-# for intraday stock prices.
-# Runs the C++ function revert_to_open() from /Users/jerzy/Develop/Rcpp/back_test.cpp
+# This is a shiny app for simulating the intraday EMA
+# strategy for a pair of stocks.
+# 
+# It calculates the z-score equal to the difference 
+# between the current price minus the moving average 
+# price, divided by the price volatility.
+#
+# The strategy trades each day separately, and it doesn't 
+# carry positions overnight.
 #
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -14,9 +20,6 @@ library(shiny)
 library(dygraphs)
 
 ## Model and data setup
-
-# Compile this file in R by running this command:
-# Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/back_test.cpp")
 
 # Load the intraday returns.
 # load("/Users/jerzy/Develop/data/SPY_second_20231113.RData")
@@ -46,6 +49,8 @@ library(dygraphs)
 # pricetarg <- pricel
 # symboltarg <- colnames(pricetarg[[1]])
 # load("/Users/jerzy/Develop/data/SPY_minute_202405.RData")
+# load("/Users/jerzy/Develop/data/SPY_minute_2025.RData")
+# rebalf <- "1-minute"
 # priceref <- pricel
 
 # Calculate list of XLK minute prices hedged with VTI
@@ -78,10 +83,13 @@ library(dygraphs)
 
 
 
-# symboltarg <- colnames(pricetarg[[1]])
+symboltarg <- colnames(pricetarg[[1]])
 symbolref <- colnames(priceref[[1]])
-# symbolref <- paste0(symboltarg, "/", symbolref)
-captiont <- paste("Daily Ratchet Strategy For", symbolref)
+# symboltarg <- colnames(pricel[[1]])
+# symbolref <- symboltarg
+
+symbolpair <- paste0(symboltarg, "/", symbolref)
+captiont <- paste("Intraday EMA for", symbolpair, " / ", rebalf)
 
 ## End setup code
 
@@ -94,17 +102,19 @@ uifun <- shiny::fluidPage(
     # Input stock symbol
     # column(width=2, selectInput("symboltarg", label="Symbol", choices=c("SPY", "XLK"), selected="SPY")),
     # Input the beta parameter
-    # column(width=3, sliderInput("betac", label="beta:", min=-1.0, max=2.0, value=0.68, step=0.01)),
+    column(width=2, sliderInput("betac", label="beta:", min=-1.0, max=2.0, value=2.0, step=0.1)),
     # Input the lambda decay factor
-    # column(width=2, sliderInput("lambdaf", label="Lambda:", min=0.9, max=0.999, value=0.99, step=0.001)),
+    column(width=2, sliderInput("lambdaf", label="Lambda:", min=0.5, max=0.99, value=0.8, step=0.01)),
+    # Input z-score threshold level
+    column(width=2, sliderInput("threshz", label="z-score threshold", min=0.01, max=4.0, value=0.1, step=0.1)),
     # Input the Z-score factor
-    column(width=3, sliderInput("zfact", label="Z-factor", min=0.1, max=5.0, value=1.0, step=0.1)),
+    column(width=1, selectInput("zfact", label="zfact", choices=c(1, -1), selected=1)),
     # Input the Z-score factor
-    # column(width=2, sliderInput("poslimit", label="Pos limit", min=1, max=100, value=100, step=1)),
+    # column(width=2, sliderInput("poslimit", label="Poslimit", min=0.1, max=1.0, value=1.0, step=0.1)),
     # Input add annotations Boolean
     # column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the bid-ask spread
-    column(width=1, numericInput("bidask", label="Bid-ask:", value=0.1, step=0.001))
+    column(width=1, numericInput("bidask", label="Bid-ask:", value=0.0, step=0.001))
   ),  # end fluidRow
 
   # fluidRow(
@@ -148,10 +158,32 @@ servfun <- function(input, output) {
   # 
   # })  # end Load the log returns
   
+  # Recalculate the prices
+  pricel <- shiny::reactive({
+    
+    # Calculate list of XLK minute prices hedged with SPY
+    betac <- input$betac
+    pricel <- lapply(seq_along(priceref), function(it) {
+      # Get rid of stale unchanged prices
+      pricetargg <- pricetarg[[it]]
+      retv <- rutils::diffit(pricetargg)
+      pricetargg <- pricetargg[!(retv == 0), ]
+      # Get rid of stale unchanged prices
+      pricereff <- priceref[[it]]
+      retv <- rutils::diffit(pricereff)
+      pricereff <- pricereff[!(retv == 0), ]
+      # Combine the prices
+      combv <- na.omit(cbind(pricetargg, pricereff))
+      (combv[, 1] - input$betac*combv[, 2])
+    }) # end lapply
+    pricel
+    
+  })  # end Recalculate the prices
+  
   # Recalculate the strategy
   pnls <- shiny::reactive({
     
-    cat("Recalculating strategy for", symbolref, "\n")
+    cat("Recalculating strategy for", symbolpair, "\n")
     # Get model parameters from input argument
     # closep <- closep()
     # posmax <- input$posmax
@@ -164,14 +196,8 @@ servfun <- function(input, output) {
     # Calculate cumulative returns
     # retv <- retv()
     # retc <- cumsum(retv)
-    # nrows <- NROW(retv)
     
-    # Calculate list of XLK minute prices hedged with VTI
-    # betac <- input$betac
-    # pricel <- lapply(seq_along(priceref), function(it) {
-    #   (pricetarg[[it]] - input$betac*priceref[[it]])
-    # }) # end lapply
-    
+    pricel <- pricel()
     
     # Determine dates when the EMAs have crossed
     # crossi <- sign(emaf - emas)
@@ -185,23 +211,34 @@ servfun <- function(input, output) {
     # This is designed to prevent whipsaws and over-trading.
     
     ntrades <- 0
-    pnls <- lapply(priceref, function(pricev) {
+    pnls <- lapply(pricel, function(pricev) {
+      
       # pricev <- pricev[, 1]
+      nrows <- NROW(pricev)
       retv <- rutils::diffit(pricev)
-      pospnls <- ratchetx(pricev, zfact=input$zfact)
-      # pospnls <- ratchet(pricev, lambdaf=input$lambdaf, zfact=input$zfact)
-      # pospnls <- ratchet(pricev, zfact=input$zfact, poslimit=input$poslimit)
-      # posv <- bollinger_brackets(retv, input$posmax, input$betac, input$varin)
-      # cat("posv =", tail(posv), "\n")
-      # Calculate strategy pnls
-      pnls <- pospnls[, 1]
-      # Calculate indicator of flipped positions
-      posv <- pospnls[, 2]
+      
+      # Use the EMA price as the reference price
+      # pricem <- HighFreq::run_var(pricev, input$lambdaf)
+      # retm <- HighFreq::run_var(retv, input$lambdaf)
+      # volv <- sqrt(retm[, 2])
+      # zscorev <- (pricev - pricem[, 1])/volv
+      
+      # Use the open price as the reference price
+      zscorev <- (pricev - as.numeric(pricev[1, ]))
+      
+      posv <- rep(NA_integer_, nrows)
+      posv[1] <- 0
+      posv <- ifelse(zscorev > input$threshz, as.numeric(input$zfact), posv)
+      posv <- ifelse(zscorev < (-input$threshz), -as.numeric(input$zfact), posv)
+      posv <- zoo::na.locf(posv, na.rm=FALSE)
+      posv <- rutils::lagit(posv)
+      pnls <- retv*posv
+      
       flipi <- rutils::diffit(posv)
       # Calculate the number of trades
       ntrades <<- ntrades + sum(abs(flipi) > 0)
       # Calculate transaction costs
-      costv <- 0.5*bidask*abs(flipi)
+      costv <- 0.5*input$bidask*abs(flipi)
       pnls <- (pnls - costv)
       pnls <- cbind(retv, pnls)
       pnls
@@ -250,7 +287,7 @@ servfun <- function(input, output) {
     # Get number of trades
     ntrades <- values$ntrades
     
-    captiont <- paste("Strategy for", symbolref, "/ \n", 
+    captiont <- paste("Strategy for Pair", symboltarg, "vs", symbolref, "/ \n", 
                       paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
                       "Number of trades=", ntrades)
     

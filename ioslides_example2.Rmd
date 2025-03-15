@@ -3,15 +3,16 @@ title: An Example R Markdown Document
 subtitle: (A Subtitle Would Go Here if This Were a Class)
 author: Steven V. Miller
 institute: Department of Political Science
-titlegraphic: /Dropbox/teaching/clemson-academic.png
+titlegraphic: image/MTLogoLarge.png
 fontsize: 10pt
 output:
  ioslides_presentation:
+    widescreen: true
     smaller: true
-    logo: ~/Dropbox/teaching/clemson-paw-transparent.png
+    logo: image/MTLogoLarge.png
     css: ioslides.css
  beamer_presentation:
-    template: ~/Dropbox/miscelanea/svm-r-markdown-templates/svm-latex-beamer.tex
+    template: image/MTLogoLarge.png
     keep_tex: true
 # toc: true
     slide_level: 2

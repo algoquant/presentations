@@ -141,7 +141,7 @@ servfun <- shiny::shinyServer(function(input, output) {
   
   
   # Recalculate the trailing price z-scores
-  zscores <- shiny::reactive({
+  zscorev <- shiny::reactive({
     
     cat("Recalculating the trailing price z-scores", "\n")
     lambdaf <- input$lambdaf
@@ -151,16 +151,16 @@ servfun <- shiny::shinyServer(function(input, output) {
     # pricmax <- HighFreq::run_max(pricev, lambda=lambdaf)
     # pricmin <- HighFreq::run_min(pricev, lambda=lambdaf)
     # Calculate the stochastic oscillator between -0.5 and +0.5
-    # zscores <- (pricev - pricmin)
+    # zscorev <- (pricev - pricmin)
     # volv <- (pricmax - pricmin)
-    # zscores <- ifelse(volv > 0.01, zscores/volv, zscores/0.01)
-    # zscores - 0.5
+    # zscorev <- ifelse(volv > 0.01, zscorev/volv, zscorev/0.01)
+    # zscorev - 0.5
     
-    zscores <- (pricev - rutils::lagit(HighFreq::run_mean(pricev, lambda=lambdaf)))
+    zscorev <- (pricev - rutils::lagit(HighFreq::run_mean(pricev, lambda=lambdaf)))
     volv <- rutils::lagit(sqrt(HighFreq::run_var(pricev, lambda=lambdaf)))
-    zscores <- ifelse(volv > 0, zscores/volv, 0)
-    zscores
-    # volt()*zscores
+    zscorev <- ifelse(volv > 0, zscorev/volv, 0)
+    zscorev
+    # volt()*zscorev
   })  # end reactive code
   
   
@@ -173,12 +173,12 @@ servfun <- shiny::shinyServer(function(input, output) {
     threshz <- input$threshz
     
     # Calculate the prices in excess of the trailing mean
-    zscores <- zscores()
+    zscorev <- zscorev()
     
     # Calculate the indicator from Bollinger bands
     indic <- integer(nrows)
-    indic <- ifelse(zscores > threshz, coeff, indic)
-    indic <- ifelse(zscores < -threshz, -coeff, indic)
+    indic <- ifelse(zscorev > threshz, coeff, indic)
+    indic <- ifelse(zscorev < -threshz, -coeff, indic)
     if (lagg > 1)
       indic <- HighFreq::roll_sum(matrix(indic), lagg)
     # Calculate positions from indicator

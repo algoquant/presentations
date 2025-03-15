@@ -1,7 +1,7 @@
 ##############################
 # This is a shiny app for simulating a reversion to open strategy 
 # for intraday stock prices for a single day.
-# Runs the C++ function revert_to_open() from /Users/jerzy/Develop/Rcpp/back_test.cpp
+# Runs the C++ function ratchet() from /Users/jerzy/Develop/Rcpp/back_test.cpp
 #
 #
 # Just press the "Run App" button on upper right of this panel.
@@ -19,12 +19,12 @@ library(dygraphs)
 # Compile this file in R by running this command:
 # Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/back_test.cpp")
 
-# load("/Users/jerzy/Develop/data/SPY_minute_202311.RData")
+# load("/Users/jerzy/Develop/data/SPY_minute_202407.RData")
 pricev <- pricel[[1]][, 1]
-retv <- rutils::diffit(pricev)
+retp <- rutils::diffit(pricev)
 # Calculate cumulative returns
 datev <- index(pricev)
-retc <- cumsum(retv)
+retc <- cumsum(retp)
 nrows <- NROW(pricev)
 symboln <- rutils::get_name(colnames(pricev))
 
@@ -85,7 +85,7 @@ servfun <- function(input, output) {
   # })  # end Load the closing prices
   
   # Load the log returns
-  # retv <- shiny::reactive({
+  # retp <- shiny::reactive({
   #   
   #   cat("Recalculating returns for ", input$symboln, "\n")
   #   
@@ -110,11 +110,11 @@ servfun <- function(input, output) {
     lagg <- input$lagg
 
     # Calculate EMA prices
-    # emaf <- HighFreq::run_mean(retv, lambda=lambdaf)
-    # volf <- sqrt(HighFreq::run_var(retv, lambda=lambdaf))
+    # emaf <- HighFreq::run_mean(retp, lambda=lambdaf)
+    # volf <- sqrt(HighFreq::run_var(retp, lambda=lambdaf))
     # volf[1:7, ] <- 1.0
-    # emas <- HighFreq::run_mean(retv, lambda=lambdas)
-    # vols <- sqrt(HighFreq::run_var(retv, lambda=lambdas))
+    # emas <- HighFreq::run_mean(retp, lambda=lambdas)
+    # vols <- sqrt(HighFreq::run_var(retp, lambda=lambdas))
     # vols[1:7, ] <- 1.0
     
     # Determine dates when the EMAs have crossed
@@ -130,7 +130,7 @@ servfun <- function(input, output) {
     # posv <- (loadf*emaf + loads*emas)
     
     # Calculate the positions of the mean-reversion strategy
-    pospnls <- revert_to_open(pricev, input$lambdaf)
+    pospnls <- ratchet(pricev, input$lambdaf)
     # Lag the positions to trade in next period
     # posv <- rutils::lagit(pospnls[, 2], lagg=1)
     # Calculate indicator of flipped positions
@@ -144,7 +144,7 @@ servfun <- function(input, output) {
     
     
     # Calculate strategy pnls
-    # pnls <- posv*retv
+    # pnls <- posv*retp
     pnls <- pospnls[, 1]
     
     # Calculate transaction costs
@@ -152,10 +152,10 @@ servfun <- function(input, output) {
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as the returns
-    # pnls <- pnls*sd(retv[retv<0])/sd(pnls[pnls<0])
+    # pnls <- pnls*sd(retp[retp<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(retv, pnls)
+    pnls <- cbind(retp, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))

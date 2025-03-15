@@ -2,7 +2,7 @@
 # This is a shiny app for simulating the ratchet strategy 
 # for a triplet of stocks.
 # It can simulate the greedy ratchet using the function 
-# ratchet_greedy(), or the patient ratchet using the 
+# ratchetg(), or the patient ratchet using the 
 # function ratchet().
 # 
 # It bets on the portfolio price reverting to the moving 
@@ -21,7 +21,7 @@
 # z-score has changed its sign, but not before that.
 
 
-# Runs the C++ function ratchet_greedy() from /Users/jerzy/Develop/Rcpp/back_test.cpp
+# Runs the C++ function ratchetg() from /Users/jerzy/Develop/Rcpp/back_test.cpp
 #
 #
 # Just press the "Run App" button on upper right of this panel.
@@ -188,7 +188,7 @@ servfun <- function(input, output) {
     retv <- rutils::diffit(pricev)
 
     # Calculate the positions of the mean-reversion strategy
-    # pospnls <- ratchet_greedy(pricev, input$lambdaf)
+    # pospnls <- ratchetg(pricev, input$lambdaf)
     # pospnls <- ratchet(pricev, pricop=pricop, lambdaf=input$lambdaf, volf=input$volf, zfact=input$zfact)
     pospnls <- ratchet(pricev, lambdaf=input$lambdaf, zfact=input$zfact)
     # Lag the positions to trade in next period
