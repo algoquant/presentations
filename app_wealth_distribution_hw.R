@@ -14,28 +14,18 @@
 
 # Load packages here (if needed)
 library(rutils)
-library(parallel)  # Load package parallel
+# Coerce the log prices from xts time series to matrix 
+pricev <- na.omit(rutils::etfenv$prices[, c("VTI", "IEF")])
+pricev <- log(zoo::coredata(pricev))
+nrows <- NROW(pricev)
 
-# Extract the percentage returns for VTI and IEF.
-retp <- rutils::etfenv$returns[, c("VTI", "IEF")]
-retp <- zoo::coredata(na.omit(retp))
-nrows <- NROW(retp)
-
-# Define the risk-adjusted wealth measure.
-
+# Define the risk-adjusted wealth measure
 riskretfun <- function(wealthv) {
-  riskv <- 0.05
-  if (min(wealthv) < 1)
-    riskv <- mean((1-wealthv)[wealthv<1])
-  mean(wealthv)/riskv
+  mean(wealthv)/sd(wealthv)
 }  # end riskretfun
 
-
-## Bootstrap the retp returns.
+# Set the number of bootstrap samples
 nboot <- 1e3
-set.seed(1121)
-
-### Write your code here
 
 
 # End setup code
@@ -50,7 +40,7 @@ uifun <- shiny::fluidPage(
   
   # Create four slider inputs with parameters to lossdistr()
   fluidRow(
-    column(width=2, sliderInput("weightvti", label="VTI weight:",
+    column(width=2, sliderInput("weightv", label="VTI weight:",
                                 min=0.01, max=0.99, value=0.5, step=0.01)),
     column(width=2, sliderInput("holdp", label="Holding period (years):",
                                 min=1.0, max=(nrows %/% 252), value=(nrows %/% 252)/2, step=0.1))
@@ -70,16 +60,18 @@ servfun <- function(input, output) {
   ## Recalculate the model with new parameters
   # The function shiny::reactive() accepts a block of expressions
   # which calculate the model, and returns the model output.
-  datav <- shiny::reactive({
+  wealthv <- shiny::reactive({
     
     # Extract model parameters from the argument "input"
-    weightvti <- input$weightvti
+    weightv <- input$weightv
     holdp <- 252*input$holdp
 
-    # Use these weights:
-    weightv <- c(weightvti, 1-weightvti)
+    # Sample the start dates for the bootstrap
+    set.seed(1121, "Mersenne-Twister", sample.kind="Rejection")
+    startd <- sample.int(nrows-holdp, nboot, replace=TRUE)
     
-    # Calculate the wealth distribution from bootd
+    # Calculate a vector of portfolio wealths from startd and weightv
+    # Hint: Perform an sapply() loop over startd
     
     ### Write your code here
     
@@ -91,36 +83,27 @@ servfun <- function(input, output) {
   output$plot_portf <- shiny::renderPlot({
 
     # Copy the wealth data
-    wealthv <- datav()
+    wealthv <- wealthv()
 
     # Calculate the wealth parameters
     meanv <- mean(wealthv)
-    medianv <- median(wealthv)
-    sdv <- sd(wealthv)
-    skewv <- (meanv-medianv)/sdv
+    stdev <- sd(wealthv)
+    skewv <- mean(((wealthv - meanv)/stdev)^3)
     
     # Calculate the risk-adjusted wealth measure
+    
     ### Write your code here
     
     # Calculate the density of wealth distribution
+    
     ### Write your code here
     
-    # Plot density of portfolio wealth
-    par(mar=c(5.1, 5.1, 4.1, 2.1))
-    densx <- densityv$x
-    densy <- densityv$y
-    plot(densityv, col="blue", lwd=3, xlim=c(0.1*min(densx), 0.9*max(densx)), 
-         xlab="Wealth", ylab="Density",
-         cex.main=1.5, cex.lab=1.5, cex.axis=1.5, 
-         main="Density of the Terminal Wealths of VTI and IEF Portfolio")
+    # Plot the density of portfolio wealth
+    # Hint: Use the functions plot(), abline(), and text()
     
-    text(x=0.85*max(densx), y=0.75*max(densy), 
-         labels=paste0("Mean of wealth = ", format(meanv, digits=3), "\n",
-                       "Standard deviation of wealth = ", format(sdv, digits=3), "\n",
-                       "Skewness of wealth = ", format(skewv, digits=3), "\n",
-                       "Risk-adjusted wealth = ", format(wealthm, digits=3)),
-         adj=c(1, 1), lwd=2, cex=1.5)
+    ### Write your code here
     
+
   })  # end output plot
 
 }  # end server function
