@@ -15,15 +15,15 @@
 # Load packages here (if needed)
 
 # Define cumulative loss distribution function
-cumlossdistr <- function(x, defthresh=(-2), rho=0.2, lgd=0.4) {
+cumlossdistr <- function(x, threshv=(-2), rho=0.2, lgd=0.4) {
   qnormv <- ifelse(x/lgd < 0.999, qnorm(x/lgd), 3.1)
-  pnorm((sqrt(1-rho)*qnormv - defthresh)/sqrt(rho))
+  pnorm((sqrt(1-rho)*qnormv - threshv)/sqrt(rho))
 }  # end cumlossdistr
 
 # Define Vasicek loss distribution density function 
-lossdistr <- function(x, defthresh=(-2), rho=0.1, lgd=0.4) {
+lossdistr <- function(x, threshv=(-2), rho=0.1, lgd=0.4) {
   qnormv <- ifelse(x/lgd < 0.999, qnorm(x/lgd), 3.1)
-  sqrt((1-rho)/rho)*exp(-(sqrt(1-rho)*qnormv - defthresh)^2/(2*rho) + qnormv^2/2)/lgd
+  sqrt((1-rho)/rho)*exp(-(sqrt(1-rho)*qnormv - threshv)^2/(2*rho) + qnormv^2/2)/lgd
 }  # end lossdistr
 
 
@@ -52,7 +52,7 @@ uifun <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Render plot in panel
-  shiny::plotOutput("plot_portf", width="100%", height=650)
+  shiny::plotOutput("plotobj", width="100%", height=650)
 )  # end fluidPage interface
 
 
@@ -74,21 +74,20 @@ servfun <- function(input, output) {
     rho <- input$rho
     lgd <- input$lgd
     exploss <- lgd*defprob
-    defthresh <- qnorm(defprob)
+    threshv <- qnorm(defprob)
     
     # Calculate tranche losses
     round(
-      integrate(function(x, attachp) (x-attachp)*lossdistr(x, 
-                defthresh=defthresh, rho=rho, lgd=lgd), 
-                low=attachp, up=detachp, attachp=attachp)$value / (detachp-attachp) + 
-        (1-cumlossdistr(x=detachp, defthresh=defthresh, rho=rho, lgd=lgd)), 
+      integrate(function(x) (x-attachp)*lossdistr(x, threshv=threshv, rho=rho, lgd=lgd), 
+                low=attachp, up=detachp)$value / (detachp-attachp) + 
+        (1-cumlossdistr(x=detachp, threshv=threshv, rho=rho, lgd=lgd)), 
       digits=5)
   })  # end reactive code
   
   ## Create plot and return it to the output argument
   # The function shiny::reactive() accepts a block of expressions
   # which calculate the model, and returns the model output.
-  output$plot_portf <- shiny::renderPlot({
+  output$plotobj <- shiny::renderPlot({
     
     # Extract model parameters from the argument "input"
     attachp <- input$attachp
@@ -97,16 +96,16 @@ servfun <- function(input, output) {
     rho <- input$rho
     lgd <- input$lgd
     exploss <- lgd*defprob
-    defthresh <- qnorm(defprob)
+    threshv <- qnorm(defprob)
     
     # Calculate max x-axis range
     xmax <- max(3*exploss, detachp+exploss)
     # Calculate max density of portfolio losses (for y-axis scale)
-    ymax <- max(sapply(seq(fr=0.01, to=lgd/2, length.out=10), lossdistr, defthresh=defthresh, rho=rho, lgd=lgd))
+    ymax <- max(sapply(seq(fr=0.01, to=lgd/2, length.out=10), lossdistr, threshv=threshv, rho=rho, lgd=lgd))
     
     # Plot density of portfolio losses
     par(mar=c(5.1, 5.1, 4.1, 2.1))
-    curve(expr=lossdistr(x, defthresh=defthresh, rho=rho, lgd=lgd),
+    curve(expr=lossdistr(x, threshv=threshv, rho=rho, lgd=lgd),
           cex.main=1.5, cex.lab=1.5, cex.axis=1.5, 
           type="l", xlim=c(0, xmax), 
           xlab="Percentage loss", ylab="Density", lwd=3,
@@ -127,7 +126,7 @@ servfun <- function(input, output) {
     # Calculate tranche shading for CVaR
     varisk <- attachp; var_max <- detachp
     varv <- seq(varisk, var_max, length=100)
-    densv <- sapply(varv, lossdistr, defthresh=defthresh, rho=rho, lgd=lgd)
+    densv <- sapply(varv, lossdistr, threshv=threshv, rho=rho, lgd=lgd)
     # Draw shaded polygon
     polygon(c(varisk, varv, var_max),
             c(-1, densv, -1), col="red", border=NA, density=10)

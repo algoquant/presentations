@@ -47,7 +47,7 @@ uifun <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Render plot in panel
-  shiny::plotOutput("plot_portf", width="100%", height=650)
+  shiny::plotOutput("plotobj", width="100%", height=650)
 )  # end fluidPage interface
 
 
@@ -71,14 +71,14 @@ servfun <- function(input, output) {
     
     # Calculate default probability and threshold
     # exploss <- lgd*defprob
-    defthresh <- qnorm(defprob)
+    threshv <- qnorm(defprob)
     
     # Define correlation parameters
     rhos <- sqrt(rho); rhosm <- sqrt(1-rho)
     
     # Calculate the portfolio losses
     assetm <- t(rhos*sysv + t(rhosm*isync))
-    lossv <- lgd*colSums(assetm < defthresh)/nbonds
+    lossv <- lgd*colSums(assetm < threshv)/nbonds
     
     # Return the losses
     lossv
@@ -106,7 +106,7 @@ servfun <- function(input, output) {
 
 
 ## Create plot and return it to the output argument
-  output$plot_portf <- shiny::renderPlot({
+  output$plotobj <- shiny::renderPlot({
     
     # Extract model parameters from the argument "input"
     confl <- input$confl
@@ -114,7 +114,7 @@ servfun <- function(input, output) {
     rho <- input$rho
     lgd <- input$lgd
     exploss <- lgd*defprob
-    # defthresh <- qnorm(defprob)
+    # threshv <- qnorm(defprob)
     
     # Extract the loss distribution
     lossv <- lossv()

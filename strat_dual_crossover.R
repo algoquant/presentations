@@ -44,12 +44,12 @@ pricev <- cumsum(retv)
 
 # datav <- cbind(pricev, zscores)
 # colnames(datav) <- c("SPY", "Z-scores")
-# colnamev <- colnames(datav)
+# colv <- colnames(datav)
 # dygraphs::dygraph(datav, main="Z-scores") %>%
-#   dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
-#   dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
-#   dySeries(name=colnamev[1], axis="y", strokeWidth=1, col="blue") %>%
-#   dySeries(name=colnamev[2], axis="y2", strokeWidth=1, col="red")
+#   dyAxis("y", label=colv[1], independentTicks=TRUE) %>%
+#   dyAxis("y2", label=colv[2], independentTicks=TRUE) %>%
+#   dySeries(name=colv[1], axis="y", strokeWidth=1, col="blue") %>%
+#   dySeries(name=colv[2], axis="y2", strokeWidth=1, col="red")
 
 
 ## Model and data setup
@@ -179,7 +179,7 @@ servfun <- function(input, output) {
     # Get the pnls
     # cat("PLotting1", "\n")
     pnls <- pnls()
-    colnamev <- colnames(pnls)
+    colv <- colnames(pnls)
     
     # Get Sharpe ratios
     sharper <- values$sharper
@@ -196,21 +196,21 @@ servfun <- function(input, output) {
     # Return to the output argument a dygraph plot with two y-axes
     if (add_annotations == TRUE) {
       dygraphs::dygraph(pnls, main=captiont) %>%
-        dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
-        dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
-        dySeries(name=colnamev[1], axis="y", label=colnamev[1], strokeWidth=1, col="blue") %>%
-        dySeries(name=colnamev[2], axis="y2", label=colnamev[2], strokeWidth=1, col="red") %>%
-        dySeries(name=colnamev[3], axis="y", label=colnamev[3], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
-        dySeries(name=colnamev[4], axis="y", label=colnamev[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
+        dyAxis("y", label=colv[1], independentTicks=TRUE) %>%
+        dyAxis("y2", label=colv[2], independentTicks=TRUE) %>%
+        dySeries(name=colv[1], axis="y", label=colv[1], strokeWidth=1, col="blue") %>%
+        dySeries(name=colv[2], axis="y2", label=colv[2], strokeWidth=1, col="red") %>%
+        dySeries(name=colv[3], axis="y", label=colv[3], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="orange") %>%
+        dySeries(name=colv[4], axis="y", label=colv[4], drawPoints=TRUE, strokeWidth=0, pointSize=5, col="green")
     } else if (add_annotations == FALSE) {
       # cat("PLotting2", "\n")
       dygraphs::dygraph(pnls, main=captiont) %>%
-        dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
-        dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
-        dySeries(name=colnamev[1], axis="y", strokeWidth=1, col="blue") %>%
-        dySeries(name=colnamev[2], axis="y2", strokeWidth=1, col="red") %>%
-        dySeries(name=colnamev[3], axis="y", strokeWidth=1, col="green") %>%
-        dySeries(name=colnamev[4], axis="y", strokeWidth=1, col="orange") %>%
+        dyAxis("y", label=colv[1], independentTicks=TRUE) %>%
+        dyAxis("y2", label=colv[2], independentTicks=TRUE) %>%
+        dySeries(name=colv[1], axis="y", strokeWidth=1, col="blue") %>%
+        dySeries(name=colv[2], axis="y2", strokeWidth=1, col="red") %>%
+        dySeries(name=colv[3], axis="y", strokeWidth=1, col="green") %>%
+        dySeries(name=colv[4], axis="y", strokeWidth=1, col="orange") %>%
         dyLegend(show="always", width=500)
     }  # end if
     

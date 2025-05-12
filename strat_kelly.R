@@ -13,34 +13,34 @@ library(HighFreq)
 
 # Model and data setup
 
-retv <- na.omit(rutils::etfenv$returns[, "VTI"])
+# retp <- na.omit(rutils::etfenv$returns$VTI)
 
 
 ## Load QM futures 5-second bars
-# symbol <- "ES"  # S&P500 Emini futures
-# symbol <- "QM"  # oil
-# load(file=paste0("/Users/jerzy/Develop/data/ib_data/", symbol, "_ohlc.RData"))
+# symboln <- "ES"  # S&P500 Emini futures
+# symboln <- "QM"  # oil
+# load(file=paste0("/Users/jerzy/Develop/data/ib_data/", symboln, "_ohlc.RData"))
 # pricev <- Cl(ohlc)
 # Or random prices
 # pricev <- xts(exp(cumsum(rnorm(NROW(ohlc)))), index(ohlc))
 
 ## Load VX futures 5-second bars
-# symbol <- "VX"
+# symboln <- "VX"
 # load(file="/Users/jerzy/Develop/data/vix_data/vix_cboe.RData")
 # pricev <- Cl(vix_env$chain_ed)
 
 ## VTI ETF daily bars
-# symbol <- "VTI"
+# symboln <- "VTI"
 # pricev <- Cl(rutils::etfenv$VTI)
 
 ## SPY ETF minute bars
-# symbol <- "SPY"
+# symboln <- "SPY"
 # pricev <- Cl(HighFreq::SPY["2011"])["T09:31:00/T15:59:00"]
 
-# retv <- rutils::diffit(log(pricev))
+# retp <- rutils::diffit(log(pricev))
 
-captiont <- paste("VTI Strategy Using Rolling Kelly Weight")
-# captiont <- paste("Contrarian Strategy for", symbol, "Using the Hampel Filter Over Prices")
+captiont <- paste("Trend Following Strategy Using Running Kelly Ratio")
+# captiont <- paste("Contrarian Strategy for", symboln, "Using the Hampel Filter Over Prices")
 
 ## End setup code
 
@@ -58,11 +58,15 @@ uifun <- shiny::fluidPage(
   
   # Create single row with two slider inputs
   fluidRow(
+    # Input stock symbol
+    column(width=2, selectInput("symboln", label="Symbol", choices=rutils::etfenv$symbolv, selected="VTI")),
     # Input end points interval
     # column(width=2, selectInput("interval", label="End points Interval",
     #                             choices=c("days", "weeks", "months", "years"), selected="days")),
+    # Input lambda decay parameter
+    column(width=2, sliderInput("lambdaf", label="lambda:", min=0.9, max=0.999, value=0.98, step=0.001)),
     # Input look-back interval
-    column(width=2, sliderInput("lookb", label="Lookback", min=100, max=500, value=200, step=1)),
+    # column(width=2, sliderInput("lookb", label="Lookback", min=3, max=300, value=200, step=1)),
     # Input look-back lag interval
     # column(width=2, sliderInput("lagg", label="lagg", min=1, max=5, value=2, step=1)),
     # Input threshold interval
@@ -87,7 +91,7 @@ uifun <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Create output plot panel
-  dygraphs::dygraphOutput("dyplot", width="90%", height="550px")
+  dygraphs::dygraphOutput("dyplot", width="90%", height="650px")
 
 )  # end fluidPage interface
 
@@ -95,75 +99,79 @@ uifun <- shiny::fluidPage(
 ## Define the server code
 servfun <- function(input, output) {
   
+  # Create an empty list of reactive values.
+  values <- reactiveValues()
+
+  # Load the log returns
+  retp <- shiny::reactive({
+    
+    symboln <- input$symboln
+    cat("Recalculating returns for ", symboln, "\n")
+    
+    ohlc <- get(symboln, rutils::etfenv)
+    rutils::diffit(log(quantmod::Cl(ohlc)))
+    
+  })  # end Load the log returns
+  
+  
   # Recalculate the data and rerun the model
-  datav <- shiny::reactive({
+  pnls <- shiny::reactive({
+
+    symboln <- input$symboln
+    cat("Recalculating the PnLs for ", symboln, "\n")
     # Get model parameters from input argument
-    lookb <- input$lookb
-    # lagg <- input$lagg
-    # dimax <- isolate(input$dimax)
-    # threshold <- input$threshold
-    # look_lag <- isolate(input$look_lag
-    # lambda <- isolate(input$lambda)
-    # typev <- isolate(input$typev)
-    # alpha <- isolate(input$alpha)
-    # quant <- isolate(input$quant)
-    # coeff <- as.numeric(isolate(input$coeff))
-    # bidask <- isolate(input$bidask)
-    # Model is recalculated when the recalcb variable is updated
-    # input$recalcb
-
+    # lookb <- input$lookb
+    lambdaf <- input$lambdaf
     
-    # lookb <- 11
-    # half_window <- lookb %/% 2
-    
-    # Rerun the VTI model
-    # var_rolling <- roll::roll_var(retv, width=lookb)
-    # weights <- roll::roll_sum(retv, width=lookb)/lookb
-    # weights <- weights/var_rolling
-    # weights <- zoo::na.locf(weights, fromLast=TRUE)
-    # weights <- drop(HighFreq::lag_vec(weights))
-    # weights <- 10*weights/sum(abs(range(weights)))
-    # wealth <- cumprod(1 + weights*retv)
-
-    # Rerun the VTI and IEF model
-    var_rolling <- roll::roll_var(retv, width=lookb)
-    weights <- roll::roll_sum(retv, width=lookb)/lookb
-    weights <- weights/var_rolling
-    weights <- zoo::na.locf(weights, fromLast=TRUE)
+    # Rerun the model
+    retp <- retp()
+    varv <- HighFreq::run_var(retp, lambda=lambdaf)
+    meanv <- varv[, 1]
+    varv <- varv[, 2]
+    weightv <- meanv/varv
+    weightv[1:11] <- 0
+    # weightv <- zoo::na.locf(weightv, fromLast=TRUE)
     # Calculate compounded wealth from returns
-    weights <- HighFreq::lagit(weights)
-    # weights <- 10*weights/sum(abs(range(weights)))
-    weights <- apply(weights, 2, function(x) 10*x/sum(abs(range(x))))
-    wealth <- cumprod(1 + rowSums(weights*retv))
-    wealth <- xts(wealth, index(retv))
+    weightv <- rutils::lagit(weightv)
+    # weightv <- 10*weightv/sum(abs(range(weightv)))
+    # weightv <- apply(weightv, 2, function(x) 10*x/sum(abs(range(x))))
+    # wealthv <- cumprod(1 + rowSums(weightv*retp))
+    # Calculate number of trades
+    # values$ntrades <- sum(abs(flipi)>0)
     
-        
-    # Calculate posv and pnls from z-scores and rangev
-    # posv <- rep(NA_integer_, NROW(pricev))
-    # posv[1] <- 0
-    # threshold <- 3*mad(zscores)
-    # posv <- ifelse(zscores > threshold, -1, posv)
-    # posv <- ifelse(zscores < (-threshold), 1, posv)
-    # posv <- ifelse(zscores > threshold*mad_zscores, -1, posv)
-    # posv <- ifelse(zscores < (-threshold*mad_zscores), 1, posv)
-    # posv <- na.locf(posv)
-    # positions_lag <- rutils::lagit(posv, lagg=lagg)
-    # pnls <- cumsum(positions_lag*retv)
-    pnls <- cbind(wealth, cumsum(retv))
-    colnames(pnls) <- c("Strategy", "Index")
-    # pnls[rutils::calc_endpoints(pnls, interval="minutes")]
-    # pnls[rutils::calc_endpoints(pnls, interval="hours")]
+    pnls <- (weightv*retp)
+    pnls <- sd(retp)*pnls/sd(pnls)
+    
+    pnls <- cbind(retp, pnls)
+    colnames(pnls) <- c("Index", "Strategy")
+
+    # Calculate Sharpe ratios
+    sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
+    values$sharper <- round(sharper, 3)
+    
     pnls
+    
   })  # end reactive code
   
   # Return to the output argument a dygraph plot with two y-axes
   output$dyplot <- dygraphs::renderDygraph({
-    colnamev <- colnames(datav())
-    dygraphs::dygraph(datav(), main=captiont) %>%
-      dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
-      dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
-      dySeries(name=colnamev[1], axis="y", strokeWidth=1, col="red") %>%
-      dySeries(name=colnamev[2], axis="y2", strokeWidth=1, col="blue")
+    
+    # Get Sharpe ratios
+    sharper <- values$sharper
+    # Get number of trades
+    # ntrades <- values$ntrades
+
+    symboln <- input$symboln
+    captiont <- paste("Strategy for", symboln, "/ \n", 
+                      paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "))
+    
+    pnls <- pnls()
+    colv <- colnames(pnls)
+    colorv <- c("blue", "red")
+    endw <- rutils::calc_endpoints(pnls, interval="weeks")
+    dygraphs::dygraph(cumsum(pnls)[endw], main=captiont) %>%
+      dyOptions(colors=colorv, strokeWidth=1) %>%
+      dyLegend(show="always", width=300)
   })  # end output plot
   
 }  # end server code

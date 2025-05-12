@@ -156,11 +156,13 @@ servfun <- shiny::shinyServer(function(input, output) {
     # zscorev <- ifelse(volv > 0.01, zscorev/volv, zscorev/0.01)
     # zscorev - 0.5
     
-    zscorev <- (pricev - rutils::lagit(HighFreq::run_mean(pricev, lambda=lambdaf)))
-    volv <- rutils::lagit(sqrt(HighFreq::run_var(pricev, lambda=lambdaf)))
+    varv <- rutils::lagit(HighFreq::run_var(pricev, lambda=lambdaf))
+    zscorev <- (pricev - varv[, 1])
+    volv <- sqrt(varv[, 2])
     zscorev <- ifelse(volv > 0, zscorev/volv, 0)
     zscorev
     # volt()*zscorev
+    
   })  # end reactive code
   
   

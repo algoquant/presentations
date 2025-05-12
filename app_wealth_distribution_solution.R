@@ -46,7 +46,7 @@ uifun <- shiny::fluidPage(
   ),  # end fluidRow
   
   # Render plot in panel
-  shiny::plotOutput("plot_portf", width="100%", height=650)
+  shiny::plotOutput("plotobj", width="100%", height=650)
 )  # end fluidPage interface
 
 
@@ -78,7 +78,7 @@ servfun <- function(input, output) {
   })  # end reactive code
   
   ## Create plot and return it to the output argument
-  output$plot_portf <- shiny::renderPlot({
+  output$plotobj <- shiny::renderPlot({
 
     # Copy the wealth data
     wealthv <- wealthv()
