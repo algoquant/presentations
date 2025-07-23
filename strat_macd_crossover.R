@@ -70,7 +70,7 @@ uifun <- shiny::fluidPage(
     # column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the bid-offer spread
     # column(width=2, numericInput("bid_offer", label="Bid-offer:", value=0.0000, step=0.0001))
-    # Input the EWMA decays
+    # Input the EMA decays
     column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.5, max=0.99, value=0.8, step=0.01)),
     column(width=2, sliderInput("lambdas", label="Slow lambda:", min=0.5, max=0.99, value=0.9, step=0.01)),
     column(width=2, sliderInput("lambdasig", label="Signal lambda:", min=0.5, max=0.99, value=0.6, step=0.01)),
@@ -105,7 +105,7 @@ servfun <- function(input, output) {
     # lagg <- input$lagg
     lagg <- 1
     
-    # Calculate EWMA prices
+    # Calculate EMA prices
     emaf <- HighFreq::run_mean(pricev, lambda=input$lambdaf)
     emas <- HighFreq::run_mean(pricev, lambda=input$lambdas)
     macds <- emaf - emas
@@ -114,7 +114,7 @@ servfun <- function(input, output) {
     # Determine dates when the emas have crossed
     crossi <- sign(macds - macdsig)
     
-    # Calculate cumulative sum of EWMA crossing indicator
+    # Calculate cumulative sum of EMA crossing indicator
     # crossc <- HighFreq::roll_sum(tseries=crossi, look_back=2)
     # crossc[1:2] <- 0
     # Calculate the positions

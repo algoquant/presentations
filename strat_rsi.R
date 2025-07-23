@@ -47,7 +47,7 @@ uifun <- shiny::fluidPage(
     # column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the bid-offer spread
     # column(width=2, numericInput("bid_offer", label="Bid-offer:", value=0.0000, step=0.0001))
-    # Input the EWMA decay
+    # Input the EMA decay
     column(width=2, sliderInput("lambdaf", label="Lambda:", min=0.1, max=0.99, value=0.8, step=0.01)),
     # Input z-score threshold level
     column(width=2, sliderInput("threshz", label="Threshold", min=1, max=49, value=10, step=1)),
@@ -76,7 +76,7 @@ servfun <- function(input, output) {
     
     cat("Recalculating strategy", "\n")
 
-    # Calculate EWMA prices
+    # Calculate EMA prices
     gainm <- HighFreq::run_mean(ifelse(retv > 0, retv, 0), input$lambdaf)
     lossm <- HighFreq::run_mean(ifelse(retv < 0, -retv, 0), input$lambdaf)
     # Calculate the RSI indicator

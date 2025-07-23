@@ -1,7 +1,7 @@
 ##############################
 # This is a shiny app for simulating a rolling portfolio 
 # optimization strategy with filtering of returns.
-# It uses HighFreq::back_test()
+# It uses HighFreq::roll_portf()
 # 
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -314,7 +314,7 @@ servfun <- function(input, output) {
     trend <- as.numeric(input$trend)
     
     # Create a named list of model parameters
-    controlv <- HighFreq::param_portf(method=method, dimax=dimax, alpha=alpha, confl=confl)
+    controll <- HighFreq::param_portf(method=method, dimax=dimax, alpha=alpha, confl=confl)
 
     # Model is recalculated when the recalcb variable is updated
     # input$recalcb
@@ -355,14 +355,14 @@ servfun <- function(input, output) {
       pnls <- trend*posv*retp
       pnls <- rowMeans(pnls)
     } else if (input$interval == "days") {
-      cat("Daily HighFreq::back_test() \n")
+      cat("Daily HighFreq::roll_portf() \n")
       # Rerun the strategy with fixed start date
-      pnls <- HighFreq::back_test(retx=retx,
+      pnls <- HighFreq::roll_portf(retx=retx,
                                   retp=retp,
                                   startp=startp-1,
                                   endd=endd-1,
                                   lambda=lambda,
-                                  controlv=controlv,
+                                  controll=controll,
                                   coeff=trend)
       pnls[which(is.na(pnls)), ] <- 0
     } else {
@@ -373,7 +373,7 @@ servfun <- function(input, output) {
       # pnls <- lapply(1:nperiods, function(shiftv) {
       #   ep_new <- c(endd-shiftv, endpoint)
       #   sp_new <- c(rep_len(1, lookb-1), ep_new[1:(nrows-lookb+2)])
-      #   pnls <- HighFreq::back_test(retx=retx, 
+      #   pnls <- HighFreq::roll_portf(retx=retx, 
       #                                retp=retp,
       #                                startp=sp_new-1,
       #                                endd=ep_new-1,
@@ -390,14 +390,14 @@ servfun <- function(input, output) {
       # pnls <- do.call(cbind, pnls)
       # pnls <- rowMeans(pnls)
       
-      cat("HighFreq::back_test() \n")
+      cat("HighFreq::roll_portf() \n")
       # Rerun the strategy with fixed start date
-      pnls <- HighFreq::back_test(retx=retx,
+      pnls <- HighFreq::roll_portf(retx=retx,
                                   retp=retp,
                                   startp=startp-1,
                                   endd=endd-1,
                                   lambda=lambda,
-                                  controlv=controlv,
+                                  controll=controll,
                                   coeff=trend)
       pnls[which(is.na(pnls)), ] <- 0
     }  # end if

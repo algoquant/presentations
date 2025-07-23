@@ -1,5 +1,5 @@
 ##############################
-# This is a shiny app for simulating a dual EWMA moving average 
+# This is a shiny app for simulating a dual EMA moving average 
 # crossover strategy for ETFs.
 #
 # Just press the "Run App" button on upper right of this panel.
@@ -14,7 +14,7 @@ library(dygraphs)
 
 ## Model and data setup
 
-captiont <- paste("Dual EWMA Moving Average Crossover Strategy")
+captiont <- paste("Dual EMA Moving Average Crossover Strategy")
 
 ## End setup code
 
@@ -33,7 +33,7 @@ uifun <- shiny::fluidPage(
   ),  # end fluidRow
 
   fluidRow(
-    # Input the EWMA decays
+    # Input the EMA decays
     column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.8, max=0.99, value=0.9, step=0.001)),
     column(width=2, sliderInput("lambdas", label="Slow lambda:", min=0.8, max=0.99, value=0.95, step=0.001)),
     # Input the trade lag
@@ -89,14 +89,14 @@ servfun <- function(input, output) {
     retc <- cumsum(retv)
     nrows <- NROW(retv)
     
-    # Calculate EWMA prices
+    # Calculate EMA prices
     emaf <- HighFreq::run_mean(closep, lambda=lambdaf)
     emas <- HighFreq::run_mean(closep, lambda=lambdas)
 
     # Determine dates when the emas have crossed
     crossi <- sign(emaf - emas)
     
-    # Calculate cumulative sum of EWMA crossing indicator
+    # Calculate cumulative sum of EMA crossing indicator
     crossc <- HighFreq::roll_sum(tseries=crossi, lookb=lagg)
     crossc[1:lagg] <- 0
     # Calculate the positions

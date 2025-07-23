@@ -31,7 +31,7 @@ uifun <- fluidPage(
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
-            sliderInput("n_bins",
+            sliderInput("nbins",
                         "Number of bins:",
                         min=1,
                         max=50,
@@ -49,24 +49,24 @@ uifun <- fluidPage(
 )  # end fluidPage
 
 # Define server code required to draw a histogram
-serv_er <- function(input, output) {
+servfun <- function(input, output) {
 
     # Plot the histogram of the simulated data
     output$histp <- shiny::renderPlot({
-        # isolate() prevents automatic Recalculation when n_bins is updated
-        n_bins <- isolate(input$n_bins)
+        # isolate() prevents automatic Recalculation when nbins is updated
+        nbins <- isolate(input$nbins)
         # Model is recalculated when the recalcb variable is updated
         input$recalcb
         # Calculate breaks based on input$bins from ui.R
-        break_s <- seq(min(datav), max(datav), length.out=n_bins+1)
+        break_s <- seq(min(datav), max(datav), length.out=nbins+1)
 
         # Plot the histogram with the specified number of breaks
         hist(datav, breaks=break_s, col="darkgray", border="white",
              main="Histogram of random data")
     })  # end renderPlot
     
-}  # end serv_er
+}  # end servfun
 
 # Run the Shiny application 
-shinyApp(ui=uifun, server=serv_er)
+shinyApp(ui=uifun, server=servfun)
 
