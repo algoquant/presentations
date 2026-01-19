@@ -20,11 +20,18 @@ library(HighFreq)
 # retp <- returns100["2000/"]
 
 ## Load ETF returns
-retp <- rutils::etfenv$returns[, c("VTI", "TLT", "DBC", "USO", "XLF", "XLK")]
-# retp <- rutils::etfenv$returns[, c("VTI", "IEF", "DBC", "XLP", "XLE", "XLF", "XLV", "XLI", "XLB", "XLK", "XLU", "USO")]
+# retp <- rutils::etfenv$returns[, c("SPY", "TLT", "DBC", "USO", "XLF", "XLK")]
+# retp <- rutils::etfenv$returns[, c("SPY", "IEF", "DBC", "XLP", "XLE", "XLF", "XLV", "XLI", "XLB", "XLK", "XLU", "USO")]
 # symbolv <- colnames(rutils::etfenv$returns)
 # symbolv <- symbolv[!(symbolv %in% c("TLT", "IEF", "MTUM", "QUAL", "VLUE", "USMV", "VXX", "SVXY", "IVE", "VTV"))]
 # retp <- rutils::etfenv$returns[, symbolv]
+
+## Load X* sector ETF returns
+symbolv <- rutils::etfenv$symbolv
+symbolv <- symbolv[grep("^X", symbolv)]
+symbolv <- c("SPY", "TLT", symbolv)
+retp <- na.omit(rutils::etfenv$returns[, symbolv])
+
 
 retp <- na.omit(retp)
 
@@ -39,10 +46,10 @@ nzeros <- colSums(retp == 0)
 retp <- retp[, nzeros < nrows/2]
 nstocks <- NCOL(retp) # number of stocks
 
-indeks <- rowMeans(retp)
-indeks <- xts::xts(indeks, order.by=datev)
-colnames(indeks) <- "Index"
-indeksd <- sd(indeks)
+indeks <- retp$SPY
+# indeks <- xts::xts(indeks, order.by=datev)
+# colnames(indeks) <- "Index"
+volind <- sd(indeks)
 
 
 # Define in-sample and out-of-sample intervals
@@ -80,10 +87,10 @@ uifun <- shiny::fluidPage(
   fluidRow(
     # Input number of eigenvalues for regularized matrix inverse
     # checkboxInput("scalit", label="Scale returns", value=TRUE),
-    column(width=2, sliderInput("dimax", label="Number of eigen vectors:", min=2, max=nstocks, value=6, step=1)),
-    column(width=3, sliderInput("lambda", label="Returns decay:", min=0.96, max=0.999, value=0.995, step=0.001)),
-    column(width=3, sliderInput("lambdacov", label="Covariance decay:", min=0.96, max=0.999, value=0.992, step=0.001)),
-    column(width=3, sliderInput("lambdaw", label="Weight decay:", min=0.3, max=0.9, value=0.7, step=0.1))
+    column(width=2, sliderInput("dimax", label="Number of eigen vectors:", min=2, max=nstocks, value=4, step=1)),
+    column(width=3, sliderInput("lambdaf", label="Returns decay:", min=0.4, max=0.99, value=0.8, step=0.01)),
+    column(width=3, sliderInput("lambdacov", label="Covariance decay:", min=0.7, max=0.99, value=0.95, step=0.01)),
+    column(width=3, sliderInput("lambdaw", label="Weight decay:", min=0.9, max=0.99, value=0.95, step=0.01))
     # Scale returns
     # column(width=2, selectInput("scalit", label="Scale returns", choices=c("True", "False"), selected="TRUE")),
     # Flip signs of the principal components
@@ -116,7 +123,7 @@ servfun <- function(input, output) {
     # interval <- isolate(input$interval)
     dimax <- input$dimax
     # alpha <- isolate(input$alpha)
-    lambda <- input$lambda
+    lambdaf <- input$lambdaf
     lambdacov <- input$lambdacov
     lambdaw <- input$lambdaw
     # scalit <- as.logical(input$scalit)
@@ -135,27 +142,29 @@ servfun <- function(input, output) {
     # retp <- retspca[, 1:dimax]
     
     # Rerun the model
-    pnls <- sim_portfoptim(retp, dimax, lambda, lambdacov, lambdaw)
+    pnls <- HighFreq::sim_portfoptim(retp, dimax, lambdaf, lambdaf, lambdaw)
+    # pnls <- run_pca_momentum(retp, dimax, lambdaf, lambdacov, scalit=FALSE, flipc=FALSE)
     pnls <- pnls[, 1]
     
     
-    # varm <- HighFreq::run_var(retp, lambda=lambda)
-    # perfstat <- HighFreq::run_mean(retp, lambda=lambda)
+    # varm <- HighFreq::run_var(retp, lambdaf=lambdaf)
+    # perfstat <- HighFreq::run_mean(retp, lambdaf=lambdaf)
     # weightv <- perfstat/varm
     # weightv[varm == 0] <- 0
     # weightv[1, ] <- 1
     # weightv <- weightv/sqrt(rowSums(weightv^2))
     # Average the weights over holding period
-    # weightv <- HighFreq::run_mean(weightv, lambda=lambdacov)
+    # weightv <- HighFreq::run_mean(weightv, lambdaf=lambdacov)
     # weightv <- rutils::lagit(weightv)
     # Calculate the momentum profits and losses
     # pnls <- as.numeric(rowSums(weightv*retp))
 
     # pnls <- back_test_r(excess, retv, startp, endp, alpha, dimax, end_stub)
-    pnls <- indeksd*pnls/sd(pnls)
+    pnls <- volind*pnls/sd(pnls)
     pnls <- cbind(indeks, pnls)
     colnames(pnls) <- c("Index", "Strategy")
     pnls
+    
   })  # end reactive code
   
   # Return to output argument a dygraph plot with two y-axes

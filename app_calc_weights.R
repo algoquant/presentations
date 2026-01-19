@@ -14,7 +14,7 @@ library(dygraphs)
 # Model and data setup
 # dimax <- 2
 load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
-# retv <- returns100
+retv <- retstock100
 retv <- retv[, !is.na(retv[NROW(retv), ])]
 retv <- retv[, !is.na(retv[NROW(retv)-1000, ])]
 retv <- na.omit(retv)
@@ -75,7 +75,11 @@ servfun <- function(input, output) {
     # Define startp
     # startp <- c(rep_len(1, lookb-1), endp[1:(nrows-lookb+1)])
     # rerun the model
-    weightv <- HighFreq::calc_weights(retv, dimax=dimax);
+    # Create a list of portfolio optimization parameters
+    controll <- HighFreq::param_portf(method="maxsharpe", dimax=dimax, scalew="sumsq")
+    # Calculate the weights using RcppArmadillo
+    weightv <- drop(HighFreq::calc_weights(retp, controll=controll))
+    # weightv <- HighFreq::calc_weights(retv, dimax=dimax);
     
     # pnls <- roll_portf_n(excess=retv, 
     #                               returns=retv,

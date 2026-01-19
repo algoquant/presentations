@@ -8,6 +8,8 @@ library(shiny)
 library(dygraphs)
 library(rutils)
 
+# Calculate close prices
+pricev <- log(quantmod::Cl(rutils::etfenv$VTI["2008/2009"]))
 
 # Define elements of the UI user interface
 uifun <- shiny::shinyUI(fluidPage(
@@ -35,8 +37,6 @@ servfun <- function(input, output) {
   datav <- shiny::reactive({
     # get model parameters from input
     lambda <- input$lambda
-    # Calculate close prices
-    pricev <- log(quantmod::Cl(rutils::etfenv$VTI["2008/2009"]))
     
     # Calculate EMA prices using filter
     # pricema <- filter(pricev, filter=weights, sides=1)

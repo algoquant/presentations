@@ -35,26 +35,26 @@ uifun <- shiny::fluidPage(
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input EMA decays
-    column(width=2, sliderInput("lambdaf", label="lambdaf:", min=0.1, max=0.3, value=0.2, step=0.001)),
-    column(width=2, sliderInput("lambdas", label="lambdas:", min=0.0, max=0.2, value=0.1, step=0.001)),
+    column(width=2, sliderInput("lambdaf", label="lambdaf:", min=0.7, max=0.98, value=0.8, step=0.01)),
+    column(width=2, sliderInput("lambdas", label="lambdas:", min=0.7, max=0.99, value=0.9, step=0.01)),
     # Input end points interval
     # column(width=2, selectInput("interval", label="End points Interval",
     #                             choices=c("days", "weeks", "months", "years"), selected="days")),
     # Input the look-back interval
-    column(width=2, sliderInput("lookb", label="Look-back", min=5, max=300, value=100, step=1)),
+    # column(width=2, sliderInput("lookb", label="Look-back", min=5, max=300, value=100, step=1)),
     # Input the trade lag
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=2, step=1)),
     # Input the exponent of volume
-    column(width=2, sliderInput("exponent", label="exponent", min=0.05, max=2.0, value=1.0, step=0.05)),
+    # column(width=2, sliderInput("exponent", label="exponent", min=0.05, max=2.0, value=1.0, step=0.05)),
     # Input the floor for volume
-    column(width=2, sliderInput("floo_r", label="vol floor", min=0.01, max=0.25, value=0.1, step=0.01)),
+    # column(width=2, sliderInput("volfoor", label="vol floor", min=0.01, max=0.25, value=0.1, step=0.01)),
     # Input the bid-ask spread
     column(width=2, numericInput("bidask", label="Bid-ask:", value=0.0000, step=0.0001))
     
   ),  # end fluidRow
 
   # Create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dyplot", width="100%", height="600px"), height=10, width=12)
+  dygraphs::dygraphOutput("dyplot", width="90%", height="600px")
 
 )  # end fluidPage interface
 
@@ -80,7 +80,7 @@ servfun <- function(input, output) {
       retsum <- cumsum(retv)
       retsum <- xts::to.daily(retsum)
       retv <- rutils::diffit(quantmod::Cl(retsum))
-      retv <- returns/sd(retv)
+      retv <- retv/sd(retv)
       volumes <- quantmod::Vo(ohlc)
       volumes <- xts::xts(cumsum(volumes), index(datav()))
       volumes <- xts::to.daily(volumes)
@@ -90,7 +90,7 @@ servfun <- function(input, output) {
       ohlc <- get(symbol, rutils::etfenv)
       closep <- quantmod::Cl(ohlc)
       retv <- rutils::diffit(log(closep))
-      retv <- returns/sd(retv)
+      retv <- retv/sd(retv)
       volumes <- quantmod::Vo(ohlc)
       cbind(retv, volumes)
     }  # end if
@@ -115,18 +115,10 @@ servfun <- function(input, output) {
     predv <- datav()[, 2]
     nrows <- NROW(retv)
     
-    # Calculate EMA weights
-    weightf <- exp(-lambdaf*1:lookb)
-    weightf <- weightf/sum(weightf)
-    weightss <- exp(-lambdas*1:lookb)
-    weightss <- weightss/sum(weightss)
-    
     # Calculate EMA prices by filtering with the weights
-    emaf <- .Call(stats:::C_cfilter, predv, filter=weightf, sides=1, circular=FALSE)
-    emaf[1:(lookb-1)] <- emaf[lookb]
-    emas <- .Call(stats:::C_cfilter, predv, filter=weightss, sides=1, circular=FALSE)
-    emas[1:(lookb-1)] <- emas[lookb]
-    
+    emaf <- HighFreq::run_mean(timeser=predv, lambdaf=lambdaf)
+    emas <- HighFreq::run_mean(timeser=predv, lambdaf=lambdas)
+
     # Determine dates when the EMAs have crossed
     indic <- sign(emaf - emas)
     
@@ -136,7 +128,7 @@ servfun <- function(input, output) {
     # This is designed to prevent whipsaws and over-trading.
     # posv <- ifelse(indic == indic_lag, indic, posv)
     
-    indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
+    indics <- HighFreq::roll_sum(timeser=matrix(indic), lookb=lagg)
     indics[1:lagg] <- 0
     posv <- rep(NA_integer_, nrows)
     posv[1] <- 0
@@ -159,14 +151,14 @@ servfun <- function(input, output) {
     # Calculate strategy pnls
     coeff <- (-1)
     # pnls <- 0.5*((coeff*posv*retv) + retv)
-    pnls <- coeff*posv*returns
+    pnls <- coeff*posv*retv
     
     # Calculate transaction costs
     costs <- 0.5*input$bidask*abs(indic)
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[retv<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
     pnls <- cbind(retv, pnls)

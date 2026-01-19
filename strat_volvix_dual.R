@@ -123,7 +123,7 @@ servfun <- function(input, output) {
     nrows <- NROW(retv)
 
     # Calculate the rolling volatility of trading stock
-    volv <- HighFreq::roll_var_ohlc(ohlc=ohlc, lookb=lookb, scale=FALSE)
+    volv <- HighFreq::roll_var_ohlc(ohlc=ohlc, lookb=lookb, scalit=FALSE)
     volv <- sqrt(volv)
     # volv[volv == 0] <- 1
     
@@ -152,8 +152,8 @@ servfun <- function(input, output) {
     # Response equals SVXY returns
     respv <- svxy
     
-    controlv <- HighFreq::param_reg(intercept=TRUE)
-    rollreg <- HighFreq::roll_reg(respv=respv, predm=predm, lookb=lookb, controlv=controlv)
+    controll <- HighFreq::param_reg(intercept=TRUE)
+    rollreg <- HighFreq::roll_reg(respv=respv, predm=predm, lookb=lookb, controll=controll)
     zscores <- rollreg[, NCOL(rollreg), drop=TRUE]
     # zscores[1:lookb] <- 0
     # zscores[is.infinite(zscores)] <- 0
@@ -165,7 +165,7 @@ servfun <- function(input, output) {
     indic[zscores > threshv] <- coeff
     indic[zscores < (-threshv)] <- (-coeff)
     indic <- zoo::na.locf(indic, na.rm=FALSE)
-    indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
+    indics <- HighFreq::roll_sum(timeser=matrix(indic), lookb=lagg)
     indics[1:lagg] <- 0
     posv <- rep(NA_integer_, nrows)
     posv[1] <- 0
@@ -188,7 +188,7 @@ servfun <- function(input, output) {
     # indic[zscores > threshv] <- coeff
     # indic[zscores < (-threshv)] <- (-coeff)
     # indic <- zoo::na.locf(indic, na.rm=FALSE)
-    # indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
+    # indics <- HighFreq::roll_sum(timeser=matrix(indic), lookb=lagg)
     # indics[1:lagg] <- 0
     # posv <- rep(NA_integer_, nrows)
     # posv[1] <- 0

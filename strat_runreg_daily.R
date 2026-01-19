@@ -186,9 +186,9 @@ servfun <- function(input, output) {
     # predm <- cbind(predm, volv)
     
     # Create a list of regression parameters
-    controlv <- HighFreq::param_reg(residscale="scale")
+    controll <- HighFreq::param_reg(residscale="scale")
     # Calculate the trailing z-scores
-    zscores <- HighFreq::run_reg(respv=respv, predm=predm, lambda=lambdaf, controlv=controlv)
+    zscores <- HighFreq::run_reg(respv=respv, predm=predm, lambdaf=lambdaf, controll=controll)
     zscores <- zscores[, NCOL(zscores), drop=FALSE]
     # zscores[1:lookb] <- 0
     # Set initial z-scores to zero

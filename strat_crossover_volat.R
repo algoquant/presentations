@@ -14,7 +14,7 @@ library(dygraphs)
 
 ## Model and data setup
 
-captiont <- paste("EMA Moving Average Crossover Strategy for Volatility")
+captiont <- paste("Crossover EMA Volatility Strategy")
 
 ## End setup code
 
@@ -26,7 +26,7 @@ uifun <- shiny::fluidPage(
   fluidRow(
     # Input stock symbol
     column(width=2, selectInput("symbol", label="Symbol",
-                                choices=rutils::etfenv$symbolv, selected="VTI")),
+                                choices=rutils::etfenv$symbolv, selected="SPY")),
     # Input add annotations Boolean
     column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False")),
     # Input the bid-ask spread
@@ -34,16 +34,16 @@ uifun <- shiny::fluidPage(
   ),  # end fluidRow
 
   fluidRow(
-    # Input look-back intervals
-    column(width=2, sliderInput("fast_back", label="fast_back:", min=1, max=21, value=5, step=1)),
-    column(width=2, sliderInput("slow_back", label="slow_back:", min=11, max=251, value=151, step=1)),
+    # Input the EMA decays
+    column(width=2, sliderInput("lambdaf", label="Fast lambda:", min=0.1, max=0.9, value=0.2, step=0.01)),
+    column(width=2, sliderInput("lambdas", label="Slow lambda:", min=0.1, max=0.9, value=0.8, step=0.01)),
     # Input the trade lag
     column(width=2, sliderInput("lagg", label="lagg", min=1, max=8, value=2, step=1))
   ),  # end fluidRow
   
   # Create output plot panel
-  mainPanel(dygraphs::dygraphOutput("dyplot", width="100%", height="600px"), height=10, width=12)
-
+  dygraphs::dygraphOutput("dyplot", width="90%", height="600px")
+  
 )  # end fluidPage interface
 
 
@@ -69,27 +69,21 @@ servfun <- function(input, output) {
     
     cat("Recalculating strategy for ", input$symbol, "\n")
     # Get model parameters from input argument
-    fast_back <- input$fast_back
-    slow_back <- input$slow_back
+    lambdaf <- input$lambdaf
+    lambdas <- input$lambdas
     lagg <- input$lagg
 
     # Calculate cumulative returns
     ohlc <- ohlc()
     closep <- quantmod::Cl(ohlc)
     retv <- rutils::diffit(log(closep))
-    retv <- returns/sd(retv)
+    retv <- retv/sd(retv)
     retsum <- cumsum(retv)
     nrows <- NROW(retv)
     
     # Calculate the slow and fast volatilities
-    if (fast_back > 1) {
-      fast_var <- HighFreq::roll_var_ohlc(ohlc=ohlc, lookb=fast_back, scale=FALSE)
-      slow_var <- HighFreq::roll_var_ohlc(ohlc=ohlc, lookb=slow_back, scale=FALSE)
-    } else {
-      high_low <- quantmod::Hi(ohlc) - quantmod::Lo(ohlc)
-      fast_var <- as.numeric(high_low)
-      slow_var <- HighFreq::roll_sum(tseries=high_low, lookb=slow_back)/slow_back
-    }  # end if
+    fast_var <- HighFreq::run_var_ohlc(ohlc=ohlc, lambdaf=lambdaf)
+    slow_var <- HighFreq::run_var_ohlc(ohlc=ohlc, lambdaf=lambdas)
 
     # Determine dates when the EMAs have crossed
     indic <- -sign(fast_var - slow_var)
@@ -100,7 +94,7 @@ servfun <- function(input, output) {
     # This is designed to prevent whipsaws and over-trading.
     # posv <- ifelse(indic == indic_lag, indic, posv)
     
-    indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=lagg)
+    indics <- HighFreq::roll_sum(timeser=matrix(indic), lookb=lagg)
     indics[1:lagg] <- 0
     posv <- rep(NA_integer_, nrows)
     posv[1] <- 0
@@ -122,14 +116,14 @@ servfun <- function(input, output) {
     posv <- rutils::lagit(posv, lagg=1)
     
     # Calculate strategy pnls
-    pnls <- posv*returns
+    pnls <- posv*retv
     
     # Calculate transaction costs
     costs <- 0.5*input$bidask*abs(indic)
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as returns
-    pnls <- pnls*sd(retv[returns<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retv[retv<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
     pnls <- cbind(retv, pnls)
