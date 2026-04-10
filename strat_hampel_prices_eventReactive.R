@@ -183,7 +183,7 @@ servfun <- function(input, output) {
     # Calculate number of consecutive indicators in same direction.
     # This is designed to avoid trading on microstructure noise.
     # indic <- ifelse(indic == indic_lag, indic, indic)
-    indics <- HighFreq::roll_sum(tseries=matrix(indic), lookb=input$lagg)
+    indics <- HighFreq::roll_sum(timeser=matrix(indic), lookb=input$lagg)
     indics[1:input$lagg] <- 0
     
     # Calculate posv and pnls from indics.

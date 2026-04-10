@@ -1,6 +1,6 @@
 ##############################
-# This is a shiny app for simulating a dual EMA moving average 
-# crossover strategy for ETFs.
+# This is a shiny app for simulating a dual 
+# crossover EMA strategy for ETFs.
 #
 # Just press the "Run App" button on upper right of this panel.
 ##############################
@@ -14,7 +14,7 @@ library(dygraphs)
 
 ## Model and data setup
 
-captiont <- paste("Dual EMA Moving Average Crossover Strategy")
+captiont <- paste("Dual Crossover EMA Strategy")
 
 ## End setup code
 
@@ -53,22 +53,22 @@ servfun <- function(input, output) {
   values <- reactiveValues()
 
   # Load the closing prices
-  closep <- shiny::reactive({
+  pricev <- shiny::reactive({
     
     symbol <- input$symbol
     cat("Loading data for ", symbol, "\n")
     
     ohlc <- get(symbol, rutils::etfenv$returns)
-    quantmod::Cl(ohlc)
-
+    return(log(quantmod::Cl(ohlc)))
+    
   })  # end Load the closing prices
   
   # Load the log returns
-  retv <- shiny::reactive({
+  retp <- shiny::reactive({
     
     cat("Recalculating returns for ", input$symbol, "\n")
     
-    rutils::diffit(log(closep))
+    return(rutils::diffit(pricev))
 
   })  # end Load the log returns
   
@@ -78,26 +78,26 @@ servfun <- function(input, output) {
     
     cat("Recalculating strategy for ", input$symbol, "\n")
     # Get model parameters from input argument
-    closep <- closep()
+    pricev <- pricev()
     lambdaf <- input$lambdaf
     lambdas <- input$lambdas
     # lookb <- input$lookb
     lagg <- input$lagg
 
     # Calculate cumulative returns
-    retv <- returns()
-    retc <- cumsum(retv)
-    nrows <- NROW(retv)
+    retp <- returns()
+    retc <- cumsum(retp)
+    nrows <- NROW(retp)
     
     # Calculate EMA prices
-    emaf <- HighFreq::run_var(closep, lambda=lambdaf)
-    emas <- HighFreq::run_var(closep, lambda=lambdas)
+    emaf <- HighFreq::run_var(pricev, lambda=lambdaf)
+    emas <- HighFreq::run_var(pricev, lambda=lambdas)
 
     # Determine dates when the emas have crossed
     crossi <- sign(emaf - emas)
     
     # Calculate cumulative sum of EMA crossing indicator
-    crossc <- HighFreq::roll_sum(tseries=crossi, lookb=lagg)
+    crossc <- HighFreq::roll_sum(timeser=crossi, lookb=lagg)
     crossc[1:lagg] <- 0
     # Calculate the positions
     # Flip position only if the crossi and its recent past values are the same.
@@ -123,17 +123,17 @@ servfun <- function(input, output) {
     posv <- rutils::lagit(posv, lagg=1)
     
     # Calculate strategy pnls
-    pnls <- posv*retv
+    pnls <- posv*retp
     
     # Calculate transaction costs
     costs <- 0.5*input$bidask*abs(flipi)
     pnls <- (pnls - costs)
 
     # Scale the pnls so they have same SD as the returns
-    pnls <- pnls*sd(retv[retv<0])/sd(pnls[pnls<0])
+    pnls <- pnls*sd(retp[retp<0])/sd(pnls[pnls<0])
     
     # Bind together strategy pnls
-    pnls <- cbind(retv, pnls)
+    pnls <- cbind(retp, pnls)
     
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))

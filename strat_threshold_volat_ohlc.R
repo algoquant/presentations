@@ -31,7 +31,7 @@ datev <- zoo::index(ohlc)
 nrows <- NROW(ohlc)
 retp <- rutils::diffit(Cl(ohlc))
 
-captiont <- paste("EMA Volatility Crossover Strategy for", symbolv)
+captiont <- paste("EMA Volatility Threshold Strategy for", symbolv)
 
 ## End setup code
 
@@ -44,8 +44,8 @@ uifun <- shiny::fluidPage(
     # Input look-back interval
     column(width=2, sliderInput("lambdaf", label="Lambda",
                                 min=0.1, max=0.9, value=0.8, step=0.01)),
-    # Input look-back intervals
-    column(width=2, sliderInput("thresholdv", label="Threshold:", 
+    # Input look-back threshold
+    column(width=2, sliderInput("threshv", label="Threshold:", 
                                 min=0.001, max=0.04, value=0.01, step=0.001)),
   ),  # end fluidRow
 
@@ -67,7 +67,7 @@ servfun <- function(input, output) {
     cat("Recalculating strategy for ", symbolv, "\n")
     # Get model parameters from input argument
     lambdaf <- input$lambdaf
-    thresholdv <- input$thresholdv
+    threshv <- input$threshv
 
     # Calculate the EMA returns and volatility.
     volma <- HighFreq::run_var_ohlc(ohlc, lambda=lambdaf)
@@ -80,7 +80,7 @@ servfun <- function(input, output) {
     # volma <- sqrt(volma)
     
     # Calculate the positions and PnLs
-    posv <- -sign(rutils::lagit((volma - thresholdv), lagg=1))
+    posv <- -sign(rutils::lagit((volma - threshv), lagg=1))
     pnls <- retp*posv
     # Scale the PnL volatility to that of SPY
     # pnls <- pnls*sd(retp[retp<0])/sd(pnls[pnls<0])

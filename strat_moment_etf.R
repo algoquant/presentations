@@ -123,6 +123,7 @@ servfun <- function(input, output) {
       pnlos <- drop(alphav %*% weightv)
       # Calculate the equal-weighted portfolio pnls
       retew <- rowMeans(retos, na.rm=TRUE)
+      # This is incorrect - instead scale to a target volatility
       # Scale the PnL volatility to that of the equal-weighted portfolio
       pnlos <- pnlos*sd(retew)/sd(pnlos)
       pnlsc <- sign(pnlc - pnlema)*pnlos

@@ -58,10 +58,10 @@ servfun <- function(input, output) {
         # Model is recalculated when the recalcb variable is updated
         input$recalcb
         # Calculate breaks based on input$bins from ui.R
-        break_s <- seq(min(datav), max(datav), length.out=nbins+1)
+        breakv <- seq(min(datav), max(datav), length.out=nbins+1)
 
         # Plot the histogram with the specified number of breaks
-        hist(datav, breaks=break_s, col="darkgray", border="white",
+        hist(datav, breaks=breakv, col="darkgray", border="white",
              main="Histogram of random data")
     })  # end renderPlot
     

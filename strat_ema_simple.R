@@ -22,7 +22,7 @@ library(dygraphs)
 # symbolv <- names(datenv)
 symboletf <- rutils::etfenv$symbolv
 symboletf <- symboletf[!(symboletf %in% c("MTUM", "QUAL", "VLUE", "USMV", "AIEQ"))]
-# retv <- rutils::etfenv$returns[, symboletf]
+# retp <- rutils::etfenv$returns[, symboletf]
 
 load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
 symbolstock <- sort(colnames(retstock))
@@ -40,7 +40,7 @@ uifun <- shiny::fluidPage(
   # Create single row with inputs
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("symbol", label="Symbol", choices=c(symboletf, symbolstock), selected="SPY")),
+    column(width=2, selectInput("symboln", label="Symbol", choices=c(symboletf, symbolstock), selected="SPY")),
     # Input data type Boolean
     # column(width=2, selectInput("datatype", label="Select data type", choices=c("ETF", "Stock"), selected="ETF")),
     # Input predictor type Boolean
@@ -72,26 +72,26 @@ servfun <- function(input, output) {
   values <- reactiveValues()
   
   # Calculate returns and variance
-  retvar <- shiny::reactive({
+  retpar <- shiny::reactive({
     # Get model parameters from input argument
-    symbol <- input$symbol
+    symboln <- input$symboln
     lambdaf <- input$lambdaf
 
-    if (symbol %in% symboletf) {
+    if (symboln %in% symboletf) {
       cat("Loading ETF returns \n")
       # Get ETF returns from rutils::etfenv
-      retv <- na.omit(get(symbol, rutils::etfenv$returns))
-    } else if (symbol %in% symbolstock) {
+      retp <- na.omit(get(symboln, rutils::etfenv$returns))
+    } else if (symboln %in% symbolstock) {
       cat("Loading stock returns \n")
       # Get stock returns from retstock
-      retv <- na.omit(get(symbol, retstock))
+      retp <- na.omit(get(symboln, retstock))
     }  # end if
     
     # Calculate the EMA returns and variance
-    varema <- HighFreq::run_var(retv, lambdaf=lambdaf)
-    retvar <- cbind(retv, varema)
-    colnames(retvar) <- c(symbol, "retema", "variance")
-    return(retvar)
+    varema <- HighFreq::run_var(retp, lambdaf=lambdaf)
+    retpar <- cbind(retp, varema)
+    colnames(retpar) <- c(symboln, "retema", "variance")
+    return(retpar)
     
   })  # end Load the data
 
@@ -103,24 +103,24 @@ servfun <- function(input, output) {
     predictype <- input$predictype
 
     # Calculate the predictor
-    retvar <- retvar()
+    retpar <- retpar()
     switch(predictype,
            "Returns" = {
-             predv <- retvar$retema
+             predv <- retpar$retema
            },
            "Sharpe" = {
-             vars <- retvar$variance
-             predv <- ifelse(vars > 0, retvar$retema/sqrt(vars), 0)
+             vars <- retpar$variance
+             predv <- ifelse(vars > 0, retpar$retema/sqrt(vars), 0)
            },
            "Kelly" = {
-             vars <- retvar$variance
-             predv <- ifelse(vars > 0, retvar$retema/vars, 0)
+             vars <- retpar$variance
+             predv <- ifelse(vars > 0, retpar$retema/vars, 0)
            },
            "Volatility" = {
-             predv <- 1/sqrt(retvar$variance)
+             predv <- 1/sqrt(retpar$variance)
            },
            "Variance" = {
-             predv <- 1/retvar$variance
+             predv <- 1/retpar$variance
            }
     )  # end switch
     
@@ -138,7 +138,7 @@ servfun <- function(input, output) {
   # Calculate pnls
   pnls <- shiny::reactive({
     cat("Calculating pnls\n")
-    symbol <- input$symbol
+    symboln <- input$symboln
     leveragep <- input$leveragep
     trend <- as.numeric(input$trend)
 
@@ -146,12 +146,12 @@ servfun <- function(input, output) {
     # posv <- tanh(leveragep*predv())
     posv <- (leveragep*predv())
     posv <- rutils::lagit(posv, lagg=1)
-    retv <- retvar()[, 1, drop=FALSE]
-    pnls <- trend*posv*retv
+    retp <- retpar()[, 1, drop=FALSE]
+    pnls <- trend*posv*retp
     # Scale the PnL volatility to that of the index
-    pnls <- pnls*sd(retv[retv<0])/sd(pnls[pnls<0])
-    pnls <- cbind(retv, pnls)
-    colnames(pnls) <- c(symbol, "Strategy")
+    pnls <- pnls*sd(retp[retp<0])/sd(pnls[pnls<0])
+    pnls <- cbind(retp, pnls)
+    colnames(pnls) <- c(symboln, "Strategy")
     return(pnls)
 
   })  # end Calculate pnls
@@ -161,27 +161,28 @@ servfun <- function(input, output) {
   dyplot <- shiny::reactive({
     cat("Plotting pnls\n")
     
+    symboln <- input$symboln
     pnls <- pnls()
-    colnamev <- colnames(pnls)
+    colv <- colnames(pnls)
 
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
     sharper <- round(sharper, 3)
 
-    # captiont <- paste("Contrarian Strategy for", input$symbol, "Using the Hampel Filter Over Prices")
+    # captiont <- paste("Contrarian Strategy for", symboln, "Using the Hampel Filter Over Prices")
     if (input$trend == "1") {
-      captiont <- paste("Trending Strategy for", input$symbol, "/ \n", 
+      captiont <- paste("Trending Strategy for", symboln, "/ \n", 
                         paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "))
     } else if (input$trend == "-1") {
-      captiont <- paste("Mean Reverting Strategy for", input$symbol, "/ \n", 
+      captiont <- paste("Mean Reverting Strategy for", symboln, "/ \n", 
                         paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "))
     }  # end if
     
     dygraphs::dygraph(cumsum(pnls), main=captiont) %>%
-      dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
-      dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
-      dySeries(name=colnamev[1], axis="y", strokeWidth=1, col="blue") %>%
-      dySeries(name=colnamev[2], axis="y2", strokeWidth=1, col="red")
+      dyAxis("y", label=colv[1], independentTicks=TRUE) %>%
+      dyAxis("y2", label=colv[2], independentTicks=TRUE) %>%
+      dySeries(name=colv[1], axis="y", strokeWidth=1, col="blue") %>%
+      dySeries(name=colv[2], axis="y2", strokeWidth=1, col="red")
 
   })  # end reactive
 

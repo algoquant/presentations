@@ -68,7 +68,7 @@ pnll <- pnll*sd(retp)/sd(pnll)
 # Add unit intercept column to predictor matrix
 predh <- cbind(rep(1, NROW(fcasth)), fcasth)
 predl <- cbind(rep(1, NROW(fcastl)), fcastl)
-controlv <- HighFreq::param_reg()
+controll <- HighFreq::param_reg()
 
 ## End setup code
 
@@ -80,7 +80,7 @@ uifun <- shiny::fluidPage(
   # create single row with four slider inputs
   fluidRow(
     # Input lambda decay parameter
-    column(width=2, sliderInput("lambda", label="lambda:", min=0.01, max=0.99, value=0.5, step=0.01))
+    column(width=2, sliderInput("lambdaf", label="lambda:", min=0.01, max=0.99, value=0.5, step=0.01))
     # Input slow lambda decay parameter
     # column(width=2, sliderInput("lambdas", label="lambda slow:", min=0.98, max=0.999, value=0.99, step=0.001)),
     # column(width=2, sliderInput("lambdas", label="lambda slow:", min=0.1, max=0.9, value=0.5, step=0.01))
@@ -111,12 +111,12 @@ servfun <- shiny::shinyServer(function(input, output) {
   # Rerun the strategy
   wealthv <- shiny::reactive({
     cat("Recalculating the strategy", "\n")
-    lambda <- input$lambda
+    lambdaf <- input$lambdaf
 
     # Kelly
-    # wh <- HighFreq::run_mean(pnlh, lambda=lambda)/HighFreq::run_var(pnlh, lambda=lambda)
+    # wh <- HighFreq::run_mean(pnlh, lambdaf=lambdaf)/HighFreq::run_var(pnlh, lambdaf=lambdaf)
     # wh <- rutils::lagit(wh)
-    # wl <- HighFreq::run_mean(pnll, lambda=lambda)/HighFreq::run_var(pnll, lambda=lambda)
+    # wl <- HighFreq::run_mean(pnll, lambdaf=lambdaf)/HighFreq::run_var(pnll, lambdaf=lambdaf)
     # wl <- rutils::lagit(wl)
     # smsq <- sqrt(wh^2+wl^2)
     # wh <- ifelse(smsq>0, wh/smsq, 0)
@@ -124,19 +124,19 @@ servfun <- shiny::shinyServer(function(input, output) {
     # pnls <- (wh*pnlh + wl*pnll)
     
     # Kalman
-    # wh <- HighFreq::run_mean(residh, lambda=lambda)
+    # wh <- HighFreq::run_mean(residh, lambdaf=lambdaf)
     # wh <- rutils::lagit(wh)
-    # wl <- HighFreq::run_mean(residl, lambda=lambda)
+    # wl <- HighFreq::run_mean(residl, lambdaf=lambdaf)
     # wl <- rutils::lagit(wl)
     # kgain <- wh/(wh+wl)
     # kgain[1] <- 0.5
     # pnls <- ((1-kgain)*pnlh + kgain*pnll)
     
     # Regression
-    regh <- HighFreq::run_reg(retp, predh, lambda=lambda, controlv=controlv)
+    regh <- HighFreq::run_reg(retp, predh, lambdaf=lambdaf, controll=controll)
     wh <- rutils::lagit(regh[, 2])
-    regl <- HighFreq::run_reg(retp, predl, lambda=lambda, controlv=controlv)
-    wh <- rutils::lagit(regl[, 2])
+    regl <- HighFreq::run_reg(retp, predl, lambdaf=lambdaf, controll=controll)
+    wl <- rutils::lagit(regl[, 2])
     smsq <- sqrt(wh^2+wl^2)
     wh <- ifelse(smsq>0, wh/smsq, 0)
     wl <- ifelse(smsq>0, wl/smsq, 0)
