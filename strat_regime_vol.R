@@ -2,8 +2,18 @@
 # This is a shiny app for simulating a volatility regime 
 # switching strategy.
 # 
-# When the volatility is low and below the threshold, 
-# the strategy maintains a long position in the stock. 
+# The strategy combines regime switching with volatility 
+# targeting.
+# The strategy uses the level of the range volatility 
+# compared to the threshold volatility level, to determine 
+# high and low volatility regimes.
+# When the volatility is low and below the threshold, the 
+# strategy maintains a long position in the stock, equal 
+# to the target volatility divided by the range volatility.  
+# So the long position is larger when the volatility is 
+# lower, and smaller when the volatility is higher.
+# Using the target volatility improves the performance, 
+# because it adds leverage when the volatility is low.
 # As the volatility rises above the threshold, it gradually 
 # reduces the stock position and increases the position in 
 # a mean-reverting autoregressive strategy.
@@ -22,20 +32,21 @@ library(dygraphs)
 
 # Uncomment the below to simulate the strategy for ETFs
 # Get the vector of ETF symbols from the environment
-envv <- rutils::etfenv
-symbolv <- get("symbolv", envir=envv)
-symboln <- "SPY"
+# envv <- rutils::etfenv
+# symbolv <- get("symbolv", envir=envv)
+# symboln <- "SPY"
 
 # Uncomment the below to simulate the strategy for S&P500 stocks
 # Load the SP500 OHLC prices
-# if (!exists("sp500env")) {
-#   cat("Loading the S&P500 OHLC prices.\n")
-#   load("/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
-# } # end if
-# envv <- sp500env
-# symbolv <- sort(names(envv))
-# symboln <- "AAPL"
+if (!exists("sp500env")) {
+  cat("Loading the S&P500 OHLC prices.\n")
+  load("/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
+} # end if
+envv <- sp500env
+symbolv <- sort(names(envv))
+symboln <- "AAPL"
 
+volt <- 0.01 ##  Volatility target for scaling the strategy PnLs
 
 captiont <- paste("Volatility Regime Switching Strategy")
 
@@ -52,11 +63,13 @@ uifun <- shiny::fluidPage(
     ##  Input lambda returns decay parameter
     column(width=2, sliderInput("lambdaf", label="Returns decay", min=0.1, max=0.9, value=0.3, step=0.1)),
     ##  Input lambda variance decay parameter
-    column(width=2, sliderInput("lambdavol", label="Vol decay", min=0.1, max=0.9, value=0.6, step=0.1)),
+    column(width=2, sliderInput("lambdavol", label="Vol decay", min=0.1, max=0.9, value=0.7, step=0.1)),
     ##  Input volatility scale parameter
     column(width=2, sliderInput("volscale", label="Scale", min=0.01, max=0.1, value=0.01, step=0.01)),
     ##  Input volatility threshold parameter
-    column(width=2, sliderInput("volthresh", label="Vol threshold", min=0.001, max=0.05, value=0.023, step=0.001)),
+    column(width=2, sliderInput("volthresh", label="Vol threshold", min=0.001, max=0.05, value=0.03, step=0.001)),
+    ##  Input volatility target parameter
+    column(width=2, sliderInput("volt", label="Vol target", min=0.01, max=0.05, value=0.01, step=0.01)),
   ),  ##  end fluidRow
 
   ##  Render the plot in a new row
@@ -145,10 +158,12 @@ servfun <- function(input, output) {
     cat("Recalculating PnLs for", symboln, "\n")
     volscale <- input$volscale
     volthresh <- input$volthresh
-
+    volt <- input$volt
+    
     ##  Calculate the strategy PnLs
     varv <- varv()
-    volv <- rutils::lagit(sqrt(varv), lagg=1)
+    varv <- rutils::lagit(varv, lagg=1, pad_zeros=FALSE)
+    volv <- sqrt(varv)
     ##  Scale the returns by the range variance
     rets <- rets()
     # reton <- rets$overnight
@@ -162,7 +177,7 @@ servfun <- function(input, output) {
     # or a mean-reverting regime based on the volatility
     probv <- (1 + tanh((volv-volthresh)/volscale))/2
     # Apply the probabilities to the strategy PnLs
-    pnls <- pnls*probv + retp*(1-probv)
+    pnls <- pnls*probv + retp*volt/volv*(1-probv)
 
 
     ##  Bind together strategy pnls
