@@ -14,8 +14,22 @@ library(HighFreq)
 library(shiny)
 library(dygraphs)
 
-# Calculate the range of daily prices for SPY
-symbolv <- rutils::etfenv$symbolv
+# Load the overnight returns of SP500 stocks or ETFs
+if (!exists("reton")) {
+  # cat("Loading the S&P500 overnight returns.\n")
+  # load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns_overnight.RData")
+  cat("Loading the ETF overnight returns.\n")
+  load("/Users/jerzy/Develop/data/etf_ohlc.RData")
+} # end if
+
+# Select the most liquid ETFs based on trading volumes
+volumev <- eapply(etfenv, function(ohlc) {
+sum(quantmod::Vo(ohlc))
+})  # end eapply
+volumev <- sort(unlist(volumev), decreasing=TRUE)
+symbolv <- names(volumev)
+
+# symbolv <- sort(names(etfenv))
 symboln <- "SPY"
 volt <- 0.01 ##  Volatility target for scaling the strategy PnLs
 
@@ -33,7 +47,7 @@ uifun <- shiny::fluidPage(
     ##  Input stock symboln
     column(width=1, selectInput("symboln", label="Symbol", choices=symbolv, selected="SPY")),
     ##  Input lambda decay parameter
-    column(width=2, sliderInput("lambdaf", label="Lambda", min=0.9, max=0.999, value=0.99, step=0.001)),
+    column(width=2, sliderInput("lambdaf", label="Lambda", min=0.8, max=0.99, value=0.99, step=0.01)),
   ),  ##  end fluidRow
 
   ##  Render the plot in a new row
@@ -56,7 +70,7 @@ servfun <- function(input, output) {
     symboln <- input$symboln
     cat("Loading data for", symboln, "\n")
 
-    ohlc <- log(get(symboln, rutils::etfenv))
+    ohlc <- log(get(symboln, etfenv))
     return(ohlc)
     
   })  ##  end Load the data
@@ -110,7 +124,7 @@ servfun <- function(input, output) {
     ##  Calculate the range variance
     ohlc <- ohlc()
     varv <- HighFreq::run_var_ohlc(ohlc, lambda=lambdaf)
-    # varv[1:2] <- 1
+    varv[1:2] <- 1
     return(varv)
     
   })  ##  end Calculate the range variance
@@ -131,7 +145,9 @@ servfun <- function(input, output) {
     posv <- sign(retm)*volt^2/varv
     posv <- rutils::lagit(posv, lagg=1)
     pnls <- posv*reton
-
+    # Scale the strategy PnLs to have the same volatility as the average overnight returns for all stocks
+    pnls <- pnls*sd(reton[reton<0])/sd(pnls[pnls<0])
+    
     ##  Bind together strategy pnls
     pnls <- cbind(reton, pnls)
     colnames(pnls) <- c(symboln, "Strategy")
@@ -150,6 +166,7 @@ servfun <- function(input, output) {
   output$dyplot <- dygraphs::renderDygraph({
     
     ##  Get the pnls
+    symboln <- input$symboln
     pnls <- pnls()
     colnamev <- colnames(pnls)
     
@@ -157,7 +174,7 @@ servfun <- function(input, output) {
     sharper <- values$sharper
 
     ##  Standard plot without shading
-    captiont <- paste0(c(paste0(stringv, " SR="), "Trending SR="), sharper, collapse=" / ")
+    captiont <- paste0(paste(c(symboln, "Strategy"), "SR="), sharper, collapse=" / ")
     ##  Plot dygraph without shading
     dyplot <- dygraphs::dygraph(pnls[, 1:2], main=captiont) %>%
       dyOptions(colors=c("blue", "red"), strokeWidth=1) %>%

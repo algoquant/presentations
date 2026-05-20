@@ -32,21 +32,28 @@ library(dygraphs)
 
 # Uncomment the below to simulate the strategy for ETFs
 # Get the vector of ETF symbols from the environment
-# envv <- rutils::etfenv
+if (!("etfenv" %in% ls())) {
+  cat("Loading the ETF OHLC prices.\n")
+  load("/Users/jerzy/Develop/data/etf_ohlc.RData")
+} # end if
+envv <- etfenv
 # symbolv <- get("symbolv", envir=envv)
-# symboln <- "SPY"
+symbolv <- sort(names(envv))
+symboln <- "SPY"
 
 # Uncomment the below to simulate the strategy for S&P500 stocks
 # Load the SP500 OHLC prices
-if (!exists("sp500env")) {
-  cat("Loading the S&P500 OHLC prices.\n")
-  load("/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
-} # end if
-envv <- sp500env
-symbolv <- sort(names(envv))
-symboln <- "AAPL"
+# if (!exists("sp500env")) {
+#   cat("Loading the S&P500 OHLC prices.\n")
+#   load("/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
+# } # end if
+# envv <- sp500env
+# symbolv <- sort(names(envv))
+# symboln <- "AAPL"
 
+rangev <- "2007/"
 volt <- 0.01 ##  Volatility target for scaling the strategy PnLs
+varfloor <- 1e-8 ##  Variance floor to prevent division by zero in Kelly ratio calculations
 
 captiont <- paste("Volatility Regime Switching Strategy")
 
@@ -61,13 +68,13 @@ uifun <- shiny::fluidPage(
     ##  Input stock symboln
     column(width=1, selectInput("symboln", label="Symbol", choices=symbolv, selected=symboln)),
     ##  Input lambda returns decay parameter
-    column(width=2, sliderInput("lambdaf", label="Returns decay", min=0.1, max=0.9, value=0.3, step=0.1)),
+    column(width=2, sliderInput("lambdaf", label="Returns decay", min=0.1, max=0.9, value=0.1, step=0.1)),
     ##  Input lambda variance decay parameter
-    column(width=2, sliderInput("lambdavol", label="Vol decay", min=0.1, max=0.9, value=0.7, step=0.1)),
+    column(width=2, sliderInput("lambdavol", label="Vol decay", min=0.1, max=0.9, value=0.3, step=0.1)),
     ##  Input volatility scale parameter
     column(width=2, sliderInput("volscale", label="Scale", min=0.01, max=0.1, value=0.01, step=0.01)),
     ##  Input volatility threshold parameter
-    column(width=2, sliderInput("volthresh", label="Vol threshold", min=0.001, max=0.05, value=0.03, step=0.001)),
+    column(width=2, sliderInput("volthresh", label="Vol threshold", min=0.01, max=0.07, value=0.02, step=0.01)),
     ##  Input volatility target parameter
     column(width=2, sliderInput("volt", label="Vol target", min=0.01, max=0.05, value=0.01, step=0.01)),
   ),  ##  end fluidRow
@@ -92,7 +99,7 @@ servfun <- function(input, output) {
     symboln <- input$symboln
     cat("Loading data for", symboln, "\n")
 
-    ohlc <- log(get(symboln, envv))
+    ohlc <- log(get(symboln, envv)[rangev])
     return(ohlc)
     
   })  ##  end Load the data
@@ -146,7 +153,7 @@ servfun <- function(input, output) {
     ##  Calculate the range variance
     ohlc <- ohlc()
     varv <- HighFreq::run_var_ohlc(ohlc, lambda=lambdavol)
-    # varv[1:2] <- 1
+    varv[1:5] <- 1.0
     return(varv)
     
   })  ##  end Calculate the range variance
@@ -177,7 +184,7 @@ servfun <- function(input, output) {
     # or a mean-reverting regime based on the volatility
     probv <- (1 + tanh((volv-volthresh)/volscale))/2
     # Apply the probabilities to the strategy PnLs
-    pnls <- pnls*probv + retp*volt/volv*(1-probv)
+    pnls <- probv*pnls + (1-probv)*retp*volt/volv
 
 
     ##  Bind together strategy pnls

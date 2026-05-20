@@ -15,14 +15,15 @@ library(dygraphs)
 
 datenv <- rutils::etfenv
 symbolv <- get("symbolv", datenv)
-symboln <- "VTI"
+symboln <- "SPY"
+captiont <- "Exponential Moving Average (EMA) Prices"
 
 ## End setup code
 
 
 ## Create elements of the user interface
 uifun <- shiny::fluidPage(
-  titlePanel("VTI EMA Prices"),
+  titlePanel(captiont),
   
   # Create single row of widgets with two slider inputs
   fluidRow(
@@ -30,7 +31,7 @@ uifun <- shiny::fluidPage(
     column(width=2, selectInput("symboln", label="Symbol",
                                 choices=symbolv, selected=symboln)),
     # Input look-back interval
-    column(width=2, sliderInput("lambda", label="Lambda decay factor",
+    column(width=2, sliderInput("lambdaf", label="Lambda decay factor",
                                 min=0.5, max=0.99, value=0.9, step=0.01))
   ),  # end fluidRow
   
@@ -48,7 +49,7 @@ servfun <- shiny::shinyServer(function(input, output) {
     cat("Getting the close prices\n")
     # Get the data
     ohlc <- get(input$symboln, datenv)
-    pricev <- log(quantmod::Cl(ohlc["2008/2009"]))
+    pricev <- log(quantmod::Cl(ohlc["2020-01/2020-05"]))
     # Return the data
     pricev
   })  # end reactive code
@@ -57,10 +58,10 @@ servfun <- shiny::shinyServer(function(input, output) {
   pricema <- shiny::reactive({
     cat("Calculating the EMA indicator\n")
     # Get model parameters from input argument
-    lambda <- input$lambda
+    lambdaf <- input$lambdaf
     # Calculate EMA prices recursively using RcppArmadillo
     pricev <- pricev()
-    pricema <- HighFreq::run_mean(pricev, lambda=lambda)
+    pricema <- HighFreq::run_mean(pricev, lambdaf=lambdaf)
     pricema[is.na(pricema)] <- 0
     # Return the plot data
     pricema <- cbind(pricev, pricema)

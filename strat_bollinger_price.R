@@ -44,15 +44,9 @@ uifun <- shiny::fluidPage(
   # Create single row with inputs
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("symboln", label="Symbol", choices=c(symboletf, symbolstock), selected="QQQ")),
-  # ),  # end fluidRow
-  # 
-  # # Create single row with inputs
-  # fluidRow(
+    column(width=1, selectInput("symboln", label="Symbol", choices=c(symboletf, symbolstock), selected="QQQ")),
     # Input lambda decay parameter
     column(width=2, sliderInput("lambdaf", label="lambda:", min=0.1, max=0.99, value=0.1, step=0.01)),
-    # Input Look back interval
-    # column(width=2, sliderInput("lookb", label="Look back", min=3, max=250, value=100, step=1)),
     # If trend=1 then trending, If trend=(-1) then contrarian
     column(width=2, selectInput("trendind", label="Trend coefficient", choices=c(1, -1), selected=(-1))),
   
@@ -156,7 +150,7 @@ servfun <- function(input, output) {
                       "Number trades =", ntrades)
     endw <- rutils::calc_endpoints(pnls, interval="weeks")
     dygraphs::dygraph(cumsum(pnls)[endw], main=captiont) %>%
-      dyOptions(colors=c("blue", "red", "green"), strokeWidth=2) %>%
+      dyOptions(colors=c("blue", "red", "green"), strokeWidth=1) %>%
       dyLegend(show="always", width=300)
     
   })  # end reactive

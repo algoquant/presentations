@@ -60,3 +60,10 @@ R_Markdown_to_ioslides_example_cache/
 *.csv
 *cache*
 RFinanceChicago2022/
+*.js
+*.css
+*.yml
+*.jpeg
+/images
+.DS_Store
+/figure

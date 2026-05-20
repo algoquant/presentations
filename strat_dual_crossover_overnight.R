@@ -22,7 +22,7 @@ library(dygraphs)
 captiont <- paste("Dual EMA Crossover Strategy For Daily, Daytime, Overnight Returns")
 
 # Calculate the log of OHLC SPY prices
-ohlc <- log(rutils::etfenv$SPY)
+ohlc <- log(rutils::etfenv$VTI)
 openp <- quantmod::Op(ohlc)
 highp <- quantmod::Hi(ohlc)
 lowp <- quantmod::Lo(ohlc)
@@ -135,6 +135,7 @@ servfun <- function(input, output) {
     posv <- rutils::lagit(posv, lagg=1)
     
     # Calculate strategy pnls
+    # pnls <- trend*posv*daily
     pnls <- trend*posv*retv
     
     # Calculate transaction costs
@@ -155,7 +156,7 @@ servfun <- function(input, output) {
     pnls <- cumsum(pnls)
     # pnls <- cbind(pnls, emaf, emas)
     # colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "EMAF", "EMAS")
-    colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Combined")
+    colnames(pnls) <- c(input$symbol, "Strategy", "Combined")
     # pnls <- cbind(pnls, pricev[longi], pricev[shorti])
     # colnames(pnls) <- c(paste(input$symbol, "Returns"), "Strategy", "Buy", "Sell")
 
@@ -200,8 +201,8 @@ servfun <- function(input, output) {
       colorv <- c("blue", "red", "green", "orange")
       dygraphs::dygraph(pnls, main=captiont) %>%
       # dygraphs::dygraph(pnls[, c(1, 3, 4)], main=captiont) %>%
-        dyOptions(colors=colorv, strokeWidth=2) %>%
-          dyLegend(show="always", width=300)
+        dyOptions(colors=colorv, strokeWidth=1) %>%
+          dyLegend(show="always", width=400)
         # dyAxis("y", label=colnamev[1], independentTicks=TRUE) %>%
         # dyAxis("y2", label=colnamev[2], independentTicks=TRUE) %>%
         # dySeries(name=colnamev[1], axis="y", strokeWidth=1, col="blue") %>%

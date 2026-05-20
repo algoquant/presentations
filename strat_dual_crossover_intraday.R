@@ -28,8 +28,9 @@ library(dygraphs)
 
 
 # Get all the file names with *.RData in the data/minutes directory
-filen <- Sys.glob("/Users/jerzy/Develop/data/minutes/*.RData")
-symbolv <- sapply(filen, function(x) {
+filev <- Sys.glob("/Users/jerzy/Develop/data/minutes/*.RData")
+# Extract the file names without the directory and extension to get the symbols
+filev <- sapply(filev, function(x) {
   x <- strsplit(x, split="/")
   x <- last(x[[1]])
   strsplit(x, split="[.]")[[1]][1]
@@ -44,9 +45,12 @@ symbolv <- sapply(filen, function(x) {
 timev <- seq(from=as.POSIXct("2025-06-13 06:00:00", tz="America/New_York"),
              to=as.POSIXct("2025-06-13 18:00:00", tz="America/New_York"),
              by="10 min")
-# Remove the date
+# Format the times to hours, minutes, and seconds
 timev <- format(timev, format="%H:%M:%S")
 
+# Default values for the time interval
+startt <- timev[22]
+endt <- timev[61]
 
 
 ## Model and data setup
@@ -62,7 +66,9 @@ uifun <- shiny::fluidPage(
 
   shiny::fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("symboln", label="Symbol", choices=symbolv, selected="SPY")),
+    # column(width=2, selectInput("symboln", label="Symbol", choices=symbolv, selected="SPY")),
+    # Input file name
+    column(width=2, selectInput("filen", label="File name", choices=filev, selected=filev[4])),
     # Input trending or reverting (contrarian) strategy
     column(width=2, selectInput("coeff", label="Trend (1) Revert (-1)", choices=c(1, -1), selected=(1))),
     # Input the bid-ask spread
@@ -76,7 +82,7 @@ uifun <- shiny::fluidPage(
     column(width=5, sliderInput("lambdav", label="Fast and Slow Lambdas:", min=0.1, max=0.99, value=c(0.97, 0.99), step=0.01, width="100%")),
     # Input the time of day
     column(width=5, sliderTextInput("timev", label="Start and End Times:", choices=timev,
-                                    selected=c(first(timev), last(timev)), width="100%")),
+                                    selected=c(startt, endt), width="100%")),
   ),  # end fluidRow
 
   # Create output plot panel
@@ -91,19 +97,37 @@ servfun <- function(input, output) {
   # Create an empty list of reactive values.
   values <- reactiveValues()
   
-  # Load the list of OHLC prices
-  pricel <- shiny::reactive({
+  # Load the list of prices
+  pricelist <- shiny::reactive({
     # Get the symbol from the input
-    symboln <- input$symboln
-    cat("Loading OHLC prices for", symboln, "\n")
+    filen <- input$filen
+    symboln <- strsplit(filen, split="_")[[1]][1]
+    values$symboln <- symboln
+    
     # Load the data file
-    filen <- paste0("/Users/jerzy/Develop/data/minutes/", symboln, ".RData")
+    filen <- paste0("/Users/jerzy/Develop/data/minutes/", filen, ".RData")
+    cat("Loading prices from the file: ", filen, "\n")
+    
+    
     if (file.exists(filen)) {
-      load(filen)
-      return(pricel)
+      loadd <- load(filen)
+      # if (exists("pricel")) {
+      #   return(pricel)
+      # } else {
+        # Extract the list of intraday prices
+        datal <- get(loadd)
+        if (class(datal)[1] == "list") {
+          pricel <- lapply(datal, quantmod::Cl)
+        } else {
+          pricev <- quantmod::Cl(datal)
+          pricel <- split(pricev, f="days")
+        } # end if
+        return(pricel)
+      # } # end if
     } else {
       stop(paste("File not found:", filen))
     }  # end if
+    return(pricel)
     
   })  # end Load the OHLC prices
   
@@ -111,7 +135,9 @@ servfun <- function(input, output) {
   # Recalculate the strategy
   pnls <- shiny::reactive({
     
-    cat("Recalculating strategy", "\n")
+    # Get the symbol name
+    symboln <- values$symboln
+    cat("Recalculating strategy for", symboln, "\n")
     values$ntrades <- 0
     # Get model parameters from input arguments
     # Debounce the inputs to avoid excessive recalculations
@@ -130,14 +156,19 @@ servfun <- function(input, output) {
     # look_back <- input$look_back
     # lagg <- input$lagg
     lagg <- 1
-    pricel <- pricel()
+    pricel <- pricelist()
+    # cat("class(pricel)", class(pricel), "\n")
+    # cat("head(pricel)", head(pricel[[1]]), "\n")
     
     ntrades <- 0
-    pnll <- lapply(pricel, function(ohlc) {
-      pricev <- ohlc[, 4]
-      scrub_online(pricev, threshv=threshv)
-      pricev <- xts::xts(pricev, order.by=index(ohlc))
+    pnll <- lapply(pricel, function(pricev) {
+      # pricev <- ohlc[, 4]
+      # scrub_online(pricev, threshv=threshv)
+      # pricev <- xts::xts(pricev, order.by=index(ohlc))
       pricev <- pricev[timev]
+      if (NROW(pricev) < 10) {
+        return(NULL)
+      }  ## end if
       retv <- rutils::diffit(pricev)
       nrows <- NROW(pricev)
       # Calculate EMA prices
@@ -168,12 +199,12 @@ servfun <- function(input, output) {
       costs <- 0.5*input$bidask*tradez
       pnls <- (pnls - costs)
       # pnls <- cbind(retv, pnls)
-      # colnames(pnls) <- c("SPY", "Strategy")
+      # colnames(pnls) <- c(symboln, "Strategy")
       # return(pnls)
-      return(xts::xts(matrix(c(SPY=sum(retv), Strategy=sum(pnls)), nr=1), as.Date(end(pricev))))
-    })
+      return(cbind(SPY=retv, Strategy=pnls))
+    }) ##  end lapply
     pnls <- do.call(rbind, pnll)
-    colnames(pnls) <- c("SPY", "Strategy")
+    colnames(pnls) <- c(symboln, "Strategy")
     values$ntrades <- ntrades
     # Calculate Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
@@ -197,8 +228,8 @@ servfun <- function(input, output) {
     sharper <- values$sharper
     # Get number of trades
     ntrades <- values$ntrades
-    # Get the symbol from the input
-    symboln <- input$symboln
+    # Get the symbol name
+    symboln <- values$symboln
     
     captiont <- paste0("Strategy for ", symboln, " / \n", 
                       paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), " / \n",
