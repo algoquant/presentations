@@ -34,7 +34,7 @@ if (!("etfenv" %in% ls())) {
   load("/Users/jerzy/Develop/data/etf_ohlc.RData")
 } # end if
 envv <- etfenv
-symboln <- "SPY"
+symboln <- "QQQ"
 
 # Vector of stock symbols in the environment
 symbolv <- sort(names(envv))
@@ -63,12 +63,12 @@ uifun <- shiny::fluidPage(
     column(width=1, selectInput("scaling_method", label="Scaling", 
       choices=c("Volatility"="inverse_volatility", "Variance"="inverse_variance"), selected="inverse_volatility")),
     ##  Input lambda decay parameter
-    column(width=2, sliderInput("lambdaf", label="Lambda", min=0.1, max=0.99, value=0.2, step=0.01)),
+    column(width=2, sliderInput("lambdaf", label="Decay factor", min=0.1, max=0.99, value=0.9, step=0.01)),
   ),  ##  end fluidRow
 
   ##  Render the plot in a new row
   fluidRow(
-    dygraphs::dygraphOutput("dyplot", width="90%", height="600px")
+    dygraphs::dygraphOutput("dyplot", width="90%", height="700px")
   ),  ##  end fluidRow
   
 )  ##  end fluidPage interface
@@ -152,7 +152,6 @@ servfun <- function(input, output) {
       varv <- HighFreq::run_var_ohlc(ohlc, lambda=lambdaf)
     } ## end if
     varv[varv < varfloor] <- varfloor
-    varv <- rutils::lagit(varv, lagg=1)
     varv[1:3] <- 1
     # cat("sum(varv) = ", sum(varv), "\n")
     return(varv)
@@ -177,6 +176,7 @@ servfun <- function(input, output) {
       posv <- volt/sqrt(varv)
     } ## end if
 
+    posv <- rutils::lagit(posv, lagg=1)
     pnls <- posv*retp
     
     # Scale the strategy returns to have the same volatility as the underlying returns
@@ -191,7 +191,9 @@ servfun <- function(input, output) {
     values$sharper <- round(sharper, 3)
     
     # cat("sum(pnls) = ", sum(pnls), "\n")
-    return(cumsum(pnls))
+    pnls <- cbind(cumsum(pnls), posv)
+    colnames(pnls) <- c(symboln, "Strategy", "Position")
+    return(pnls)
 
   })  ##  end Recalculate the strategy
   
@@ -202,20 +204,23 @@ servfun <- function(input, output) {
     
     ##  Get the pnls
     pnls <- pnls()
-    colnamev <- colnames(pnls)
-    
+
     ##  Get Sharpe ratios
     sharper <- values$sharper
     return_label <- if (input$return_type == "overnight") "Overnight" else "Daily"
 
-    ##  Standard plot without shading
+    ##  Create dygraph plot
     captiont <- paste0(c(paste0(return_label, " SR="), "Timing SR="), sharper, collapse=" / ")
-    ##  Plot dygraph without shading
-    dyplot <- dygraphs::dygraph(pnls[, 1:2], main=captiont) %>%
-      dyOptions(colors=c("blue", "red"), strokeWidth=1) %>%
-      dyLegend(show="always", width=200)
+    colv <- colnames(pnls)
+    dyplot <- dygraphs::dygraph(pnls, main=captiont) %>%
+      dyAxis("y", label=colv[1], independentTicks=TRUE) %>%
+      dyAxis("y2", label=colv[3], independentTicks=TRUE) %>%
+      dySeries(name=colv[1], axis="y", strokeWidth=1, col="blue") %>%
+      dySeries(name=colv[2], axis="y", strokeWidth=1, col="red") %>%
+      dySeries(name=colv[3], axis="y2", strokeWidth=1, col="green") %>%
+      dyLegend(show="always", width=300)
     
-    ##  Plot the dygraph object
+    ##  Return the dygraph object
     return(dyplot)
 
 

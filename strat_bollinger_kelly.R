@@ -1,5 +1,5 @@
 ##############################
-# This is a shiny app for simulating a contrarian strategy 
+# This is a shiny app for simulating a Bollinger strategy 
 # using the EMA Kelly ratio of the daily SPY returns.
 #
 # Go short SPY if the Kelly ratio is above the positive threshold.
@@ -43,7 +43,7 @@ nrows <- NROW(rets)
 # hilo <- hilo + rutils::lagit(hilo, lagg=1)
 # hilo <- vixp
 
-captiont <- paste("EMA Kelly Ratio Strategy")
+captiont <- paste("EMA Bollinger Kelly Ratio Strategy")
 
 ## End setup code
 
@@ -175,12 +175,12 @@ servfun <- function(input, output) {
     #                   paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / "), "/ \n",
     #                   "Number of trades=", ntrades)
     
-    # Plot dygraph without shading
+    ##  Create dygraph plot
     dyplot <- dygraphs::dygraph(pnls[, 1:2], main=captiont) %>%
       dyOptions(colors=c("blue", "red"), strokeWidth=1) %>%
       dyLegend(show="always", width=200)
     
-    # Plot dygraph with shading
+    ##  Create dygraph with shading
     # Create colors for background shading
     # posv <- sign(pnls[, "Position"])
     # indic <- (rutils::diffit(posv) != 0) # Indices of crosses
@@ -195,7 +195,7 @@ servfun <- function(input, output) {
     #   dyplot <- dyplot %>% dyShading(from=crossd[i], to=crossd[i+1], color=shadev[i])
     # }  # end for
     
-    # Plot the dygraph object
+    ##  Return the dygraph object
     return(dyplot)
 
 

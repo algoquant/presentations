@@ -23,7 +23,7 @@
 # Load R packages
 library(HighFreq)
 library(shiny)
-library(shinyWidgets)
+# library(shinyWidgets)
 library(dygraphs)
 
 
@@ -70,7 +70,7 @@ uifun <- shiny::fluidPage(
     # Input file name
     column(width=2, selectInput("filen", label="File name", choices=filev, selected=filev[4])),
     # Input trending or reverting (contrarian) strategy
-    column(width=2, selectInput("coeff", label="Trend (1) Revert (-1)", choices=c(1, -1), selected=(1))),
+    column(width=2, selectInput("directv", label="Trend (1) Revert (-1)", choices=c(1, -1), selected=(1))),
     # Input the bid-ask spread
     column(width=2, numericInput("bidask", label="Bid-ask [$]:", value=0.01, step=0.01)),
     # Input the scrubbing tolerance
@@ -81,7 +81,7 @@ uifun <- shiny::fluidPage(
     # Input the EMA decay factors
     column(width=5, sliderInput("lambdav", label="Fast and Slow Lambdas:", min=0.1, max=0.99, value=c(0.97, 0.99), step=0.01, width="100%")),
     # Input the time of day
-    column(width=5, sliderTextInput("timev", label="Start and End Times:", choices=timev,
+    column(width=5, shinyWidgets::sliderTextInput("timeval", label="Start and End Times:", choices=timev,
                                     selected=c(startt, endt), width="100%")),
   ),  # end fluidRow
 
@@ -146,11 +146,11 @@ servfun <- function(input, output) {
     lambdaf <- lambdav()[1]
     lambdas <- lambdav()[2]
     # Time of day interval
-    timev <- shiny::debounce(reactive(input$timev), millis = 1000)
-    startt <- timev()[1]
-    endt <- timev()[2]
-    timev <- paste0("T", startt, "/T", endt)
-    coeff <- as.numeric(input$coeff)
+    timeval <- shiny::debounce(reactive(input$timeval), millis = 1000)
+    startt <- timeval()[1]
+    endt <- timeval()[2]
+    timer <- paste0("T", startt, "/T", endt)
+    directv <- as.numeric(input$directv)
     # Scrubbing threshold
     threshv <- input$threshv
     # look_back <- input$look_back
@@ -159,13 +159,13 @@ servfun <- function(input, output) {
     pricel <- pricelist()
     # cat("class(pricel)", class(pricel), "\n")
     # cat("head(pricel)", head(pricel[[1]]), "\n")
-    
-    ntrades <- 0
+
+    ntrades <- 0 ## Number of trades
     pnll <- lapply(pricel, function(pricev) {
       # pricev <- ohlc[, 4]
       # scrub_online(pricev, threshv=threshv)
       # pricev <- xts::xts(pricev, order.by=index(ohlc))
-      pricev <- pricev[timev]
+      pricev <- pricev[timer]
       if (NROW(pricev) < 10) {
         return(NULL)
       }  ## end if
@@ -178,10 +178,10 @@ servfun <- function(input, output) {
       crossi <- sign(emaf - emas)
       posv <- rep(NA_integer_, nrows)
       posv[1] <- 0
-      # posv <- ifelse(crossc == 2, coeff, posv)
-      # posv <- ifelse(crossc == (-2), -coeff, posv)
-      posv <- ifelse(crossi == 1, coeff, posv)
-      posv <- ifelse(crossi == (-1), -coeff, posv)
+      # posv <- ifelse(crossc == 2, directv, posv)
+      # posv <- ifelse(crossc == (-2), -directv, posv)
+      posv <- ifelse(crossi == 1, directv, posv)
+      posv <- ifelse(crossi == (-1), -directv, posv)
       posv <- zoo::na.locf(posv, na.rm=FALSE)
       # Calculate indicator of flipped positions
       # flipi <- rutils::diffit(posv)

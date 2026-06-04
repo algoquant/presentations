@@ -173,14 +173,13 @@ servfun <- function(input, output) {
     ##  Get Sharpe ratios
     sharper <- values$sharper
 
-    ##  Standard plot without shading
+    ##  Create dygraph plot
     captiont <- paste0(paste(c(symboln, "Strategy"), "SR="), sharper, collapse=" / ")
-    ##  Plot dygraph without shading
     dyplot <- dygraphs::dygraph(pnls[, 1:2], main=captiont) %>%
       dyOptions(colors=c("blue", "red"), strokeWidth=1) %>%
       dyLegend(show="always", width=200)
     
-    ##  Plot the dygraph object
+    ##  Return the dygraph object
     return(dyplot)
 
 

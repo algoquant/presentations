@@ -1,12 +1,12 @@
 ##############################
-# This is a shiny app for simulating a binary Bollinger strategy
+# This is a shiny app for simulating a Bollinger strategy
 # using the price z-scores as trading signals.
-# The binary Bollinger strategy switches between 1 share long stock 
-# position and 1 share short, depending on the z-score.
-# If the z-score is greater than the threshold, then it sells 1 share 
-# of stock, and if the z-score is less than minus the threshold, 
-# then it buys 1 share of stock.  It holds its position until the 
-# opposite trading signal.
+# The binary Bollinger strategy switches between $1 long stock 
+# position and $1 short, depending on the z-score.
+# If the z-score is greater than the threshold, then it sells 
+# $1 of stock, and if the z-score is less than minus the 
+# threshold, then it buys $1 of stock.  It holds its position 
+# until the opposite trading signal.
 # The price z-scores are equal to the excess prices (current price 
 # minus trailing mean price) divided by the trailing volatility of 
 # prices.  
@@ -27,7 +27,7 @@ library(dygraphs)
 # pricev <- log(na.omit(rutils::etfenv$prices$VTI))
 # dataf <- "Days"
 
-## Calculate the intraday VTI returns
+## Calculate the daytime VTI returns
 ohlc <- log(rutils::etfenv$VTI)
 openp <- quantmod::Op(ohlc)
 # highp <- quantmod::Hi(ohlc)
@@ -38,7 +38,7 @@ retd <- (closep - openp)
 # reton <- (openp - rutils::lagit(closep, lagg=1, pad_zeros=FALSE))
 # colnames(reton) <- "overnight"
 pricev <- cumsum(retd)
-dataf <- "Intraday"
+dataf <- "Daytime"
 
 
 ## Load intraday tick stock prices

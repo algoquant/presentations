@@ -21,13 +21,19 @@ library(HighFreq)
 library(shiny)
 library(dygraphs)
 
-# Compile the file in R by running this command:
-# Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/sim_boll.cpp")
+# Minutes in business year
+numm <- 252*6.5*60
+
+# Compile the C++ function sim_boll() for backtesting the strategy
+if (!exists("sim_boll")) {
+  Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/sim_boll.cpp")
+} # end if
 
 # Model and data setup
 
 
-symboln <- "SPY"
+symbolv <- c("SPY", "NVDA", "XLK", "QQQ")
+symboln <- symbolv[1]
 # ohlc <- xts::as.xts(zoo::read.zoo(file = "/Users/jerzy/Develop/data/minutes/SPY_20260107.csv",
 #                                   header = TRUE, sep = ",",
 #                                   FUN = as.POSIXct,
@@ -35,13 +41,13 @@ symboln <- "SPY"
 # save(ohlc, file="/Users/jerzy/Develop/data/minutes/SPY_minutes.RData")
 # ohlc <- ohlc["T9:30/T16:00"]
 # save(ohlc, file="/Users/jerzy/Develop/data/minutes/SPY_minutes_markets.RData")
-load(file=paste0("/Users/jerzy/Develop/data/minutes/", symboln, "_minutes_markets.RData"))
 
-pricev <- log(Cl(ohlc))
-# Calculate the EMA returns and variance
-retp <- rutils::diffit(pricev)
+# loadd <- load(file=paste0("/Users/jerzy/Develop/data/minutes/", symboln, "_minutes_markets.RData"))
+# pricev <- log(Cl(ohlc))
+# Calculate the returns
+# retp <- rutils::diffit(pricev)
 
-captiont <- paste("Bollinger Strategy For", symboln, "Minutes")
+captiont <- "Bollinger EMA Strategy"
 
 ## End setup code
 
@@ -53,18 +59,15 @@ uifun <- shiny::fluidPage(
   # Create single row with inputs
   fluidRow(
     # Input stock symbol
-    # column(width=2, selectInput("symboln", label="Symbol", choices=c(symboletf, symbolstock), selected="QQQ")),
-  # ),  # end fluidRow
-  # 
-  # # Create single row with inputs
-  # fluidRow(
+    column(width=2, selectInput("symboln", label="Symbol", choices=symbolv, selected=symboln)),
     # Input lambda decay parameter
     column(width=2, sliderInput("lambdaf", label="lambda:", min=0.1, max=0.99, value=0.37, step=0.01)),
     # Input Look back interval
     # column(width=2, sliderInput("lookb", label="Look back", min=3, max=250, value=100, step=1)),
     # If trend=1 then trending, If trend=(-1) then contrarian
-    column(width=2, selectInput("trendind", label="Trend coefficient", choices=c(1, -1), selected=(-1))),
-  
+    # column(width=2, selectInput("trendind", label="Trend coefficient", choices=c(1, -1), selected=(-1))),
+    # Input the bid-ask spread
+    column(width=2, numericInput("bidask", label="Bid-ask [$]:", value=0.01, step=0.01)),
   ),  # end fluidRow
   
   # Create output plot panel
@@ -79,26 +82,40 @@ servfun <- function(input, output) {
   # Create an empty list of reactive values.
   values <- reactiveValues()
   
+  # Load the list of prices
+  pricev <- shiny::reactive({
+    # Get the file name from the input
+    # Load the data file
+    symboln <- input$symboln
+    cat("Loading OHLC bars for: ", symboln, "\n")
+    filen <- paste0("/Users/jerzy/Develop/data/minutes/", symboln, "_minutes_markets.RData")
+    if (file.exists(filen)) {
+      loadd <- load(filen)
+    } else {
+      stop(paste("File not found:", filen))
+    }  # end if
+    pricev <- log(Cl(ohlc))
+    return(pricev)
+    
+  })  # end Load the OHLC prices
+  
+  
+  # Calculate the returns
+  retp <- shiny::reactive({
+    pricev <- pricev()
+    # Calculate the EMA returns and variance
+    retp <- rutils::diffit(pricev())
+    return(retp)
+  })  # end returns
+  
+  
   # Calculate the z-scores
   zscores <- shiny::reactive({
     # Get model parameters from input argument
-    # symboln <- input$symboln
+    symboln <- input$symboln
     lambdaf <- input$lambdaf
-
-    # if (symboln %in% symboletf) {
-    #   cat("Loading ETF prices \n")
-    #   # Get ETF returns from rutils::etfenv
-    #   pricev <- log(na.omit(get(symboln, rutils::etfenv$prices)))
-    # } else if (symboln %in% symbolstock) {
-    #   cat("Loading stock prices \n")
-    #   # Get stock returns from pricestock
-    #   pricev <- log(na.omit(get(symboln, pricestock)))
-    # }  # end if
+    pricev <- pricev()
     
-    # volr <- HighFreq::run_var(retp, lambdaf=lambdaf)
-    # retema <- volr[, 1]
-    # volr <- sqrt(volr[, 2])
-    # zscores <- trunc((retp - retema)/volr)
     # Calculate the EMA prices and variance
     volp <- HighFreq::run_var(pricev, lambdaf=lambdaf)
     pricema <- volp[, 1]
@@ -116,7 +133,7 @@ servfun <- function(input, output) {
   pnls <- shiny::reactive({
     cat("Calculating pnls\n")
     # symboln <- input$symboln
-    trendind <- as.numeric(input$trendind)
+    # trendind <- as.numeric(input$trendind)
 
     # retp <- zscores()[, 1, drop=FALSE]
     zscores <- zscores()
@@ -124,8 +141,13 @@ servfun <- function(input, output) {
     # Simulate the patient Bollinger Strategy
     posv <- sim_boll(zscores) ##  Stock positions
     # Calculate the number of trades and the PnLs
-    values$ntrades <- sum(abs(rutils::diffit(posv)) > 0)
+    retp <- retp()
     pnls <- posv*retp
+    # Calculate the transaction costs
+    tradez <- abs(rutils::diffit(posv))
+    values$ntrades <- sum(tradez > 0)
+    costs <- 0.5*input$bidask*tradez
+    pnls <- (pnls - costs)
     # Scale the PnL volatility to that of the index
     # pnls <- pnls*sd(retp[retp<0])/sd(pnls[pnls<0])
     pnls <- cbind(retp, pnls, 0.5*(retp+pnls))
@@ -136,7 +158,7 @@ servfun <- function(input, output) {
   
 
   # Plot dygraph
-  dyplot <- shiny::reactive({
+  output$dyplot <- dygraphs::renderDygraph({
     cat("Plotting pnls\n")
     
     symboln <- input$symboln
@@ -144,24 +166,22 @@ servfun <- function(input, output) {
     colv <- colnames(pnls)
 
     # Calculate Sharpe ratios
-    sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
+    sharper <- sqrt(numm)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
     sharper <- round(sharper, 3)
     ntrades <- values$ntrades
 
-    captiont <- paste("Bollinger Strategy Sharpe", "/ \n", 
-                      paste0(paste(colv, " =", sharper), collapse=" / "), "/ \n",
-                      "Number trades =", ntrades)
-    endw <- rutils::calc_endpoints(pnls, interval="days")
-    dygraphs::dygraph(cumsum(pnls)[endw], main=captiont) %>%
-      dyOptions(colors=c("blue", "red", "green"), strokeWidth=2) %>%
+    captiont <- paste0(c(paste0(names(sharper), " SR=", sharper), 
+                         paste0("Number of trades=", ntrades)), collapse=" / \n")
+    # endw <- rutils::calc_endpoints(pnls, interval="days")
+    dyplot <- dygraphs::dygraph(cumsum(pnls), main=captiont) %>%
+      dyOptions(colors=c("blue", "red", "green"), strokeWidth=1) %>%
       dyLegend(show="always", width=300)
     
-  })  # end reactive
+  ##  Plot the dygraph object
+  return(dyplot)
 
-  # Render the dyplot object
-  # Return to the output argument a dygraph plot with two y-axes
-  output$dyplot <- dygraphs::renderDygraph(dyplot())
-    
+  })  ##  end output plot
+  
 }  # end server code
 
 ## Return a Shiny app object

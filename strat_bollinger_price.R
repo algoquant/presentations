@@ -28,7 +28,11 @@ symboletf <- rutils::etfenv$symbolv
 symboletf <- symboletf[!(symboletf %in% c("MTUM", "QUAL", "VLUE", "USMV", "AIEQ"))]
 # retp <- rutils::etfenv$returns[, symboletf]
 
-load("/Users/jerzy/Develop/lecture_slides/data/sp500_prices.RData")
+# Load the S&P500 stock prices
+if (!exists("pricestock")) {
+  cat("Loading the stock prices\n")
+  load("/Users/jerzy/Develop/lecture_slides/data/sp500_prices.RData")
+} # end if
 symbolstock <- sort(colnames(pricestock))
 
 
@@ -47,13 +51,15 @@ uifun <- shiny::fluidPage(
     column(width=1, selectInput("symboln", label="Symbol", choices=c(symboletf, symbolstock), selected="QQQ")),
     # Input lambda decay parameter
     column(width=2, sliderInput("lambdaf", label="lambda:", min=0.1, max=0.99, value=0.1, step=0.01)),
+    # Input threshold level
+    column(width=2, sliderInput("threshv", label="Threshold:", min=0.1, max=1.2, value=1.0, step=0.1)),
     # If trend=1 then trending, If trend=(-1) then contrarian
-    column(width=2, selectInput("trendind", label="Trend coefficient", choices=c(1, -1), selected=(-1))),
+    column(width=1, selectInput("trendind", label="Trend coefficient", choices=c(1, -1), selected=(-1))),
   
   ),  # end fluidRow
   
   # Create output plot panel
-  dygraphs::dygraphOutput("dyplot", width="90%", height="600px")
+  dygraphs::dygraphOutput("dyplot", width="90%", height="650px")
 
 )  # end fluidPage interface
 
@@ -91,13 +97,13 @@ servfun <- function(input, output) {
     pricema <- volp[, 1]
     volp <- sqrt(volp[, 2])
     # Calculate the z-scores
-    zscores <- trunc((pricev - pricema)/volp)
+    zscores <- (pricev - pricema)/volp
     zscores <- cbind(retp, zscores)
     colnames(zscores) <- c(symboln, "zscores")
     return(zscores)
     
   })  # end z-scores
-  
+
 
   # Calculate pnls
   pnls <- shiny::reactive({
@@ -108,25 +114,33 @@ servfun <- function(input, output) {
     retp <- zscores()[, 1, drop=FALSE]
     zscores <- zscores()[, 2, drop=FALSE]
     nrows <- NROW(zscores)
-    # Simulate the patient Bollinger Strategy
-    posv <- integer(nrows) ##  Stock positions
+    threshv <- input$threshv
+    # Calculate the positions
+    posv <- rep(NA_integer_, nrows)
     posv[1] <- 0 ##  Initial position
-    for (it in 2:nrows) {
-      if ((abs(zscores[it-1]) > abs(posv[it-1])) || ((zscores[it-1]*posv[it-1]) > 0)) {
-        # Increase position size
-        posv[it] <- trendind*zscores[it-1]
-      } else {
-        ##  Do nothing
-        posv[it] <- posv[it-1]
-      }  ##  end if
-    }  ##  end for
+    posv <- ifelse(zscores > threshv, trendind, posv)
+    posv <- ifelse(zscores < -threshv, -trendind, posv)
+    posv <- zoo::na.locf(posv)
+    posv <- rutils::lagit(posv, lagg=1)
+    # Simulate the patient Bollinger Strategy
+    # posv <- integer(nrows) ##  Stock positions
+    # posv[1] <- 0 ##  Initial position
+    # for (it in 2:nrows) {
+    #   if ((abs(zscores[it-1]) > abs(posv[it-1])) || ((zscores[it-1]*posv[it-1]) > 0)) {
+    #     # Increase position size
+    #     posv[it] <- trendind*zscores[it-1]
+    #   } else {
+    #     ##  Do nothing
+    #     posv[it] <- posv[it-1]
+    #   }  ##  end if
+    # }  ##  end for
     # Calculate the number of trades and the PnLs
     values$ntrades <- sum(abs(rutils::diffit(posv)) > 0)
     pnls <- posv*retp
     # Scale the PnL volatility to that of the index
     # pnls <- pnls*sd(retp[retp<0])/sd(pnls[pnls<0])
     pnls <- cbind(retp, pnls, 0.5*(retp+pnls))
-    colnames(pnls) <- c(symboln, "Strategy", "Combined")
+    colnames(pnls) <- c(symboln, "Bollinger", "Combined")
     return(pnls)
 
   })  # end Calculate pnls
@@ -145,11 +159,10 @@ servfun <- function(input, output) {
     sharper <- round(sharper, 3)
     ntrades <- values$ntrades
 
-    captiont <- paste("Bollinger Strategy Sharpe", "/ \n", 
-                      paste0(paste(colv, " =", sharper), collapse=" / "), "/ \n",
+    captiont <- paste("Sharpe", paste0(paste(colv, " =", sharper), collapse=" / "), "/ \n",
                       "Number trades =", ntrades)
-    endw <- rutils::calc_endpoints(pnls, interval="weeks")
-    dygraphs::dygraph(cumsum(pnls)[endw], main=captiont) %>%
+    # endw <- rutils::calc_endpoints(pnls, interval="weeks")
+    dygraphs::dygraph(cumsum(pnls), main=captiont) %>%
       dyOptions(colors=c("blue", "red", "green"), strokeWidth=1) %>%
       dyLegend(show="always", width=300)
     

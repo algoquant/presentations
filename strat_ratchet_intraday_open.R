@@ -36,28 +36,43 @@ library(dygraphs)
 
 ## Model and data setup
 
-# Create vector of start and end times for the selectInput() widget
-# timev <- c("09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00")
-# Create a series of intraday times in 10-minute intervals
-timev <- seq(from=as.POSIXct("2025-06-13 09:30:00", tz="America/New_York"),
-             to=as.POSIXct("2025-06-13 16:00:00", tz="America/New_York"),
-             by="10 min")
-# Remove the date
-timev <- format(timev, format="%H:%M:%S")
+# Minutes in business year
+numm <- 252*6.5*60
 
-# Compile the C++ file
+# Compile the C++ function ratchetx() for backtesting the strategy
 if (!exists("ratchetx")) {
   Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/back_test.cpp")
 } # end if
 
+# Load the list of OHLC price bars
+# Get all the file names with *.RData in the data/minutes directory
+filev <- Sys.glob("/Users/jerzy/Develop/data/minutes/*_list.RData")
+# Extract the symbol names from the file names
+filev <- sapply(filev, function(x) {
+  x <- strsplit(x, split="/")
+  x <- last(x[[1]])
+  x <- strsplit(x, split="[.]")[[1]][1]
+  # x <- strsplit(x, split="_")
+  # x <- first(x[[1]])
+  return(x)
+}, USE.NAMES=FALSE) # end sapply
+
+
+# Create vector of start and end times for the selectInput() widget
+# timev <- c("09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00")
+# Create a series of intraday times in 10-minute intervals
+minutev <- c("00:00", "10:00", "20:00", "30:00", "40:00", "50:00")
+hourv <- sprintf("%02d", 06:18)
+timev <- paste0(rep(hourv, each=length(minutev)), ":", rep(minutev, times=length(hourv)))
+
 # Load the OHLC prices
-# if (!exists("pricel")) {
+# if (!exists("ohlcl")) {
 #   symboln <- "SPY"
 #   cat("Loading the list of intraday minute prices for: ", symboln, "\n")
 #   filen <- paste0("/Users/jerzy/Develop/data/minutes/", symboln, "_minutes_markets.RData")
 #   loadd <- load(filen)
 #   pricev <- quantmod::Cl(ohlc)
-#   pricel <- split(pricev, f="days")
+#   ohlcl <- split(pricev, f="days")
 # } # end if
 
 symbolv <- c("SPY", "NVDA", "XLK", "QQQ")
@@ -72,8 +87,8 @@ uifun <- shiny::fluidPage(
   titlePanel("Intraday Ratchet Strategy"),
 
   fluidRow(
-    # Input stock symbol
-    column(width=1, selectInput("symboln", label="Symbol", choices=symbolv, selected="SPY")),
+    # Input file name
+    column(width=2, selectInput("filen", label="File name", choices=filev, selected=filev[2])),
     # Input the lambda decay factor
     # column(width=2, sliderInput("lambdaf", label="Lambda:", min=0.5, max=0.999, value=0.9, step=0.001)),
     # Input the Z-score factor
@@ -81,12 +96,12 @@ uifun <- shiny::fluidPage(
     # Input the position limit
     column(width=2, sliderInput("poslimit", label="Pos limit:", min=1, max=10, value=5, step=1)),
     # Input the time of day
-    column(width=4, shinyWidgets::sliderTextInput("timev", label="Start and End Times:", choices=timev,
+    column(width=4, shinyWidgets::sliderTextInput("timeval", label="Start and End Times:", choices=timev,
                                     selected=c(first(timev), last(timev)), width="100%")),
     # Input the start time
-    # column(width=2, selectInput("timestart", label="Start time", choices=timev, selected="13:00")),
+    # column(width=2, selectInput("startt", label="Start time", choices=timev, selected="13:00")),
     # Input the end time
-    # column(width=2, selectInput("timend", label="End time", choices=timev, selected="16:00")),
+    # column(width=2, selectInput("endt", label="End time", choices=timev, selected="16:00")),
     # Input add annotations Boolean
     # column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False"))
   ),  # end fluidRow
@@ -103,31 +118,31 @@ servfun <- function(input, output) {
   # Create an empty list of reactive values.
   values <- reactiveValues()
 
-  ##  Load the prices
-  pricelist <- shiny::reactive({
-    
-    symboln <- input$symboln
-    # cat("Loading prices for", symboln, "\n")
-    
-    # Load the OHLC prices
-    if (!(exists("pricel") && symboln == rutils::get_name(colnames(pricel[[1]])[1]))) {
-      cat("Loading the list of intraday minute prices for: ", symboln, "\n")
-      filen <- paste0("/Users/jerzy/Develop/data/minutes/", symboln, "_minutes_markets.RData")
-      # filen <- paste0("/Users/jerzy/Develop/data/minutes/", symboln, "_2025.RData")
+  # Load the list of prices
+  ohlcl <- shiny::reactive({
+    # Get the file name from the input
+    filen <- input$filen
+    # Load the data file
+    filen <- paste0("/Users/jerzy/Develop/data/minutes/", filen, ".RData")
+    cat("Loading OHLC bars from the file: ", filen, "\n")
+    if (file.exists(filen)) {
       loadd <- load(filen)
-      if (loadd == "ohlc") {
-        pricev <- quantmod::Cl(ohlc)
-        pricel <- split(pricev, f="days")
-      } # end if
-      return(pricel)
-    } # end if
-
-    return(pricel)
+    } else {
+      stop(paste("File not found:", filen))
+    }  # end if
+    return(ohlcl)
     
-  })  ##  end Load the data
+  })  # end Load the OHLC prices
+  
   
   # Recalculate the strategy
   pnls <- shiny::reactive({
+    
+    # List of prices
+    ohlcl <- ohlcl()
+    priceref <- ohlcl[[1]][1, 1]
+    symboln <- rutils::get_name(colnames(priceref))
+    values$symboln <- symboln
     
     symboln <- input$symboln
     cat("Recalculating strategy for: ", symboln, "\n")
@@ -135,26 +150,22 @@ servfun <- function(input, output) {
     zfact <- input$zfact
     
     # Time of day interval
-    timev <- shiny::debounce(reactive(input$timev), millis = 1000)
-    timestart <- timev()[1]
-    timend <- timev()[2]
-    rangev <- paste0("T", timestart, "/T", timend)
+    timeval <- shiny::debounce(reactive(input$timeval), millis = 1000)
+    startt <- timeval()[1]
+    endt <- timeval()[2]
+    timer <- paste0("T", startt, "/T", endt)
     
-    # List of prices
-    pricel <- pricelist()
-    
-    # Perform a loop over the list of price vectors, and calculate the strategy PnLs for each day.
-    pnll <- lapply(pricel, function(pricev) {
+    # Perform a loop over the list of OHLC bars, and calculate the strategy PnLs for each day.
+    pnll <- lapply(ohlcl, function(ohlc) {
       # cat("Date: ", format(start(pricev)), "\n")
-      if (NCOL(pricev) > 1)
-        pricev <- quantmod::Cl(pricev)
-      pricev <- pricev[rangev]
-      if (NROW(pricev) == 0) {
-        return(NULL)
-      } # end if
+      pricev <- quantmod::Cl(ohlc)
+      pricev <- pricev[timer]
+      # if (NROW(pricev) == 0) {
+      #   return(NULL)
+      # } # end if
       simout <- ratchetx(pricev, zfact=zfact, poslimit=poslimit)
       pnls <- simout[, 1]
-      pnls <- xts::xts(pnls, order.by=index(pricev))
+      # pnls <- xts::xts(pnls, order.by=index(pricev))
       retv <- rutils::diffit(pricev)
       pnls <- cbind(retv, pnls)
       return(pnls)
@@ -165,7 +176,7 @@ servfun <- function(input, output) {
     colnames(pnls) <- c(symboln, "Strategy")
 
     # Calculate the Sharpe ratios
-    sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
+    sharper <- sqrt(numm)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
     values$sharper <- round(sharper, 3)
     # cat("sharper =", values$sharper, "\n")
     

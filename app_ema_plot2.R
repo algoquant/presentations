@@ -11,11 +11,11 @@ library(shiny)
 library(dygraphs)
 
 
-## Set up ETF data
+## Load daily ETF prices
 
-datenv <- rutils::etfenv
-symbolv <- get("symbolv", datenv)
-symboln <- "SPY"
+envv <- rutils::etfenv
+symbolv <- sort(get("symbolv", envv))
+symboln <- "QQQ"
 captiont <- "Exponential Moving Average (EMA) Prices"
 
 ## End setup code
@@ -28,15 +28,13 @@ uifun <- shiny::fluidPage(
   # Create single row of widgets with two slider inputs
   fluidRow(
     # Input stock symbol
-    column(width=2, selectInput("symboln", label="Symbol",
-                                choices=symbolv, selected=symboln)),
+    column(width=2, selectInput("symboln", label="Symbol", choices=symbolv, selected=symboln)),
     # Input look-back interval
-    column(width=2, sliderInput("lambdaf", label="Lambda decay factor",
-                                min=0.5, max=0.99, value=0.9, step=0.01))
+    column(width=2, sliderInput("lambdaf", label="Decay factor", min=0.5, max=0.99, value=0.9, step=0.01))
   ),  # end fluidRow
   
   # Create output plot panel
-  dygraphs::dygraphOutput("dyplot", width="90%", height="600px")
+  dygraphs::dygraphOutput("dyplot", width="90%", height="700px")
 
 )  # end fluidPage interface
 
@@ -48,10 +46,10 @@ servfun <- shiny::shinyServer(function(input, output) {
   pricev <- shiny::reactive({
     cat("Getting the close prices\n")
     # Get the data
-    ohlc <- get(input$symboln, datenv)
+    ohlc <- get(input$symboln, envv)
     pricev <- log(quantmod::Cl(ohlc["2020-01/2020-05"]))
-    # Return the data
-    pricev
+    # Return the prices
+    return(pricev)
   })  # end reactive code
   
   # Calculate the EMA indicator in a reactive environment
@@ -73,10 +71,16 @@ servfun <- shiny::shinyServer(function(input, output) {
   output$dyplot <- dygraphs::renderDygraph({
     cat("Plotting the dygraph\n")
     colnamev <- colnames(pricema())
-    dygraph(pricema(), main=paste(colnamev, collapse=" ")) %>%
+    ##  Create dygraph plot
+    dyplot <- dygraph(pricema(), main=paste(colnamev, collapse=" ")) %>%
       dySeries(name=colnamev[1], strokeWidth=2, color="blue") %>%
       dySeries(name=colnamev[2], strokeWidth=2, color="red")
+    
+    ##  Return the dygraph object
+    return(dyplot)
+
   })  # end output plot
+  
 })  # end server code
 
 ## Return a Shiny app object

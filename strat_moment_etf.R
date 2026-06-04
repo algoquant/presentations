@@ -17,27 +17,69 @@ library(dygraphs)
 
 ## Model and data setup
 
-captiont <- paste("Momentum Strategy With Idiosyncratic Returns of Sector ETFs X*")
+# Objective function equal to the Kelly ratio
+objfun <- function(retp) {
+  retp <- na.omit(retp)
+  if (NROW(retp) > 3) {
+    varv <- var(retp)
+    if (varv > 0) mean(retp)/varv else 0
+  } else 0
+}  ##  end objfun
 
-library(parallel)  ##  Load package parallel
-ncores <- detectCores() - 1
+# Momentum strategy function
+sim_momw <- function(retp, objfun, lookb=12, rebalf="months", volt=0.01, 
+                     bidask=0.0, endd=rutils::calc_endpoints(retp, interval=rebalf), ...) {
+  ##  Perform loop over end points
+  npts <- NROW(endd)
+  pnls <- lapply(1:(npts-1), function(tday) {
+    ##  Select the in-sample returns
+    startp <- endd[max(1, tday-lookb)]
+    retis <- retp[startp:endd[tday], ]
+    intos <- (endd[tday]+1):endd[tday+1]
+    if (NROW(retis) < 4) return(numeric(NROW(intos)))
+    ##  Calculate weights proportional to the performance
+    perfstat <- sapply(retis, objfun)
+    weightv <- perfstat
+    ##  Calculate the in-sample portfolio returns
+    pnlis <- HighFreq::mult_mat(weightv, retis)
+    pnlis <- rowMeans(pnlis, na.rm=TRUE)
+    ##  Scale weights so in-sample pnl volatility is same as target
+    weightv <- weightv*volt/sd(pnlis)
+    ##  Calculate the out-of-sample momentum returns
+    pnlos <- HighFreq::mult_mat(weightv, retp[intos])
+    pnlos <- rowMeans(pnlos, na.rm=TRUE)
+    return(drop(pnlos))
+  })  ##  end lapply
+  return(rutils::do_call(c, pnls))
+}  ##  end sim_momw
+
+
+captiont <- paste("Momentum Strategy for VTI, IEF, DBC ETFs")
+
+# library(parallel)  ##  Load package parallel
+# ncores <- detectCores() - 1
 
 # Select the ETF symbols starting with X:
-symbolv <- rutils::etfenv$symbolv
-symbolv <- symbolv[grep("^X", symbolv)]
-symbolv <- c("SPY", "TLT", symbolv)
+symbolv <- c("VTI", "IEF", "DBC")
+# symbolv <- rutils::etfenv$symbolv
+# symbolv <- symbolv[grep("^X", symbolv)]
+# symbolv <- c("SPY", "TLT", symbolv)
 nstocks <- NROW(symbolv)
-# Calculate the percentage stock returns
+# # Calculate the percentage stock returns
 retp <- na.omit(rutils::etfenv$returns[, symbolv])
 datev <- zoo::index(retp)
 retm <- retp$SPY
 
-# Calculate a vector of weekly end points
-endd <- rutils::calc_endpoints(retp, interval="weeks")
-npts <- NROW(endd)
+# All Weather portfolio weights
+weightaw <- c(0.30, 0.55, 0.15)
+retaw <- retp %*% weightaw
 
-pnlc <- 0.0
-pnlema <- 0.0
+# # Calculate a vector of weekly end points
+endd <- rutils::calc_endpoints(retp, interval="months")
+npts <- NROW(endd)
+# 
+# pnlc <- 0.0
+# pnlema <- 0.0
 
 ## End setup code
 
@@ -49,13 +91,13 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     # Input Look back interval
-    column(width=2, sliderInput("lookb", label="Look-back", min=20, max=300, value=190, step=5)),
+    column(width=2, sliderInput("lookb", label="Look-back", min=3, max=15, value=7, step=1)),
     # Input lambda decay parameter
-    column(width=2, sliderInput("lambdaf", label="lambda:", min=0.7, max=0.99, value=0.8, step=0.01)),
+    # column(width=2, sliderInput("lambdaf", label="lambda:", min=0.7, max=0.99, value=0.8, step=0.01)),
   ),  # end fluidRow
 
   # Create output plot panel
-  dygraphs::dygraphOutput("dyplot", width="90%", height="600px")
+  dygraphs::dygraphOutput("dyplot", width="90%", height="700px")
 
 )  # end fluidPage interface
 
@@ -74,70 +116,19 @@ servfun <- function(input, output) {
     cat("Recalculating strategy...\n")
     # Get model parameters from input argument
     lookb <- input$lookb
-    lambdaf <- input$lambdaf
+    # lambdaf <- input$lambdaf
     # coeff <- as.numeric(input$coeff)
     # lagg <- input$lagg
     # lambdaf <- input$lambdaf
     
-
-    pnls <- mclapply(3:(npts-1), function(tday) {
-    # pnls <- lapply(3:(npts-1), function(tday) {
-      ##  Select the in-sample returns
-      startp <- endd[max(1, tday-lookb)]
-      endp <- endd[tday-1]
-      retis <- retp[startp:endp, -1]
-      datis <- zoo::index(retis)
-      retmis <- retm[datis]
-      varm <- drop(var(retmis))
-      retmm <- mean(retmis)
-      
-      # Calculate the in-sample stock volatilities, betas, and alphas
-      riskret <- lapply(retis, function(rets) {
-        stdev <- sd(rets)
-        betac <- drop(cov(rets, retmis)/varm)
-        resid <- rets - betac*retmis
-        alphac <- mean(rets) - betac*retmm
-        c(alpha=alphac, beta=betac, stdev=stdev, ivar=var(resid))
-      })  ## end lapply
-      riskret <- do.call(rbind, riskret)
-      
-      # Extract the risk vectors
-      alphav <- riskret[, "alpha"]
-      betav <- riskret[, "beta"]
-      volv <- riskret[, "stdev"]
-      ivarv <- riskret[, "ivar"]
-      # Calculate the momentum weights
-      weightv <- alphav/ivarv
-      weightv[is.na(weightv)] <- 0
-      ##  Select the out-of-sample returns
-      retos <- retp[(endd[tday]+1):endd[tday+1], -1]
-      datos <- zoo::index(retos)
-      # Calculate the out-of-sample stock alphas
-      retmos <- retm[datos]
-      alphav <- lapply(colnames(retp[, -1]), function(symb) {
-        retos[, symb] - retmos*betav[symb]
-      }) ## end lapply
-      alphav <- do.call(cbind, alphav)
-      alphav[is.na(alphav)] <- 0
-      # Calculate the out-of-sample pnls of low and high alpha stocks
-      pnlos <- drop(alphav %*% weightv)
-      # Calculate the equal-weighted portfolio pnls
-      retew <- rowMeans(retos, na.rm=TRUE)
-      # This is incorrect - instead scale to a target volatility
-      # Scale the PnL volatility to that of the equal-weighted portfolio
-      pnlos <- pnlos*sd(retew)/sd(pnlos)
-      pnlsc <- sign(pnlc - pnlema)*pnlos
-      pnlc <<- pnlc + mean(pnlos)
-      pnlema <<- lambdaf*pnlema + (1-lambdaf)*pnlc
-      return(xts(cbind(retew, pnlsc), order.by=datos))
-      
-    # })  ## end mclapply
-    }, mc.cores=ncores)  ## end mclapply
-  
     # Combine the PnLs into a single xts series
-    pnls <- rutils::do_call(rbind, pnls)
-    colnames(pnls) <- c("EqualWeight", "Momentum")
-    pnls$Momentum <- pnls$Momentum*sd(retp$SPY)/sd(pnls$Momentum)
+    pnls <- sim_momw(retp=retp, lookb=lookb, endd=endd, objfun=objfun)
+    
+    pnls <- cbind(retaw, pnls)
+    colnames(pnls) <- c("AllWeather", "Momentum")
+    pnls <- xts::xts(pnls, order.by=datev)
+    
+    # pnls$Momentum <- pnls$Momentum*sd(retp$SPY)/sd(pnls$Momentum)
     
     # Calculate the Sharpe ratios
     sharper <- sqrt(252)*sapply(pnls, function(x) mean(x)/sd(x[x<0]))
@@ -160,13 +151,12 @@ servfun <- function(input, output) {
     
     # Get Sharpe ratios
     sharper <- globals$sharper
-    captiont <- paste("Idiosyncratic ETF Momentum Strategy", "/ \n", 
-                      paste0(c("EqWeight SR=", "Strategy SR="), sharper, collapse=" / "))
+    captiont <- paste(paste0(c("AllWeather SR=", "Momentum SR="), sharper, collapse=" / "))
     
     # Plot a dygraph of the momentum strategy
     endw <- rutils::calc_endpoints(pnls, interval="weeks")
     dygraphs::dygraph(cumsum(pnls)[endw], main=captiont) %>%
-      dyOptions(colors=c("blue", "red", "green"), strokeWidth=1) %>%
+      dyOptions(colors=c("blue", "red", "green"), strokeWidth=2) %>%
       dyLegend(show="always", width=300)
 
   })  # end output plot

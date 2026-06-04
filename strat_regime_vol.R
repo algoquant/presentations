@@ -36,22 +36,19 @@ if (!("etfenv" %in% ls())) {
   cat("Loading the ETF OHLC prices.\n")
   load("/Users/jerzy/Develop/data/etf_ohlc.RData")
 } # end if
-envv <- etfenv
-# symbolv <- get("symbolv", envir=envv)
-symbolv <- sort(names(envv))
-symboln <- "SPY"
+symboletf <- sort(names(etfenv))
+symboln <- "QQQ"
 
 # Uncomment the below to simulate the strategy for S&P500 stocks
 # Load the SP500 OHLC prices
-# if (!exists("sp500env")) {
-#   cat("Loading the S&P500 OHLC prices.\n")
-#   load("/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
-# } # end if
-# envv <- sp500env
-# symbolv <- sort(names(envv))
+if (!exists("sp500env")) {
+  cat("Loading the S&P500 OHLC prices.\n")
+  load("/Users/jerzy/Develop/lecture_slides/data/sp500.RData")
+} # end if
+symbolstock <- sort(names(sp500env))
 # symboln <- "AAPL"
 
-rangev <- "2007/"
+rangev <- "1990/"
 volt <- 0.01 ##  Volatility target for scaling the strategy PnLs
 varfloor <- 1e-8 ##  Variance floor to prevent division by zero in Kelly ratio calculations
 
@@ -66,22 +63,22 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     ##  Input stock symboln
-    column(width=1, selectInput("symboln", label="Symbol", choices=symbolv, selected=symboln)),
+    column(width=1, selectInput("symboln", label="Symbol", choices=c(symboletf, symbolstock), selected=symboln)),
     ##  Input lambda returns decay parameter
-    column(width=2, sliderInput("lambdaf", label="Returns decay", min=0.1, max=0.9, value=0.1, step=0.1)),
+    column(width=2, sliderInput("lambdaf", label="Returns decay", min=0.1, max=0.9, value=0.2, step=0.1)),
     ##  Input lambda variance decay parameter
-    column(width=2, sliderInput("lambdavol", label="Vol decay", min=0.1, max=0.9, value=0.3, step=0.1)),
+    column(width=2, sliderInput("lambdavol", label="Vol decay", min=0.1, max=0.9, value=0.9, step=0.1)),
     ##  Input volatility scale parameter
-    column(width=2, sliderInput("volscale", label="Scale", min=0.01, max=0.1, value=0.01, step=0.01)),
+    column(width=2, sliderInput("volscale", label="Scale", min=0.01, max=0.1, value=0.03, step=0.01)),
     ##  Input volatility threshold parameter
-    column(width=2, sliderInput("volthresh", label="Vol threshold", min=0.01, max=0.07, value=0.02, step=0.01)),
+    column(width=2, sliderInput("volthresh", label="Vol threshold", min=0.01, max=0.07, value=0.01, step=0.01)),
     ##  Input volatility target parameter
-    column(width=2, sliderInput("volt", label="Vol target", min=0.01, max=0.05, value=0.01, step=0.01)),
+    column(width=2, sliderInput("volt", label="Vol target", min=0.01, max=0.05, value=0.02, step=0.01)),
   ),  ##  end fluidRow
 
   ##  Render the plot in a new row
   fluidRow(
-    dygraphs::dygraphOutput("dyplot", width="90%", height="600px")
+    dygraphs::dygraphOutput("dyplot", width="90%", height="700px")
   ),  ##  end fluidRow
   
 )  ##  end fluidPage interface
@@ -99,7 +96,16 @@ servfun <- function(input, output) {
     symboln <- input$symboln
     cat("Loading data for", symboln, "\n")
 
-    ohlc <- log(get(symboln, envv)[rangev])
+    if (symboln %in% symboletf) {
+      cat("Loading ETF prices \n")
+      # Get ETF returns from rutils::etfenv
+      ohlc <- log(get(symboln, etfenv))
+    } else if (symboln %in% symbolstock) {
+      cat("Loading stock prices \n")
+      # Get stock returns from pricestock
+      ohlc <- log(get(symboln, sp500env))
+    }  # end if
+    
     return(ohlc)
     
   })  ##  end Load the data
@@ -169,23 +175,25 @@ servfun <- function(input, output) {
     
     ##  Calculate the strategy PnLs
     varv <- varv()
-    varv <- rutils::lagit(varv, lagg=1, pad_zeros=FALSE)
     volv <- sqrt(varv)
-    ##  Scale the returns by the range variance
     rets <- rets()
     # reton <- rets$overnight
     retp <- rets$daily
     retm <- retm()
     posv <- -sign(retm)
-    posv <- rutils::lagit(posv, lagg=1)
-    pnls <- posv*retp
     
     # Calculate the probability of being in a trending regime 
     # or a mean-reverting regime based on the volatility
     probv <- (1 + tanh((volv-volthresh)/volscale))/2
+    # Is this lag needed?
+    # probv <- rutils::lagit(probv, lagg=1)
+    posv <- probv*posv + (1-probv)*volt/volv
+    posv <- rutils::lagit(posv, lagg=1)
     # Apply the probabilities to the strategy PnLs
-    pnls <- probv*pnls + (1-probv)*retp*volt/volv
-
+    pnls <- posv*retp
+    # Scale the PnL volatility to that of the index
+    pnls <- pnls*sd(retp[retp<0])/sd(pnls[pnls<0])
+    
 
     ##  Bind together strategy pnls
     pnls <- cbind(retp, pnls)
@@ -197,7 +205,8 @@ servfun <- function(input, output) {
     names(sharper) <- colnames(pnls)
     values$sharper <- round(sharper, 3)
     
-    pnls <- cumsum(pnls)
+    pnls <- cbind(cumsum(pnls), probv)
+    colnames(pnls) <- c(symboln, "Strategy", "Regime")
     return(pnls)
 
   })  ##  end Recalculate the strategy
@@ -216,10 +225,15 @@ servfun <- function(input, output) {
 
     ##  Create the caption with Sharpe ratios
     captiont <- paste0(paste0(names(sharper), " SR=", sharper), collapse=" / ")
+    colv <- colnames(pnls)
     
     ##  Plot dygraph of the cumulative PnLs
     dyplot <- dygraphs::dygraph(pnls, main=captiont) %>%
-      dyOptions(colors=c("blue", "red"), strokeWidth=1) %>%
+      dyAxis("y", label=colv[1], independentTicks=TRUE) %>%
+      dyAxis("y2", label=colv[3], independentTicks=TRUE) %>%
+      dySeries(name=colv[1], axis="y", strokeWidth=1, col="blue") %>%
+      dySeries(name=colv[2], axis="y", strokeWidth=1, col="red") %>%
+      dySeries(name=colv[3], axis="y2", strokeWidth=1, col="green") %>%
       dyLegend(show="always", width=300)
     
     ##  Plot dygraph with two y-axes
