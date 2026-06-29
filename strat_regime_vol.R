@@ -48,6 +48,9 @@ if (!exists("sp500env")) {
 symbolstock <- sort(names(sp500env))
 # symboln <- "AAPL"
 
+# Vector of stock symbols in the environment
+symbolv <- c(symboletf, symbolstock)
+
 rangev <- "1990/"
 volt <- 0.01 ##  Volatility target for scaling the strategy PnLs
 varfloor <- 1e-8 ##  Variance floor to prevent division by zero in Kelly ratio calculations
@@ -63,7 +66,7 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     ##  Input stock symboln
-    column(width=1, selectInput("symboln", label="Symbol", choices=c(symboletf, symbolstock), selected=symboln)),
+    column(width=1, selectInput("symboln", label="Symbol", choices=symbolv, selected=symboln)),
     ##  Input lambda returns decay parameter
     column(width=2, sliderInput("lambdaf", label="Returns decay", min=0.1, max=0.9, value=0.2, step=0.1)),
     ##  Input lambda variance decay parameter
@@ -252,5 +255,5 @@ servfun <- function(input, output) {
 
 }  ##  end server code
 
-## Return a Shiny app object
 shiny::shinyApp(ui=uifun, server=servfun)
+## Return a Shiny app object

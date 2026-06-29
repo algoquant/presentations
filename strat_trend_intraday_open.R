@@ -1,11 +1,15 @@
 ##############################
-# This is a shiny app for simulating the intraday reverting 
-# strategy.
-# The strategy reverts the price trend, and reverses its 
+# This is a shiny app for simulating an intraday trend-
+# following strategy with respect to the open price. 
+# The strategy bets that the price will continue to move 
+# in the same direction starting from the open price.
+# The strategy follows the price trend, and reverses its 
 # position when the trend reverses.
-# The strategy buys one share if the price is below the 
-# reference price, or it sells one share short if the 
-# price is above the reference price.
+# The strategy maintains one share long if the current 
+# price is above the reference price, or it sells one 
+# share short if the price is below the reference price.
+# The strategy unwinds its position (flattens) at the 
+# end of the day.
 # The reference price is either the initial price or the 
 # EMA price. 
 # If the decay factor lambdaf is NULL (the default) then 
@@ -40,7 +44,7 @@ if (!exists("trend_follow")) {
 
 # Load the list of OHLC price bars
 # Get all the file names with *.RData in the data/minutes directory
-filev <- Sys.glob("/Users/jerzy/Develop/data/minutes/*_minutes.RData")
+filev <- Sys.glob("/Users/jerzy/Develop/data/minutes/*_list.RData")
 # Extract the symbol names from the file names
 filev <- sapply(filev, function(x) {
   x <- strsplit(x, split="/")
@@ -51,30 +55,27 @@ filev <- sapply(filev, function(x) {
   return(x)
 }, USE.NAMES=FALSE) # end sapply
 
+# Create vector of start and end times in 10-minute intervals for the selectInput() widget
+minutev <- c("00:00", "10:00", "20:00", "30:00", "40:00", "50:00")
+hourv <- sprintf("%02d", 06:18)
+timev <- paste0(rep(hourv, each=length(minutev)), ":", rep(minutev, times=length(hourv)))
+
 
 ## End setup code
 
 
 ## Create elements of the user interface
 uifun <- shiny::fluidPage(
-  titlePanel("Intraday EMA Revert Strategy"),
+  titlePanel("Intraday Trend Strategy"),
 
   fluidRow(
     # Input file name
     column(width=2, selectInput("filen", label="File name", choices=filev, selected=filev[2])),
     # Input the lambda decay factor
-    column(width=2, sliderInput("lambdaf", label="Lambda:", min=0.1, max=0.99, value=0.9, step=0.01)),
-    # Input the Z-score factor
-    # column(width=2, sliderInput("zfact", label="Z-factor", min=1.0, max=5.0, value=5.0, step=1.0)),
-    # Input the time of day
-    # column(width=4, shinyWidgets::sliderTextInput("timeval", label="Start and End Times:", choices=timev,
-    #                                 selected=c(first(timev), last(timev)), width="100%")),
-    # Input the start time
-    # column(width=2, selectInput("startt", label="Start time", choices=timev, selected="13:00")),
-    # Input the end time
-    # column(width=2, selectInput("endt", label="End time", choices=timev, selected="16:00")),
-    # Input add annotations Boolean
-    # column(width=2, selectInput("add_annotations", label="Add buy/sell annotations?", choices=c("True", "False"), selected="False"))
+    column(width=2, sliderInput("lambdaf", label="Lambda:", min=0.5, max=0.99, value=0.9, step=0.01)),
+    # Input the time of day interval
+    column(width=4, shinyWidgets::sliderTextInput("timeval", label="Start and End Times:", choices=timev,
+                                                  selected=c("09:30:00", "16:00:00"), width="100%")),
   ),  # end fluidRow
 
   # Create output plot panel
@@ -90,7 +91,7 @@ servfun <- function(input, output) {
   values <- reactiveValues()
 
   # Load the list of prices
-  ohlc <- shiny::reactive({
+  ohlcl <- shiny::reactive({
     # Get the file name from the input
     filen <- input$filen
     # Load the data file
@@ -101,7 +102,7 @@ servfun <- function(input, output) {
     } else {
       stop(paste("File not found:", filen))
     }  # end if
-    return(ohlc)
+    return(ohlcl)
     
   })  # end Load the OHLC prices
   
@@ -110,22 +111,34 @@ servfun <- function(input, output) {
   pnls <- shiny::reactive({
     
     # List of prices
-    ohlc <- ohlc()
-    pricev <- quantmod::Cl(ohlc)
-    pricev <- pricev["T09:30:00/T16:00:00"]
-    retv <- rutils::diffit(pricev)
+    ohlcl <- ohlcl()
+    pricev <- quantmod::Cl(ohlcl[[1]])
     symboln <- rutils::get_name(colnames(pricev))
     values$symboln <- symboln
-    lambdaf <- input$lambdaf
+    # lambdaf <- input$lambdaf
     
     cat("Recalculating strategy for: ", symboln, "\n")
 
+    # Time of day interval
+    timeval <- shiny::debounce(reactive(input$timeval), millis = 1000)
+    startt <- timeval()[1]
+    endt <- timeval()[2]
+    timer <- paste0("T", startt, "/T", endt)
+    
     # Perform a loop over the list of OHLC bars, and calculate the strategy PnLs for each day.
-    pnlpos <- trend_follow(pricev, lambda=lambdaf)
-    # Calculate the number of trades and the PnLs
-    values$ntrades <- sum(abs(rutils::diffit(pnlpos[, 2])) > 0)
-    pnls <- -pnlpos[, 1]
-    pnls <- cbind(retv, pnls)
+    pnll <- lapply(ohlcl, function(ohlc) {
+      # cat("Date: ", format(start(pricev)), "\n")
+      pricev <- quantmod::Cl(ohlc)
+      pricev <- pricev[timer]
+      pnls <- trend_follow(pricev, lambda=NULL)[, 1]
+      # pnls <- xts::xts(pnls, order.by=index(pricev))
+      retv <- rutils::diffit(pricev)
+      pnls <- cbind(retv, pnls)
+      return(pnls)
+    }) ##  end lapply
+    # Bind together strategy PnLs
+    pnls <- rutils::do_call(rbind, pnll)
+    # cat("dim(pnls): ", dim(pnls), "\n")
     colnames(pnls) <- c(symboln, "Strategy")
 
     # Calculate the Sharpe ratios
@@ -149,10 +162,8 @@ servfun <- function(input, output) {
     
     # Get Sharpe ratios
     sharper <- values$sharper
-    ntrades <- values$ntrades
-    captiont <- paste0("Sharpe ", paste0(c(symboln, "Strategy"), " = ", sharper, collapse=" / "), "/ \n",
-                       "Number trades =", ntrades)
-    # captiont <- paste0("Sharpe ", paste0(c(symboln, "Strategy"), " = ", sharper, collapse=" / "))
+
+    captiont <- paste0("Sharpe ", paste0(c(symboln, "Strategy"), " = ", sharper, collapse=" / "))
     
     # Plot with annotations
     # add_annotations <- input$add_annotations

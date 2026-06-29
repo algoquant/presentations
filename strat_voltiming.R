@@ -28,16 +28,27 @@ captiont <- paste("Volatility Timing Strategy")
 # envv <- sp500env
 # symboln <- "NVDA"
 
-# Uncomment the following lines to load the ETF OHLC prices.
+# Get the vector of ETF symbols from the environment
 if (!("etfenv" %in% ls())) {
   cat("Loading the ETF OHLC prices.\n")
   load("/Users/jerzy/Develop/data/etf_ohlc.RData")
 } # end if
-envv <- etfenv
+symboletf <- sort(names(etfenv))
+symboln <- "QQQ"
+
+# Uncomment the below to simulate the strategy for S&P500 stocks
+# Load the SP500 OHLC prices
+if (!exists("sp500env")) {
+  cat("Loading the S&P500 OHLC prices.\n")
+  load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
+} # end if
+symbolstock <- sort(colnames(retstock))
+# symboln <- "AAPL"
+
 symboln <- "QQQ"
 
 # Vector of stock symbols in the environment
-symbolv <- sort(names(envv))
+symbolv <- c(symboletf, symbolstock)
 
 volt <- 0.01 ##  Volatility target for scaling the strategy PnLs
 varfloor <- 1e-6 ##  Variance floor to prevent division by zero in Kelly ratio calculations
@@ -52,7 +63,7 @@ uifun <- shiny::fluidPage(
 
   fluidRow(
     ##  Input stock symboln
-    column(width=1, selectInput("symboln", label="Symbol", choices=symbolv, selected=symboln)),
+    column(width=1, selectInput("symboln", label="Symbol", choices=c(symboletf, symbolstock), selected=symboln)),
     ##  Input return type
     column(width=1, selectInput("return_type", label="Returns", 
       choices=c("Daily"="daily", "Overnight"="overnight"), selected="daily")),
@@ -86,8 +97,17 @@ servfun <- function(input, output) {
     
     symboln <- input$symboln
     cat("Loading data for", symboln, "\n")
-
-    ohlc <- log(get(symboln, envv))
+    
+    if (symboln %in% symboletf) {
+      cat("Loading ETF prices \n")
+      # Get ETF returns from rutils::etfenv
+      ohlc <- log(get(symboln, etfenv))
+    } else if (symboln %in% symbolstock) {
+      cat("Loading stock prices \n")
+      # Get stock returns from pricestock
+      ohlc <- log(get(symboln, sp500env))
+    }  # end if
+    
     return(ohlc)
     
   })  ##  end Load the data

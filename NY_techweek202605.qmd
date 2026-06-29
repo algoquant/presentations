@@ -27,10 +27,10 @@ editor: visual
 - **Short Volatility:** Betting that stock prices will be range-bound and volatility will be contained.\
   \
 
-- **Momentum:** Buying in the best performing stocks and shorting the worst performing ones.\
+- **Momentum:** Buying the best performing stocks and shorting the worst performing ones.\
   \
 
-- **Portfolio Momentum:** Buying in the best performing portfolios.
+- **Portfolio Momentum:** Buying the best performing portfolios.
 
 :::
 :::::
@@ -205,10 +205,10 @@ The strategy performs better in periods of high volatility.
 ::: {.column width="50%"}
 
 <!-- Run the Bollinger strategy app by calling R on the command line:
-Rscript -e "shiny::runApp('/Users/jerzy/Develop/Presentations/strat_bollinger_price.R', host='127.0.0.1', port=3841, launch.browser=FALSE)"
+Rscript -e "shiny::runApp('/Users/jerzy/Develop/Presentations/strat_bollinger_price.R', host='127.0.0.1', port=3843, launch.browser=FALSE)"
 -->
 
-<div onclick="fetch('http://127.0.0.1:3841/', { method: 'GET', mode: 'no-cors' }).then(() => { window.open('http://127.0.0.1:3841/', 'bollingerApp', 'popup,width=1100,height=800,resizable=yes,scrollbars=yes'); }).catch(() => {}); return false;" style="cursor:pointer;">
+<div onclick="fetch('http://127.0.0.1:3843/', { method: 'GET', mode: 'no-cors' }).then(() => { window.open('http://127.0.0.1:3843/', 'bollingerApp', 'popup,width=1100,height=800,resizable=yes,scrollbars=yes'); }).catch(() => {}); return false;" style="cursor:pointer;">
   <img src="figure/bb_qqq_108.jpeg" alt="Bollinger Strategy" style="width:100%;" />
 </div>
 
@@ -269,10 +269,10 @@ The regime switching strategy depends on additional parameters, like the volatil
 ::: {.column width="50%"}
 
 <!-- Run the regime switching app by calling R on the command line:
-Rscript -e "shiny::runApp('/Users/jerzy/Develop/Presentations/strat_regime_vol.R', host='127.0.0.1', port=3843, launch.browser=FALSE)"
+Rscript -e "shiny::runApp('/Users/jerzy/Develop/Presentations/strat_regime_vol.R', host='127.0.0.1', port=3845, launch.browser=FALSE)"
 -->
 
-<div onclick="fetch('http://127.0.0.1:3843/', { method: 'GET', mode: 'no-cors' }).then(() => { window.open('http://127.0.0.1:3843/', 'regimevolApp', 'popup,width=1100,height=800,resizable=yes,scrollbars=yes'); }).catch(() => {}); return false;" style="cursor:pointer;">
+<div onclick="fetch('http://127.0.0.1:3845/', { method: 'GET', mode: 'no-cors' }).then(() => { window.open('http://127.0.0.1:3845/', 'regimevolApp', 'popup,width=1100,height=800,resizable=yes,scrollbars=yes'); }).catch(() => {}); return false;" style="cursor:pointer;">
   <img src="figure/regimevol_qqq_992.jpeg" alt="Regime Switching Strategy" style="width:100%;" />
 </div>
 

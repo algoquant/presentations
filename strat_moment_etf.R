@@ -1,9 +1,9 @@
 ##############################
-# This is a shiny app for simulating a momentum strategy using the 
-# idiosyncratic returns of sector ETFs starting with X.
-# The momentum strategy is combined with a crossover of EMA of the 
-# cumulative PnLs.  If the cumulative PnL is below its EMA, then
-# the momentum weights are reversed.
+# This is a shiny app for simulating a momentum strategy 
+# for VTI, IEF, and DBC.
+# The momentum weights are proportional to the Kelly 
+# ratio calculated over a look-back period of in-sample 
+# returns.
 #
 # Just press the "Run App" button on upper right of this panel.
 ##############################

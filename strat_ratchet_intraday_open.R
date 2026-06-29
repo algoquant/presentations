@@ -15,14 +15,10 @@
 # and it continues buying as the z-score keeps dropping.
 # The strategy waits to sell its inventory only after 
 # the z-score has changed its sign, but not before that.
-# 
+
 # You must compile the C++ file by running this command in R:
 # Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/back_test.cpp")
 
-
-# Runs the C++ function ratchet() from /Users/jerzy/Develop/Rcpp/back_test.cpp
-#
-#
 # Just press the "Run App" button on upper right of this panel.
 ##############################
 
@@ -58,9 +54,8 @@ filev <- sapply(filev, function(x) {
 }, USE.NAMES=FALSE) # end sapply
 
 
-# Create vector of start and end times for the selectInput() widget
+# Create vector of start and end times in 10-minute intervals for the selectInput() widget
 # timev <- c("09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00")
-# Create a series of intraday times in 10-minute intervals
 minutev <- c("00:00", "10:00", "20:00", "30:00", "40:00", "50:00")
 hourv <- sprintf("%02d", 06:18)
 timev <- paste0(rep(hourv, each=length(minutev)), ":", rep(minutev, times=length(hourv)))
@@ -95,7 +90,7 @@ uifun <- shiny::fluidPage(
     column(width=2, sliderInput("zfact", label="Z-factor", min=1.0, max=5.0, value=5.0, step=1.0)),
     # Input the position limit
     column(width=2, sliderInput("poslimit", label="Pos limit:", min=1, max=10, value=5, step=1)),
-    # Input the time of day
+    # Input the time of day interval
     column(width=4, shinyWidgets::sliderTextInput("timeval", label="Start and End Times:", choices=timev,
                                     selected=c(first(timev), last(timev)), width="100%")),
     # Input the start time
@@ -107,7 +102,7 @@ uifun <- shiny::fluidPage(
   ),  # end fluidRow
 
   # Create output plot panel
-  dygraphs::dygraphOutput("dyplot", width="90%", height="600px")
+  dygraphs::dygraphOutput("dyplot", width="90%", height="700px")
 
 )  # end fluidPage interface
 
@@ -140,11 +135,10 @@ servfun <- function(input, output) {
     
     # List of prices
     ohlcl <- ohlcl()
-    priceref <- ohlcl[[1]][1, 1]
-    symboln <- rutils::get_name(colnames(priceref))
+    pricev <- quantmod::Cl(ohlcl[[1]])
+    symboln <- rutils::get_name(colnames(pricev))
     values$symboln <- symboln
     
-    symboln <- input$symboln
     cat("Recalculating strategy for: ", symboln, "\n")
     poslimit <- input$poslimit
     zfact <- input$zfact
@@ -190,13 +184,14 @@ servfun <- function(input, output) {
   output$dyplot <- dygraphs::renderDygraph({
     
     # Get the PnLs
+    symboln <- values$symboln
     pnls <- pnls()
     colnamev <- colnames(pnls)
     
     # Get Sharpe ratios
     sharper <- values$sharper
 
-    captiont <- paste0(c("Index SR=", "Strategy SR="), sharper, collapse=" / ")
+    captiont <- paste0("Sharpe ", paste0(c(symboln, "Strategy"), " = ", sharper, collapse=" / "))
     
     # Plot with annotations
     # add_annotations <- input$add_annotations
