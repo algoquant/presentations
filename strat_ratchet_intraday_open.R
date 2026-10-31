@@ -92,8 +92,9 @@ uifun <- shiny::fluidPage(
     column(width=2, sliderInput("poslimit", label="Pos limit:", min=1, max=10, value=5, step=1)),
     # Input the time of day interval
     column(width=4, shinyWidgets::sliderTextInput("timeval", label="Start and End Times:", choices=timev,
-                                    selected=c(first(timev), last(timev)), width="100%")),
-    # Input the start time
+                                    # selected=c(first(timev), last(timev)), width="100%")),
+                                    selected=c("09:30:00", "16:00:00"), width="100%")),
+# Input the start time
     # column(width=2, selectInput("startt", label="Start time", choices=timev, selected="13:00")),
     # Input the end time
     # column(width=2, selectInput("endt", label="End time", choices=timev, selected="16:00")),

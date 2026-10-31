@@ -1,8 +1,7 @@
 ##############################
-# This is a shiny app for simulating the intraday reverting 
+# This is a shiny app for simulating an intraday reverting 
 # strategy.
-# The strategy reverts the price trend, and reverses its 
-# position when the trend reverses.
+# The strategy reverses its position when the trend reverses.
 # The strategy buys one share if the price is below the 
 # reference price, or it sells one share short if the 
 # price is above the reference price.
@@ -13,6 +12,7 @@
 # If the decay factor lambdaf is not NULL then the 
 # reference price is the EMA price.
 # The strategy is implemented in the C++ function trend_follow().
+# It flips the sign of the PnLs to implement the reverting strategy.
 
 # You must compile the C++ file by running this command in R:
 # Rcpp::sourceCpp(file="/Users/jerzy/Develop/Rcpp/back_test.cpp")
@@ -120,10 +120,11 @@ servfun <- function(input, output) {
     
     cat("Recalculating strategy for: ", symboln, "\n")
 
-    # Perform a loop over the list of OHLC bars, and calculate the strategy PnLs for each day.
+    # Simulate the trending strategy using the C++ function trend_follow()
     pnlpos <- trend_follow(pricev, lambda=lambdaf)
     # Calculate the number of trades and the PnLs
     values$ntrades <- sum(abs(rutils::diffit(pnlpos[, 2])) > 0)
+    # Flip the sign of the PnLs to implement the reverting strategy
     pnls <- -pnlpos[, 1]
     pnls <- cbind(retv, pnls)
     colnames(pnls) <- c(symboln, "Strategy")

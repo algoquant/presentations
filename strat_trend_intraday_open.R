@@ -1,6 +1,6 @@
 ##############################
-# This is a shiny app for simulating an intraday trend-
-# following strategy with respect to the open price. 
+# This is a shiny app for simulating an intraday trending 
+# strategy with respect to the open price. 
 # The strategy bets that the price will continue to move 
 # in the same direction starting from the open price.
 # The strategy follows the price trend, and reverses its 

@@ -1,6 +1,7 @@
 ##############################
 # This is a shiny app for simulating an EMA strategy using 
 # a single predictor.
+# It can be chosen to be either trending or reverting.
 # The predictors can be the EMA returns, EMA volatility,
 # Sharpe ratio, etc.
 # The strategy positions depend on the EMA predictor.
@@ -28,7 +29,7 @@ load("/Users/jerzy/Develop/lecture_slides/data/sp500_returns.RData")
 symbolstock <- sort(colnames(retstock))
 
 
-captiont <- paste("EMA Trend Following Strategy")
+captiont <- paste("EMA Strategy")
 
 ## End setup code
 
@@ -144,7 +145,9 @@ servfun <- function(input, output) {
 
     # Winsorize predictor to avoid extreme positions
     # posv <- tanh(leveragep*predv())
-    posv <- (leveragep*predv())
+    predv <- predv()
+    predv[1:31] <- 0
+    posv <- (leveragep*predv)
     posv <- rutils::lagit(posv, lagg=1)
     retp <- retpar()[, 1, drop=FALSE]
     pnls <- trend*posv*retp

@@ -199,9 +199,9 @@ servfun <- shiny::shinyServer(function(input, output) {
     # posv <- rowMeans(posv)
     
     # Calculate the number of trades
-    flipi <- rutils::diffit(posv)
-    values$ntrades <- sum(abs(flipi) > 0)
-
+    flipi <- abs(rutils::diffit(posv))
+    values$ntrades <- sum(flipi > 0)
+    
     # Calculate the PnLs
     # reti <- (retp$Stock - rutils::lagit(betas)*retp$ETF)
     pnls <- retp*posv

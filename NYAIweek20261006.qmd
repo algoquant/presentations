@@ -1,0 +1,592 @@
+---
+title: "Quant Trading Strategies"
+author:
+  - name: "[*Jerzy Pawlowski*](https://www.linkedin.com/in/jerzypawlowski), CIO AIVelocity<br>jpawlowski@machinetrader.io"
+subtitle: "**New York**, October 6, 2026"
+format:
+  revealjs:
+    embed-resources: true
+    self-contained-math: true
+    margin: 0.1
+fontsize: 1.5em
+editor: visual
+---
+
+## What is AI?
+
+```{=html}
+<!-- Before presenting, run:
+Rscript /Users/jerzy/Develop/Presentations/shiny_launcher.R
+Double-click a linked chart image to launch its Shiny app.
+Keep the launcher running; Ctrl-C stops it and the apps it started.
+The individual commands below are optional manual-launch alternatives.
+-->
+```
+
+::::: columns
+::: {.column width="50%"}
+- AI systems are enormous networks of electronic neurons that process vast amounts of data to learn complex patterns.\
+  <br>
+
+- The neurons perform computations by applying weights to their inputs and passing the result through an activation function.\
+  <br>
+
+- When people refer to AI systems they usually mean Large Language Models (LLMs).\
+  <br>
+
+- LLMs produce text outputs based on the patterns they have learned from large datasets. <br>
+:::
+
+::: {.column width="50%"}
+![](figure/neural_network.jpeg){width="100%"}
+:::
+:::::
+
+## What is Machine Learning?
+
+::::: columns
+::: {.column width="50%"}
+- Machine Learning (ML) are statistical techniques that fit models to in-sample training data and make predictions or decisions based on out-of-sample test data.\
+  <br>
+
+- Machine Learning is used for extrapolation and classification.\
+  <br>
+
+- Machine Learning has been used extensively in finance and economics. For example linear regression models.\
+  <br>
+
+- Machine Learning is often considered a subset of AI.\
+  <br>
+:::
+
+::: {.column width="50%"}
+![](figure/reg_predictlm.png){width="100%"}
+:::
+:::::
+
+## Why Quant Trading Strategies?
+
+:::: columns
+::: {.column width="70%"}
+- The most successful hedge funds are quant funds: Renaissance, Millennium, Citadel, D.E.Shaw, Two Sigma, Jane Street, etc.\
+  They became successful by using Machine Learning not AI.\
+  <br>
+
+- Systematically exploit market anomalies.\
+  <br>
+
+- Make trading decisions based on empirical analysis.\
+  <br>
+
+- Avoid cognitive biases and emotional decision-making.\
+  <br>
+
+- Automate trading decisions to achieve economies of scale.\
+  <br>
+
+- Achieve greater diversification in trading portfolios.
+:::
+::::
+
+## What Are The Critical Parameters in Quant Strategies?
+
+:::: columns
+::: {.column width="70%"}
+- Decay Factor $\lambda$ to weight past prices with new prices in the Exponential Moving Decay factor Average (EMA).\
+  The decay factor determines how fast the system adapts to new information.\
+  <br>
+
+- Classification threshold level $\theta$.\
+  The threshold level determines when a predictive signal is classified as a buy or a sell.\
+  <br>
+
+- Risk management parameters (stop-loss, take-profit, position limits, etc.)\
+  The risk management parameters determine the level of risk the trading strategy is willing to take.
+:::
+::::
+
+## Exponential Moving Average Price
+
+:::::: columns
+::: {.column width="50%"}
+The exponential moving average (EMA) price is equal to the weighted average of the past EMA price and the current price:
+
+$$p^{EMA}_t = \lambda p^{EMA}_{t-1} + (1 - \lambda) p_t$$
+
+Where $\lambda$ is the decay factor.\
+
+The value of $\lambda$ determines how fast the EMA adapts to new prices.\
+- If $\lambda$ is closer to 1, the EMA adapts slowly and it's smoother, but it's more biased.\
+- If $\lambda$ is closer to 0, the EMA adapts more quickly but it's more volatile.\
+
+It's better if the EMA adapts more quickly to new prices (less bias), but not too quickly to avoid excessive volatility.\
+**That's the bias-variance tradeoﬀ.**\
+We want to choose a value of $\lambda$ that provides the best tradeoﬀ between the bias and the volatility.
+:::
+
+:::: {.column width="50%"}
+```{=html}
+<!-- Run the EMA app by calling R on the command line:
+Rscript -e "shiny::runApp('/Users/jerzy/Develop/Presentations/app_ema_plot2.R', host='127.0.0.1', port=3838, launch.browser=FALSE)"
+-->
+```
+
+::: {ondblclick="event.stopPropagation(); window.open('http://127.0.0.1:3870/launch/ema', 'emaApp', 'popup,width=1100,height=800,resizable=yes,scrollbars=yes'); return false;" style="cursor:pointer;"}
+<img src="figure/ema_qqq.jpeg" alt="Exponential Moving Average Price" style="width:100%;"/>
+:::
+::::
+::::::
+
+## Crossover Strategy
+
+:::::: columns
+::: {.column width="50%"}
+**The crossover strategy switches between long and short stock positions, depending on the current stock price relative to its EMA price**
+
+The trending crossover strategy rules are:\
+
+- Go long if the EMA price is above the current price.\
+
+- Go short if the EMA price is below the price.\
+
+The crossover strategy rules can be reversed to create a contrarian (reverting) strategy, with a buy instead of a sell, and vice versa.\
+:::
+
+:::: {.column width="50%"}
+```{=html}
+<!-- Run the EMA app by calling R on the command line:
+Rscript -e "shiny::runApp('/Users/jerzy/Develop/Presentations/app_ema_crossover.R', host='127.0.0.1', port=3839, launch.browser=FALSE)"
+-->
+```
+
+::: {ondblclick="event.stopPropagation(); window.open('http://127.0.0.1:3870/launch/crossover', 'crossoverApp', 'popup,width=1100,height=800,resizable=yes,scrollbars=yes'); return false;" style="cursor:pointer;"}
+<img src="figure/cross_qqq.jpeg" alt="EMA Crossovers" style="width:100%;"/>
+:::
+::::
+::::::
+
+## Crossover Strategy Performance
+
+:::::: columns
+::: {.column width="50%"}
+**The crossover strategy performs better in periods of higher volatility, when the prices are dropping**
+
+The trending crossover strategy profits when the prices trend in the same direction, but it suffers losses when the prices are range-bound.
+
+The trending crossover strategy performs best with a large $\lambda$ decay factor close to $1$, with the EMA price changing very slowly, producing very few trades.
+
+The reverting crossover strategy performs best with a small $\lambda$ decay factor close to $0$, with the EMA prices changing very fast, producing a large number of trades.
+
+The crossover strategy performance can be improved by introducing a second EMA price.
+:::
+
+:::: {.column width="50%"}
+```{=html}
+<!-- Run the EMA app by calling R on the command line:
+Rscript -e "shiny::runApp('/Users/jerzy/Develop/Presentations/strat_ema_crossover.R', host='127.0.0.1', port=3840, launch.browser=FALSE)"
+-->
+```
+
+::: {ondblclick="event.stopPropagation(); window.open('http://127.0.0.1:3870/launch/performance', 'performanceApp', 'popup,width=1100,height=800,resizable=yes,scrollbars=yes'); return false;" style="cursor:pointer;"}
+<img src="figure/strat_cross_qqq.jpeg" alt="EMA Crossover Strategy" style="width:100%;"/>
+:::
+::::
+::::::
+
+## Estimating Volatility
+
+**Accurate and timely estimation of volatility is a key requirement for quant trading**
+
+- **Exponential Moving Average (EMA) Volatility**
+
+  $$\sigma^2_t = \lambda \sigma^2_{t-1} + (1 - \lambda) r^2_t$$
+
+  $r_t$ is the return at time $t$.\
+  Where $\lambda$ is the decay factor.
+
+- **Downside Volatility:** Use only negative returns
+
+  Only negative returns represent risk, not positive returns.
+
+  $$\sigma^2_t = \lambda \sigma^2_{t-1} + (1 - \lambda) r^2_t$$
+
+  $r_t$ is the negative return at time $t$.\
+
+- **Range Volatility:** Use the OHLC bars of prices
+
+  $$\sigma^2_t = \lambda \sigma^2_{t-1} + (1 - \lambda) (H_t - L_t)^2$$
+
+  $H_t$ and $L_t$ are the high and low prices of the day
+
+## Bollinger Strategy
+
+:::::: columns
+::: {.column width="50%"}
+**The Bollinger strategy switches between long and short stock positions, depending on the Z-score of past EMA returns**
+
+The mean-reverting Bollinger strategy rules are:
+
+- Go long if the z-score is below the lower threshold.
+
+- Go short if the z-score is above the upper threshold.
+
+The z-score is equal to the ratio of the excess EMA price divided by the EMA price volatility:
+
+$$z_t = \frac{p_t - p^{EMA}_t}{\sigma_t}$$
+
+The z-score is an indicator of overbought (price too high) and oversold (price too low) stock prices.
+:::
+
+:::: {.column width="50%"}
+```{=html}
+<!-- Run the Bollinger Bands app by calling R on the command line:
+Rscript -e "shiny::runApp('/Users/jerzy/Develop/Presentations/app_bollinger.R', host='127.0.0.1', port=3841, launch.browser=FALSE)"
+-->
+```
+
+::: {ondblclick="event.stopPropagation(); window.open('http://127.0.0.1:3870/launch/bollinger', 'bollingerApp', 'popup,width=1100,height=800,resizable=yes,scrollbars=yes'); return false;" style="cursor:pointer;"}
+<img src="figure/bollinger_bands.jpeg" alt="Bollinger Bands" style="width:100%;"/>
+:::
+::::
+::::::
+
+## Mean-reverting Bollinger Strategy
+
+:::::: columns
+::: {.column width="50%"}
+**The mean-reverting Bollinger strategy performs well in periods of high volatility, when the prices are dropping**
+
+The mean-reverting Bollinger strategy profits when the prices are range-bound, but it suffers losses when the prices trend in the same direction, either up or down.
+
+The strategy is negatively correlated with the stock returns so it provides diversification and alpha.
+
+The strategy earns a risk premium for taking contrarian positions, but it's exposed to inventory risk and it can suffer drawdowns if prices move in the same direction.
+
+The strategy performs better in periods of high volatility.
+:::
+
+:::: {.column width="50%"}
+```{=html}
+<!-- Run the Bollinger strategy app by calling R on the command line:
+Rscript -e "shiny::runApp('/Users/jerzy/Develop/Presentations/strat_bollinger_price.R', host='127.0.0.1', port=3843, launch.browser=FALSE)"
+-->
+```
+
+::: {ondblclick="event.stopPropagation(); window.open('http://127.0.0.1:3870/launch/reverting', 'revertingApp', 'popup,width=1100,height=800,resizable=yes,scrollbars=yes'); return false;" style="cursor:pointer;"}
+<img src="figure/bb_qqq_108.jpeg" alt="Bollinger Strategy" style="width:100%;"/>
+:::
+::::
+::::::
+
+## Volatility Timing Strategy
+
+:::::: columns
+::: {.column width="50%"}
+**The volatility timing strategy adjusts the size of its long stock position depending on the level of volatility**
+
+Because the periods of high volatility usually have negative returns.
+
+The position size is proportional to the inverse of the EMA volatility:\
+$$N_t \propto \frac{1}{\sigma_t}$$
+
+The volatility timing strategy reduces the position size in periods of high volatility and negative returns, so it reduces the drawdowns, but it doesn't protect against long term losses due to persistent negative returns.
+
+The volatility timing boosts its returns by increasing the leverage of the position size in periods of low volatility.
+:::
+
+:::: {.column width="50%"}
+```{=html}
+<!-- Run the volatility timing app by calling R on the command line:
+Rscript -e "shiny::runApp('/Users/jerzy/Develop/Presentations/strat_voltiming.R', host='127.0.0.1', port=3842, launch.browser=FALSE)"
+-->
+```
+
+::: {ondblclick="event.stopPropagation(); window.open('http://127.0.0.1:3870/launch/voltiming', 'voltimingApp', 'popup,width=1100,height=800,resizable=yes,scrollbars=yes'); return false;" style="cursor:pointer;"}
+<img src="figure/voltiming_qqq_992.jpeg" alt="Volatility Timing Strategy" style="width:100%;"/>
+:::
+::::
+::::::
+
+## Regime Switching Strategy
+
+:::::: columns
+::: {.column width="50%"}
+**The regime switching strategy switches between a long stock position and a mean-reverting strategy, depending on the level of volatility**
+
+The regime switching strategy rules are:
+
+- Maintain a long stock position when the volatility is low.
+
+- Switch to a mean-reverting strategy when the volatility is high.
+
+The mean-reverting strategy shorts the stock if its EMA returns are positive, and buys the stock if its EMA returns are negative.
+
+Regime switching captures the positive stock returns when the volatility is low, and it gains from the return volatility when the volatility is high.
+
+The regime switching strategy depends on additional parameters, like the volatility threshold.\
+:::
+
+:::: {.column width="50%"}
+```{=html}
+<!-- Run the regime switching app by calling R on the command line:
+Rscript -e "shiny::runApp('/Users/jerzy/Develop/Presentations/strat_regime_vol.R', host='127.0.0.1', port=3845, launch.browser=FALSE)"
+-->
+```
+
+::: {ondblclick="event.stopPropagation(); window.open('http://127.0.0.1:3870/launch/regime', 'regimeApp', 'popup,width=1100,height=800,resizable=yes,scrollbars=yes'); return false;" style="cursor:pointer;"}
+<img src="figure/regimevol_qqq_992.jpeg" alt="Regime Switching Strategy" style="width:100%;"/>
+:::
+::::
+::::::
+
+## Momentum Strategy
+
+:::::: columns
+::: {.column width="50%"}
+**The momentum strategy buys the best performing stocks and sells short the worst performing stocks**
+
+The stock weights are proportional to their EMA returns divided by their EMA variance (which are the Kelly ratios):
+
+$$w_i = \frac{r^{EMA}_i}{\sigma^2_i}$$
+
+The weights can be rebalanced at different frequencies, weekly or monthly.
+
+The critical parameter is the length of the lookback time period for estimating the EMA returns and variances, which determines the bias-variance tradeoff of the estimates.
+
+In the example, the ETFs are VTI (stocks), IEF (bonds), DBC (commodities), monthly rebalancing with a lookback period of 7 months.
+:::
+
+:::: {.column width="50%"}
+```{=html}
+<!-- Run the regime switching app by calling R on the command line:
+Rscript -e "shiny::runApp('/Users/jerzy/Develop/Presentations/strat_moment_etf.R', host='127.0.0.1', port=3844, launch.browser=FALSE)"
+-->
+```
+
+::: {ondblclick="event.stopPropagation(); window.open('http://127.0.0.1:3870/launch/momentum', 'momentumApp', 'popup,width=1100,height=800,resizable=yes,scrollbars=yes'); return false;" style="cursor:pointer;"}
+<img src="figure/momentum_allweather_121.jpeg" alt="Momentum Strategy" style="width:100%;"/>
+:::
+::::
+::::::
+
+## The Bias-variance Tradeoff
+
+::::: columns
+::: {.column width="50%"}
+**Finding the best bias-variance tradeoff is a key objective in quant trading**
+
+The decay factor $\lambda$ or the lookback period are chosen to optimize the tradeoff between the bias and the variance of the EMA estimates.\
+
+The decay factor $\lambda$ or the lookback period determine how far back in time the EMA estimates look, how much weight is given to past observations.
+
+**Large decay factor** $\lambda$ (long lookback):\
+Slower EMA updates, greater weight of past observations, less variance but more bias (larger latency).
+
+**Small decay factor** $\lambda$ (short lookback):\
+Faster EMA updates, smaller weight of past observations, less bias (smaller latency) but more variance.
+:::
+
+::: {.column width="50%"}
+![](figure/momentum_etf_profile.png){width="100%"}
+:::
+:::::
+
+## Intraday Quant Strategies
+
+:::::: columns
+::: {.column width="50%"}
+**The ladder strategy buys the stock when it's cheap and sells short when it's rich (expensive)**
+
+The z-score is equal to the ratio of the excess price divided by the volatility:
+
+$$z_t = \frac{p_t - p^{ref}_t}{\sigma_t}$$
+
+Where $p^{ref}_t$ is the reference price at time $t$ and $\sigma_t$ is the volatility at time $t$.\
+
+The strategy doubles down and adds positions when the stock is significantly different from the reference price.\
+
+The choice of the reference price and the decay factor $\lambda$ are critical for the performance.\
+
+The plot shows the intraday stock prices of ORCL and the trading signals from the live ladder strategy. It shows live trading not a backtest.
+:::
+
+:::: {.column width="50%"}
+```{=html}
+<!-- Run the regime switching app by calling R on the command line:
+Rscript -e "shiny::runApp('/Users/jerzy/Develop/Presentations/app_prices_annotated.R', host='127.0.0.1', port=3844, launch.browser=FALSE)"
+-->
+```
+
+::: {ondblclick="event.stopPropagation(); window.open('http://127.0.0.1:3870/launch/ladder', 'ladderApp', 'popup,width=1100,height=800,resizable=yes,scrollbars=yes'); return false;" style="cursor:pointer;"}
+<img src="figure/ladder_orcl.jpeg" alt="Ladder Strategy" style="width:100%;"/>
+:::
+::::
+::::::
+
+## Why Can Quant Strategies Fail?
+
+:::: columns
+::: {.column width="70%"}
+- **Stock prices are non-stationary with time-dependent volatility.**\
+  AI and ML models are usually trained on stationary sample data and struggle to adapt to rapidly changing market conditions.\
+  <br>
+
+- **Stock prices have high noise relative to signal - they are close to random.**\
+  AI and ML models perform well for data with a high signal-to-noise ratio.\
+  <br>
+
+- **Stock prices have limited historical data.**\
+  AI and ML models require large amounts of sample data to make accurate predictions.\
+  <br>
+
+- **Stock prices are affected by secular market trends.**\
+  AI and ML models may fail to account for long-term structural changes in the market.\
+  <br>
+:::
+::::
+
+## Limitations of Quant Strategies
+
+:::: columns
+::: {.column width="70%"}
+- **Quant strategies don't always work well under all market conditions and for all stocks.** <br> <br>
+
+- **Most quant strategies perform well only some of the time under certain market conditions.**\
+  For example, some strategies perform better in periods of high volatility, others in periods of low volatility. <br> <br>
+
+- **Most quant strategies perform well only for certain stocks.**\
+  For example, some strategies perform well for ETFs, others for low volatility stocks, others for high volatility stocks. <br> <br>
+
+- **Most quant strategies perform well only for certain values of model parameters.**\
+  Simulation can be used to find the optimal range of model parameters, but the optimal parameters can change over time, so they need to be monitored and adjusted.\
+  Need to find the best bias-variance tradeoff of the model parameters, like the decay factor $\lambda$ for the EMA estimates. <br>
+:::
+::::
+
+## What's Needed To Run Quant Strategies
+
+:::: columns
+::: {.column width="70%"}
+- **Research Trading Strategies:** Historical stock prices, backtesting simulations for strategy ranking and parameter selection.
+
+- **Live Stock Prices:** Consolidated SIP prices via WebSocket, distributed through a data proxy.
+
+- **Paper trading:** Fix bugs and gauge performance.
+
+- **Visualizations of Strategy Performance:** Dashboard for monitoring and analyzing strategy performance.
+
+- **Trade Order Management:** Trade order lifecycle tracking from submission to fill or rejection. Maintain log files with trade fills and rejections.
+
+- **Position and PnL Reconciliation:** Positions and PnL reconciled by *strategy*.
+
+- **Risk Management:** Stop-loss rules, position limits, etc.
+
+- **Computing infrastructure:** Servers hosted in data center with fault-tolerant power supply and internet connection.
+:::
+::::
+
+## What Are The Strengths and Weaknesses of AI?
+
+::::: columns
+::: {.column width="50%"}
+**AI Strengths.**
+
+- AI can lower the barrier to entry for implementing trading strategies.\
+  <br>
+
+- AI can analyze market data and identify trading opportunities.\
+  <br>
+
+- AI can monitor and evaluate live strategy performance.\
+  <br>
+
+- AI can analyze trading log files and extract insights from them.\
+  <br>
+:::
+
+::: {.column width="50%"}
+**AI Weaknesses.**
+
+- AI is a black box which can sometimes fail unpredictably.\
+  <br>
+
+- AI lacks interpretability and transparency.\
+  <br>
+:::
+:::::
+
+## What Are The Critical Success Factors for AI Strategies?
+
+- Continuously monitor and evaluate AI strategy performance.\
+- Ensure interpretability and transparency of AI models.\
+- Maintain detailed trading logs and analyze them regularly.\
+- Adapt strategies to changing market conditions.\
+- Perform rigorous backtesting and validation before live trading.\
+
+## How Can AI Strategies Succeed?
+
+- Why AI?\
+  What AI can do and what it cannot do.\
+  AI lowers the barrier to entry for sophisticated trading strategies.\
+  AI can process vast amounts of market data quickly and accurately.\
+  AI can identify complex patterns and relationships that may not be apparent to human traders.\
+  AI can adapt to changing market conditions in real-time.\
+  AI can enhance the performance of quantitative trading strategies by providing predictive insights and automation.
+
+## Pitfalls of Backtesting
+
+:::: columns
+::: {.column width="70%"}
+- Backtesting can be used to rank strategies from the most promising to the least promising.\
+
+- To eliminate strategies that are the least promising.\
+
+- If a strategy has poor backtesting performance then it's unlikely to have good performance in live trading.\
+
+- To gain insight about the optimal range of model parameters.\
+
+- But backtesting cannot ensure that a strategy will be profitable in live trading, just because it is profitable in simulation.
+:::
+::::
+
+## Topics
+
+- Market Anomalies.\
+  Overnight anomaly.\
+  Weekend effect.\
+  January effect.\
+  Momentum effect.\
+  Post-earnings announcement drift.\
+
+- Exponential Moving Average Price
+
+- Crossover Strategy
+
+- Crossover Strategy Performance
+
+- Intraday Strategies Intraday seasonal patterns. Trade order management. Reconciliation of trading records with broker statements. Maintaining detailed log files. Using AI to analyze the performance and failures of trading strategies.
+
+- Strategy Lifecycle Backtesting Parameter tuning and optimization Paper trading Live trading Strategy evaluation and suspension
+
+## Quant Trading Strategies
+
+:::: columns
+::: {.column width="70%"}
+- **Trend Following:** Betting that stock prices will continue their trend up or down.\
+  \
+
+- **Mean Reversion:** Betting that stock prices will revert to their historical averages.\
+  \
+
+- **Statistical Arbitrage:** Betting that prices of portfolios of stocks will revert to their historical average.\
+  \
+
+- **Short Volatility:** Betting that stock prices will be range-bound and volatility will be contained.\
+  \
+
+- **Momentum:** Buying the best performing stocks and shorting the worst performing ones.\
+  \
+
+- **Portfolio Momentum:** Buying the best performing portfolios.
+:::
+::::
